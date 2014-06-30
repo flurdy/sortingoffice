@@ -1,15 +1,23 @@
-@(title: String)(content: Html)
+@(title: String = "")(content: Html)
 
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>@title</title>
+        <title>Sorting Office | @title</title>
+        <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+        <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
     </head>
     <body>
+      <header>
+         <h1>Sorting Office</h1>
+         <h3>Mail server data managment tool</h3>
+      </header>
+
         @content
+
+      <footer></footer>
     </body>
 </html>
