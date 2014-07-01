@@ -12,6 +12,7 @@ GET     /domain/alias         controllers.DomainController.alias
 
 GET     /alias                controllers.AliasController.alias
 GET     /alias/catchall       controllers.AliasController.catchAll
+GET     /alias/common         controllers.AliasController.common
 
 GET     /user                 controllers.UserController.user
 

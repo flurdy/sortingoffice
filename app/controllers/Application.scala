@@ -43,6 +43,10 @@ object AliasController extends Controller {
     Ok(views.html.alias.catchall())
   }
 
+  def common = Action {
+    Ok(views.html.alias.common())
+  }
+
 }
 
 

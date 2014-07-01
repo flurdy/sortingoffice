@@ -1,0 +1,482 @@
+@()
+
+@main(Some("Aliases | Catch All")) {
+
+   <h3><a href="@routes.AliasController.alias">Common aliases</a></h3>
+
+   <section>
+
+      <h4>Required aliases</h4>
+
+      <table class="table table-hover ticks">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th colspan="2">abuse</th>
+               <th colspan="2">postmaster</th>
+               <th colspan="2">catch all</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-info">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.net</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="minus" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+   <section>
+
+      <h4>Common aliases</h4>
+
+      <table class="table table-hover ticks">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th colspan="2">info</th>
+               <th colspan="2">root</th>
+               <th colspan="2">support</th>
+               <th colspan="2">webmaster</th>
+               <th colspan="2">catch all</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-info">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.net</a></td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="cross" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="cross" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-warning">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+   <section>
+
+      <h4>Required relays</h4>
+
+      <table class="table table-hover ticks">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th colspan="2">abuse</th>
+               <th colspan="2">postmaster</th>
+               <th colspan="2">catch all</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-info">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.net</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="minus" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+   <section>
+
+      <h4>Common relays</h4>
+
+      <table class="table table-hover ticks">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th colspan="2">info</th>
+               <th colspan="2">root</th>
+               <th colspan="2">support</th>
+               <th colspan="2">webmaster</th>
+               <th colspan="2">catch all</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-info">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.net</a></td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
+               </td><td class="tickactions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="cross" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="tick" title="Missing!"/>
+               </td><td class="tickactions">
+                  <button title="add" class="btn btn-xs btn-success">+</button>
+               </td>
+               <td class="actions tick">
+                  <img src="@routes.Assets.at("images/cross.svg")" alt="cross" title="Disabled!"/>
+               </td><td class="tickactions">
+                  <button title="enable" class="btn btn-xs btn-warning">e</button>
+                   <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+
+}

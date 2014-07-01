@@ -1,7 +1,7 @@
 body {
 	padding: 0.3em 1em;
-	max-width: 50em;
-	min-width: 20em;
+	max-width: 65em;
+	min-width: 50em;
    background-color: #deffde;
    color: black;
 }
@@ -84,4 +84,19 @@ footer #flurdy-footer {
 }
 #cargo section table button {
    margin: 0 0.1em;
+}
+#cargo section table.ticks th{
+   text-align: center;
+}
+#cargo section table.ticks th:nth-of-type(1) {
+   text-align: left;
+}
+#cargo section table .tickactions {
+}
+#cargo section table .tick {
+   text-align: right;
+   /*padding-left: 1em;*/
+}
+#cargo section table .tick img {
+   height: 20px;
 }

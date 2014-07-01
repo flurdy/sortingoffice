@@ -2,7 +2,7 @@
 
 @main(Some("Aliases | Catch All")) {
 
-   <h3><a href="@routes.AliasController.alias">Aliases Catch All</a></h3>
+   <h3><a href="@routes.AliasController.alias">Catch all aliases</a></h3>
 
    <section>
 
@@ -18,7 +18,7 @@
          </thead>
          <tbody>
             <tr>
-               <td>example.org</td>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
                <td>yes</td>
                <td class="actions">
                   <button title="disable" class="btn btn-xs btn-warning">d</button>
@@ -26,7 +26,7 @@
                </td>
             </tr>
             <tr>
-               <td><s>example.net</s></td>
+               <td><s><a href="@routes.DomainController.alias">example.net</a></s></td>
                <td><s>no</s></td>
                <td class="actions">
                   <button title="enable" class="btn btn-xs btn-success">e</button>
@@ -85,7 +85,7 @@
          </thead>
          <tbody>
             <tr>
-               <td>example.org</td>
+               <td><a href="@routes.DomainController.alias">example.org</a></td>
                <td>yes</td>
                <td class="actions">
                   <button title="disable" class="btn btn-xs btn-warning">d</button>
@@ -93,7 +93,7 @@
                </td>
             </tr>
             <tr>
-               <td><s>example.net</s></td>
+               <td><s><a href="@routes.DomainController.alias">example.net</a></s></td>
                <td><s>no</s></td>
                <td class="actions">
                   <button title="enable" class="btn btn-xs btn-success">e</button>
