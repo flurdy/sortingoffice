@@ -1,0 +1,141 @@
+@()
+
+@main(Some("Aliases | Catch All")) {
+
+   <h3><a href="@routes.AliasController.alias">Aliases Catch All</a></h3>
+
+   <section>
+
+      <h4>Catch all</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th>enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td>example.org</td>
+               <td>yes</td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+            <tr>
+               <td><s>example.net</s></td>
+               <td><s>no</s></td>
+               <td class="actions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+      <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
+
+   </section>
+
+   <section>
+
+      <h4>Not catch all</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-success">add</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-success">add</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+   <h3>Relays Catch All</h3>
+
+   <section>
+
+      <h4>Catch all</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th>enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td>example.org</td>
+               <td>yes</td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+            <tr>
+               <td><s>example.net</s></td>
+               <td><s>no</s></td>
+               <td class="actions">
+                  <button title="enable" class="btn btn-xs btn-success">e</button>
+                  <button title="remove" class="btn btn-xs btn-danger">x</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+      <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
+
+   </section>
+
+   <section>
+
+      <h4>Not catch all</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>domain</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.com</a></td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-success">add</button>
+               </td>
+            </tr>
+            <tr>
+               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-success">add</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
+
+   </section>
+
+
+
+}

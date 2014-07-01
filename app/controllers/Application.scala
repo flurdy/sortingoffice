@@ -39,6 +39,10 @@ object AliasController extends Controller {
     Ok(views.html.alias.alias())
   }
 
+  def catchAll = Action {
+    Ok(views.html.alias.catchall())
+  }
+
 }
 
 
