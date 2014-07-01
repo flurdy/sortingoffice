@@ -47,6 +47,10 @@ object AliasController extends Controller {
     Ok(views.html.alias.common())
   }
 
+  def crossDomain = Action {
+    Ok(views.html.alias.cross())
+  }
+
 }
 
 
