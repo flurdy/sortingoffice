@@ -59,5 +59,8 @@ object UserController extends Controller {
   def user = Action {
     Ok(views.html.user.user())
   }
+  def edituser = Action {
+    Ok(views.html.user.edituser())
+  }
 
 }
