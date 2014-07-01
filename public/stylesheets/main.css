@@ -56,10 +56,6 @@ header h1 a:active {
    text-decoration: none;
    color: black;
 }
-#cargo {
-   margin: 0;
-   min-height: 30em;
-}
 footer {
    padding: 1em;
    margin-top: 0.5em;
@@ -67,4 +63,25 @@ footer {
 footer #flurdy-footer {
    height: 1.0em;
    float: right;
+}
+#cargo {
+   margin: 0;
+   min-height: 30em;
+}
+#cargo section {
+   margin: 3em 0 5em 0;
+   clear: both;
+}
+#cargo section > button {
+   float: right;
+}
+#cargo section table {
+   clear: both;
+   width: 100%;
+}
+#cargo section table .actions {
+   text-align: right;
+}
+#cargo section table button {
+   margin: 0 0.1em;
 }

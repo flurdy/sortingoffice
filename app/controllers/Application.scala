@@ -22,8 +22,12 @@ object Application extends Controller {
 
 object DomainController extends Controller {
 
-  def index = Action {
-    Ok(views.html.domain.index())
+  def domain = Action {
+    Ok(views.html.domain.domain())
+  }
+
+  def alias = Action {
+    Ok(views.html.domain.domainalias())
   }
 
 }
@@ -31,8 +35,8 @@ object DomainController extends Controller {
 
 object AliasController extends Controller {
 
-  def index = Action {
-    Ok(views.html.alias.index())
+  def alias = Action {
+    Ok(views.html.alias.alias())
   }
 
 }
@@ -40,8 +44,8 @@ object AliasController extends Controller {
 
 object UserController extends Controller {
 
-  def index = Action {
-    Ok(views.html.user.index())
+  def user = Action {
+    Ok(views.html.user.user())
   }
 
 }
