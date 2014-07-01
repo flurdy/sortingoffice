@@ -6,7 +6,7 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  "org.webjars" %% "webjars-play" % "2.3.0",
+  "org.webjars" %% "webjars-play" % "2.2.1",
   "org.webjars" % "jquery" % "2.0.3-1",
   "org.webjars" % "bootstrap" % "3.0.3"
 )

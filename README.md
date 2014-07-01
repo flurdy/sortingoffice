@@ -25,6 +25,13 @@ Not
 * Nor read, monitor or alter any actual emails.
 
 
+
+Future
+----
+* Include all MXs, including backup MXs
+* Dynamic server additions
+
+
 Source code
 -----
 * http://github.com/flurdy/sortingoffice

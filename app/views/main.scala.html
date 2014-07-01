@@ -1,30 +1,38 @@
-@(title: String = "")(content: Html)
+@(title: Option[String] = None)(content: Html)
 
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>Sorting Office | @title</title>
+        <title>Sorting Office @title.map("| " + _).getOrElse("")</title>
         <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/mail.gif")">
         <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
     </head>
     <body>
+
       <navigation>
         <ul>
           <li><a href="@routes.Application.index">home</a></li>
-          <li><a href="http://github.com/flurdy/sortingoffice">about</a></li>
-          <li><a href="http://github.com/flurdy/sortingoffice">contact</a></li>
+          <li><a href="@routes.Application.about">about</a></li>
+          <li><a href="@routes.Application.contact">contact</a></li>
         </ul>
       </navigation>
-      <header>
-         <h1>Sorting Office</h1>
-         <h3>Mail server data managment tool</h3>
-      </header>
 
-        @content
+      <div id="ship">
+        <header>
+           <h1><a href="@routes.Application.index">Sorting Office</a></h1>
+        </header>
 
-      <footer></footer>
+        <div id="cargo">
+           @content
+        </div>
+      </div>
+
+      <footer>
+         <a href="http://flurdy.com"><img id="flurdy-footer" src="@routes.Assets.at("images/flurdy_warped_dual_small.png")" alt="flurdy" title="Created by flurdy"/></a>
+      </footer>
+
     </body>
 </html>

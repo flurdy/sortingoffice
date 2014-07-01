@@ -3,7 +3,13 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                     controllers.Application.index
+GET     /about.html           controllers.Application.about
+GET     /contact.html         controllers.Application.contact
+
+GET     /domain               controllers.DomainController.index
+GET     /alias                controllers.AliasController.index
+GET     /user                 controllers.UserController.index
 
 
 # Map static webjar resources
