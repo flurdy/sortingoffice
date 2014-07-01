@@ -1,14 +1,40 @@
 @()
 
-@main() {
+@main(Some("Users")) {
 
    <h3>Users</h3>
 
-	<ul>
+   <section>
 
+      <table class="table table-hover ticks">
+         <thead>
+            <tr>
+               <th>email</th>
+               <th>enabled</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr>
+               <td><a href="@routes.UserController.user">john.smith@@example.com</a></td>
+               <td>yes</td>
+               <td class="actions">
+                  <button title="disable" class="btn btn-xs btn-warning">d</button>
+                  <button title="edit" class="btn btn-xs btn-info">edit</button>
+               </td>
+            </tr>
+            <tr>
+               <td><s><a href="@routes.UserController.user">mark.smith@@example.com</a></s></td>
+               <td><s>no</s></td>
+               <td class="actions">
+                  <button title="enable" class="btn btn-xs btn-info">e</button>
+                  <button title="edit" class="btn btn-xs btn-info">edit</button>
+               </td>
+            </tr>
+         </tbody>
+      </table>
 
-	</ul>
+      <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
 
-
+   </section>
 
 }
