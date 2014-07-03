@@ -1,4 +1,6 @@
-@()
+@(relays: List[Domain], backups: List[Domain])
+
+@import models._
 
 @main(Some("Domains")) {
 
@@ -18,33 +20,29 @@
 				</tr>
 			</thead>
 			<tbody>
+				@for(domain <- relays){
 				<tr>
-					<td><a href="@routes.DomainController.alias">example.com</a></td>
-					<td>yes</td>
-					<td>virtual</td>
+					<td>
+						@if(!domain.enabled){ <s> }
+						<a href="@routes.DomainController.alias">@domain.name</a>
+						@if(!domain.enabled){ </s> }
+					</td>
+					<td>@domain.enabled</td>
+					<td>
+						@if(!domain.enabled){ <s> }
+						@domain.transport
+						@if(!domain.enabled){ </s> }
+					</td>
 					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
+						@if(domain.enabled){
+							<button title="disable" class="btn btn-xs btn-warning">d</button>
+						} else {
+							<button title="enable" class="btn btn-xs btn-success">e</button>
+						}
 						<button title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
-				<tr>
-					<td><s><a href="@routes.DomainController.alias">example.net</a></s></td>
-					<td><s>no</s></td>
-					<td><s>virtual</s></td>
-					<td class="actions">
-						<button title="enable" class="btn btn-xs btn-success">e</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				<tr>
-					<td><a href="@routes.DomainController.alias">example.org</a></td>
-					<td>yes</td>
-					<td>virtual</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
+				}
 			</tbody>
 		</table>
 
@@ -67,33 +65,29 @@
 				</tr>
 			</thead>
 			<tbody>
+				@for(domain <- backups){
 				<tr>
-					<td><a href="@routes.DomainController.alias">example.com</a></td>
-					<td>yes</td>
-					<td>smtp:[mail.example.io]</td>
+					<td>
+						@if(!domain.enabled){ <s> }
+						<a href="@routes.DomainController.alias">@domain.name</a>
+						@if(!domain.enabled){ </s> }
+					</td>
+					<td>@domain.enabled</td>
+					<td>
+						@if(!domain.enabled){ <s> }
+						@domain.transport
+						@if(!domain.enabled){ </s> }
+					</td>
 					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
+						@if(domain.enabled){
+							<button title="disable" class="btn btn-xs btn-warning">d</button>
+						} else {
+							<button title="enable" class="btn btn-xs btn-success">e</button>
+						}
 						<button title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
-				<tr>
-					<td><s>example.net</s></td>
-					<td><s>no</s></td>
-					<td><s>smtp:[mail.example.io]</s></td>
-					<td class="actions">
-						<button title="enable" class="btn btn-xs btn-success">e</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				<tr>
-					<td><a href="@routes.DomainController.alias">example.org</a></td>
-					<td>yes</td>
-					<td>smtp:[mail.example.io]</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
+				}
 			</tbody>
 		</table>
 

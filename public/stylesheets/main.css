@@ -65,7 +65,8 @@ footer #flurdy-footer {
    float: right;
 }
 #cargo {
-   margin: 0;
+   margin: 1em 1em;
+   padding: 1em;
    min-height: 30em;
 }
 #cargo section {

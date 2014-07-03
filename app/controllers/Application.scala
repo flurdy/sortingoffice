@@ -2,6 +2,7 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import models._
 
 object Application extends Controller {
 
@@ -23,11 +24,17 @@ object Application extends Controller {
 object DomainController extends Controller {
 
   def domain = Action {
-    Ok(views.html.domain.domain())
+    val relays = DomainRepository.findRelayDomains
+    val backups = DomainRepository.findBackupDomains
+    Ok(views.html.domain.domain( relays, backups ))
   }
 
   def alias = Action {
-    Ok(views.html.domain.domainalias())
+    val domain = Domain("",true,"")
+    val relays = RelayRepository.findRelaysForDomain(domain)
+    val aliases = AliasRepository.findAliasesForDomain(domain)
+    val users = UserRepository.findUsersForDomain(domain)
+    Ok(views.html.domain.domainalias(relays,aliases,users))
   }
 
 }
