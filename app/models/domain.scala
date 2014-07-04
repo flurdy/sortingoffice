@@ -1,26 +1,16 @@
 package models
 
+import infrastructure._
+
 
 case class Domain(name: String, enabled: Boolean, transport: String)
 
 
-object DomainRepository {
+object Domains {
 
-   private val domains: List[Domain] = List(
-      Domain("example.no",true,"virtual"),
-      Domain("example.de",false,"virtual"),
-      Domain("example.it",true,"virtual")
-   )
+   def findRelayDomains: List[Domain] = DomainRepository.findRelayDomains
 
-   private val backups: List[Domain] = List(
-      Domain("example.se",true,"smtp:[mail.example.com]"),
-      Domain("example.ru",false,"smtp:[mail.example.com]"),
-      Domain("example.in",true,"smtp:[mail.example.com]")
-   )
-
-   def findRelayDomains: List[Domain] = domains
-
-   def findBackupDomains: List[Domain] = backups
+   def findBackupDomains: List[Domain] = DomainRepository.findBackupDomains
 
 }
 

@@ -24,8 +24,8 @@ object Application extends Controller {
 object DomainController extends Controller {
 
   def domain = Action {
-    val relays = DomainRepository.findRelayDomains
-    val backups = DomainRepository.findBackupDomains
+    val relays = Domains.findRelayDomains
+    val backups = Domains.findBackupDomains
     Ok(views.html.domain.domain( relays, backups ))
   }
 
