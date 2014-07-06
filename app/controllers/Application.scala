@@ -29,12 +29,20 @@ object DomainController extends Controller {
     Ok(views.html.domain.domain( relays, backups ))
   }
 
-  def alias = Action {
-    val domain = Domain("",true,"")
-    val relays = RelayRepository.findRelaysForDomain(domain)
-    val aliases = AliasRepository.findAliasesForDomain(domain)
-    val users = UserRepository.findUsersForDomain(domain)
-    Ok(views.html.domain.domainalias(relays,aliases,users))
+  def alias(name: String) = Action {
+    Domains.findRelayDomain(name) match {
+      case Some(domain) =>{
+        val relays = domain.findRelays
+        val aliases = domain.findAliases
+        val users = domain.findUsers
+        Ok(views.html.domain.domainalias(domain,relays,aliases,users))
+      }
+      case None => {
+        val relays = Domains.findRelayDomains
+        val backups = Domains.findBackupDomains
+        NotFound(views.html.domain.domain( relays, backups ))
+      }
+    }
   }
 
 }
@@ -47,7 +55,12 @@ object AliasController extends Controller {
   }
 
   def catchAll = Action {
-    Ok(views.html.alias.catchall())
+    val catchAllAliases = Aliases.findCatchAllDomains
+    val relayDomains = Domains.findRelayDomains
+    val noCatchAllAliases = relayDomains diff catchAllAliases
+    val catchAllRelays = Relays.findCatchAllDomains
+    val noCatchAllRelays = relayDomains diff catchAllRelays
+    Ok(views.html.alias.catchall(catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
   }
 
   def common = Action {

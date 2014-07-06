@@ -24,7 +24,7 @@
 				<tr>
 					<td>
 						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias">@domain.name</a>
+						<a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td>@domain.enabled</td>
@@ -35,18 +35,18 @@
 					</td>
 					<td class="actions">
 						@if(domain.enabled){
-							<button title="disable" class="btn btn-xs btn-warning">d</button>
+							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
 						} else {
-							<button title="enable" class="btn btn-xs btn-success">e</button>
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
 						}
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
+						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
 				}
 			</tbody>
 		</table>
 
-		<button class="btn btn-sm col-sm-3 col-xs-3 btn-info">add relay</button>
+		<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add relay</button>
 
 	</section>
 
@@ -69,7 +69,7 @@
 				<tr>
 					<td>
 						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias">@domain.name</a>
+						<a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td>@domain.enabled</td>
@@ -80,18 +80,18 @@
 					</td>
 					<td class="actions">
 						@if(domain.enabled){
-							<button title="disable" class="btn btn-xs btn-warning">d</button>
+							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
 						} else {
-							<button title="enable" class="btn btn-xs btn-success">e</button>
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
 						}
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
+						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
 				}
 			</tbody>
 		</table>
 
-		<button class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
+		<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
 
 	</section>
 

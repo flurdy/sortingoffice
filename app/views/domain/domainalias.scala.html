@@ -1,8 +1,8 @@
-@(relays: List[Relay], aliases: List[Alias], users: List[User])
+@(domain: Domain, relays: List[Relay], aliases: List[Alias], users: List[User])
 
 @main(Some("Domain aliases | example.org")) {
 
-   <h3><a href="@routes.DomainController.domain">Domain</a> aliases [example.com]</h3>
+   <h3><a href="@routes.DomainController.domain">Domain</a> aliases [@domain.name]</h3>
 
    <section>
 
@@ -13,7 +13,7 @@
 				<tr>
 					<th>recipient</th>
 					<th>enabled</th>
-					<th>transport</th>
+					<th>status</th>
 					<th></th>
 				</tr>
 			</thead>
@@ -22,39 +22,21 @@
 				<tr>
 					<td>@relay.recipient</td>
 					<td>@relay.enabled</td>
-					<td>@relay.transport</td>
+					<td>@relay.status</td>
 					<td class="actions">
 						@if(relay.enabled){
-							<button title="disable" class="btn btn-xs btn-warning">d</button>
+							<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
 						} else {
-							<button title="enable" class="btn btn-xs btn-success">e</button>
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
 						}
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
+						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
 				}
-				<tr>
-					<td>@@example.org</td>
-					<td>yes</td>
-					<td>virtual</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				<tr>
-					<td>info@@example.org</td>
-					<td>yes</td>
-					<td>virtual</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
 			</tbody>
 		</table>
 
-		<button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
 
 	</section>
 
@@ -79,36 +61,18 @@
 					<td>@alias.enabled</td>
 					<td class="actions">
 						@if(alias.enabled){
-							<button title="disable" class="btn btn-xs btn-warning">d</button>
+							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
 						} else {
-							<button title="enable" class="btn btn-xs btn-success">e</button>
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
 						}
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
+						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 					</td>
 				</tr>
 				}
-				<tr>
-					<td>@@example.org</td>
-					<td>@@example.com</td>
-					<td>yes</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				<tr>
-					<td>info@@example.org</td>
-					<td>info@@example.net</td>
-					<td>yes</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
 			</tbody>
 		</table>
 
-		<button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
+		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
 
 	</section>
 
@@ -132,26 +96,18 @@
 					<td>@user.enabled</td>
 					<td class="actions">
 						@if(user.enabled){
-							<button title="disable" class="btn btn-xs btn-warning">d</button>
+							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
 						} else {
-							<button title="enable" class="btn btn-xs btn-success">e</button>
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
 						}
-						<button title="remove" class="btn btn-xs btn-danger">x</button>
+						<button disabled title="edit" class="btn btn-xs btn-info">edit</button>
 					</td>
 				</tr>
 				}
-				<tr>
-					<td><a href="routes.UserController.user">john@@example.org</a></td>
-					<td>yes</td>
-					<td class="actions">
-						<button title="disable" class="btn btn-xs btn-warning">d</button>
-						<button title="edit" class="btn btn-xs btn-info">edit</button>
-					</td>
-				</tr>
 			</tbody>
 		</table>
 
-		<button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
 
 	</section>
 

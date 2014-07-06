@@ -33,17 +33,17 @@ object DomainRepository {
       }
    }
 
-   private val domains: List[Domain] = List(
-      Domain("example.no",true,"virtual"),
-      Domain("example.de",false,"virtual"),
-      Domain("example.it",true,"virtual")
-   )
+   // private val domains: List[Domain] = List(
+   //    Domain("example.no",true,"virtual"),
+   //    Domain("example.de",false,"virtual"),
+   //    Domain("example.it",true,"virtual")
+   // )
 
-   private val backups: List[Domain] = List(
-      Domain("example.se",true,"smtp:[mail.example.com]"),
-      Domain("example.ru",false,"smtp:[mail.example.com]"),
-      Domain("example.in",true,"smtp:[mail.example.com]")
-   )
+   // private val backups: List[Domain] = List(
+   //    Domain("example.se",true,"smtp:[mail.example.com]"),
+   //    Domain("example.ru",false,"smtp:[mail.example.com]"),
+   //    Domain("example.in",true,"smtp:[mail.example.com]")
+   // )
 
    def findRelayDomains: List[Domain] = {
       DB.withConnection { implicit connection =>
@@ -64,6 +64,48 @@ select * from backups order by domain
          ).as(simpleBackup *)
       }
    }
+
+   def findRelayDomain(name: String): Option[Domain] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from domains
+where domain = {name}
+            """
+         ).on(
+            'name -> name
+         ).as(simpleDomain *).headOption
+      }
+   }
+
+
+   def findCatchAllDomains: List[Domain] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select d.domain,d.transport,a.enabled from domains d
+inner join aliases a
+on concat('@',d.domain) = a.mail
+order by d.domain
+            """
+         ).as(simpleDomain *)
+      }
+   }
+
+   def findCatchAllRelayDomains: List[Domain] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select d.domain,d.transport,r.enabled from domains d
+inner join relays r
+on concat('@',d.domain) = r.recipient
+order by d.domain
+            """
+         ).as(simpleDomain *)
+      }
+   }
+
+
 
 }
 

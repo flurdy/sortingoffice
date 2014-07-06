@@ -1,4 +1,4 @@
-@()
+@(catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain],catchAllRelays: List[Domain],nonCatchAllRelays: List[Domain])
 
 @main(Some("Aliases | Catch All")) {
 
@@ -17,22 +17,27 @@
             </tr>
          </thead>
          <tbody>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.org</a></td>
-               <td>yes</td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-warning">d</button>
-                  <button title="remove" class="btn btn-xs btn-danger">x</button>
-               </td>
-            </tr>
-            <tr>
-               <td><s><a href="@routes.DomainController.alias">example.net</a></s></td>
-               <td><s>no</s></td>
-               <td class="actions">
-                  <button title="enable" class="btn btn-xs btn-success">e</button>
-                  <button title="remove" class="btn btn-xs btn-danger">x</button>
-               </td>
-            </tr>
+            @for(domain <- catchAllAliases){
+               <tr>
+                  <td>
+                     @if(!domain.enabled){ <s> }
+                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     @if(!domain.enabled){ </s> }
+                  </td>
+                  <td>
+                     @domain.enabled
+                  </td>
+                  <td class="actions">
+                     @if(domain.enabled){
+                        <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+                        <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+                     } else {
+                        <button disabled title="enable" class="btn btn-xs btn-success">e</button>
+                        <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+                     }
+                  </td>
+               </tr>
+            }
          </tbody>
       </table>
 
@@ -52,18 +57,17 @@
             </tr>
          </thead>
          <tbody>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.com</a></td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-success">add</button>
-               </td>
-            </tr>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-success">add</button>
-               </td>
-            </tr>
+            @for(domain <- nonCatchAllAliases){
+               <tr>
+                  <td>
+                     @if(!domain.enabled){ <s> }
+                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     @if(!domain.enabled){ </s> }
+                  </td>
+                  <td class="actions">
+                     <button disabled title="add" class="btn btn-xs btn-success">add</button>                      </td>
+               </tr>
+            }
          </tbody>
       </table>
 
@@ -84,22 +88,27 @@
             </tr>
          </thead>
          <tbody>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.org</a></td>
-               <td>yes</td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-warning">d</button>
-                  <button title="remove" class="btn btn-xs btn-danger">x</button>
-               </td>
-            </tr>
-            <tr>
-               <td><s><a href="@routes.DomainController.alias">example.net</a></s></td>
-               <td><s>no</s></td>
-               <td class="actions">
-                  <button title="enable" class="btn btn-xs btn-success">e</button>
-                  <button title="remove" class="btn btn-xs btn-danger">x</button>
-               </td>
-            </tr>
+            @for(domain <- catchAllRelays){
+               <tr>
+                  <td>
+                     @if(!domain.enabled){ <s> }
+                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     @if(!domain.enabled){ </s> }
+                  </td>
+                  <td>
+                     @domain.enabled
+                  </td>
+                  <td class="actions">
+                     @if(domain.enabled){
+                        <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+                        <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+                     } else {
+                        <button disabled title="enable" class="btn btn-xs btn-success">e</button>
+                        <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+                     }
+                  </td>
+               </tr>
+            }
          </tbody>
       </table>
 
@@ -119,18 +128,17 @@
             </tr>
          </thead>
          <tbody>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.com</a></td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-success">add</button>
-               </td>
-            </tr>
-            <tr>
-               <td><a href="@routes.DomainController.alias">example.co.uk</a></td>
-               <td class="actions">
-                  <button title="disable" class="btn btn-xs btn-success">add</button>
-               </td>
-            </tr>
+            @for(domain <- nonCatchAllRelays){
+               <tr>
+                  <td>
+                     @if(!domain.enabled){ <s> }
+                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     @if(!domain.enabled){ </s> }
+                  </td>
+                  <td class="actions">
+                     <button disabled title="add" class="btn btn-xs btn-success">add</button>                      </td>
+               </tr>
+            }
          </tbody>
       </table>
 
