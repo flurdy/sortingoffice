@@ -35,6 +35,11 @@ order by recipient
       }
    }
 
+
+   def findRelays(aliases: List[String], domain: Domain): List[Alias] = List.empty
+
+   def findRelay(alias: String, domain: Domain): Option[Alias] = None
+
 }
 
 
@@ -50,7 +55,7 @@ object AliasRepository {
       }
    }
 
-   def findAliasesForDomain(domain: Domain): List[Alias] = {
+   def findAllAliasesForDomain(domain: Domain): List[Alias] = {
       DB.withConnection { implicit connection =>
          SQL(
             """
@@ -61,6 +66,34 @@ order by mail
          ).on(
             'name -> s"%@${domain.name}"
          ).as(simpleAlias *)
+      }
+   }
+
+   def findAliases(aliases: List[String], domain: Domain): List[Alias] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from aliases
+where mail in ({name})
+order by mail
+            """
+         ).on(
+            'name -> aliases.map( a => s"${a}@${domain.name}" )
+         ).as(simpleAlias *)
+      }
+   }
+
+   def findAlias(alias: String, domain: Domain): Option[Alias] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from aliases
+where mail = {name}
+order by mail
+            """
+         ).on(
+            'name -> s"${alias}@${domain.name}"
+         ).as(simpleAlias *).headOption
       }
    }
 

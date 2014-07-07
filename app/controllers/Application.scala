@@ -64,7 +64,14 @@ object AliasController extends Controller {
   }
 
   def common = Action {
-    Ok(views.html.alias.common())
+    val relayDomains = Domains.findRelayDomains
+    val requiredAliases: List[(Domain,Map[String,Alias])] = relayDomains.map{ d =>
+      ( d, d.findRequiredAliases ++ d.findCommonAliases )
+    }
+    val requiredRelays:  List[(Domain,Map[String,Alias])] = relayDomains.map{ d =>
+      ( d, d.findRequiredRelays ++ d.findCommonRelays )
+    }
+    Ok(views.html.alias.common( requiredAliases, requiredRelays ))
   }
 
   def crossDomain = Action {
