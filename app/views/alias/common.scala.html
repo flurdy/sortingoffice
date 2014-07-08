@@ -1,8 +1,8 @@
-@( commonAliases: List[ (Domain, Map[String,Alias])], commonRelays: List[ (Domain, Map[String,Alias])] )
+@( commonAliases: List[ (Domain, Map[String,Boolean])], commonRelays: List[ (Domain, Map[String,Boolean])] )
 
-@aliasTick(aliasProduct: String, aliases: Map[String,Alias]) = {
+@aliasTick(aliasProduct: String, aliases: Map[String,Boolean]) = {
    @aliases.get(aliasProduct) match {
-      case Some(alias) if alias.enabled => {
+      case Some(alias) if alias => {
          <td class="tick">
             <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
          </td><td class="tickactions">
@@ -20,7 +20,7 @@
       }
       case None => {
          @aliases.get("") match {
-            case Some(catchall) if catchall.enabled => {
+            case Some(catchall) if catchall => {
                <td class="tick">
                   <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
                </td><td class="tickactions">
@@ -39,9 +39,9 @@
    }
 }
 
-@aliasCatchall(alternatives: List[String],aliases: Map[String,Alias])={
+@aliasCatchall(alternatives: List[String],aliases: Map[String,Boolean])={
    @aliases.get("") match {
-      case Some(catchall) if catchall.enabled => {
+      case Some(catchall) if catchall => {
          <td class="tick">
             <img src="@routes.Assets.at("images/tick.png")" alt="tick" title="Present"/>
          </td><td class="tickactions">
@@ -58,7 +58,8 @@
          </td>
       }
       case None => {
-         @if( alternatives.map( aliases.get(_).map(_.enabled) ).forall( _.getOrElse(false) ) ){
+         @** @if( alternatives.map( aliases.get(_).map(_.enabled) ).forall( _.getOrElse(false) ) ){ **@
+         @if( alternatives.map(aliases.get(_)).forall(_.getOrElse(false))){
             <td class="tick">
                <img src="@routes.Assets.at("images/minus-blue.png")" alt="tick" title="Missing!"/>
             </td><td class="tickactions">

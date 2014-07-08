@@ -1,6 +1,9 @@
 package models
 
 import infrastructure._
+import play.api.Play
+import play.api.Play.current
+import scala.collection.JavaConverters._
 
 
 case class Domain(name: String, enabled: Boolean, transport: String){
@@ -15,9 +18,13 @@ case class Domain(name: String, enabled: Boolean, transport: String){
 
    def findCommonAliases  : Map[String,Alias] = Aliases.findCommonAliases(this)
 
-   def findRequiredRelays: Map[String,Alias] = Relays.findRequiredRelays(this)
+   def findRequiredRelays: Map[String,Relay] = Relays.findRequiredRelays(this)
 
-   def findCommonRelays: Map[String,Alias] = Relays.findCommonRelays(this)
+   def findCommonRelays: Map[String,Relay] = Relays.findCommonRelays(this)
+
+   def findCustomAliases  : Map[String,Alias] = Aliases.findCustomAliases(this)
+
+   def findCustomRelays: Map[String,Relay] = Relays.findCustomRelays(this)
 
 }
 
@@ -39,11 +46,13 @@ object Relays {
 
    def findCatchAllDomains = DomainRepository.findCatchAllRelayDomains
 
-   def findRequiredRelays(domain: Domain): Map[String,Alias] = findRelays(Aliases.requiredAliases,domain)
+   def findRequiredRelays(domain: Domain): Map[String,Relay] = findRelays(Aliases.requiredAliases,domain)
 
-   def findCommonRelays(domain: Domain): Map[String,Alias] = findRelays(Aliases.commonAliases,domain)
+   def findCommonRelays(domain: Domain): Map[String,Relay] = findRelays(Aliases.commonAliases,domain)
 
-   def findRelays(aliasesToFind: List[String], domain: Domain): Map[String,Alias] = {
+   def findCustomRelays(domain: Domain): Map[String,Relay] = findRelays(Aliases.customAliases,domain)
+
+   def findRelays(aliasesToFind: List[String], domain: Domain): Map[String,Relay] = {
       ( for{
          aliasToFind <- aliasesToFind
          alias <- RelayRepository.findRelay(aliasToFind,domain)
@@ -61,11 +70,15 @@ object Aliases {
 
    val commonAliases = List("info","root","support","webmaster")
 
+   val customAliases: List[String] = "" :: Play.configuration.getStringList("aliases.common.custom").map(_.asScala.toList).getOrElse(Nil)
+
    def findCatchAllDomains = DomainRepository.findCatchAllDomains
 
    def findRequiredAliases(domain: Domain): Map[String,Alias] = findAliases(requiredAliases,domain)
 
    def findCommonAliases(domain: Domain): Map[String,Alias] = findAliases(commonAliases,domain)
+
+   def findCustomAliases(domain: Domain): Map[String,Alias] = findAliases(customAliases,domain)
 
    def findAliases(aliasesToFind: List[String], domain: Domain): Map[String,Alias] = {
       ( for{

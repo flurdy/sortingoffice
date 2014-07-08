@@ -65,17 +65,24 @@ object AliasController extends Controller {
 
   def common = Action {
     val relayDomains = Domains.findRelayDomains
-    val requiredAliases: List[(Domain,Map[String,Alias])] = relayDomains.map{ d =>
-      ( d, d.findRequiredAliases ++ d.findCommonAliases )
+    val requiredAliases: List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
+      val aliases = d.findRequiredAliases ++ d.findCommonAliases
+      ( d, aliases.map( a => (a._1,a._2.enabled) ) )
     }
-    val requiredRelays:  List[(Domain,Map[String,Alias])] = relayDomains.map{ d =>
-      ( d, d.findRequiredRelays ++ d.findCommonRelays )
+    val requiredRelays:  List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
+      val relays = d.findRequiredRelays ++ d.findCommonRelays
+      ( d, relays.map( r => (r._1,r._2.enabled) ) )
     }
     Ok(views.html.alias.common( requiredAliases, requiredRelays ))
   }
 
   def crossDomain = Action {
-    Ok(views.html.alias.cross())
+    val relayDomains = Domains.findRelayDomains
+    val aliases = Aliases.customAliases
+    val customAliases: List[(Domain,Map[String,Boolean],Map[String,Boolean])] = relayDomains.map{ d =>
+      ( d, d.findCustomAliases.map( r => (r._1,r._2.enabled) ), d.findCustomRelays.map( r => (r._1,r._2.enabled) ) )
+    }
+    Ok(views.html.alias.cross(aliases, customAliases) )
   }
 
 }

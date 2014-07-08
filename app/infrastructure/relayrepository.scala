@@ -35,10 +35,19 @@ order by recipient
       }
    }
 
-
-   def findRelays(aliases: List[String], domain: Domain): List[Alias] = List.empty
-
-   def findRelay(alias: String, domain: Domain): Option[Alias] = None
+   def findRelay(alias: String, domain: Domain): Option[Relay] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from relays
+where recipient = {name}
+order by recipient
+            """
+         ).on(
+            'name -> s"${alias}@${domain.name}"
+         ).as(simpleRelay *).headOption
+      }
+   }
 
 }
 
