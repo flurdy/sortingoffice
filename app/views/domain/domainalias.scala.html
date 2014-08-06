@@ -22,7 +22,7 @@
 			<tbody>
 				@for( relay <- relays){
 				<tr>
-					<td>@relay.recipient</td>
+					<td>@if(!relay.enabled){ <s> } @relay.recipient @if(!relay.enabled){ </s> }</td>
 					<td>@relay.enabled</td>
 					<td>@relay.status</td>
 					<td class="actions">
@@ -58,8 +58,8 @@
 			<tbody>
 				@for( alias <- aliases){
 				<tr>
-					<td>@alias.mail</td>
-					<td>@alias.destination</td>
+					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
+					<td>@if(!alias.enabled){ <s> } @alias.destination @if(!alias.enabled){ </s> }</td>
 					<td>@alias.enabled</td>
 					<td class="actions">
 						@if(alias.enabled){
