@@ -6,7 +6,55 @@
 
    <h3><a href="@routes.DomainController.domain">Domain</a> aliases [@domain.name]</h3>
 
+  
+
    <section>
+
+		<h4><a href="@routes.AliasController.alias">Aliases</a></h4>
+
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>mail</th>
+					<th>destination</th>
+					<th>enabled</th>
+					<th colspan="2"></th>
+				</tr>
+			</thead>
+			<tbody>
+				@for( alias <- aliases){
+				<tr>
+					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
+					<td>
+						@if(!alias.enabled){ <s> } 
+							@if(alias.destination.startsWith("@")){
+							<a href="@routes.DomainController.alias(alias.destination.drop(1))">
+								@alias.destination
+							</a>
+							} else {
+								@alias.destination
+							}
+						@if(!alias.enabled){ </s> }
+					</td>
+					<td>@alias.enabled</td>
+					<td class="actions">
+						@if(alias.enabled){
+							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+						} else {
+							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+						}
+						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
+
+	</section>
+
+	 <section>
 
 		<h4>Relay maps</h4>
 
@@ -41,42 +89,7 @@
 		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
 
 	</section>
-
-   <section>
-
-		<h4><a href="@routes.AliasController.alias">Aliases</a></h4>
-
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th>mail</th>
-					<th>destination</th>
-					<th>enabled</th>
-					<th colspan="2"></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for( alias <- aliases){
-				<tr>
-					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
-					<td>@if(!alias.enabled){ <s> } @alias.destination @if(!alias.enabled){ </s> }</td>
-					<td>@alias.enabled</td>
-					<td class="actions">
-						@if(alias.enabled){
-							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-						} else {
-							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
-						}
-						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
-
-		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
-
-	</section>
+	
 
    <section>
 

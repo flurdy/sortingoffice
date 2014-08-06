@@ -2,7 +2,7 @@
 
 @aliasTick(domain: Domain, domainAlias: Map[String,Boolean]) = {
     <tr>
-      <th>@domain.name</th>
+      <th><a href="@routes.DomainController.alias(domain.name)">@domain.name</a></th>
       @for(aliasName <- aliases.filterNot(_=="")){
          @domainAlias.get(aliasName) match {
             case Some(alias) if alias => {
