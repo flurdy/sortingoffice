@@ -26,24 +26,12 @@ object DomainRepository {
    val simpleBackup = {
       get[String]("domain") ~
       get[String]("transport") ~
-      get[Int]("enabled") map {
+      get[Boolean]("enabled") map {
          case domain~transport~enabled => {
-            Domain(domain,enabled==1,transport)
+            Domain(domain,enabled,transport)
          }
       }
    }
-
-   // private val domains: List[Domain] = List(
-   //    Domain("example.no",true,"virtual"),
-   //    Domain("example.de",false,"virtual"),
-   //    Domain("example.it",true,"virtual")
-   // )
-
-   // private val backups: List[Domain] = List(
-   //    Domain("example.se",true,"smtp:[mail.example.com]"),
-   //    Domain("example.ru",false,"smtp:[mail.example.com]"),
-   //    Domain("example.in",true,"smtp:[mail.example.com]")
-   // )
 
    def findRelayDomains: List[Domain] = {
       DB.withConnection { implicit connection =>
