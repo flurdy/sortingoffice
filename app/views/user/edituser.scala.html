@@ -1,10 +1,10 @@
-@()
+@(user: User)(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)])
 
 @main(Some("Users")) {
 
    <style>button.btn{ display: none; }</style>
 
-   <h3>User</h3>
+   <h3><a href="@routes.UserController.user">User</a></h3>
 
    <section>
 
@@ -12,15 +12,15 @@
          <tbody>
             <tr>
                <th>email</th>
-               <td>john.smith@@example.com</td>
+               <td>@user.email</td>
             </tr>
             <tr>
                <th>reset password on next login</th>
-               <td>no</td>
+               <td>@user.passwordReset</td>
             </tr>
             <tr>
                <th>enabled</th>
-               <td>yes</td>
+               <td>@user.enabled</td>
             </tr>
             <tr>
                <th></th>
@@ -30,8 +30,12 @@
             </tr>
             <tr>
                <th></th>
-               <td>
-                  <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">disable</button>
+               <td> 
+                  @if(user.enabled){
+                     <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">disable</button> 
+                  } else {
+                     <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-success">enable</button> 
+                  }
                </td>
             </tr>
             <tr>

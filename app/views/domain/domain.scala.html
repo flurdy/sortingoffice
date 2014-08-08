@@ -1,4 +1,4 @@
-@(relays: List[Domain], backups: List[Domain])
+@(relays: List[Domain], backups: List[Domain])(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)] = List.empty)
 
 @import models._
 

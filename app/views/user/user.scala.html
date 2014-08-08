@@ -1,4 +1,4 @@
-@()
+@(users: List[User])(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)])
 
 @main(Some("Users")) {
 
@@ -16,22 +16,23 @@
             </tr>
          </thead>
          <tbody>
+            @for(user <- users){
             <tr>
-               <td><a href="@routes.UserController.edituser">john.smith@@example.com</a></td>
-               <td>yes</td>
+               <td>
+                  @if(!user.enabled){ <s> }
+                  <a href="@routes.UserController.edituser(user.email)">@user.email</a>
+                  @if(!user.enabled){ </s> }
+               <td>@user.enabled</td>
                <td class="actions">
-                  <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+                  @if(user.enabled){ 
+                     <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+                  } else {
+                     <button disabled title="enable" class="btn btn-xs btn-info">e</button>
+                  }                  
                   <button disabled title="edit" class="btn btn-xs btn-info">edit</button>
                </td>
             </tr>
-            <tr>
-               <td><s><a href="@routes.UserController.edituser">mark.smith@@example.com</a></s></td>
-               <td><s>no</s></td>
-               <td class="actions">
-                  <button disabled title="enable" class="btn btn-xs btn-info">e</button>
-                  <button disabled title="edit" class="btn btn-xs btn-info">edit</button>
-               </td>
-            </tr>
+            }
          </tbody>
       </table>
 

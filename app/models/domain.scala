@@ -91,3 +91,11 @@ object Aliases {
 
 case class User(email: String, passwordReset: Boolean, enabled: Boolean)
 
+object Users {
+
+   def findUsers: List[User] = UserRepository.findUsers
+   
+   def findUser(email: String): Option[User] = UserRepository.findUser(email)
+
+}
+

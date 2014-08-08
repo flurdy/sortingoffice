@@ -90,11 +90,19 @@ object AliasController extends Controller {
 
 object UserController extends Controller {
 
+  implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
+
   def user = Action {
-    Ok(views.html.user.user())
+    val users = Users.findUsers
+    Ok(views.html.user.user(users))
   }
-  def edituser = Action {
-    Ok(views.html.user.edituser())
+
+  def edituser(email: String) = Action {
+    Users.findUser(email) match {
+      case Some(user) => Ok(views.html.user.edituser(user))
+      case None => NotFound(s"No user known as [$email]")
+    }
+    
   }
 
 }

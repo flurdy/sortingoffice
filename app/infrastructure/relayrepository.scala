@@ -137,4 +137,29 @@ order by id
       }
    }
 
+   def findUsers: List[User] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from users
+order by id
+            """
+         ).as(simpleUser *)
+      }
+   }
+
+   def findUser(email: String): Option[User] = {
+      DB.withConnection { implicit connection =>
+         SQL(
+            """
+select * from users
+where id = {email}
+order by id
+            """
+         ).on(
+            'email -> email
+         ).as(simpleUser *).headOption
+      }
+   }
+
 }

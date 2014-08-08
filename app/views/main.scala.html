@@ -1,4 +1,4 @@
-@(title: Option[String] = None)(content: Html)
+@(title: Option[String] = None)(content: Html)(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)] = List.empty)
 
 <!DOCTYPE html>
 
@@ -23,8 +23,20 @@
 
       <div id="ship">
         <header>
-           <h1><a href="@routes.Application.index">Sorting Office</a></h1>
+           <h1><a href="@routes.Application.index">Sorting Office</a></h1> 
         </header>
+
+        @if(!databaseConnections.isEmpty){
+        <div id="connections" class=""> 
+          <select>
+            @for( connection <- databaseConnections){
+              <option
+              @if(connection._1==currentDatabaseConnection){ selected}
+              >@connection._1: @connection._2</option>
+            }
+          </select>
+        </div>
+      }
 
         <div id="cargo">
            @content

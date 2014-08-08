@@ -16,7 +16,7 @@ GET     /alias/common         controllers.AliasController.common
 GET     /alias/cross          controllers.AliasController.crossDomain
 
 GET     /user                 controllers.UserController.user
-GET     /user/edit            controllers.UserController.edituser
+GET     /user/:email/edit            controllers.UserController.edituser(email: String)
 
 
 # Map static webjar resources
