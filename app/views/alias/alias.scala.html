@@ -1,6 +1,6 @@
 @(currentDatabaseConnection: Environment.ConnectionName)
 
-@main(Some("Aliases")) {
+@main(Some("Aliases"), Some(currentDatabaseConnection)) {
 
    <style>button.btn{ display: none; }</style>
 

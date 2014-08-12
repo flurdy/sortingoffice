@@ -7,7 +7,7 @@ import play.api.db.DB
 import anorm._
 import anorm.SqlParser._
 import models._
-// import models.Environment.Datasource
+import models.Environment.ConnectionName
 
 
 object DomainRepository {
@@ -17,7 +17,7 @@ object DomainRepository {
       get[String]("transport") ~
       get[Boolean]("enabled") map {
          case domain~transport~enabled => {
-            Domain(domain,enabled,transport)
+            new Domain(domain,enabled,transport)
          }
       }
    }
@@ -28,33 +28,33 @@ object DomainRepository {
       get[String]("transport") ~
       get[Boolean]("enabled") map {
          case domain~transport~enabled => {
-            Domain(domain,enabled,transport)
+            new Domain(domain,enabled,transport)
          }
       }
    }
 
-   def findRelayDomains: List[Domain] = {
-      DB.withConnection { implicit connection =>
+   def findRelayDomains(connectionName: ConnectionName): List[Domain] = { 
+      DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select * from domains order by domain
             """
-         ).as(simpleDomain *)
+         ).as(simpleDomain *).map( _.withConnection(connectionName) )
       }
    }
 
-   def findBackupDomains: List[Domain] = {
-      DB.withConnection { implicit connection =>
+   def findBackupDomains(connectionName: ConnectionName): List[Domain] = {
+      DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select * from backups order by domain
             """
-         ).as(simpleBackup *)
+         ).as(simpleBackup *).map( _.withConnection(connectionName) )
       }
    }
 
-   def findRelayDomain(name: String): Option[Domain] = {
-      DB.withConnection { implicit connection =>
+   def findRelayDomain(connectionName: ConnectionName, name: String): Option[Domain] = {
+      DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select * from domains
@@ -62,13 +62,13 @@ where domain = {name}
             """
          ).on(
             'name -> name
-         ).as(simpleDomain *).headOption
+         ).as(simpleDomain *).map( _.withConnection(connectionName) ).headOption
       }
    }
 
 
-   def findCatchAllDomains: List[Domain] = {
-      DB.withConnection { implicit connection =>
+   def findCatchAllDomains(connectionName: ConnectionName): List[Domain] = {
+      DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,a.enabled from domains d
@@ -76,12 +76,12 @@ inner join aliases a
 on concat('@',d.domain) = a.mail
 order by d.domain
             """
-         ).as(simpleDomain *)
+         ).as(simpleDomain *).map( _.withConnection(connectionName) )
       }
    }
 
-   def findCatchAllRelayDomains: List[Domain] = {
-      DB.withConnection { implicit connection =>
+   def findCatchAllRelayDomains(connectionName: ConnectionName): List[Domain] = {
+      DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,r.enabled from domains d
@@ -89,7 +89,7 @@ inner join relays r
 on concat('@',d.domain) = r.recipient
 order by d.domain
             """
-         ).as(simpleDomain *)
+         ).as(simpleDomain *).map( _.withConnection(connectionName) )
       }
    }
 

@@ -4,9 +4,14 @@ import infrastructure._
 import play.api.Play
 import play.api.Play.current
 import scala.collection.JavaConverters._
+import models.Environment.ConnectionName
 
 
-case class Domain(name: String, enabled: Boolean, transport: String){
+case class Domain(connection: Option[ConnectionName], name: String, enabled: Boolean, transport: String){
+
+   def this(name: String, enabled: Boolean, transport: String) = this( None, name, enabled, transport)
+
+   def withConnection(connection: ConnectionName) = Domain( Some(connection), name, enabled, transport)
 
    def findRelays = RelayRepository.findRelaysForDomain(this)
 
@@ -31,11 +36,11 @@ case class Domain(name: String, enabled: Boolean, transport: String){
 
 object Domains {
 
-   def findRelayDomain(name: String): Option[Domain] = DomainRepository.findRelayDomain(name)
+   def findRelayDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findRelayDomain(connection, name)
 
-   def findRelayDomains: List[Domain] = DomainRepository.findRelayDomains
+   def findRelayDomains(connection: ConnectionName): List[Domain] = DomainRepository.findRelayDomains(connection)
 
-   def findBackupDomains: List[Domain] = DomainRepository.findBackupDomains
+   def findBackupDomains(connection: ConnectionName): List[Domain] = DomainRepository.findBackupDomains(connection)
 
 }
 
@@ -44,7 +49,7 @@ case class Relay(recipient: String, enabled: Boolean, status: String)
 
 object Relays {
 
-   def findCatchAllDomains = DomainRepository.findCatchAllRelayDomains
+   def findCatchAllDomains(connection: ConnectionName) = DomainRepository.findCatchAllRelayDomains(connection)
 
    def findRequiredRelays(domain: Domain): Map[String,Relay] = findRelays(Aliases.requiredAliases,domain)
 
@@ -72,7 +77,7 @@ object Aliases {
 
    val customAliases: List[String] = "" :: Play.configuration.getStringList("aliases.common.custom").map(_.asScala.toList).getOrElse(Nil)
 
-   def findCatchAllDomains = DomainRepository.findCatchAllDomains
+   def findCatchAllDomains(connection: ConnectionName) = DomainRepository.findCatchAllDomains(connection)
 
    def findRequiredAliases(domain: Domain): Map[String,Alias] = findAliases(requiredAliases,domain)
 
@@ -89,13 +94,14 @@ object Aliases {
 
 }
 
+
 case class User(email: String, passwordReset: Boolean, enabled: Boolean)
 
 object Users {
 
-   def findUsers: List[User] = UserRepository.findUsers
+   def findUsers(connection: ConnectionName): List[User] = UserRepository.findUsers(connection)
    
-   def findUser(email: String): Option[User] = UserRepository.findUser(email)
+   def findUser(connection: ConnectionName, email: String): Option[User] = UserRepository.findUser(connection,email)
 
 }
 

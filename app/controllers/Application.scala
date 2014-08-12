@@ -14,10 +14,7 @@ trait DbController extends Controller {
 object Application extends DbController {
 
   def index = Action {
-    databaseConnections.headOption match {
-      case Some((connection,_)) => Redirect(routes.Application.connectionIndex(connection))
-      case None => Redirect(routes.Application.connectionIndex("default"))
-    }    
+    Ok(views.html.connections(databaseConnections))
   }
 
   def connectionIndex(connection: ConnectionName) = Action {
@@ -34,17 +31,16 @@ object Application extends DbController {
 
 }
 
-
 object DomainController extends DbController {
 
   def domain(connection: ConnectionName) = Action {
-    val relays = Domains.findRelayDomains
-    val backups = Domains.findBackupDomains
+    val relays = Domains.findRelayDomains(connection)
+    val backups = Domains.findBackupDomains(connection)
     Ok(views.html.domain.domain( connection, relays, backups ))
   }
 
   def alias(connection: ConnectionName, name: String) = Action {
-    Domains.findRelayDomain(name) match {
+    Domains.findRelayDomain(connection, name) match {
       case Some(domain) =>{
         val relays = domain.findRelays
         val aliases = domain.findAliases
@@ -52,8 +48,9 @@ object DomainController extends DbController {
         Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users))
       }
       case None => {
-        val relays = Domains.findRelayDomains
-        val backups = Domains.findBackupDomains
+        Logger.warn(s"Domain $name not found")
+        val relays = Domains.findRelayDomains(connection)
+        val backups = Domains.findBackupDomains(connection)
         NotFound(views.html.domain.domain( connection, relays, backups ))
       }
     }
@@ -69,16 +66,16 @@ object AliasController extends DbController {
   }
 
   def catchAll(connection: ConnectionName) = Action {
-    val catchAllAliases = Aliases.findCatchAllDomains
-    val relayDomains = Domains.findRelayDomains
+    val catchAllAliases = Aliases.findCatchAllDomains(connection)
+    val relayDomains = Domains.findRelayDomains(connection)
     val noCatchAllAliases = relayDomains diff catchAllAliases
-    val catchAllRelays = Relays.findCatchAllDomains
+    val catchAllRelays = Relays.findCatchAllDomains(connection)
     val noCatchAllRelays = relayDomains diff catchAllRelays
     Ok(views.html.alias.catchall(connection,catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
   }
 
   def common(connection: ConnectionName) = Action {
-    val relayDomains = Domains.findRelayDomains
+    val relayDomains = Domains.findRelayDomains(connection)
     val requiredAliases: List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
       val aliases = d.findRequiredAliases ++ d.findCommonAliases
       ( d, aliases.map( a => (a._1,a._2.enabled) ) )
@@ -91,8 +88,8 @@ object AliasController extends DbController {
   }
 
   def crossDomain(connection: ConnectionName) = Action {
-    val relayDomains = Domains.findRelayDomains
     val aliases = Aliases.customAliases
+    val relayDomains = Domains.findRelayDomains(connection)
     val customAliases: List[(Domain,Map[String,Boolean],Map[String,Boolean])] = relayDomains.map{ d =>
       ( d, d.findCustomAliases.map( r => (r._1,r._2.enabled) ), d.findCustomRelays.map( r => (r._1,r._2.enabled) ) )
     }
@@ -104,13 +101,13 @@ object AliasController extends DbController {
 
 object UserController extends DbController {
 
-  def user(connectionName: ConnectionName) = Action {
-    val users = Users.findUsers
-    Ok(views.html.user.user(connectionName,users))
+  def user(connection: ConnectionName) = Action {
+    val users = Users.findUsers(connection)
+    Ok(views.html.user.user(connection,users))
   }
 
   def edituser(connection: ConnectionName, email: String) = Action {
-    Users.findUser(email) match {
+    Users.findUser(connection, email) match {
       case Some(user) => Ok(views.html.user.edituser(connection,user))
       case None => NotFound(s"No user known as [$email]")
     }

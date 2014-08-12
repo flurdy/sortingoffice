@@ -1,27 +1,27 @@
 @(currentDatabaseConnection: Environment.ConnectionName)
 
-@main() {
+@main(None, Some(currentDatabaseConnection)) {
 
    <h3>Mail server data management tool</h3>
 
 	<ul>
 
 		<li>
-			<h3><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domains</a></h3>
+			<h4><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domains</a></h4>
 			<p>
 				Domains relayed and backed up
 			</p>
 		</li>
 
 		<li>
-			<h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Aliases</a></h3>
+			<h4><a href="@routes.AliasController.alias(currentDatabaseConnection)">Aliases</a></h4>
 			<p>
 				Aliases forwarded and relayed
 			</p>
 		</li>
 
 		<li>
-			<h3><a href="@routes.UserController.user(currentDatabaseConnection)">Users</a></h3>
+			<h4><a href="@routes.UserController.user(currentDatabaseConnection)">Users</a></h4>
 			<p>
 				Users with mail stored
 			</p>

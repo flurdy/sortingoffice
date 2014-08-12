@@ -7,6 +7,7 @@ import play.api.db.DB
 import anorm._
 import anorm.SqlParser._
 import models._
+import models.Environment.ConnectionName
 
 
 object RelayRepository {
@@ -22,7 +23,14 @@ object RelayRepository {
    }
 
    def findRelaysForDomain(domain: Domain): List[Relay] = {
-      DB.withConnection { implicit connection =>
+      domain.connection match {
+         case Some(connection) => findRelaysForDomain(connection,domain)
+         case None => throw new IllegalStateException("No connection in domain")         
+      }
+   }
+
+   def findRelaysForDomain(connection: ConnectionName, domain: Domain): List[Relay] = {
+      DB.withConnection(connection) { implicit connection =>
          SQL(
             """
 select * from relays
@@ -36,7 +44,7 @@ order by recipient
    }
 
    def findRelay(alias: String, domain: Domain): Option[Relay] = {
-      DB.withConnection { implicit connection =>
+      DB.withConnection(domain.connection.get) { implicit connection =>
          SQL(
             """
 select * from relays
@@ -51,115 +59,3 @@ order by recipient
 
 }
 
-
-object AliasRepository {
-
-   val simpleAlias = {
-      get[String]("mail") ~
-      get[String]("destination") ~
-      get[Boolean]("enabled") map {
-         case mail~destination~enabled => {
-            Alias(mail, destination, enabled)
-         }
-      }
-   }
-
-   def findAllAliasesForDomain(domain: Domain): List[Alias] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from aliases
-where mail like {name}
-order by mail
-            """
-         ).on(
-            'name -> s"%@${domain.name}"
-         ).as(simpleAlias *)
-      }
-   }
-
-   def findAliases(aliases: List[String], domain: Domain): List[Alias] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from aliases
-where mail in ({name})
-order by mail
-            """
-         ).on(
-            'name -> aliases.map( a => s"${a}@${domain.name}" )
-         ).as(simpleAlias *)
-      }
-   }
-
-   def findAlias(alias: String, domain: Domain): Option[Alias] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from aliases
-where mail = {name}
-order by mail
-            """
-         ).on(
-            'name -> s"${alias}@${domain.name}"
-         ).as(simpleAlias *).headOption
-      }
-   }
-
-}
-
-
-object UserRepository {
-
-   val simpleUser = {
-      get[String]("id") ~
-      get[String]("name") ~
-      get[String]("maildir") ~
-      get[Boolean]("change_password") ~
-      get[Boolean]("enabled") map {
-         case id~name~maildir~changePassword~enabled => {
-            User(id, changePassword, enabled)
-         }
-      }
-   }
-
-   def findUsersForDomain(domain: Domain): List[User] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from users
-where id like {name}
-order by id
-            """
-         ).on(
-            'name -> s"%@${domain.name}"
-         ).as(simpleUser *)
-      }
-   }
-
-   def findUsers: List[User] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from users
-order by id
-            """
-         ).as(simpleUser *)
-      }
-   }
-
-   def findUser(email: String): Option[User] = {
-      DB.withConnection { implicit connection =>
-         SQL(
-            """
-select * from users
-where id = {email}
-order by id
-            """
-         ).on(
-            'email -> email
-         ).as(simpleUser *).headOption
-      }
-   }
-
-}

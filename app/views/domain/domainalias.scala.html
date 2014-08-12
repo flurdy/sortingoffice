@@ -1,6 +1,6 @@
 @(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relays: List[Relay], aliases: List[Alias], users: List[User])
 
-@main(Some("Domain aliases | example.org")) {
+@main(Some("Domain aliases | example.org"), Some(currentDatabaseConnection)) {
 
 	<style>button.btn{ display: none; }</style>
 

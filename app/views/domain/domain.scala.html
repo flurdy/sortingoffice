@@ -1,8 +1,8 @@
-@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])(implicit databaseConnections: List[(String,String)] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])
 
 @import models._
 
-@main(Some("Domains")) {
+@main(Some("Domains"), Some(currentDatabaseConnection)) {
 
 	<style>button.btn{ display: none; }</style>
 

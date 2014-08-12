@@ -1,6 +1,6 @@
-@(currentDatabaseConnection: Environment.ConnectionName, users: List[User])(implicit  databaseConnections: List[(String,String)])
+@(currentDatabaseConnection: Environment.ConnectionName, users: List[User])
 
-@main(Some("Users")) {
+@main(Some("Users"),Some(currentDatabaseConnection)) {
 
    <style>button.btn{ display: none; }</style>
 

@@ -1,6 +1,6 @@
 @(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain],catchAllRelays: List[Domain],nonCatchAllRelays: List[Domain])
 
-@main(Some("Aliases | Catch All")) {
+@main(Some("Aliases | Catch All"), Some(currentDatabaseConnection)) {
 
    <style>button.btn{ display: none; }</style>
 

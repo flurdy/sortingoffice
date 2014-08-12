@@ -1,10 +1,10 @@
-@(connectionName: Environment.ConnectionName,user: User)(implicit databaseConnections: List[(String,String)])
+@(currentDatabaseConnection: Environment.ConnectionName,user: User)
 
-@main(Some("Users")) {
+@main(Some("Users"),Some(currentDatabaseConnection)) {
 
    <style>button.btn{ display: none; }</style>
 
-   <h3><a href="@routes.UserController.user(connectionName)">User</a></h3>
+   <h3><a href="@routes.UserController.user(currentDatabaseConnection)">User</a></h3>
 
    <section>
 
