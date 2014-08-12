@@ -1,8 +1,8 @@
-@( aliases: List[String], domainAliases: List[(Domain, Map[String,Boolean], Map[String,Boolean])] )
+@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[String], domainAliases: List[(Domain, Map[String,Boolean], Map[String,Boolean])] )
 
 @aliasTick(domain: Domain, domainAlias: Map[String,Boolean]) = {
     <tr>
-      <th><a href="@routes.DomainController.alias(domain.name)">@domain.name</a></th>
+      <th><a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a></th>
       @for(aliasName <- aliases.filterNot(_=="")){
          @domainAlias.get(aliasName) match {
             case Some(alias) if alias => {
@@ -86,7 +86,7 @@
 
    <style>button.btn{ display: none; }</style>
 
-   <h3>Cross domain <a href="@routes.AliasController.alias">aliases</a></h3>
+   <h3>Cross domain <a href="@routes.AliasController.alias(currentDatabaseConnection)">aliases</a></h3>
 
    <section>
 

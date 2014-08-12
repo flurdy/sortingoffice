@@ -1,4 +1,4 @@
-@(users: List[User])(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)])
+@(currentDatabaseConnection: Environment.ConnectionName, users: List[User])(implicit  databaseConnections: List[(String,String)])
 
 @main(Some("Users")) {
 
@@ -20,7 +20,7 @@
             <tr>
                <td>
                   @if(!user.enabled){ <s> }
-                  <a href="@routes.UserController.edituser(user.email)">@user.email</a>
+                  <a href="@routes.UserController.edituser(currentDatabaseConnection,user.email)">@user.email</a>
                   @if(!user.enabled){ </s> }
                <td>@user.enabled</td>
                <td class="actions">

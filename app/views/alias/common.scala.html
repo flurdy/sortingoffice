@@ -1,4 +1,4 @@
-@( commonAliases: List[ (Domain, Map[String,Boolean])], commonRelays: List[ (Domain, Map[String,Boolean])] )
+@(currentDatabaseConnection: Environment.ConnectionName, commonAliases: List[ (Domain, Map[String,Boolean])], commonRelays: List[ (Domain, Map[String,Boolean])] )
 
 @aliasTick(aliasProduct: String, aliases: Map[String,Boolean]) = {
    @aliases.get(aliasProduct) match {
@@ -80,7 +80,7 @@
 
    <style>button.btn{ display: none; }</style>
 
-<h3><a href="@routes.AliasController.alias">Common aliases</a></h3>
+<h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Common aliases</a></h3>
 
 <section>
 
@@ -99,7 +99,7 @@
             @for( (domain, aliases) <- commonAliases){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("abuse",aliases)
                   @aliasTick("postmaster",aliases)
@@ -130,7 +130,7 @@
             @for( (domain, aliases) <- commonAliases){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("info",aliases)
                   @aliasTick("root",aliases)
@@ -161,7 +161,7 @@
             @for( (domain, aliases) <- commonRelays){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("abuse",aliases)
                   @aliasTick("postmaster",aliases)
@@ -192,7 +192,7 @@
             @for( (domain, aliases) <- commonRelays){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("info",aliases)
                   @aliasTick("root",aliases)

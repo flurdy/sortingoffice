@@ -6,17 +6,18 @@
 GET     /                     controllers.Application.index
 GET     /about.html           controllers.Application.about
 GET     /contact.html         controllers.Application.contact
+GET     /db/:db/              controllers.Application.connectionIndex(db: String)
 
-GET     /domain               controllers.DomainController.domain
-GET     /domain/alias/:domain  controllers.DomainController.alias(domain: String)
+GET     /db/:db/domain               controllers.DomainController.domain(db: String)
+GET     /db/:db/domain/alias/:domain  controllers.DomainController.alias(db: String, domain: String)
 
-GET     /alias                controllers.AliasController.alias
-GET     /alias/catchall       controllers.AliasController.catchAll
-GET     /alias/common         controllers.AliasController.common
-GET     /alias/cross          controllers.AliasController.crossDomain
+GET     /db/:db/alias                controllers.AliasController.alias(db: String)
+GET     /db/:db/alias/catchall       controllers.AliasController.catchAll(db: String)
+GET     /db/:db/alias/common         controllers.AliasController.common(db: String)
+GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)
 
-GET     /user                 controllers.UserController.user
-GET     /user/:email/edit            controllers.UserController.edituser(email: String)
+GET     /db/:db/user                 controllers.UserController.user(db: String)
+GET     /db/:db/user/:email/edit            controllers.UserController.edituser(db: String, email: String)
 
 
 # Map static webjar resources

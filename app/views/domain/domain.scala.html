@@ -1,4 +1,4 @@
-@(relays: List[Domain], backups: List[Domain])(implicit currentDatabaseConnection: Option[String] = None, databaseConnections: List[(String,String)] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])(implicit databaseConnections: List[(String,String)] = List.empty)
 
 @import models._
 
@@ -26,7 +26,7 @@
 				<tr>
 					<td>
 						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+						<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td>@domain.enabled</td>
@@ -71,7 +71,7 @@
 				<tr>
 					<td>
 						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+						<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td>@domain.enabled</td>

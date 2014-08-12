@@ -1,10 +1,10 @@
-@(catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain],catchAllRelays: List[Domain],nonCatchAllRelays: List[Domain])
+@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain],catchAllRelays: List[Domain],nonCatchAllRelays: List[Domain])
 
 @main(Some("Aliases | Catch All")) {
 
    <style>button.btn{ display: none; }</style>
 
-   <h3><a href="@routes.AliasController.alias">Catch all aliases</a></h3>
+   <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Catch all aliases</a></h3>
 
    <section>
 
@@ -23,7 +23,7 @@
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(!domain.enabled){ </s> }
                   </td>
                   <td>
@@ -63,7 +63,7 @@
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(!domain.enabled){ </s> }
                   </td>
                   <td class="actions">
@@ -94,7 +94,7 @@
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(!domain.enabled){ </s> }
                   </td>
                   <td>
@@ -134,7 +134,7 @@
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(!domain.enabled){ </s> }
                   </td>
                   <td class="actions">

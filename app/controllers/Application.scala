@@ -3,11 +3,25 @@ package controllers
 import play.api._
 import play.api.mvc._
 import models._
+import models.Environment.ConnectionName
 
-object Application extends Controller {
+trait DbController extends Controller {
+
+  implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
+
+}
+
+object Application extends DbController {
 
   def index = Action {
-    Ok(views.html.index())
+    databaseConnections.headOption match {
+      case Some((connection,_)) => Redirect(routes.Application.connectionIndex(connection))
+      case None => Redirect(routes.Application.connectionIndex("default"))
+    }    
+  }
+
+  def connectionIndex(connection: ConnectionName) = Action {
+    Ok(views.html.index(connection))
   }
 
   def about = Action {
@@ -21,26 +35,26 @@ object Application extends Controller {
 }
 
 
-object DomainController extends Controller {
+object DomainController extends DbController {
 
-  def domain = Action {
+  def domain(connection: ConnectionName) = Action {
     val relays = Domains.findRelayDomains
     val backups = Domains.findBackupDomains
-    Ok(views.html.domain.domain( relays, backups ))
+    Ok(views.html.domain.domain( connection, relays, backups ))
   }
 
-  def alias(name: String) = Action {
+  def alias(connection: ConnectionName, name: String) = Action {
     Domains.findRelayDomain(name) match {
       case Some(domain) =>{
         val relays = domain.findRelays
         val aliases = domain.findAliases
         val users = domain.findUsers
-        Ok(views.html.domain.domainalias(domain,relays,aliases,users))
+        Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users))
       }
       case None => {
         val relays = Domains.findRelayDomains
         val backups = Domains.findBackupDomains
-        NotFound(views.html.domain.domain( relays, backups ))
+        NotFound(views.html.domain.domain( connection, relays, backups ))
       }
     }
   }
@@ -48,22 +62,22 @@ object DomainController extends Controller {
 }
 
 
-object AliasController extends Controller {
+object AliasController extends DbController {
 
-  def alias = Action {
-    Ok(views.html.alias.alias())
+  def alias(connection: ConnectionName) = Action {
+    Ok(views.html.alias.alias(connection))
   }
 
-  def catchAll = Action {
+  def catchAll(connection: ConnectionName) = Action {
     val catchAllAliases = Aliases.findCatchAllDomains
     val relayDomains = Domains.findRelayDomains
     val noCatchAllAliases = relayDomains diff catchAllAliases
     val catchAllRelays = Relays.findCatchAllDomains
     val noCatchAllRelays = relayDomains diff catchAllRelays
-    Ok(views.html.alias.catchall(catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
+    Ok(views.html.alias.catchall(connection,catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
   }
 
-  def common = Action {
+  def common(connection: ConnectionName) = Action {
     val relayDomains = Domains.findRelayDomains
     val requiredAliases: List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
       val aliases = d.findRequiredAliases ++ d.findCommonAliases
@@ -73,33 +87,31 @@ object AliasController extends Controller {
       val relays = d.findRequiredRelays ++ d.findCommonRelays
       ( d, relays.map( r => (r._1,r._2.enabled) ) )
     }
-    Ok(views.html.alias.common( requiredAliases, requiredRelays ))
+    Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
   }
 
-  def crossDomain = Action {
+  def crossDomain(connection: ConnectionName) = Action {
     val relayDomains = Domains.findRelayDomains
     val aliases = Aliases.customAliases
     val customAliases: List[(Domain,Map[String,Boolean],Map[String,Boolean])] = relayDomains.map{ d =>
       ( d, d.findCustomAliases.map( r => (r._1,r._2.enabled) ), d.findCustomRelays.map( r => (r._1,r._2.enabled) ) )
     }
-    Ok(views.html.alias.cross(aliases, customAliases) )
+    Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
 }
 
 
-object UserController extends Controller {
+object UserController extends DbController {
 
-  implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
-
-  def user = Action {
+  def user(connectionName: ConnectionName) = Action {
     val users = Users.findUsers
-    Ok(views.html.user.user(users))
+    Ok(views.html.user.user(connectionName,users))
   }
 
-  def edituser(email: String) = Action {
+  def edituser(connection: ConnectionName, email: String) = Action {
     Users.findUser(email) match {
-      case Some(user) => Ok(views.html.user.edituser(user))
+      case Some(user) => Ok(views.html.user.edituser(connection,user))
       case None => NotFound(s"No user known as [$email]")
     }
     

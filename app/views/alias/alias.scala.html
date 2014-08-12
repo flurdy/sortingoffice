@@ -1,4 +1,4 @@
-@()
+@(currentDatabaseConnection: Environment.ConnectionName)
 
 @main(Some("Aliases")) {
 
@@ -9,25 +9,25 @@
    <ul>
 
       <li>
-         <h4><a href="@routes.AliasController.catchAll">Catch alls</a></h4>
+         <h4><a href="@routes.AliasController.catchAll(currentDatabaseConnection)">Catch alls</a></h4>
          <p>
 
          </p>
       </li>
       <li>
-         <h4><a href="@routes.AliasController.common">Common alias matrix</a></h4>
+         <h4><a href="@routes.AliasController.common(currentDatabaseConnection)">Common alias matrix</a></h4>
          <p>
 
          </p>
       </li>
       <li>
-         <h4><a href="@routes.AliasController.crossDomain">Cross domain alias</a></h4>
+         <h4><a href="@routes.AliasController.crossDomain(currentDatabaseConnection)">Cross domain alias</a></h4>
          <p>
 
          </p>
       </li>
       <li>
-         <h4><a href="@routes.DomainController.domain">Alias per domain</a></h4>
+         <h4><a href="@routes.DomainController.domain(currentDatabaseConnection)">Alias per domain</a></h4>
          <p>
 
          </p>
