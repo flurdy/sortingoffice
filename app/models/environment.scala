@@ -22,4 +22,6 @@ object Environment {
 
 }
 
+case class ErrorMessage(message: String)
+
 

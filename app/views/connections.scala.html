@@ -4,22 +4,31 @@
 
    <h3>Mail server data management tool</h3>
    
-   <h4>Choose connection</h4>
+   <h4>Choose database connection</h4>
 
-	<ul>
-		@for((name,description) <- databaseConnections){
-			<li>
-				<h4>
-					<a href="@routes.Application.connectionIndex(name)">@name</a>
-				</h4>
-				<p>
-					@description
-				</p>
-			</li>
-		}
+   @if( databaseConnections.isEmpty ){
 
-	</ul>
+	   	<div class="alert alert-warning">
+	   		<h4>No connections configured</h4>
+	   	</div>
 
+	} else {	
+
+		<ul>
+			@for((name,description) <- databaseConnections){
+				<li>
+					<h4>
+						<a href="@routes.Application.connectionIndex(name)">@name</a>
+					</h4>
+					<p>
+						@description
+					</p>
+				</li>
+			}
+
+		</ul>
+
+	}
 
 
 }

@@ -51,7 +51,8 @@ object DomainController extends DbController {
         Logger.warn(s"Domain $name not found")
         val relays = Domains.findRelayDomains(connection)
         val backups = Domains.findBackupDomains(connection)
-        NotFound(views.html.domain.domain( connection, relays, backups ))
+        implicit val errorMessages = List(ErrorMessage("Domain not found"))
+        NotFound(views.html.domain.domain( connection, relays, backups))
       }
     }
   }
@@ -109,7 +110,12 @@ object UserController extends DbController {
   def edituser(connection: ConnectionName, email: String) = Action {
     Users.findUser(connection, email) match {
       case Some(user) => Ok(views.html.user.edituser(connection,user))
-      case None => NotFound(s"No user known as [$email]")
+      case None => {
+        Logger.warn(s"User $email not found")
+        val users = Users.findUsers(connection)
+        implicit val errorMessages = List(ErrorMessage("User not found"))
+        NotFound(views.html.user.user( connection, users))
+      }
     }
     
   }

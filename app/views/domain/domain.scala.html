@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])
+@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])(implicit errorMessages: List[ErrorMessage] = List.empty)
 
 @import models._
 

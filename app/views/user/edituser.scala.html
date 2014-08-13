@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,user: User)
+@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty)
 
 @main(Some("Users"),Some(currentDatabaseConnection)) {
 

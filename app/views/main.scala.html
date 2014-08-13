@@ -1,4 +1,4 @@
-@(title: Option[String],currentDatabaseConnection: Option[Environment.ConnectionName])(content: Html)
+@(title: Option[String],currentDatabaseConnection: Option[Environment.ConnectionName])(content: Html)(implicit errorMessages: List[ErrorMessage] = List.empty)
 
 <!DOCTYPE html>
 
@@ -34,6 +34,22 @@
         </header>
 
         <div id="cargo">
+          
+          @if(!errorMessages.isEmpty){
+            <div class="alert alert-danger" role="alert">
+              <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+              <ul>
+                  @for(message <- errorMessages){
+                    <li>
+
+                      Error message: @message.message
+
+                    </li>
+                  }
+              </ul>
+            </div>
+          }
+
            @content
         </div>
       </div>
