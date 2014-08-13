@@ -14,7 +14,11 @@ trait DbController extends Controller {
 object Application extends DbController {
 
   def index = Action {
-    Ok(views.html.connections(databaseConnections))
+    databaseConnections.size match {
+      case 0 => NotFound(views.html.connections(List.empty))
+      case 1 => Redirect(routes.Application.connectionIndex(databaseConnections.head._1))
+      case _ => Ok(views.html.connections(databaseConnections))
+    }           
   }
 
   def connectionIndex(connection: ConnectionName) = Action {
