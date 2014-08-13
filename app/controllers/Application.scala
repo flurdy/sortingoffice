@@ -9,6 +9,8 @@ trait DbController extends Controller {
 
   implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
 
+  def isValidConnection(connection: ConnectionName): Boolean = databaseConnections.exists( _._1 == connection )
+
 }
 
 object Application extends DbController {
@@ -22,7 +24,12 @@ object Application extends DbController {
   }
 
   def connectionIndex(connection: ConnectionName) = Action {
-    Ok(views.html.index(connection))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      Ok(views.html.index(connection))
+    }
   }
 
   def about = Action {
@@ -38,28 +45,38 @@ object Application extends DbController {
 object DomainController extends DbController {
 
   def domain(connection: ConnectionName) = Action {
-    val relays = Domains.findRelayDomains(connection)
-    val backups = Domains.findBackupDomains(connection)
-    Ok(views.html.domain.domain( connection, relays, backups ))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      val relays = Domains.findRelayDomains(connection)
+      val backups = Domains.findBackupDomains(connection)
+      Ok(views.html.domain.domain( connection, relays, backups ))
+    }
   }
 
   def alias(connection: ConnectionName, name: String) = Action {
-    Domains.findRelayDomain(connection, name) match {
-      case Some(domain) =>{
-        val relays = domain.findRelays
-        val aliases = domain.findAliases
-        val users = domain.findUsers
-        Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users))
-      }
-      case None => {
-        Logger.warn(s"Domain $name not found")
-        val relays = Domains.findRelayDomains(connection)
-        val backups = Domains.findBackupDomains(connection)
-        implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relays, backups))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      Domains.findRelayDomain(connection, name) match {
+        case Some(domain) =>{
+          val relays = domain.findRelays
+          val aliases = domain.findAliases
+          val users = domain.findUsers
+          Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users))
+        }
+        case None => {
+          Logger.warn(s"Domain $name not found")
+          val relays = Domains.findRelayDomains(connection)
+          val backups = Domains.findBackupDomains(connection)
+          implicit val errorMessages = List(ErrorMessage("Domain not found"))
+          NotFound(views.html.domain.domain( connection, relays, backups))
+        }
       }
     }
-  }
+  }   
 
 }
 
@@ -67,38 +84,58 @@ object DomainController extends DbController {
 object AliasController extends DbController {
 
   def alias(connection: ConnectionName) = Action {
-    Ok(views.html.alias.alias(connection))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      Ok(views.html.alias.alias(connection))
+    }
   }
 
   def catchAll(connection: ConnectionName) = Action {
-    val catchAllAliases = Aliases.findCatchAllDomains(connection)
-    val relayDomains = Domains.findRelayDomains(connection)
-    val noCatchAllAliases = relayDomains diff catchAllAliases
-    val catchAllRelays = Relays.findCatchAllDomains(connection)
-    val noCatchAllRelays = relayDomains diff catchAllRelays
-    Ok(views.html.alias.catchall(connection,catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      val catchAllAliases = Aliases.findCatchAllDomains(connection)
+      val relayDomains = Domains.findRelayDomains(connection)
+      val noCatchAllAliases = relayDomains diff catchAllAliases
+      val catchAllRelays = Relays.findCatchAllDomains(connection)
+      val noCatchAllRelays = relayDomains diff catchAllRelays
+      Ok(views.html.alias.catchall(connection,catchAllAliases,noCatchAllAliases,catchAllRelays,noCatchAllRelays))
+    }
   }
 
   def common(connection: ConnectionName) = Action {
-    val relayDomains = Domains.findRelayDomains(connection)
-    val requiredAliases: List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
-      val aliases = d.findRequiredAliases ++ d.findCommonAliases
-      ( d, aliases.map( a => (a._1,a._2.enabled) ) )
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      val relayDomains = Domains.findRelayDomains(connection)
+      val requiredAliases: List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
+        val aliases = d.findRequiredAliases ++ d.findCommonAliases
+        ( d, aliases.map( a => (a._1,a._2.enabled) ) )
+      }
+      val requiredRelays:  List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
+        val relays = d.findRequiredRelays ++ d.findCommonRelays
+        ( d, relays.map( r => (r._1,r._2.enabled) ) )
+      }
+      Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
     }
-    val requiredRelays:  List[(Domain,Map[String,Boolean])] = relayDomains.map{ d =>
-      val relays = d.findRequiredRelays ++ d.findCommonRelays
-      ( d, relays.map( r => (r._1,r._2.enabled) ) )
-    }
-    Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
   }
 
   def crossDomain(connection: ConnectionName) = Action {
-    val aliases = Aliases.customAliases
-    val relayDomains = Domains.findRelayDomains(connection)
-    val customAliases: List[(Domain,Map[String,Boolean],Map[String,Boolean])] = relayDomains.map{ d =>
-      ( d, d.findCustomAliases.map( r => (r._1,r._2.enabled) ), d.findCustomRelays.map( r => (r._1,r._2.enabled) ) )
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      val aliases = Aliases.customAliases
+      val relayDomains = Domains.findRelayDomains(connection)
+      val customAliases: List[(Domain,Map[String,Boolean],Map[String,Boolean])] = relayDomains.map{ d =>
+        ( d, d.findCustomAliases.map( r => (r._1,r._2.enabled) ), d.findCustomRelays.map( r => (r._1,r._2.enabled) ) )
+      }
+      Ok(views.html.alias.cross(connection, aliases, customAliases) )
     }
-    Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
 }
@@ -107,21 +144,30 @@ object AliasController extends DbController {
 object UserController extends DbController {
 
   def user(connection: ConnectionName) = Action {
-    val users = Users.findUsers(connection)
-    Ok(views.html.user.user(connection,users))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      val users = Users.findUsers(connection)
+      Ok(views.html.user.user(connection,users))
+    }
   }
 
   def edituser(connection: ConnectionName, email: String) = Action {
-    Users.findUser(connection, email) match {
-      case Some(user) => Ok(views.html.user.edituser(connection,user))
-      case None => {
-        Logger.warn(s"User $email not found")
-        val users = Users.findUsers(connection)
-        implicit val errorMessages = List(ErrorMessage("User not found"))
-        NotFound(views.html.user.user( connection, users))
+    if( !isValidConnection(connection) ) {
+      implicit val errorMessages = List(ErrorMessage("Connection not found"))
+      NotFound(views.html.connections(databaseConnections))
+    } else {  
+      Users.findUser(connection, email) match {
+        case Some(user) => Ok(views.html.user.edituser(connection,user))
+        case None => {
+          Logger.warn(s"User $email not found")
+          val users = Users.findUsers(connection)
+          implicit val errorMessages = List(ErrorMessage("User not found"))
+          NotFound(views.html.user.user( connection, users))
+        }
       }
     }
-    
   }
 
 }
