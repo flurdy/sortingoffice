@@ -41,13 +41,8 @@ navigation a:visited {
    clear: both;
    background-color: white;
 }
-header,
-#cargo {
-   padding: 0em 1em;
-   clear: both;
-}
 header {
-   padding-top: 1em;
+   padding: 1em 1em 0 1em;
    margin-bottom: 0;
 }
 header h1 {
@@ -70,7 +65,8 @@ footer #flurdy-footer {
    float: right;
 }
 #cargo {
-   margin: 1em 1em;
+   clear: both;
+   margin: 0em 1em 1em 1em;
    padding: 1em;
    min-height: 24em;
 }
@@ -109,7 +105,6 @@ footer #flurdy-footer {
 #connections {
    float: right;
    clear: right;
-   height: 5em;
    padding: 0.2em 1em;
    font-size: 9pt;
    color: gray;
