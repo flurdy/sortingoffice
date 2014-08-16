@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relays: List[Relay], aliases: List[Alias], users: List[User])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])
 
 @main(Some("Domain aliases | example.org"), Some(currentDatabaseConnection)) {
 
@@ -6,7 +6,7 @@
 
    <h3><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domain</a> aliases [@domain.name]</h3>
 
-  
+
 
    <section>
 
@@ -26,7 +26,7 @@
 				<tr>
 					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
 					<td>
-						@if(!alias.enabled){ <s> } 
+						@if(!alias.enabled){ <s> }
 							@if(alias.destination.startsWith("@")){
 							<a href="@routes.DomainController.alias(currentDatabaseConnection,alias.destination.drop(1))">
 								@alias.destination
@@ -54,42 +54,45 @@
 
 	</section>
 
-	 <section>
 
-		<h4>Relay maps</h4>
+	@for(relays <- relaysFound){
 
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th>recipient</th>
-					<th>enabled</th>
-					<th>status</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for( relay <- relays){
-				<tr>
-					<td>@if(!relay.enabled){ <s> } @relay.recipient @if(!relay.enabled){ </s> }</td>
-					<td>@relay.enabled</td>
-					<td>@relay.status</td>
-					<td class="actions">
-						@if(relay.enabled){
-							<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
-						} else {
-							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
-						}
-						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
+		 <section>
 
-		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+			<h4>Relay maps</h4>
 
-	</section>
-	
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>recipient</th>
+						<th>enabled</th>
+						<th>status</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					@for( relay <- relays){
+					<tr>
+						<td>@if(!relay.enabled){ <s> } @relay.recipient @if(!relay.enabled){ </s> }</td>
+						<td>@relay.enabled</td>
+						<td>@relay.status</td>
+						<td class="actions">
+							@if(relay.enabled){
+								<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
+							} else {
+								<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+							}
+							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+
+			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+
+		</section>
+	}
 
    <section>
 

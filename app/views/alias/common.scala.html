@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, commonAliases: List[ (Domain, Map[String,Boolean])], commonRelays: List[ (Domain, Map[String,Boolean])] )
+@(currentDatabaseConnection: Environment.ConnectionName, commonAliases: List[ (Domain, Map[String,Boolean])], commonRelaysFound: Option[List[ (Domain, Map[String,Boolean])]] )
 
 @aliasTick(aliasProduct: String, aliases: Map[String,Boolean]) = {
    @aliases.get(aliasProduct) match {
@@ -80,11 +80,11 @@
 
    <style>button.btn{ display: none; }</style>
 
-<h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Common aliases</a></h3>
+   <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Common aliases</a></h3>
 
-<section>
+   <section>
 
-<h4>Required aliases</h4>
+      <h4>Required aliases</h4>
 
       <table class="table table-hover ticks">
          <thead>
@@ -144,67 +144,69 @@
 
    </section>
 
-   <section>
+   @for(commonRelays <- commonRelaysFound){
 
-      <h4>Required relays</h4>
+      <section>
 
-      <table class="table table-hover ticks">
-         <thead>
-            <tr>
-               <th>domain</th>
-               <th colspan="2">abuse</th>
-               <th colspan="2">postmaster</th>
-               <th colspan="2">catch all</th>
-            </tr>
-         </thead>
-         <tbody>
-            @for( (domain, aliases) <- commonRelays){
+         <h4>Required relays</h4>
+
+         <table class="table table-hover ticks">
+            <thead>
                <tr>
-                  <td>
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                  </td>
-                  @aliasTick("abuse",aliases)
-                  @aliasTick("postmaster",aliases)
-                  @aliasCatchall(List("abuse","postmaster"),aliases)
+                  <th>domain</th>
+                  <th colspan="2">abuse</th>
+                  <th colspan="2">postmaster</th>
+                  <th colspan="2">catch all</th>
                </tr>
-            }
-         </tbody>
-      </table>
+            </thead>
+            <tbody>
+               @for( (domain, aliases) <- commonRelays){
+                  <tr>
+                     <td>
+                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     </td>
+                     @aliasTick("abuse",aliases)
+                     @aliasTick("postmaster",aliases)
+                     @aliasCatchall(List("abuse","postmaster"),aliases)
+                  </tr>
+               }
+            </tbody>
+         </table>
 
-   </section>
+      </section>
 
-   <section>
+      <section>
 
-      <h4>Common relays</h4>
+         <h4>Common relays</h4>
 
-      <table class="table table-hover ticks">
-         <thead>
-            <tr>
-               <th>domain</th>
-               <th colspan="2">info</th>
-               <th colspan="2">root</th>
-               <th colspan="2">support</th>
-               <th colspan="2">webmaster</th>
-               <th colspan="2">catch all</th>
-            </tr>
-         </thead>
-         <tbody>
-            @for( (domain, aliases) <- commonRelays){
+         <table class="table table-hover ticks">
+            <thead>
                <tr>
-                  <td>
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                  </td>
-                  @aliasTick("info",aliases)
-                  @aliasTick("root",aliases)
-                  @aliasTick("support",aliases)
-                  @aliasTick("webmaster",aliases)
-                  @aliasCatchall(List("abuse","postmaster"),aliases)
+                  <th>domain</th>
+                  <th colspan="2">info</th>
+                  <th colspan="2">root</th>
+                  <th colspan="2">support</th>
+                  <th colspan="2">webmaster</th>
+                  <th colspan="2">catch all</th>
                </tr>
-            }
-         </tbody>
-      </table>
+            </thead>
+            <tbody>
+               @for( (domain, aliases) <- commonRelays){
+                  <tr>
+                     <td>
+                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     </td>
+                     @aliasTick("info",aliases)
+                     @aliasTick("root",aliases)
+                     @aliasTick("support",aliases)
+                     @aliasTick("webmaster",aliases)
+                     @aliasCatchall(List("abuse","postmaster"),aliases)
+                  </tr>
+               }
+            </tbody>
+         </table>
 
-   </section>
-
+      </section>
+   }
 
 }

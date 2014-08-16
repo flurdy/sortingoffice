@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,relays: List[Domain], backups: List[Domain])(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName, relays: List[Domain], backupDomains: Option[List[Domain]])(implicit errorMessages: List[ErrorMessage] = List.empty)
 
 @import models._
 
@@ -52,51 +52,52 @@
 
 	</section>
 
+	@for( backups <- backupDomains){
 
-   <section>
+	   <section>
 
-		<h4>Backed up</h4>
+			<h4>Backed up</h4>
 
-		<table class="table table-hover">
-			<thead>
-				<tr>
-					<th>domain</th>
-					<th>enabled</th>
-					<th>transport</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for(domain <- backups){
-				<tr>
-					<td>
-						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-						@if(!domain.enabled){ </s> }
-					</td>
-					<td>@domain.enabled</td>
-					<td>
-						@if(!domain.enabled){ <s> }
-						@domain.transport
-						@if(!domain.enabled){ </s> }
-					</td>
-					<td class="actions">
-						@if(domain.enabled){
-							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-						} else {
-							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
-						}
-						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>domain</th>
+						<th>enabled</th>
+						<th>transport</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					@for(domain <- backups){
+					<tr>
+						<td>
+							@if(!domain.enabled){ <s> }
+							<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+							@if(!domain.enabled){ </s> }
+						</td>
+						<td>@domain.enabled</td>
+						<td>
+							@if(!domain.enabled){ <s> }
+							@domain.transport
+							@if(!domain.enabled){ </s> }
+						</td>
+						<td class="actions">
+							@if(domain.enabled){
+								<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+							} else {
+								<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+							}
+							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
 
-		<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
+			<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
 
-	</section>
-
+		</section>
+	}
 
 
 

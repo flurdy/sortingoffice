@@ -32,4 +32,11 @@ object Aliases {
       } yield (aliasToFind,alias) ).toMap
    }
 
+   def findRequiredAndCommonAliases(domains: List[Domain]): List[(Domain,Map[String,Boolean])] = {
+      domains map { domain =>
+         val aliases: Map[String,Alias] = domain.findRequiredAliases ++ domain.findCommonAliases
+         ( domain, aliases.map( alias => (alias._1, alias._2.enabled) ) )
+      }
+   }
+
 }

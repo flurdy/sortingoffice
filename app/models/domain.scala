@@ -14,7 +14,13 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def withConnection(connection: ConnectionName) = Domain( Some(connection), name, enabled, transport)
 
-   def findRelays = RelayRepository.findRelaysForDomain(this)
+   def findRelaysIfEnabled = {
+      connection flatMap { connectionName =>
+         if( FeatureToggles.isRelayEnabled(connection.get)){
+            Some( RelayRepository.findRelaysForDomain(this) )
+         } else None
+      }
+   }
 
    def findAliases = AliasRepository.findAllAliasesForDomain(this)
 
@@ -24,13 +30,18 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def findCommonAliases  : Map[String,Alias] = Aliases.findCommonAliases(this)
 
-   def findRequiredRelays: Map[String,Relay] = Relays.findRequiredRelays(this)
+   def findRequiredRelaysIfEnabled: Option[Map[String,Relay]] = Relays.findRequiredRelaysIfEnabled(this)
 
-   def findCommonRelays: Map[String,Relay] = Relays.findCommonRelays(this)
+   def findCommonRelaysIfEnabled: Option[Map[String,Relay]] = Relays.findCommonRelaysIfEnabled(this)
 
    def findCustomAliases  : Map[String,Alias] = Aliases.findCustomAliases(this)
 
-   def findCustomRelays: Map[String,Relay] = Relays.findCustomRelays(this)
+   def findCustomRelaysIfEnabled: Option[Map[String,Relay]] = Relays.findCustomRelaysIfEnabled(this)
+
+   def findCustomAliasesAndRelays: (Map[String,Boolean],Option[Map[String,Boolean]]) = {
+      ( findCustomAliases.map( a=> (a._1,a._2.enabled) ),
+        findCustomRelaysIfEnabled.map( r => r.map( re => (re._1,re._2.enabled) ) ) )
+   }
 
 }
 
@@ -42,6 +53,14 @@ object Domains {
    def findRelayDomains(connection: ConnectionName): List[Domain] = DomainRepository.findRelayDomains(connection)
 
    def findBackupDomains(connection: ConnectionName): List[Domain] = DomainRepository.findBackupDomains(connection)
+
+   def findBackupDomainsIfEnabled(connection: ConnectionName): Option[List[Domain]] = {
+      if( FeatureToggles.isBackupEnabled(connection)){
+         Some( DomainRepository.findBackupDomains(connection) )
+      } else None
+   }
+
+
 
 }
 

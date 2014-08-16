@@ -25,7 +25,7 @@ object RelayRepository {
    def findRelaysForDomain(domain: Domain): List[Relay] = {
       domain.connection match {
          case Some(connection) => findRelaysForDomain(connection,domain)
-         case None => throw new IllegalStateException("No connection in domain")         
+         case None => throw new IllegalStateException("No connection in domain")
       }
    }
 

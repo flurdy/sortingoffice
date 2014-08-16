@@ -6,14 +6,23 @@ A mail server user data management tool.
 It assumes a build based on flurdy's howto: http://flurdy.com/docs/postfix/
 
 
+Features
+----
+* View data that are contained in the mail database.
+* View which domains a server are responsible for.
+* View users that will store emails on a server.
+* View aliases to forward emails.
+* View alias relays and backups if enabled
+* Support several server's mail database
 
-Will
+
+
+Soon
 ---
-
-* View and edit data that are contained in the server's database.
-* View and edit which domains this server are responsible for.
-* View and edit users that will store emails on this server.
-* View and edit aliases to forward emails.
+* Edit data that are contained in the server's database.
+* Edit which domains this server are responsible for.
+* Edit users that will store emails on this server.
+* Edit aliases to forward emails.
 * Check DNS entries for relevant domain(s).
 
 
@@ -28,7 +37,6 @@ Not
 
 Future
 ----
-* Include all MXs, including backup MXs
 * Dynamic server additions
 
 

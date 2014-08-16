@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain],catchAllRelays: List[Domain],nonCatchAllRelays: List[Domain])
+@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain], catchAllRelays: Option[List[Domain]], nonCatchAllRelays: Option[List[Domain]])
 
 @main(Some("Aliases | Catch All"), Some(currentDatabaseConnection)) {
 
@@ -75,6 +75,8 @@
 
    </section>
 
+   @for(relays <- catchAllRelays){
+
    <h3>Relays Catch All</h3>
 
    <section>
@@ -90,7 +92,7 @@
             </tr>
          </thead>
          <tbody>
-            @for(domain <- catchAllRelays){
+            @for(domain <- relays){
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
@@ -117,6 +119,10 @@
       <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
 
    </section>
+   }
+
+
+   @for(relays <- nonCatchAllRelays){
 
    <section>
 
@@ -130,7 +136,7 @@
             </tr>
          </thead>
          <tbody>
-            @for(domain <- nonCatchAllRelays){
+            @for(domain <- relays){
                <tr>
                   <td>
                      @if(!domain.enabled){ <s> }
@@ -145,7 +151,7 @@
       </table>
 
    </section>
-
+   }
 
 
 }

@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[String], domainAliases: List[(Domain, Map[String,Boolean], Map[String,Boolean])] )
+@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[String], domainAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] )
 
 @aliasTick(domain: Domain, domainAlias: Map[String,Boolean]) = {
     <tr>
@@ -103,7 +103,7 @@
             </tr>
          </thead>
          <tbody>
-            @for( (domain,domainAlias,domainRelay) <- domainAliases){
+            @for( (domain,(domainAlias,domainRelay)) <- domainAliases){
               @aliasTick(domain,domainAlias)
             }
          </tbody>
@@ -111,27 +111,32 @@
 
    </section>
 
-   <section>
+   @if( domainAliases.exists( al => al._2._2.isDefined ) ){
 
-      <h4>Cross domain relay</h4>
+      <section>
 
-      <table class="table table-hover ticks">
-         <thead>
-            <tr>
-               <th>alias</th>
-               @for(aliasName <- aliases.filterNot(_=="")){
-                  <th colspan="2">@aliasName</th>
+         <h4>Cross domain relay</h4>
+
+         <table class="table table-hover ticks">
+            <thead>
+               <tr>
+                  <th>alias</th>
+                  @for(aliasName <- aliases.filterNot(_=="")){
+                     <th colspan="2">@aliasName</th>
+                  }
+                   <th colspan="2">catchall</th>
+            </thead>
+            <tbody>
+               @for( (domain,(domainAlias,domainRelay)) <- domainAliases){
+                  @for( relay <- domainRelay){
+                     @aliasTick(domain,relay)
+                  }
                }
-                <th colspan="2">catchall</th>
-         </thead>
-         <tbody>
-            @for( (domain,domainAlias,domainRelay) <- domainAliases){
-               @aliasTick(domain,domainRelay)
-            }
-         </tbody>
-      </table>
+            </tbody>
+         </table>
 
-   </section>
+      </section>
+   }
 
 
 
