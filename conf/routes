@@ -21,7 +21,9 @@ GET     /db/:db/alias/common         controllers.AliasController.common(db: Stri
 GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)
 
 GET     /db/:db/user                 controllers.UserController.user(db: String)
-GET     /db/:db/user/:email/edit            controllers.UserController.edituser(db: String, email: String)
+GET     /db/:db/user/:email/edit     controllers.UserController.edituser(db: String, email: String)
+POST    /db/:db/user/:email/disable  controllers.UserController.disable(db: String, email: String)
+POST    /db/:db/user/:email/enable   controllers.UserController.enable(db: String, email: String)
 
 
 # Map static webjar resources

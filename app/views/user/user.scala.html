@@ -1,8 +1,8 @@
-@(currentDatabaseConnection: Environment.ConnectionName, users: List[User])(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName, users: List[User], toggleEnabled: Boolean, writeEnabled: Boolean = false)(implicit errorMessages: List[ErrorMessage] = List.empty)
+
+@import helper._
 
 @main(Some("Users"),Some(currentDatabaseConnection)) {
-
-   <style>button.btn{ display: none; }</style>
 
    <h3>Users</h3>
 
@@ -24,19 +24,29 @@
                   @if(!user.enabled){ </s> }
                <td>@user.enabled</td>
                <td class="actions">
-                  @if(user.enabled){ 
-                     <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-                  } else {
-                     <button disabled title="enable" class="btn btn-xs btn-info">e</button>
-                  }                  
-                  <button disabled title="edit" class="btn btn-xs btn-info">edit</button>
+                  @if(toggleEnabled){
+                     @if(user.enabled){
+                        @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
+                           <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                        }
+                     } else {
+                        @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
+                           <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                        }
+                     }
+                  }
+                  @if(writeEnabled){
+                     <button disabled title="edit" class="btn btn-xs btn-info">edit</button>
+                  }
                </td>
             </tr>
             }
          </tbody>
       </table>
 
-      <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+      @if(writeEnabled){
+         <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+      }
 
    </section>
 

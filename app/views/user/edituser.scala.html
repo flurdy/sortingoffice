@@ -1,8 +1,8 @@
-@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName,user: User, toggleEnabled: Boolean, writeEnabled: Boolean = false)(implicit errorMessages: List[ErrorMessage] = List.empty)
+
+@import helper._
 
 @main(Some("Users"),Some(currentDatabaseConnection)) {
-
-   <style>button.btn{ display: none; }</style>
 
    <h3><a href="@routes.UserController.user(currentDatabaseConnection)">User</a></h3>
 
@@ -22,28 +22,38 @@
                <th>enabled</th>
                <td>@user.enabled</td>
             </tr>
-            <tr>
-               <th></th>
-               <td class="actions">
-                  <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">reset password</button>
-               </td>
-            </tr>
-            <tr>
-               <th></th>
-               <td> 
-                  @if(user.enabled){
-                     <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">disable</button> 
-                  } else {
-                     <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-success">enable</button> 
-                  }
-               </td>
-            </tr>
+            @if(writeEnabled){
+               <tr>
+                  <th></th>
+                  <td class="actions">
+                        <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">reset password</button>
+                  </td>
+               </tr>
+            }
             <tr>
                <th></th>
                <td>
-                  <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
+                  @if(toggleEnabled){
+                     @if(user.enabled){
+                        @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
+                           <button type="submit" title="disable" class="btn btn-xs btn-warning">disable</button>
+                        }
+                     } else {
+                        @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
+                           <button type="submit" title="enable" class="btn btn-xs btn-success">enable</button>
+                        }
+                     }
+                  }
                </td>
             </tr>
+            @if(writeEnabled){
+               <tr>
+                  <th></th>
+                  <td>
+                        <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
+                  </td>
+               </tr>
+            }
          </tbody>
       </table>
 

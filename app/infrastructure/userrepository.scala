@@ -63,4 +63,29 @@ order by id
       }
    }
 
+   def disable(connectionName: ConnectionName, user: User) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update users set enabled = 0 where id = {email}
+            """
+         ).on(
+            'email -> user.email
+         ).executeUpdate
+      }
+   }
+
+   def enable(connectionName: ConnectionName, user: User) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update users set enabled = 1 where id = {email}
+            """
+         ).on(
+            'email -> user.email
+         ).executeUpdate
+      }
+   }
+
+
 }
