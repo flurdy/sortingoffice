@@ -33,7 +33,7 @@ object DomainRepository {
       }
    }
 
-   def findRelayDomains(connectionName: ConnectionName): List[Domain] = { 
+   def findRelayDomains(connectionName: ConnectionName): List[Domain] = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -93,6 +93,29 @@ order by d.domain
       }
    }
 
+   def disable(connectionName: ConnectionName, domain: Domain) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update domains set enabled = 0 where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).executeUpdate
+      }
+   }
+
+   def enable(connectionName: ConnectionName, domain: Domain) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update domains set enabled = 1 where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).executeUpdate
+      }
+   }
 
 
 }

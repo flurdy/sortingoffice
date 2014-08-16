@@ -29,10 +29,6 @@ import Environment.ConnectionName
 
 object FeatureToggles {
 
-	private def isFeatureEnabled(featureName: String): Boolean = {
-		Play.configuration.getBoolean(s"feature.${featureName}.enabled").getOrElse(false)
-	}
-
 	private def isDatabaseFeatureEnabled(connection: ConnectionName, featureName: String): Boolean = {
 		Play.configuration.getBoolean(s"databases.${connection}.features.${featureName}").getOrElse(false)
 	}
@@ -42,6 +38,10 @@ object FeatureToggles {
 	def isRelayEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"relay")
 
 	def isRelocationEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"relocation")
+
+	def isToggleEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"toggle")
+
+	def isWriteEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"write")
 
 }
 

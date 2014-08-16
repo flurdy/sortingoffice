@@ -43,6 +43,10 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
         findCustomRelaysIfEnabled.map( r => r.map( re => (re._1,re._2.enabled) ) ) )
    }
 
+   def disable = connection.map( Domains.disable(_,this) )
+
+   def enable = connection.map( Domains.enable(_,this) )
+
 }
 
 
@@ -60,7 +64,13 @@ object Domains {
       } else None
    }
 
+   def disable(connection: ConnectionName, domain: Domain) {
+      DomainRepository.disable(connection, domain)
+   }
 
+   def enable(connection: ConnectionName, domain: Domain) {
+      DomainRepository.enable(connection, domain)
+   }
 
 }
 

@@ -74,7 +74,8 @@ footer #flurdy-footer {
    margin: 3em 0 5em 0;
    clear: both;
 }
-#cargo section > button {
+#cargo section > button,
+#cargo section > form > button {
    float: right;
 }
 #cargo section table {

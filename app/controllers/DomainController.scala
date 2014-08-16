@@ -13,7 +13,8 @@ object DomainController extends Controller with DbController {
   def domain(connection: ConnectionName) = ConnectionAction(connection) {
     val relayDomains = Domains.findRelayDomains(connection)
     val backups = Domains.findBackupDomainsIfEnabled(connection)
-    Ok(views.html.domain.domain( connection, relayDomains, backups ))
+    val toggle = FeatureToggles.isToggleEnabled(connection)
+    Ok(views.html.domain.domain( connection, relayDomains, backups, toggle ))
   }
 
   def alias(connection: ConnectionName, name: String) = ConnectionAction(connection) {
@@ -22,17 +23,53 @@ object DomainController extends Controller with DbController {
         val relays = domain.findRelaysIfEnabled
         val aliases = domain.findAliases
         val users = domain.findUsers
-        Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users))
+        val toggle = FeatureToggles.isToggleEnabled(connection)
+        Ok(views.html.domain.domainalias( connection, domain,relays,aliases,users,toggle))
       }
       case None => {
         Logger.warn(s"Domain $name not found")
         val relayDomains = Domains.findRelayDomains(connection)
         val backups = Domains.findBackupDomainsIfEnabled(connection)
+        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relayDomains, backups))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
       }
     }
   }
 
-}
+  def disable(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+    Domains.findRelayDomain(connection, name) match {
+      case Some(domain) =>{
+        domain.disable
+        Redirect(routes.DomainController.domain(connection))
+      }
+      case None => {
+        Logger.warn(s"Domain $name not found")
+        val relayDomains = Domains.findRelayDomains(connection)
+        val backups = Domains.findBackupDomainsIfEnabled(connection)
+        val toggle = FeatureToggles.isToggleEnabled(connection)
+        implicit val errorMessages = List(ErrorMessage("Domain not found"))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+      }
+    }
+  }
 
+  def enable(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+    Domains.findRelayDomain(connection, name) match {
+      case Some(domain) =>{
+        domain.enable
+        Redirect(routes.DomainController.domain(connection))
+      }
+      case None => {
+        Logger.warn(s"Domain $name not found")
+        val relayDomains = Domains.findRelayDomains(connection)
+        val backups = Domains.findBackupDomainsIfEnabled(connection)
+        val toggle = FeatureToggles.isToggleEnabled(connection)
+        implicit val errorMessages = List(ErrorMessage("Domain not found"))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+      }
+    }
+  }
+
+
+}

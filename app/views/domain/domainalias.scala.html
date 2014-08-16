@@ -1,8 +1,8 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User], toggleEnabled: Boolean, writeEnabled: Boolean = false)
+
+@import helper._
 
 @main(Some("Domain aliases | example.org"), Some(currentDatabaseConnection)) {
-
-	<style>button.btn{ display: none; }</style>
 
    <h3><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domain</a> aliases [@domain.name]</h3>
 
@@ -38,19 +38,25 @@
 					</td>
 					<td>@alias.enabled</td>
 					<td class="actions">
-						@if(alias.enabled){
-							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-						} else {
-							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+						@if(toggleEnabled){
+							@if(alias.enabled){
+								<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+							} else {
+								<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+							}
 						}
-						<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+						@if(writeEnabled){
+							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+						}
 					</td>
 				</tr>
 				}
 			</tbody>
 		</table>
 
-		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
+		@if(writeEnabled){
+			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
+		}
 
 	</section>
 
@@ -77,19 +83,25 @@
 						<td>@relay.enabled</td>
 						<td>@relay.status</td>
 						<td class="actions">
-							@if(relay.enabled){
-								<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
-							} else {
-								<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+							@if(toggleEnabled){
+								@if(relay.enabled){
+									<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
+								} else {
+									<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+								}
 							}
-							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+							@if(writeEnabled){
+								<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+							}
 						</td>
 					</tr>
 					}
 				</tbody>
 			</table>
 
-			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+			@if(writeEnabled){
+				<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+			}
 
 		</section>
 	}
@@ -113,24 +125,47 @@
 					<td>@user.passwordReset</td>
 					<td>@user.enabled</td>
 					<td class="actions">
-						@if(user.enabled){
-							<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-						} else {
-							<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+						@if(toggleEnabled){
+							@if(user.enabled){
+								<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+							} else {
+								<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+							}
 						}
-						<button disabled title="edit" class="btn btn-xs btn-info">edit</button>
+						@if(writeEnabled){
+							<button disabled title="edit" class="btn btn-xs btn-info">edit</button>
+						}
 					</td>
 				</tr>
 				}
 			</tbody>
 		</table>
 
-		<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+		@if(writeEnabled){
+			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+		}
 
 	</section>
 
+	<section>
+		@if(toggleEnabled){
+			@if(domain.enabled){
+				@form(action=routes.DomainController.disable(currentDatabaseConnection,domain.name)){
+					<button type="submit" title="disable" class="btn btn-xs btn-warning">disable domain</button>
+				}
+			} else {
+				@form(action=routes.DomainController.enable(currentDatabaseConnection,domain.name)){
+					<button type="submit" title="enable" class="btn btn-xs btn-success">enable domain</button>
+				}
+			}
+		}
+	</section>
 
-
+	<section>
+		@if(writeEnabled){
+			<button disabled title="enable" class="btn btn-xs btn-danger">remove domain</button>
+		}
+	</section>
 
 
 }
