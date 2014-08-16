@@ -94,9 +94,13 @@
 						<td class="actions">
 							@if(toggleFeature){
 								@if(domain.enabled){
-									<button disabled title="disable" class="btn btn-xs btn-warning">d</button>
+									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domain.name)){
+										<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+									}
 								} else {
-									<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+									@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domain.name)){
+										<button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+									}
 								}
 							}
 							@if(writeFeature){

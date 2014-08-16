@@ -47,12 +47,18 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def enable = connection.map( Domains.enable(_,this) )
 
+   def disableBackup = connection.map( Domains.disableBackup(_,this) )
+
+   def enableBackup = connection.map( Domains.enableBackup(_,this) )
+
 }
 
 
 object Domains {
 
    def findRelayDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findRelayDomain(connection, name)
+
+   def findBackupDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findBackupDomain(connection, name)
 
    def findRelayDomains(connection: ConnectionName): List[Domain] = DomainRepository.findRelayDomains(connection)
 
@@ -70,6 +76,14 @@ object Domains {
 
    def enable(connection: ConnectionName, domain: Domain) {
       DomainRepository.enable(connection, domain)
+   }
+
+   def disableBackup(connection: ConnectionName, domain: Domain) {
+      DomainRepository.disableBackup(connection, domain)
+   }
+
+   def enableBackup(connection: ConnectionName, domain: Domain) {
+      DomainRepository.enableBackup(connection, domain)
    }
 
 }

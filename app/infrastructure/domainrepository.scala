@@ -66,6 +66,18 @@ where domain = {name}
       }
    }
 
+   def findBackupDomain(connectionName: ConnectionName, name: String): Option[Domain] = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+select * from backups
+where domain = {name}
+            """
+         ).on(
+            'name -> name
+         ).as(simpleDomain *).map( _.withConnection(connectionName) ).headOption
+      }
+   }
 
    def findCatchAllDomains(connectionName: ConnectionName): List[Domain] = {
       DB.withConnection(connectionName) { implicit connection =>
@@ -110,6 +122,30 @@ order by d.domain
          SQL(
             """
                update domains set enabled = 1 where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).executeUpdate
+      }
+   }
+
+   def disableBackup(connectionName: ConnectionName, domain: Domain) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update backups set enabled = 0 where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).executeUpdate
+      }
+   }
+
+   def enableBackup(connectionName: ConnectionName, domain: Domain) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update backups set enabled = 1 where domain = {name}
             """
          ).on(
             'name -> domain.name
