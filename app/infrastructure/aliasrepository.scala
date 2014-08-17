@@ -50,17 +50,45 @@ order by mail
       }
    }
 
-   def findAlias(alias: String, domain: Domain): Option[Alias] = {
-      DB.withConnection(domain.connection.get) { implicit connection =>
+   def findDomainAlias(alias: String, domain: Domain): Option[Alias] = {
+      domain.connection flatMap( connection => findAlias(connection,s"${alias}@${domain.name}") )
+   }
+
+
+   def findAlias(connection: ConnectionName, email: String): Option[Alias] = {
+      DB.withConnection(connection) { implicit connection =>
          SQL(
             """
 select * from aliases
 where mail = {name}
-order by mail
             """
          ).on(
-            'name -> s"${alias}@${domain.name}"
+            'name -> email
          ).as(simpleAlias *).headOption
+      }
+   }
+
+   def disable(connectionName: ConnectionName, email: String) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update aliases set enabled = 0 where mail = {email}
+            """
+         ).on(
+            'email -> email
+         ).executeUpdate
+      }
+   }
+
+   def enable(connectionName: ConnectionName, email: String) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update aliases set enabled = 1 where mail = {email}
+            """
+         ).on(
+            'email -> email
+         ).executeUpdate
       }
    }
 

@@ -7,7 +7,13 @@ import scala.collection.JavaConverters._
 import models.Environment.ConnectionName
 
 
-case class Alias(mail: String, destination: String, enabled: Boolean)
+case class Alias(mail: String, destination: String, enabled: Boolean){
+
+   def disable(connection: ConnectionName) = AliasRepository.disable(connection,mail)
+
+   def enable(connection: ConnectionName) = AliasRepository.enable(connection,mail)
+
+}
 
 object Aliases {
 
@@ -28,7 +34,7 @@ object Aliases {
    def findAliases(aliasesToFind: List[String], domain: Domain): Map[String,Alias] = {
       ( for{
          aliasToFind <- aliasesToFind
-         alias <- AliasRepository.findAlias(aliasToFind,domain)
+         alias <- AliasRepository.findDomainAlias(aliasToFind,domain)
       } yield (aliasToFind,alias) ).toMap
    }
 
@@ -38,5 +44,7 @@ object Aliases {
          ( domain, aliases.map( alias => (alias._1, alias._2.enabled) ) )
       }
    }
+
+   def findAlias(connection: ConnectionName, email: String): Option[Alias] = AliasRepository.findAlias(connection, email)
 
 }

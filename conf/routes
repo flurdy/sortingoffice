@@ -19,6 +19,8 @@ GET     /db/:db/alias                controllers.AliasController.alias(db: Strin
 GET     /db/:db/alias/catchall       controllers.AliasController.catchAll(db: String)
 GET     /db/:db/alias/common         controllers.AliasController.common(db: String)
 GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)
+POST    /db/:db/alias/:email/disable controllers.AliasController.disable(db: String, email: String)
+POST    /db/:db/alias/:email/enable  controllers.AliasController.enable(db: String, email: String)
 
 GET     /db/:db/user                 controllers.UserController.user(db: String)
 GET     /db/:db/user/:email/edit     controllers.UserController.edituser(db: String, email: String)
