@@ -56,11 +56,11 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
 object Domains {
 
-   def findRelayDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findRelayDomain(connection, name)
+   def findDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findDomain(connection, name)
 
    def findBackupDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findBackupDomain(connection, name)
 
-   def findRelayDomains(connection: ConnectionName): List[Domain] = DomainRepository.findRelayDomains(connection)
+   def findDomains(connection: ConnectionName): List[Domain] = DomainRepository.findDomains(connection)
 
    def findBackupDomains(connection: ConnectionName): List[Domain] = DomainRepository.findBackupDomains(connection)
 

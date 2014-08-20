@@ -68,6 +68,8 @@ where mail = {name}
       }
    }
 
+   def findCatchAll(connectionName: ConnectionName, domain: Domain): Option[Alias] = findAlias(connectionName,s"@${domain.name}")
+
    def disable(connectionName: ConnectionName, email: String) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(

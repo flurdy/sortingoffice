@@ -33,7 +33,7 @@ object DomainRepository {
       }
    }
 
-   def findRelayDomains(connectionName: ConnectionName): List[Domain] = {
+   def findDomains(connectionName: ConnectionName): List[Domain] = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -53,7 +53,7 @@ select * from backups order by domain
       }
    }
 
-   def findRelayDomain(connectionName: ConnectionName, name: String): Option[Domain] = {
+   def findDomain(connectionName: ConnectionName, name: String): Option[Domain] = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -79,8 +79,8 @@ where domain = {name}
       }
    }
 
-   def findCatchAllDomains(connectionName: ConnectionName): List[Domain] = {
-      DB.withConnection(connectionName) { implicit connection =>
+   def findCatchAllDomains(connectionName: ConnectionName): List[(Domain,Alias)] = {
+      val domains = DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,a.enabled from domains d
@@ -90,10 +90,15 @@ order by d.domain
             """
          ).as(simpleDomain *).map( _.withConnection(connectionName) )
       }
+      for{
+         domain <- domains
+         name = domain.name
+         alias <- AliasRepository.findAlias(connectionName,s"@$name")
+      } yield (domain,alias)
    }
 
-   def findCatchAllRelayDomains(connectionName: ConnectionName): List[Domain] = {
-      DB.withConnection(connectionName) { implicit connection =>
+   def findCatchAllRelayDomains(connectionName: ConnectionName): List[(Domain,Relay)] = {
+      val domains = DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,r.enabled from domains d
@@ -103,6 +108,11 @@ order by d.domain
             """
          ).as(simpleDomain *).map( _.withConnection(connectionName) )
       }
+      for{
+         domain <- domains
+         name = domain.name
+         relay <- RelayRepository.findRelay(connectionName,s"@$name")
+      } yield (domain,relay)
    }
 
    def disable(connectionName: ConnectionName, domain: Domain) {

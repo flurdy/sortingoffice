@@ -23,7 +23,19 @@ object Aliases {
 
    val customAliases: List[String] = "" :: Play.configuration.getStringList("aliases.common.custom").map(_.asScala.toList).getOrElse(Nil)
 
-   def findCatchAllDomains(connection: ConnectionName) = DomainRepository.findCatchAllDomains(connection)
+   def findCatchAllDomains(connection: ConnectionName): List[(Domain,Alias)] = DomainRepository.findCatchAllDomains(connection)
+   
+   def findCatchAllDomains(connection: ConnectionName, domains: List[Domain]): (List[(Domain,Alias)],List[(Domain,Option[Alias])]) = {      
+      val catchAlls: List[(Domain,Alias)] = for{
+         domain <- domains
+         catchAll <- AliasRepository.findCatchAll(connection,domain)
+      } yield (domain,catchAll)      
+      val disabled: List[(Domain,Alias)] = catchAlls.filterNot(_._2.enabled)
+      val disabledCatchAlls: List[(Domain,Option[Alias])] = disabled.map( catchAll => (catchAll._1,Some(catchAll._2) ) ) 
+      val nonCatchAllDomains: List[Domain]  = domains diff catchAlls.map(_._1)
+      val nonCatchAlls: List[(Domain,Option[Alias])]  = nonCatchAllDomains.map( (_,None) ) ++ disabledCatchAlls
+      (catchAlls, nonCatchAlls)
+   }
 
    def findRequiredAliases(domain: Domain): Map[String,Alias] = findAliases(requiredAliases,domain)
 

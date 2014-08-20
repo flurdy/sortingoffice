@@ -2,19 +2,40 @@ package models
 
 import infrastructure._
 import play.api.Play
+import play.api.Logger
 import play.api.Play.current
 import scala.collection.JavaConverters._
 import models.Environment.ConnectionName
 
 
 
-case class Relay(recipient: String, enabled: Boolean, status: String)
+case class Relay(recipient: String, enabled: Boolean, status: String){
+
+   def disable(connection: ConnectionName) = RelayRepository.disable(connection,this.recipient)
+
+   def enable(connection: ConnectionName) = RelayRepository.enable(connection,this.recipient)
+
+}
 
 object Relays {
 
-   def findCatchAllDomainsIfEnabled(connection: ConnectionName): Option[List[Domain]] = {
+   def findCatchAllDomainsIfEnabled(connection: ConnectionName): Option[List[(Domain,Relay)]] = {
       if( FeatureToggles.isRelayEnabled(connection) ){
          Some( DomainRepository.findCatchAllRelayDomains(connection) )
+      } else None
+   }
+
+   def findCatchAllDomainsIfEnabled(connection: ConnectionName,domains: List[Domain]): Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = {
+      if( FeatureToggles.isRelayEnabled(connection) ){    
+         val catchAlls: List[(Domain,Relay)] = for{
+            domain <- domains
+            catchAll <- RelayRepository.findCatchAll(connection,domain)
+         } yield (domain,catchAll)  
+         val disabled: List[(Domain,Relay)] = catchAlls.filterNot(_._2.enabled)
+         val disabledCatchAlls: List[(Domain,Option[Relay])] = disabled.map( c => (c._1,Some(c._2) ) )
+         val nonCatchAllDomains: List[Domain] = domains diff catchAlls.map(_._1)
+         val nonCatchAlls: List[(Domain,Option[Relay])] = nonCatchAllDomains.map( (_,None) ) ++ disabledCatchAlls
+         Some((catchAlls,nonCatchAlls))
       } else None
    }
 
@@ -55,5 +76,7 @@ object Relays {
          )
       } else None
    }
+
+   def findRelay(connection: ConnectionName, recipient: String): Option[Relay] = RelayRepository.findRelay(connection,recipient)
 
 }

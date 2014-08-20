@@ -16,7 +16,7 @@ trait DbController {
 
   def isValidConnection(connection: ConnectionName): Boolean = databaseConnections.exists( _._1 == connection )
 
-  def ConnectionAction(connection: String) = new ActionBuilder[RequestWithConnection] {
+  def ConnectionAction(connection: ConnectionName) = new ActionBuilder[RequestWithConnection] {
     def invokeBlock[A](request: Request[A], block: (RequestWithConnection[A]) => Future[SimpleResult]) = {
       if( isValidConnection(connection) ){
         block(new RequestWithConnection(connection, request))
@@ -28,6 +28,12 @@ trait DbController {
       }
     }
   }
+
+}
+
+trait FeatureToggler {
+
+  def toggle(implicit connection: ConnectionName): Boolean = FeatureToggles.isToggleEnabled(connection)
 
 }
 

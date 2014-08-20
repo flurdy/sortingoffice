@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[Domain],nonCatchAllAliases: List[Domain], catchAllRelays: Option[List[Domain]], nonCatchAllRelays: Option[List[Domain]], toggleEnabled: Boolean, writeEnabled: Boolean = false)
+@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[(Domain,Alias)],nonCatchAllAliases: List[(Domain,Option[Alias])], catchAllRelays: Option[List[(Domain,Relay)]], nonCatchAllRelays: Option[List[(Domain,Option[Relay])]], toggleEnabled: Boolean, writeEnabled: Boolean = false)
 
 @import helper._
 
@@ -19,24 +19,24 @@
             </tr>
          </thead>
          <tbody>
-            @for(domain <- catchAllAliases){
+            @for((domain,alias) <- catchAllAliases){
                <tr>
                   <td>
-                     @if(!domain.enabled){ <s> }
+                     @if(!alias.enabled){ <s> }
                      <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                     @if(!domain.enabled){ </s> }
+                     @if(!alias.enabled){ </s> }
                   </td>
                   <td>
-                     @domain.enabled
+                     @alias.enabled
                   </td>
                   <td class="actions">
                      @if(toggleEnabled){
-                        @if(domain.enabled){
-                           @form(action=routes.AliasController.disable(currentDatabaseConnection,"@"+domain.name)){
+                        @if(alias.enabled){
+                           @form(action=routes.AliasController.disable(currentDatabaseConnection,alias.mail)){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         } else {
-                           @form(action=routes.AliasController.enable(currentDatabaseConnection,"@"+domain.name)){
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,alias.mail)){
                               <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                            }
                         }
@@ -68,16 +68,24 @@
             </tr>
          </thead>
          <tbody>
-            @for(domain <- nonCatchAllAliases){
+            @for((domain,alias) <- nonCatchAllAliases){
                <tr>
                   <td>
-                     @if(!domain.enabled){ <s> }
+                     @if(alias.map(!_.enabled).getOrElse(false)){ <s> }
                      <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                     @if(!domain.enabled){ </s> }
+                     @if(alias.map(!_.enabled).getOrElse(false)){ </s> }
                   </td>
                   <td class="actions">
-                     @if(writeEnabled){
-                        <button disabled title="add" class="btn btn-xs btn-success">add</button>
+                     @if(toggleEnabled){
+                        @for(aliasFound <- alias){
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,aliasFound.mail)){
+                              <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
+                           }
+                        }
+                     } else {
+                        @if(writeEnabled){
+                           <button disabled title="add" class="btn btn-xs btn-success">add</button>
+                        }
                      }
                    </td>
                </tr>
@@ -89,88 +97,103 @@
 
    @for(relays <- catchAllRelays){
 
-   <h3>Relays Catch All</h3>
+      <h3>Relays Catch All</h3>
 
-   <section>
+      <section>
 
-      <h4>Catch all</h4>
+         <h4>Catch all</h4>
 
-      <table class="table table-hover">
-         <thead>
-            <tr>
-               <th>domain</th>
-               <th>enabled</th>
-               <th></th>
-            </tr>
-         </thead>
-         <tbody>
-            @for(domain <- relays){
+         <table class="table table-hover">
+            <thead>
                <tr>
-                  <td>
-                     @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                     @if(!domain.enabled){ </s> }
-                  </td>
-                  <td>
-                     @domain.enabled
-                  </td>
-                  <td class="actions">
-                     @if(toggleEnabled){
-                        @if(domain.enabled){
-                           <button disabled title="disable" class="btn btn-xs btn-warning">d</button>
-                         } else {
-                           <button disabled title="enable" class="btn btn-xs btn-success">e</button>
-                        }
-                     }
-                     @if(writeEnabled){
-                        <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
-                     }
-                  </td>
+                  <th>domain</th>
+                  <th>enabled</th>
+                  <th></th>
                </tr>
-            }
-         </tbody>
-      </table>
+            </thead>
+            <tbody>
+               @for((domain,relay) <- relays){
+                  <tr>
+                     <td>
+                        @if(!relay.enabled){ <s> }
+                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        @if(!relay.enabled){ </s> }
+                     </td>
+                     <td>
+                        @relay.enabled
+                     </td>
+                     <td class="actions">                    
+                        @if(toggleEnabled){
+                           @if(relay.enabled){                                                
+                              @form(action=routes.RelayController.disable(currentDatabaseConnection,relay.recipient)){
+                                 <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                              }
+                            } else {
+                              @form(action=routes.RelayController.enable(currentDatabaseConnection,relay.recipient)){
+                                 <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                              }
+                           }
+                        }
+                        @if(writeEnabled){
+                           <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
+                        }
+                     </td>
+                  </tr>
+               }
+            </tbody>
+         </table>
 
-      @if(writeEnabled){
-         <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
-      }
+         @if(writeEnabled){
+            <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
+         }
 
-   </section>
+      </section>
    }
 
 
    @for(relays <- nonCatchAllRelays){
 
-   <section>
+      <section>
 
-      <h4>Not catch all</h4>
+         <h4>Not catch all relays</h4>
 
-      <table class="table table-hover">
-         <thead>
-            <tr>
-               <th>domain</th>
-               <th></th>
-            </tr>
-         </thead>
-         <tbody>
-            @for(domain <- relays){
+         <table class="table table-hover">
+            <thead>
                <tr>
-                  <td>
-                     @if(!domain.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                     @if(!domain.enabled){ </s> }
-                  </td>
-                  <td class="actions">
-                     @if(writeEnabled){
-                        <button disabled title="add" class="btn btn-xs btn-success">add</button>
-                     }
-                  </td>
+                  <th>domain</th>
+                  <th></th>
                </tr>
-            }
-         </tbody>
-      </table>
+            </thead>
+            <tbody>
+               @for((domain,relay) <- relays){
+                  <tr>
+                     <td>
+                        @if(!relay.map(_.enabled).getOrElse(false)){ <s> }
+                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        @if(!relay.map(_.enabled).getOrElse(false)){ </s> }
+                     </td>
+                     <td class="actions">
+                        @relay match{
+                           case Some(relayFound) => {
+                              @if(toggleEnabled){
+                                 @form(action=routes.RelayController.enable(currentDatabaseConnection,relayFound.recipient)){
+                                    <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
+                                 }
+                              } 
+                           }
+                           case None => {                     
+                              @if(writeEnabled){
+                                    <button disabled title="add" class="btn btn-xs btn-success">add</button>
+                              }
+                           }
+                        }
+                     </td>
+                  </tr>
+               }
+            </tbody>
+         </table>
 
-   </section>
+      </section>
    }
 
 

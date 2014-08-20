@@ -43,16 +43,44 @@ order by recipient
       }
    }
 
-   def findRelay(alias: String, domain: Domain): Option[Relay] = {
-      DB.withConnection(domain.connection.get) { implicit connection =>
+   def findCatchAll(connection: ConnectionName, domain: Domain): Option[Relay] = findRelay(connection,s"@${domain.name}")
+
+   def findRelay(alias: String, domain: Domain): Option[Relay] = findRelay(domain.connection.get, s"${alias}@${domain.name}")
+
+   def disable(connection: ConnectionName, recipient: String) {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+update relays set enabled = 0 where recipient = {recipient}
+            """
+         ).on(
+            'recipient -> recipient
+         ).executeUpdate
+      }
+   }
+
+   def enable(connection: ConnectionName, recipient: String) {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+update relays set enabled = 1 where recipient = {recipient}
+            """
+         ).on(
+            'recipient -> recipient
+         ).executeUpdate
+      }
+   }
+
+   def findRelay(connection: ConnectionName, recipient: String): Option[Relay] = {
+      DB.withConnection(connection) { implicit connection =>
          SQL(
             """
 select * from relays
-where recipient = {name}
+where recipient = {recipient}
 order by recipient
             """
          ).on(
-            'name -> s"${alias}@${domain.name}"
+            'recipient -> recipient
          ).as(simpleRelay *).headOption
       }
    }

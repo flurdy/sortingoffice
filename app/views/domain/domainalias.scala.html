@@ -96,9 +96,13 @@
 						<td class="actions">
 							@if(toggleEnabled){
 								@if(relay.enabled){
-									<button disabled  title="disable" class="btn btn-xs btn-warning">d</button>
+									@form(action=routes.RelayController.disable(currentDatabaseConnection,relay.recipient)){
+										<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
+									}
 								} else {
-									<button disabled title="enable" class="btn btn-xs btn-success">e</button>
+									@form(action=routes.RelayController.enable(currentDatabaseConnection,relay.recipient)){
+										<button type"submit" title="disable" class="btn btn-xs btn-success">e</button>
+									}
 								}
 							}
 							@if(writeEnabled){
