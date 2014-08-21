@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,user: User, toggleEnabled: Boolean, writeEnabled: Boolean = false)(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap)
 
 @import helper._
 
@@ -22,7 +22,7 @@
                <th>enabled</th>
                <td>@user.enabled</td>
             </tr>
-            @if(writeEnabled){
+            @if(featureToggles.isEnabled("edit")){
                <tr>
                   <th></th>
                   <td class="actions">
@@ -33,7 +33,7 @@
             <tr>
                <th></th>
                <td>
-                  @if(toggleEnabled){
+                  @if(featureToggles.isEnabled("toggle")){
                      @if(user.enabled){
                         @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
                            <button type="submit" title="disable" class="btn btn-xs btn-warning">disable</button>
@@ -46,7 +46,7 @@
                   }
                </td>
             </tr>
-            @if(writeEnabled){
+            @if(featureToggles.isEnabled("remove")){
                <tr>
                   <th></th>
                   <td>
@@ -56,7 +56,6 @@
             }
          </tbody>
       </table>
-
 
    </section>
 

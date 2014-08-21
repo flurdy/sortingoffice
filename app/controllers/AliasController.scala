@@ -14,23 +14,24 @@ object AliasController extends Controller with DbController  with FeatureToggler
     Ok(views.html.alias.alias(connection))
   }
 
-  def catchAll(connection: ConnectionName) = ConnectionAction(connection) { request : RequestWithConnection[AnyContent] =>
+  def catchAll(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val allDomains: List[Domain] = Domains.findDomains(connection)
     val catchAllAliases: (List[(Domain,Alias)],List[(Domain,Option[Alias])]) = Aliases.findCatchAllDomains(connection,allDomains)
-    val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = Relays.findCatchAllDomainsIfEnabled(connection,allDomains)
+    val allBackups = Domains.findBackupDomains(connection)
+    val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = Relays.findCatchAllDomainsIfEnabled(connection,allDomains++allBackups)
     Ok(views.html.alias.catchall(
       connection,catchAllAliases._1,catchAllAliases._2,
-      catchAllRelays.map(_._1),catchAllRelays.map(_._2),toggle(connection)))
+      catchAllRelays.map(_._1),catchAllRelays.map(_._2) ) )
   }
 
-  def common(connection: ConnectionName) = ConnectionAction(connection) {
+  def common(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val domains = Domains.findDomains(connection)
     val requiredAliases: List[(Domain,Map[String,Boolean])] = Aliases.findRequiredAndCommonAliases(domains)
     val requiredRelays: Option[List[(Domain,Map[String,Boolean])]] = Relays.findRequiredAndCommonRelaysIfEnabled(connection,domains)
     Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
   }
 
-  def crossDomain(connection: ConnectionName) = ConnectionAction(connection) {
+  def crossDomain(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val aliases = Aliases.customAliases
     val relayDomains = Domains.findDomains(connection)
 
@@ -41,7 +42,7 @@ object AliasController extends Controller with DbController  with FeatureToggler
     Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
-  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection) {
+  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
     Aliases.findAlias(connection,email) match {
       case Some(alias) => {
         alias.disable(connection)
@@ -55,7 +56,7 @@ object AliasController extends Controller with DbController  with FeatureToggler
     }
   }
 
-  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection) {
+  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
     Aliases.findAlias(connection,email) match {
       case Some(alias) => {
         alias.enable(connection)

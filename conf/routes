@@ -9,7 +9,7 @@ GET     /contact.html         controllers.Application.contact
 GET     /db/:db/              controllers.Application.connectionIndex(db: String)
 
 GET     /db/:db/domain               controllers.DomainController.domain(db: String)
-GET     /db/:db/domain/:domain/alias controllers.DomainController.alias(db: String, domain: String)
+GET     /db/:db/domain/:domain/      controllers.DomainController.alias(db: String, domain: String)
 POST    /db/:db/domain/:domain/disable controllers.DomainController.disable(db: String, domain: String)
 POST    /db/:db/domain/:domain/enable controllers.DomainController.enable(db: String, domain: String)
 POST    /db/:db/domain/:domain/backup/disable controllers.DomainController.disableBackup(db: String, domain: String)

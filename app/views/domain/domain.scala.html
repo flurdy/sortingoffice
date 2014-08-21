@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, relays: List[Domain], backupDomains: Option[List[Domain]], toggleFeature: Boolean, writeFeature: Boolean = false)(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName, relays: List[Domain], backupDomains: Option[List[Domain]])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap)
 
 @import models._
 @import helper._
@@ -35,7 +35,7 @@
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td class="actions">
-						@if(toggleFeature){
+						@if(featureToggles.isEnabled("toggle")){
 							@if(domain.enabled){
 								@form(action=routes.DomainController.disable(currentDatabaseConnection,domain.name)){
 									<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -46,7 +46,7 @@
 								}
 							}
 						}
-						@if(writeFeature){
+						@if(featureToggles.isEnabled("remove")){
 							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 						}
 					</td>
@@ -55,7 +55,7 @@
 			</tbody>
 		</table>
 
-		@if(writeFeature){
+		@if(featureToggles.isEnabled("add")){
 			<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add relay</button>
 		}
 
@@ -92,7 +92,7 @@
 							@if(!domain.enabled){ </s> }
 						</td>
 						<td class="actions">
-							@if(toggleFeature){
+							@if(featureToggles.isEnabled("toggle")){
 								@if(domain.enabled){
 									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domain.name)){
 										<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -103,7 +103,7 @@
 									}
 								}
 							}
-							@if(writeFeature){
+							@if(featureToggles.isEnabled("remove")){
 								<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 							}
 						</td>
@@ -112,13 +112,11 @@
 				</tbody>
 			</table>
 
-			@if(writeFeature){
+			@if(featureToggles.isEnabled("add")){
 				<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
 			}
 
 		</section>
 	}
-
-
 
 }

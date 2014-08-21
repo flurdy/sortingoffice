@@ -8,23 +8,21 @@ import models._
 import models.Environment.ConnectionName
 
 
-object DomainController extends Controller with DbController {
+object DomainController extends Controller with DbController with FeatureToggler {
 
-  def domain(connection: ConnectionName) = ConnectionAction(connection) {
+  def domain(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val relayDomains = Domains.findDomains(connection)
     val backups = Domains.findBackupDomainsIfEnabled(connection)
-    val toggle = FeatureToggles.isToggleEnabled(connection)
-    Ok(views.html.domain.domain( connection, relayDomains, backups, toggle ))
+    Ok(views.html.domain.domain( connection, relayDomains, backups))
   }
 
-  def alias(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+  def alias(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit request =>
     Domains.findDomain(connection, name) match {
       case Some(domain) =>{
         val relays = domain.findRelaysIfEnabled
         val aliases = domain.findAliases
         val users = domain.findUsers
-        val toggle = FeatureToggles.isToggleEnabled(connection)
-        Ok(views.html.domain.domainalias( connection, Some(domain), None, relays, aliases, users, toggle))
+        Ok(views.html.domain.domainalias( connection, Some(domain), None, relays, aliases, users))
       }
       case None => {
         Domains.findBackupDomain(connection, name) match {
@@ -32,23 +30,21 @@ object DomainController extends Controller with DbController {
             val relays = domain.findRelaysIfEnabled
             val aliases = domain.findAliases
             val users = domain.findUsers
-            val toggle = FeatureToggles.isToggleEnabled(connection)
-            Ok(views.html.domain.domainalias( connection, None, Some(domain), relays, aliases, users, toggle))
+            Ok(views.html.domain.domainalias( connection, None, Some(domain), relays, aliases, users))
           }
           case None => {
             Logger.warn(s"Domain $name not found")
             val relayDomains = Domains.findDomains(connection)
             val backups = Domains.findBackupDomainsIfEnabled(connection)
-            val toggle = FeatureToggles.isToggleEnabled(connection)
             implicit val errorMessages = List(ErrorMessage("Domain not found"))
-            NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+            NotFound(views.html.domain.domain( connection, relayDomains, backups))
           }
         }
       }
     }
   }
 
-  def disable(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+  def disable(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit request =>
     Domains.findDomain(connection, name) match {
       case Some(domain) =>{
         domain.disable
@@ -58,14 +54,13 @@ object DomainController extends Controller with DbController {
         Logger.warn(s"Domain $name not found")
         val relayDomains = Domains.findDomains(connection)
         val backups = Domains.findBackupDomainsIfEnabled(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups))
       }
     }
   }
 
-  def enable(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+  def enable(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit request =>
     Domains.findDomain(connection, name) match {
       case Some(domain) =>{
         domain.enable
@@ -75,14 +70,13 @@ object DomainController extends Controller with DbController {
         Logger.warn(s"Domain $name not found")
         val relayDomains = Domains.findDomains(connection)
         val backups = Domains.findBackupDomainsIfEnabled(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups))
       }
     }
   }
 
-  def disableBackup(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+  def disableBackup(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit request =>
     Domains.findBackupDomain(connection, name) match {
       case Some(domain) =>{
         domain.disableBackup
@@ -92,14 +86,13 @@ object DomainController extends Controller with DbController {
         Logger.warn(s"Domain $name not found")
         val relayDomains = Domains.findDomains(connection)
         val backups = Domains.findBackupDomainsIfEnabled(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups))
       }
     }
   }
 
-  def enableBackup(connection: ConnectionName, name: String) = ConnectionAction(connection) {
+  def enableBackup(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit request =>
     Domains.findBackupDomain(connection, name) match {
       case Some(domain) =>{
         domain.enableBackup
@@ -109,12 +102,10 @@ object DomainController extends Controller with DbController {
         Logger.warn(s"Domain $name not found")
         val relayDomains = Domains.findDomains(connection)
         val backups = Domains.findBackupDomainsIfEnabled(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("Domain not found"))
-        NotFound(views.html.domain.domain( connection, relayDomains, backups, toggle))
+        NotFound(views.html.domain.domain( connection, relayDomains, backups))
       }
     }
   }
-
 
 }

@@ -10,7 +10,7 @@ import models.Environment.ConnectionName
 
 object RelayController extends Controller with DbController{
 
-  def disable(connection: ConnectionName, recipient: String) = ConnectionAction(connection) {
+  def disable(connection: ConnectionName, recipient: String) = ConnectionAction(connection) { implicit request =>
     Relays.findRelay(connection,recipient) match {
       case Some(relay) => {
         relay.disable(connection)
@@ -24,7 +24,7 @@ object RelayController extends Controller with DbController{
     }
   }
   
-  def enable(connection: ConnectionName, recipient: String) = ConnectionAction(connection) {
+  def enable(connection: ConnectionName, recipient: String) = ConnectionAction(connection) { implicit request =>
     Relays.findRelay(connection,recipient) match {
       case Some(relay) => {
         relay.enable(connection)

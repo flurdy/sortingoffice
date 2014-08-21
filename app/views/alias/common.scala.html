@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, commonAliases: List[ (Domain, Map[String,Boolean])], commonRelaysFound: Option[List[ (Domain, Map[String,Boolean])]] )
+@(currentDatabaseConnection: Environment.ConnectionName, commonAliases: List[ (Domain, Map[String,Boolean])], commonRelaysFound: Option[List[ (Domain, Map[String,Boolean])]] )(implicit featureToggles: FeatureToggleMap)
 
 @aliasTick(aliasProduct: String, aliases: Map[String,Boolean]) = {
    @aliases.get(aliasProduct) match {

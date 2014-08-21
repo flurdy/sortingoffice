@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[String], domainAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] )
+@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[String], domainAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] )(implicit featureToggles: FeatureToggleMap)
 
 @aliasTick(domain: Domain, domainAlias: Map[String,Boolean]) = {
     <tr>

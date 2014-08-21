@@ -27,10 +27,25 @@ object Environment {
 
 import Environment.ConnectionName
 
+
+case class FeatureToggle(name: String, enabled: Boolean)
+
+case class FeatureToggleMap(toggles: Map[String,FeatureToggle]){
+	def isEnabled(featureName: String) = toggles.get(featureName).map(_.enabled).getOrElse(false)
+}
+
 object FeatureToggles {
+	
+	private val featureNames = List("toggle","add","remove")
 
 	private def isDatabaseFeatureEnabled(connection: ConnectionName, featureName: String): Boolean = {
 		Play.configuration.getBoolean(s"databases.${connection}.features.${featureName}").getOrElse(false)
+	}
+
+	def findFeatureToggles(connection: ConnectionName): FeatureToggleMap = {
+		val enabledFeatures = featureNames.filter( isDatabaseFeatureEnabled(connection,_))
+		val map = enabledFeatures.map( feature => (feature,FeatureToggle(feature,true)) ).toMap
+		FeatureToggleMap(map)
 	}
 
 	def isBackupEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"backup")
@@ -41,7 +56,9 @@ object FeatureToggles {
 
 	def isToggleEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"toggle")
 
-	def isWriteEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"write")
+	def isAddEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"add")
+	
+	def isRemoveEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"remove")
 
 }
 

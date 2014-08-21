@@ -1,8 +1,8 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Domain], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User], toggleEnabled: Boolean, writeEnabled: Boolean = false)
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Domain], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])(implicit featureToggles: FeatureToggleMap)
 
 @import helper._
 
-@main(Some("Domain aliases | example.org"), Some(currentDatabaseConnection)) {
+@main(Some("Domain aliases and users | example.org"), Some(currentDatabaseConnection)) {
 
    <h3><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domain</a> aliases</h3>
 
@@ -34,18 +34,12 @@
 					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
 					<td>
 						@if(!alias.enabled){ <s> }
-							@if(alias.destination.startsWith("@")){
-							<a href="@routes.DomainController.alias(currentDatabaseConnection,alias.destination.drop(1))">
-								@alias.destination
-							</a>
-							} else {
-								@alias.destination
-							}
+							@alias.destination	
 						@if(!alias.enabled){ </s> }
 					</td>
 					<td>@alias.enabled</td>
 					<td class="actions">
-						@if(toggleEnabled){
+						@if(featureToggles.isEnabled("toggle")){
 							@if(alias.enabled){
 								@form(action=routes.AliasController.disable(currentDatabaseConnection,alias.mail)){
 									<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -56,7 +50,7 @@
 								}
 							}
 						}
-						@if(writeEnabled){
+						@if(featureToggles.isEnabled("remove")){
 							<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 						}
 					</td>
@@ -65,7 +59,7 @@
 			</tbody>
 		</table>
 
-		@if(writeEnabled){
+		@if(featureToggles.isEnabled("add")){
 			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
 		}
 
@@ -94,7 +88,7 @@
 						<td>@relay.enabled</td>
 						<td>@relay.status</td>
 						<td class="actions">
-							@if(toggleEnabled){
+							@if(featureToggles.isEnabled("toggle")){
 								@if(relay.enabled){
 									@form(action=routes.RelayController.disable(currentDatabaseConnection,relay.recipient)){
 										<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -105,7 +99,7 @@
 									}
 								}
 							}
-							@if(writeEnabled){
+							@if(featureToggles.isEnabled("remove")){
 								<button disabled title="remove" class="btn btn-xs btn-danger">x</button>
 							}
 						</td>
@@ -114,7 +108,7 @@
 				</tbody>
 			</table>
 
-			@if(writeEnabled){
+			@if(featureToggles.isEnabled("add")){
 				<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
 			}
 
@@ -129,18 +123,23 @@
 			<thead>
 				<tr>
 					<th>mail</th>
-					<th>enabled</th>
+					<th>reset password</th> 
+					<th>enabled</th> 
 					<th colspan="2"></th>
 				</tr>
 			</thead>
 			<tbody>
 				@for( user <- users){
 				<tr>
-					<td>@user.email</td>
+					<td>
+						@if(!user.enabled){ <s> }
+						<a href="@routes.UserController.edituser(currentDatabaseConnection,user.email)">@user.email</a>
+						@if(!user.enabled){ </s> }
+					</td>
 					<td>@user.passwordReset</td>
 					<td>@user.enabled</td>
 					<td class="actions">
-						@if(toggleEnabled){
+						@if(featureToggles.isEnabled("toggle")){
 							@if(user.enabled){
 								@form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
 									<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -151,7 +150,7 @@
 								}
 							}
 						}
-						@if(writeEnabled){
+						@if(featureToggles.isEnabled("remove")){
 							<button disabled title="edit" class="btn btn-xs btn-info">edit</button>
 						}
 					</td>
@@ -160,7 +159,7 @@
 			</tbody>
 		</table>
 
-		@if(writeEnabled){
+		@if(featureToggles.isEnabled("add")){
 			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
 		}
 
@@ -169,7 +168,7 @@
 
    @for(domainFound <- domain){
 		<section>
-			@if(toggleEnabled){
+			@if(featureToggles.isEnabled("toggle")){
 				@if(domainFound.enabled){
 					@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name)){
 						<button type="submit" title="disable" class="btn btn-xs btn-warning">disable domain</button>
@@ -185,7 +184,7 @@
 
    @for(domainFound <- backup){
 		<section>
-			@if(toggleEnabled){
+			@if(featureToggles.isEnabled("toggle")){
 				@if(domainFound.enabled){
 					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domainFound.name)){
 						<button type="submit" title="disable" class="btn btn-xs btn-warning">disable backup</button>
@@ -200,7 +199,7 @@
 	}
 
 	<section>
-		@if(writeEnabled){
+		@if(featureToggles.isEnabled("remove")){
 			<button disabled title="enable" class="btn btn-xs btn-danger">remove domain</button>
 		}
 	</section>

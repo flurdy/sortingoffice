@@ -14,6 +14,8 @@ trait DbController {
 
   implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
 
+  implicit def connectionName[A](implicit request: RequestWithConnection[A]): ConnectionName = request.connection
+
   def isValidConnection(connection: ConnectionName): Boolean = databaseConnections.exists( _._1 == connection )
 
   def ConnectionAction(connection: ConnectionName) = new ActionBuilder[RequestWithConnection] {
@@ -33,7 +35,7 @@ trait DbController {
 
 trait FeatureToggler {
 
-  def toggle(implicit connection: ConnectionName): Boolean = FeatureToggles.isToggleEnabled(connection)
+  implicit def featureToggles[A](implicit request: RequestWithConnection[A]): FeatureToggleMap = FeatureToggles.findFeatureToggles(request.connection)
 
 }
 

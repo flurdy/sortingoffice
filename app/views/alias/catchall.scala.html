@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[(Domain,Alias)],nonCatchAllAliases: List[(Domain,Option[Alias])], catchAllRelays: Option[List[(Domain,Relay)]], nonCatchAllRelays: Option[List[(Domain,Option[Relay])]], toggleEnabled: Boolean, writeEnabled: Boolean = false)
+@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[(Domain,Alias)],nonCatchAllAliases: List[(Domain,Option[Alias])], catchAllRelays: Option[List[(Domain,Relay)]], nonCatchAllRelays: Option[List[(Domain,Option[Relay])]])(implicit featureToggles: FeatureToggleMap)
 
 @import helper._
 
@@ -30,7 +30,7 @@
                      @alias.enabled
                   </td>
                   <td class="actions">
-                     @if(toggleEnabled){
+                     @if(featureToggles.isEnabled("toggle")){
                         @if(alias.enabled){
                            @form(action=routes.AliasController.disable(currentDatabaseConnection,alias.mail)){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -41,7 +41,7 @@
                            }
                         }
                      }
-                     @if(writeEnabled){
+                     @if(featureToggles.isEnabled("remove")){
                         <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
                      }
                   </td>
@@ -50,8 +50,8 @@
          </tbody>
       </table>
 
-      @if(writeEnabled){
-         <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
+      @if(featureToggles.isEnabled("add")){
+         <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
       }
 
    </section>
@@ -76,16 +76,19 @@
                      @if(alias.map(!_.enabled).getOrElse(false)){ </s> }
                   </td>
                   <td class="actions">
-                     @if(toggleEnabled){
-                        @for(aliasFound <- alias){
-                           @form(action=routes.AliasController.enable(currentDatabaseConnection,aliasFound.mail)){
-                              <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
+                     @alias match{ 
+                        case Some(aliasFound) => {
+                           @if(featureToggles.isEnabled("toggle")){
+                              @form(action=routes.AliasController.enable(currentDatabaseConnection,aliasFound.mail)){
+                                 <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
+                              } 
                            }
                         }
-                     } else {
-                        @if(writeEnabled){
-                           <button disabled title="add" class="btn btn-xs btn-success">add</button>
-                        }
+                        case None => {
+                           @if(featureToggles.isEnabled("add")){
+                              <button disabled title="add" class="btn btn-xs btn-success">+</button>
+                           }
+                        }  
                      }
                    </td>
                </tr>
@@ -123,7 +126,7 @@
                         @relay.enabled
                      </td>
                      <td class="actions">                    
-                        @if(toggleEnabled){
+                        @if(featureToggles.isEnabled("toggle")){
                            @if(relay.enabled){                                                
                               @form(action=routes.RelayController.disable(currentDatabaseConnection,relay.recipient)){
                                  <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -134,7 +137,7 @@
                               }
                            }
                         }
-                        @if(writeEnabled){
+                        @if(featureToggles.isEnabled("remove")){
                            <button disabled title="remove" class="btn btn-xs btn-danger">x</button>
                         }
                      </td>
@@ -143,8 +146,8 @@
             </tbody>
          </table>
 
-         @if(writeEnabled){
-            <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
+         @if(featureToggles.isEnabled("add")){
+            <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
          }
 
       </section>
@@ -168,22 +171,22 @@
                @for((domain,relay) <- relays){
                   <tr>
                      <td>
-                        @if(!relay.map(_.enabled).getOrElse(false)){ <s> }
+                        @if(relay.map(!_.enabled).getOrElse(false)){ <s> }
                         <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
-                        @if(!relay.map(_.enabled).getOrElse(false)){ </s> }
+                        @if(relay.map(!_.enabled).getOrElse(false)){ </s> }
                      </td>
                      <td class="actions">
                         @relay match{
                            case Some(relayFound) => {
-                              @if(toggleEnabled){
+                              @if(featureToggles.isEnabled("toggle")){
                                  @form(action=routes.RelayController.enable(currentDatabaseConnection,relayFound.recipient)){
                                     <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
                                  }
                               } 
                            }
                            case None => {                     
-                              @if(writeEnabled){
-                                    <button disabled title="add" class="btn btn-xs btn-success">add</button>
+                              @if(featureToggles.isEnabled("add")){
+                                    <button disabled title="add" class="btn btn-xs btn-success">+</button>
                               }
                            }
                         }

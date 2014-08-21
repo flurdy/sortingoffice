@@ -9,29 +9,26 @@ import models.Environment.ConnectionName
 
 
 
+object UserController extends Controller with DbController with FeatureToggler {
 
-object UserController extends Controller with DbController {
-
-  def user(connection: ConnectionName) = ConnectionAction(connection) {
+  def user(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val users = Users.findUsers(connection)
-    val toggle = FeatureToggles.isToggleEnabled(connection)
-    Ok(views.html.user.user(connection,users,toggle))
+    Ok(views.html.user.user(connection,users))
   }
 
-  def edituser(connection: ConnectionName, email: String) = ConnectionAction(connection) {
-    val toggle = FeatureToggles.isToggleEnabled(connection)
+  def edituser(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
     Users.findUser(connection, email) match {
-      case Some(user) => Ok(views.html.user.edituser(connection,user,toggle))
+      case Some(user) => Ok(views.html.user.edituser(connection,user))
       case None => {
         Logger.warn(s"User $email not found")
         val users = Users.findUsers(connection)
         implicit val errorMessages = List(ErrorMessage("User not found"))
-        NotFound(views.html.user.user( connection, users, toggle))
+        NotFound(views.html.user.user( connection, users))
       }
     }
   }
 
-  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection) {
+  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
     Users.findUser(connection, email) match {
       case Some(user) => {
         user.disable(connection)
@@ -40,14 +37,13 @@ object UserController extends Controller with DbController {
       case None => {
         Logger.warn(s"User $email not found")
         val users = Users.findUsers(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("User not found"))
-        NotFound(views.html.user.user( connection, users, toggle))
+        NotFound(views.html.user.user( connection, users))
       }
     }
   }
 
-  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection) {
+  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
     Users.findUser(connection, email) match {
       case Some(user) => {
         user.enable(connection)
@@ -56,12 +52,10 @@ object UserController extends Controller with DbController {
       case None => {
         Logger.warn(s"User $email not found")
         val users = Users.findUsers(connection)
-        val toggle = FeatureToggles.isToggleEnabled(connection)
         implicit val errorMessages = List(ErrorMessage("User not found"))
-        NotFound(views.html.user.user( connection, users, toggle))
+        NotFound(views.html.user.user( connection, users))
       }
     }
   }
-
 
 }
