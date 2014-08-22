@@ -8,7 +8,33 @@ import models._
 import models.Environment.ConnectionName
 
 
-object AliasController extends Controller with DbController  with FeatureToggler {
+class RequestWithAlias[A](val alias: Alias, request: Request[A]) extends WrappedRequest[A](request)
+
+trait AliasInjector {
+
+  def AliasAction(email: String) = new ActionBuilder[RequestWithAlias] {
+    def invokeBlock[A](request: Request[A], block: (RequestWithAlias[A]) => Future[SimpleResult]) = {      
+      request match { 
+        case connectionRequest: RequestWithConnection[A] => {
+          Aliases.findAlias(connectionRequest.connection, email) match {
+            case Some(alias) => {
+              block(new RequestWithAlias(alias, connectionRequest))
+            }
+            case None => {
+              Logger.warn(s"Alias $email not found")
+              implicit val errorMessages = List(ErrorMessage("Alias not found")) 
+              Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection)(errorMessages) ) )
+            }
+          }          
+        }
+        case _ => Future.successful(InternalServerError)
+      }
+    }
+  }
+
+}
+
+object AliasController extends Controller with DbController with FeatureToggler with AliasInjector {
 
   def alias(connection: ConnectionName) = ConnectionAction(connection) {
     Ok(views.html.alias.alias(connection))
@@ -34,40 +60,25 @@ object AliasController extends Controller with DbController  with FeatureToggler
   def crossDomain(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val aliases = Aliases.customAliases
     val relayDomains = Domains.findDomains(connection)
-
     val customAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] = relayDomains.map{ d =>
       ( d, d.findCustomAliasesAndRelays )
     }
-
     Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
-  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
-    Aliases.findAlias(connection,email) match {
-      case Some(alias) => {
-        alias.disable(connection)
-        Redirect(routes.AliasController.alias(connection))
-      }
-      case None => {
-        Logger.warn(s"Alias $email not found")
-        implicit val errorMessages = List(ErrorMessage("Alias not found"))
-        NotFound(views.html.alias.alias(connection))
-      }
-    }
+  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    AliasAction(email) { implicit aliasRequest => 
+      aliasRequest.alias.disable(connection)
+      Redirect(routes.AliasController.alias(connectionRequest.connection))      
+    }(connectionRequest)
   }
 
-  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection) { implicit request =>
-    Aliases.findAlias(connection,email) match {
-      case Some(alias) => {
-        alias.enable(connection)
-        Redirect(routes.AliasController.alias(connection))
-      }
-      case None => {
-        Logger.warn(s"Alias $email not found")
-        implicit val errorMessages = List(ErrorMessage("Alias not found"))
-        NotFound(views.html.alias.alias(connection))
-      }
-    }
+  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    AliasAction(email) { implicit aliasRequest => 
+        aliasRequest.alias.enable(connection)
+        Redirect(routes.AliasController.alias(connection))    
+    }(connectionRequest)
   }
+
 }
 
