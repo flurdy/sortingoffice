@@ -53,6 +53,8 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def save = connection.map( DomainRepository.save(_,this) )
 
+   def saveBackup = connection.map( DomainRepository.saveBackup(_,this) )
+
 }
 
 

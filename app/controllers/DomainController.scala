@@ -61,6 +61,37 @@ trait DomainInjector {
     }
   }
 
+  def DomainOrBackupAction(name: String) = new ActionBuilder[RequestWithDomain] {
+    def invokeBlock[A](request: Request[A], block: (RequestWithDomain[A]) => Future[SimpleResult]) = {
+      request match {
+        case connectionRequest: RequestWithConnection[A] => {
+          Domains.findDomain(connectionRequest.connection, name) match {
+            case Some(domain) => {
+              block(new RequestWithDomain(domain, connectionRequest))
+            }
+            case None => {
+              Domains.findBackupDomain(connectionRequest.connection, name) match {
+                case Some(domain) => {
+                  block(new RequestWithDomain(domain, connectionRequest))
+                }
+                case None => {
+                  Logger.warn(s"Domain $name not found")
+                  val relayDomains = Domains.findDomains(connectionRequest.connection)
+                  val backups = Domains.findBackupDomainsIfEnabled(connectionRequest.connection)
+                  implicit val errorMessages = List(ErrorMessage("Domain not found"))
+                  Future.successful(NotFound(views.html.domain.domain(
+                    connectionRequest.connection, relayDomains, backups)(
+                    errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection))))
+                }
+              }
+            }
+          }
+        }
+        case _ => Future.successful(InternalServerError)
+      }
+    }
+  }
+
 }
 
 object DomainController extends Controller with DbController with FeatureToggler with DomainInjector {
@@ -169,9 +200,55 @@ object DomainController extends Controller with DbController with FeatureToggler
             }
           }
           case Some(_) => {
-            Logger.warn(s"Domain backup $nameDesired already exists")
+            Logger.warn(s"Domain $nameDesired already exists")
             implicit val errorMessages = List(ErrorMessage("Domain already exist"))
             BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+          }
+        }
+      }
+    )
+  }
+
+
+  val backupFormFields = mapping(
+    "connection" -> ignored(None:Option[ConnectionName]),
+    "name" -> text,
+    "enabled" -> ignored(false),
+    "transport" -> text
+  )(Domain.apply)(Domain.unapply)
+
+  val backupForm = Form( backupFormFields )
+
+  def viewAddBackup(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
+    Ok(views.html.domain.addBackup( connection, backupForm ))
+  }
+
+  def addBackup(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
+    backupForm.bindFromRequest.fold(
+      errors => {
+        Logger.warn(s"Add backup domain form error")
+        BadRequest(views.html.domain.addBackup( connection, errors))
+      },
+      backup => {
+        Domains.findDomain(connection, backup.name) match {
+          case None => {
+            Domains.findBackupDomain(connection, backup.name) match {
+              case None => {
+                backup.copy(connection=Some(request.connection)).saveBackup
+                Logger.info(s"Domain backup ${backup.name} added")
+                Redirect(routes.DomainController.alias(connection,backup.name))
+              }
+              case Some(_) => {
+                Logger.warn(s"Domain backup ${backup.name} already exists")
+               implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
+                BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+              }
+            }
+          }
+          case Some(_) => {
+            Logger.warn(s"Domain ${backup.name} already exists")
+            implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
+            BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
           }
         }
       }

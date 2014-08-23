@@ -115,6 +115,11 @@
 					<a href="@routes.RelayController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</a>
 				}
 			}
+			@for(domainFound <- backup){
+				@if(featureToggles.isEnabled("add")){
+					<a href="@routes.RelayController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</a>
+				}
+			}
 
 		</section>
 	}

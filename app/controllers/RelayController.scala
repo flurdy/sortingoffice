@@ -62,33 +62,33 @@ object RelayController extends Controller with DbController with RelayInjector w
 
 
   def viewAdd(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName) { implicit domainRequest =>
+      DomainOrBackupAction(domainName) { implicit domainRequest =>
         Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm))
       }(connectionRequest)
   }
 
   def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName) { domainRequest =>
-        relayForm.bindFromRequest.fold(
-          errors => {
-            Logger.warn(s"Add relay form error")
-            BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
-          },
-          relay => {
-            Relays.findRelay(connectionRequest.connection, relay.recipient) match {
-              case None => {
-                relay.save(connection)
-                Redirect(routes.DomainController.alias(connection,domainName))
-              }
-              case Some(_) => {
-                Logger.warn(s"Relay ${relay.recipient} already exists")
-                implicit val errorMessages = List(ErrorMessage("Relay already exist"))
-                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
-              }
+    DomainOrBackupAction(domainName) { domainRequest =>
+      relayForm.bindFromRequest.fold(
+        errors => {
+          Logger.warn(s"Add relay form error")
+          BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
+        },
+        relay => {
+          Relays.findRelay(connectionRequest.connection, relay.recipient) match {
+            case None => {
+              relay.save(connection)
+              Redirect(routes.DomainController.alias(connection,domainName))
+            }
+            case Some(_) => {
+              Logger.warn(s"Relay ${relay.recipient} already exists")
+              implicit val errorMessages = List(ErrorMessage("Relay already exist"))
+              BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
             }
           }
-        )
-      }(connectionRequest)
+        }
+      )
+    }(connectionRequest)
   }
 
 }
