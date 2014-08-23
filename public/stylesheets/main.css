@@ -17,6 +17,13 @@ a:hover {
 #cargo a {
    text-decoration: underline;
 }
+#cargo a.btn,
+#cargo a.btn:visited,
+#cargo a.btn:hover,
+#cargo a.btn:active {
+   text-decoration: none;
+   color: white;
+}
 navigation {
 	float: right;
 }
@@ -54,7 +61,7 @@ header h1 a:visited,
 header h1 a:hover,
 header h1 a:active {
    text-decoration: none;
-   color: black;
+   color: navy;
 }
 footer {
    padding: 1em;
@@ -69,13 +76,16 @@ footer #flurdy-footer {
    margin: 0em 1em 1em 1em;
    padding: 1em;
    min-height: 24em;
+   color: #404040;
 }
 #cargo section {
    margin: 3em 0 5em 0;
    clear: both;
 }
 #cargo section > button,
-#cargo section > form > button {
+#cargo section > form > button,
+#cargo section > a.btn,
+#cargo section > form > a.btn {
    float: right;
 }
 #cargo section table {

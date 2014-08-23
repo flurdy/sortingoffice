@@ -163,6 +163,19 @@ order by d.domain
       }
    }
 
+   def save(connectionName: ConnectionName, domain: Domain) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+insert into domains (domain,enabled,transport) values ({name},{enabled},{transport})
+            """
+         ).on(
+            'name -> domain.name,
+            'enabled -> domain.enabled,
+            'transport -> domain.transport
+         ).execute
+      }
+   }
 
 }
 

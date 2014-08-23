@@ -51,6 +51,8 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def enableBackup = connection.map( Domains.enableBackup(_,this) )
 
+   def save = connection.map( DomainRepository.save(_,this) )
+
 }
 
 
@@ -85,6 +87,8 @@ object Domains {
    def enableBackup(connection: ConnectionName, domain: Domain) {
       DomainRepository.enableBackup(connection, domain)
    }
+
+   def newDomain(connection: ConnectionName, name: String): Domain = Domain(Some(connection),name,false,"virtual:")
 
 }
 

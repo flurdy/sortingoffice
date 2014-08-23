@@ -9,7 +9,7 @@
 
    <section>
 
-		<h4>Relay domain</h4>
+		<h4>Relay domains</h4>
 
 		<table class="table table-hover">
 			<thead>
@@ -56,7 +56,7 @@
 		</table>
 
 		@if(featureToggles.isEnabled("add")){
-			<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add relay</button>
+			<a href="@routes.DomainController.viewAdd(currentDatabaseConnection)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add domain</a>
 		}
 
 	</section>
@@ -66,7 +66,7 @@
 
 	   <section>
 
-			<h4>Backed up domain</h4>
+			<h4>Backed up domains</h4>
 
 			<table class="table table-hover">
 				<thead>
@@ -113,7 +113,7 @@
 			</table>
 
 			@if(featureToggles.isEnabled("add")){
-				<button disabled class="btn btn-sm col-sm-3 col-xs-3 btn-info">add backup</button>
+				<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add backup</button>
 			}
 
 		</section>
