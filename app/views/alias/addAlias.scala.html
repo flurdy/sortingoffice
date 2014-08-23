@@ -28,7 +28,8 @@
 				<label for="inputMail" class="col-sm-2 control-label">Mail</label>
 				<div class="col-sm-10">
 					<input type="text" name="mail" required class="form-control" id="inputMail"
-						placeholder="e.g. john@@@domain.name" value="@aliasForm("mail").value.getOrElse("@"+domain.name)" />
+						placeholder="e.g. john@@@domain.name" value="@aliasForm("mail").value.getOrElse("@"+domain.name)"
+						title="Full valid email address or a catchall like @@example.com" />
 				</div>
 			</div>
 
@@ -36,7 +37,8 @@
 				<label for="inputDestination" class="col-sm-2 control-label">Destination</label>
 				<div class="col-sm-10">
 					<input type="text" name="destination" required class="form-control" id="inputDestination"
-						placeholder="e.g. smith@@@domain.name" value="@aliasForm("destination").value" />
+						placeholder="e.g. smith@@@domain.name" value="@aliasForm("destination").value"
+						title="Full valid email address, or multiple separated by comma. Or redirect to any at e.g. @@example.org" />
 				</div>
 			</div>
 

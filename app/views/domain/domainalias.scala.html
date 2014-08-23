@@ -2,7 +2,7 @@
 
 @import helper._
 
-@main(Some("Domain aliases and users | example.org"), Some(currentDatabaseConnection)) {
+@main(Some("Domain aliases and users"), Some(currentDatabaseConnection)) {
 
    <h3><a href="@routes.DomainController.domain(currentDatabaseConnection)">Domain</a> aliases</h3>
 
@@ -110,8 +110,10 @@
 				</tbody>
 			</table>
 
-			@if(featureToggles.isEnabled("add")){
-				<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</button>
+			@for(domainFound <- domain){
+				@if(featureToggles.isEnabled("add")){
+					<a href="@routes.RelayController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</a>
+				}
 			}
 
 		</section>

@@ -85,5 +85,19 @@ order by recipient
       }
    }
 
+   def save(connectionName: ConnectionName, relay: Relay) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+insert into relays (recipient,status,enabled) values ({recipient},{status},{enabled})
+            """
+         ).on(
+            'recipient -> relay.recipient,
+            'status -> relay.status,
+            'enabled -> relay.enabled
+         ).execute
+      }
+   }
+
 }
 

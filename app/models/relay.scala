@@ -15,6 +15,8 @@ case class Relay(recipient: String, enabled: Boolean, status: String){
 
    def enable(connection: ConnectionName) = RelayRepository.enable(connection,this.recipient)
 
+   def save(connection: ConnectionName) = RelayRepository.save(connection,this)
+
 }
 
 object Relays {
@@ -26,11 +28,11 @@ object Relays {
    }
 
    def findCatchAllDomainsIfEnabled(connection: ConnectionName,domains: List[Domain]): Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){    
+      if( FeatureToggles.isRelayEnabled(connection) ){
          val catchAlls: List[(Domain,Relay)] = for{
             domain <- domains
             catchAll <- RelayRepository.findCatchAll(connection,domain)
-         } yield (domain,catchAll)  
+         } yield (domain,catchAll)
          val disabled: List[(Domain,Relay)] = catchAlls.filterNot(_._2.enabled)
          val disabledCatchAlls: List[(Domain,Option[Relay])] = disabled.map( c => (c._1,Some(c._2) ) )
          val nonCatchAllDomains: List[Domain] = domains diff catchAlls.map(_._1)
