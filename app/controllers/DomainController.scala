@@ -137,13 +137,15 @@ object DomainController extends Controller with DbController with FeatureToggler
     }
   }
 
+  val domainFormFields = single(
+    "name" -> text
+  )
+
+  val domainForm = Form( domainFormFields )
+
   def viewAdd(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     Ok(views.html.domain.addDomain( connection, domainForm ))
   }
-
-  val domainForm = Form( single(
-    "name" -> text
-  ) )
 
   def add(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     domainForm.bindFromRequest.fold(

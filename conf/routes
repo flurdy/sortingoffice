@@ -18,6 +18,8 @@ POST    /db/:db/domain/:domain/backup/disable controllers.DomainController.disab
 POST    /db/:db/domain/:domain/backup/enable controllers.DomainController.enableBackup(db: String, domain: String)
 
 GET     /db/:db/alias                controllers.AliasController.alias(db: String)
+GET     /db/:db/domain/:domain/alias/add controllers.AliasController.viewAdd(db: String, domain: String)
+POST    /db/:db/domain/:domain/alias controllers.AliasController.add(db: String, domain: String)
 GET     /db/:db/alias/catchall       controllers.AliasController.catchAll(db: String)
 GET     /db/:db/alias/common         controllers.AliasController.common(db: String)
 GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)

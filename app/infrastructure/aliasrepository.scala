@@ -94,4 +94,18 @@ where mail = {name}
       }
    }
 
+   def save(connectionName: ConnectionName, alias: Alias) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+insert into aliases (mail,destination,enabled) values ({mail},{destination},{enabled})
+            """
+         ).on(
+            'mail -> alias.mail,
+            'destination -> alias.destination,
+            'enabled -> alias.enabled
+         ).execute
+      }
+   }
+
 }

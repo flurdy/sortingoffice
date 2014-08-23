@@ -1,0 +1,55 @@
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, aliasForm: Form[Alias])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap)
+
+@import models._
+@import helper._
+
+@main(Some("Alias add"), Some(currentDatabaseConnection)) {
+
+	<h3>Add alias</h3>
+
+
+    @for(error <- aliasForm.errors){
+        <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            @if(error.message == "error.required"){
+                Please fill in field: @error.key
+            } else {
+               @error.message
+            }
+        </div>
+    }
+
+
+    <section>
+
+		@form(action=routes.AliasController.add(currentDatabaseConnection,domain.name), 'class -> "form-horizontal", 'role -> ""){
+
+			<div class="form-group">
+				<label for="inputMail" class="col-sm-2 control-label">Mail</label>
+				<div class="col-sm-10">
+					<input type="text" name="mail" required class="form-control" id="inputMail"
+						placeholder="e.g. john@@@domain.name" value="@aliasForm("mail").value.getOrElse("@"+domain.name)" />
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="inputDestination" class="col-sm-2 control-label">Destination</label>
+				<div class="col-sm-10">
+					<input type="text" name="destination" required class="form-control" id="inputDestination"
+						placeholder="e.g. smith@@@domain.name" value="@aliasForm("destination").value" />
+				</div>
+			</div>
+
+			@if(featureToggles.isEnabled("add")){
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<button type="submit" class="btn btn-sm col-sm-3 col-xs-3 btn-success">add alias</a>
+					</div>
+				</div>
+			}
+
+		}
+
+	</section>
+
+}

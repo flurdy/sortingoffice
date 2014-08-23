@@ -34,7 +34,7 @@
 					<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
 					<td>
 						@if(!alias.enabled){ <s> }
-							@alias.destination	
+							@alias.destination
 						@if(!alias.enabled){ </s> }
 					</td>
 					<td>@alias.enabled</td>
@@ -59,8 +59,10 @@
 			</tbody>
 		</table>
 
-		@if(featureToggles.isEnabled("add")){
-			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
+		@for(domainFound <- domain){
+			@if(featureToggles.isEnabled("add")){
+				<a href="@routes.AliasController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</a>
+			}
 		}
 
 	</section>
@@ -123,8 +125,8 @@
 			<thead>
 				<tr>
 					<th>mail</th>
-					<th>reset password</th> 
-					<th>enabled</th> 
+					<th>reset password</th>
+					<th>enabled</th>
 					<th colspan="2"></th>
 				</tr>
 			</thead>
@@ -171,11 +173,11 @@
 			@if(featureToggles.isEnabled("toggle")){
 				@if(domainFound.enabled){
 					@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name)){
-						<button type="submit" title="disable" class="btn btn-xs btn-warning">disable domain</button>
+						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable domain</button>
 					}
 				} else {
 					@form(action=routes.DomainController.enable(currentDatabaseConnection,domainFound.name)){
-						<button type="submit" title="enable" class="btn btn-xs btn-success">enable domain</button>
+						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable domain</button>
 					}
 				}
 			}
@@ -187,11 +189,11 @@
 			@if(featureToggles.isEnabled("toggle")){
 				@if(domainFound.enabled){
 					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domainFound.name)){
-						<button type="submit" title="disable" class="btn btn-xs btn-warning">disable backup</button>
+						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable backup</button>
 					}
 				} else {
 					@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domainFound.name)){
-						<button type="submit" title="enable" class="btn btn-xs btn-success">enable backup</button>
+						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable backup</button>
 					}
 				}
 			}
@@ -200,7 +202,7 @@
 
 	<section>
 		@if(featureToggles.isEnabled("remove")){
-			<button disabled title="enable" class="btn btn-xs btn-danger">remove domain</button>
+			<button disabled title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</button>
 		}
 	</section>
 

@@ -4,6 +4,8 @@ import scala.concurrent.Future
 import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.data._
+import play.api.data.Forms._
 import models._
 import models.Environment.ConnectionName
 
@@ -13,8 +15,8 @@ class RequestWithAlias[A](val alias: Alias, request: Request[A]) extends Wrapped
 trait AliasInjector {
 
   def AliasAction(email: String) = new ActionBuilder[RequestWithAlias] {
-    def invokeBlock[A](request: Request[A], block: (RequestWithAlias[A]) => Future[SimpleResult]) = {      
-      request match { 
+    def invokeBlock[A](request: Request[A], block: (RequestWithAlias[A]) => Future[SimpleResult]) = {
+      request match {
         case connectionRequest: RequestWithConnection[A] => {
           Aliases.findAlias(connectionRequest.connection, email) match {
             case Some(alias) => {
@@ -22,10 +24,10 @@ trait AliasInjector {
             }
             case None => {
               Logger.warn(s"Alias $email not found")
-              implicit val errorMessages = List(ErrorMessage("Alias not found")) 
+              implicit val errorMessages = List(ErrorMessage("Alias not found"))
               Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection)(errorMessages) ) )
             }
-          }          
+          }
         }
         case _ => Future.successful(InternalServerError)
       }
@@ -34,7 +36,7 @@ trait AliasInjector {
 
 }
 
-object AliasController extends Controller with DbController with FeatureToggler with AliasInjector {
+object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector {
 
   def alias(connection: ConnectionName) = ConnectionAction(connection) {
     Ok(views.html.alias.alias(connection))
@@ -67,17 +69,55 @@ object AliasController extends Controller with DbController with FeatureToggler 
   }
 
   def disable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest => 
+    AliasAction(email) { implicit aliasRequest =>
       aliasRequest.alias.disable(connection)
-      Redirect(routes.AliasController.alias(connectionRequest.connection))      
+      Redirect(routes.AliasController.alias(connectionRequest.connection))
     }(connectionRequest)
   }
 
   def enable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest => 
+    AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.enable(connection)
-        Redirect(routes.AliasController.alias(connection))    
+        Redirect(routes.AliasController.alias(connection))
     }(connectionRequest)
+  }
+
+  val aliasFormFields = mapping (
+    "mail" -> text,
+    "destination" -> text,
+    "enabled" -> ignored(false)
+  )(Alias.apply)(Alias.unapply)
+
+  val aliasForm = Form( aliasFormFields )
+
+  def viewAdd(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { implicit domainRequest =>
+        Ok(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm ))
+      }(connectionRequest)
+  }
+
+  def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { domainRequest =>
+        aliasForm.bindFromRequest.fold(
+          errors => {
+            Logger.warn(s"Add alias form error")
+            BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, errors ))
+          },
+          aliasToAdd => {
+            Aliases.findAlias(connectionRequest.connection, aliasToAdd.mail) match {
+              case None => {
+                aliasToAdd.save(connection)
+                Redirect(routes.DomainController.alias(connection,domainName))
+              }
+              case Some(_) => {
+                Logger.warn(s"Alias ${aliasToAdd.mail} already exists")
+                implicit val errorMessages = List(ErrorMessage("Alias already exist"))
+                BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm.fill(aliasToAdd)))
+              }
+            }
+          }
+        )
+      }(connectionRequest)
   }
 
 }
