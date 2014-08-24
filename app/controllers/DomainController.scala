@@ -152,7 +152,7 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   def disableBackup(connection: ConnectionName, name: String) = {
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(name) { implicit domainRequest =>
+      BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.disableBackup
         Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
@@ -161,7 +161,7 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   def enableBackup(connection: ConnectionName, name: String) = {
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(name) { implicit domainRequest =>
+      BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.enableBackup
         Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)

@@ -50,10 +50,6 @@
          </tbody>
       </table>
 
-      @if(featureToggles.isEnabled("add")){
-         <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
-      }
-
    </section>
 
    <section>
@@ -76,19 +72,21 @@
                      @if(alias.map(!_.enabled).getOrElse(false)){ </s> }
                   </td>
                   <td class="actions">
-                     @alias match{ 
+                     @alias match{
                         case Some(aliasFound) => {
                            @if(featureToggles.isEnabled("toggle")){
                               @form(action=routes.AliasController.enable(currentDatabaseConnection,aliasFound.mail)){
-                                 <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
-                              } 
+                                 <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                              }
                            }
                         }
                         case None => {
                            @if(featureToggles.isEnabled("add")){
-                              <button disabled title="add" class="btn btn-xs btn-success">+</button>
+                              @form(action=routes.AliasController.viewAddCatchAll(currentDatabaseConnection,domain.name)){
+                                 <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
+                              }
                            }
-                        }  
+                        }
                      }
                    </td>
                </tr>
@@ -125,9 +123,9 @@
                      <td>
                         @relay.enabled
                      </td>
-                     <td class="actions">                    
+                     <td class="actions">
                         @if(featureToggles.isEnabled("toggle")){
-                           @if(relay.enabled){                                                
+                           @if(relay.enabled){
                               @form(action=routes.RelayController.disable(currentDatabaseConnection,relay.recipient)){
                                  <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                               }
@@ -145,10 +143,6 @@
                }
             </tbody>
          </table>
-
-         @if(featureToggles.isEnabled("add")){
-            <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add catch all</button>
-         }
 
       </section>
    }
@@ -180,13 +174,15 @@
                            case Some(relayFound) => {
                               @if(featureToggles.isEnabled("toggle")){
                                  @form(action=routes.RelayController.enable(currentDatabaseConnection,relayFound.recipient)){
-                                    <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>   
+                                    <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                  }
-                              } 
+                              }
                            }
-                           case None => {                     
+                           case None => {
                               @if(featureToggles.isEnabled("add")){
-                                    <button disabled title="add" class="btn btn-xs btn-success">+</button>
+                                 @form(action=routes.RelayController.viewAddCatchAll(currentDatabaseConnection,domain.name)){
+                                    <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
+                                 }
                               }
                            }
                         }

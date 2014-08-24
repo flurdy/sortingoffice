@@ -96,6 +96,12 @@ object AliasController extends Controller with DbController with FeatureToggler 
       }(connectionRequest)
   }
 
+  def viewAddCatchAll(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { implicit domainRequest =>
+        Ok(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm.fill(Alias(s"@$domainName","",false)) ))
+      }(connectionRequest)
+  }
+
   def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { domainRequest =>
         aliasForm.bindFromRequest.fold(

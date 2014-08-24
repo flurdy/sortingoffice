@@ -67,6 +67,12 @@ object RelayController extends Controller with DbController with RelayInjector w
       }(connectionRequest)
   }
 
+  def viewAddCatchAll(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName) { implicit domainRequest =>
+        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(s"@$domainName",false,"OK"))))
+      }(connectionRequest)
+  }
+
   def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
     DomainOrBackupAction(domainName) { domainRequest =>
       relayForm.bindFromRequest.fold(
