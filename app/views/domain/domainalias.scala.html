@@ -43,11 +43,11 @@
 						<td class="actions">
 							@if(featureToggles.isEnabled("toggle")){
 								@if(alias.enabled){
-									@form(action=routes.AliasController.disable(currentDatabaseConnection,domainFound.name,alias.mail)){
+									@form(action=routes.AliasController.disable(currentDatabaseConnection,domainFound.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
 										<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
 									}
 								} else {
-									@form(action=routes.AliasController.enable(currentDatabaseConnection,domainFound.name,alias.mail)){
+									@form(action=routes.AliasController.enable(currentDatabaseConnection,domainFound.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
 									<button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
 									}
 								}
@@ -95,22 +95,22 @@
 							@if(featureToggles.isEnabled("toggle")){
 								@for(relayDomain <- domain){
 									@if(relay.enabled){
-										@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient)){
+										@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
 											<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
 										}
 									} else {
-										@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient)){
+										@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
 											<button type"submit" title="disable" class="btn btn-xs btn-success">e</button>
 										}
 									}
 								}
 								@for(relayDomain <- backup){
 									@if(relay.enabled){
-										@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient)){
+										@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
 											<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
 										}
 									} else {
-										@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient)){
+										@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
 											<button type"submit" title="disable" class="btn btn-xs btn-success">e</button>
 										}
 									}
@@ -183,9 +183,6 @@
 									}
 								}
 							}
-							@if(featureToggles.isEnabled("remove")){
-								<button disabled title="edit" class="btn btn-xs btn-info">edit</button>
-							}
 						</td>
 					</tr>
 					}
@@ -215,6 +212,16 @@
 				}
 			}
 		</section>
+
+		<section>
+			@if(featureToggles.isEnabled("remove")){
+				@if(!domainFound.enabled){
+					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
+				} else {
+					<button disabled title="Can not remove an enabled domain" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</button>
+				}
+			}
+		</section>
 	}
 
    @for(domainFound <- backup){
@@ -233,11 +240,6 @@
 		</section>
 	}
 
-	<section>
-		@if(featureToggles.isEnabled("remove")){
-			<button disabled title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</button>
-		}
-	</section>
 
 
 }

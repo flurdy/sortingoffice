@@ -87,6 +87,10 @@ footer #flurdy-footer {
 #cargo section > a.btn,
 #cargo section > form > a.btn {
    float: right;
+   margin: 1em 0;
+}
+#cargo section > form > button.btn-left {
+   float: left !important;
 }
 #cargo section table {
    clear: both;
@@ -112,6 +116,9 @@ footer #flurdy-footer {
 }
 #cargo section table .tick img {
    height: 20px;
+}
+#cargo table td form.form-inline {
+   display: inline;
 }
 #connections {
    float: right;

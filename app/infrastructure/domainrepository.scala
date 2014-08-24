@@ -191,5 +191,17 @@ insert into backups (domain,enabled,transport) values ({name},{enabled},{transpo
       }
    }
 
+   def delete(connectionName: ConnectionName, domain: Domain) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+delete from domains where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).execute
+      }
+   }
+
 }
 

@@ -43,17 +43,40 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
         findCustomRelaysIfEnabled.map( r => r.map( re => (re._1,re._2.enabled) ) ) )
    }
 
-   def disable = connection.map( Domains.disable(_,this) )
+   def disable = connection.map{ con => 
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disable(con,this) 
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def enable = connection.map( Domains.enable(_,this) )
+   def enable = connection.map{ con => 
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enable(con,this) 
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def disableBackup = connection.map( Domains.disableBackup(_,this) )
+   def disableBackup = connection.map{ con => 
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disableBackup(con,this) 
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def enableBackup = connection.map( Domains.enableBackup(_,this) )
+   def enableBackup = connection.map{ con => 
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enableBackup(con,this) 
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def save = connection.map( DomainRepository.save(_,this) )
+   def save = connection.map{ con => 
+      if(FeatureToggles.isAddEnabled(con)) DomainRepository.save(con,this) 
+      else throw new IllegalStateException("Add feature is disabled")
+   }
 
-   def saveBackup = connection.map( DomainRepository.saveBackup(_,this) )
+   def saveBackup = connection.map{ con => 
+      if(FeatureToggles.isAddEnabled(con)) DomainRepository.saveBackup(con,this) 
+      else throw new IllegalStateException("Add feature is disabled")
+   }
+
+   def delete = connection.map{ con => 
+      if(FeatureToggles.isRemoveEnabled(con)) DomainRepository.delete(con,this) 
+      else throw new IllegalStateException("Remove feature is disabled")
+   }
 
 }
 
@@ -72,22 +95,6 @@ object Domains {
       if( FeatureToggles.isBackupEnabled(connection)){
          Some( DomainRepository.findBackupDomains(connection) )
       } else None
-   }
-
-   def disable(connection: ConnectionName, domain: Domain) {
-      DomainRepository.disable(connection, domain)
-   }
-
-   def enable(connection: ConnectionName, domain: Domain) {
-      DomainRepository.enable(connection, domain)
-   }
-
-   def disableBackup(connection: ConnectionName, domain: Domain) {
-      DomainRepository.disableBackup(connection, domain)
-   }
-
-   def enableBackup(connection: ConnectionName, domain: Domain) {
-      DomainRepository.enableBackup(connection, domain)
    }
 
    def newDomain(connection: ConnectionName, name: String): Domain = Domain(Some(connection),name,false,"virtual:")

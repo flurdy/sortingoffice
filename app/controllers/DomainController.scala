@@ -265,4 +265,20 @@ object DomainController extends Controller with DbController with FeatureToggler
     )
   }
 
+  def viewRemove(connection: ConnectionName, name: String) = {
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(name) { implicit domainRequest =>
+        Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested ))
+      }(connectionRequest)
+    }
+  }
+
+  def remove(connection: ConnectionName, name: String) = 
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(name) { implicit domainRequest =>
+          domainRequest.domainRequested.delete
+          Redirect(routes.DomainController.domain(connection))
+      }(connectionRequest)
+    }
+
 }
