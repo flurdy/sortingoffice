@@ -12,6 +12,7 @@
          <thead>
             <tr>
                <th>email</th>
+               <th>maildir</th>
                <th>enabled</th>
             </tr>
          </thead>
@@ -22,6 +23,11 @@
                   @if(!user.enabled){ <s> }
                   <a href="@routes.UserController.edituser(currentDatabaseConnection,user.email)">@user.email</a>
                   @if(!user.enabled){ </s> }
+               <td>
+                  @if(!user.enabled){ <s> }
+                     @user.maildir
+                  @if(!user.enabled){ </s> }
+               </td>
                <td>@user.enabled</td>
                <td class="actions">
                   @if(featureToggles.isEnabled("toggle")){

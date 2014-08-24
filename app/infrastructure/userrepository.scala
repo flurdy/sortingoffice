@@ -19,7 +19,7 @@ object UserRepository {
       get[Boolean]("change_password") ~
       get[Boolean]("enabled") map {
          case id~name~maildir~changePassword~enabled => {
-            User(id, changePassword, enabled)
+            User(id, name, maildir, changePassword, enabled)
          }
       }
    }
@@ -63,6 +63,20 @@ order by id
       }
    }
 
+   def findUserByMaildir(connection: ConnectionName, maildir: String): Option[User] = {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+select * from users
+where maildir = {maildir}
+order by id
+            """
+         ).on(
+            'maildir -> maildir
+         ).as(simpleUser *).headOption
+      }
+   }
+
    def disable(connectionName: ConnectionName, user: User) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
@@ -91,10 +105,13 @@ order by id
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
-insert into users (id,change_password,enabled) values ({email},{passwordReset},{enabled})
+insert into users (id,name,maildir,change_password,enabled)
+values ({email},{name},{maildir},{passwordReset},{enabled})
             """
          ).on(
-            'email -> user.email,
+            'email   -> user.email,
+            'name    -> user.name,
+            'maildir -> user.maildir,
             'passwordReset -> user.passwordReset,
             'enabled -> user.enabled
          ).execute

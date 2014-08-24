@@ -75,6 +75,8 @@ object UserController extends Controller with DbController with FeatureToggler w
 
   val userFormFields = mapping (
     "email" -> text,
+    "name" -> text,
+    "maildir" -> text,
     "passwordReset" -> ignored(true),
     "enabled" -> ignored(false)
   )(User.apply)(User.unapply)
@@ -101,15 +103,24 @@ object UserController extends Controller with DbController with FeatureToggler w
       },
       user => {
         Users.findUser(connectionRequest.connection, user.email) match {
-          case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-            user.save(connection)
-            Logger.info("User ${user.email} added")
-            Redirect(routes.UserController.user(connection))
-          }
           case None => {
-            Logger.warn(s"Add feature not enabled")
-            implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-            BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+            Users.findUserByMaildir(connectionRequest.connection, user.maildir) match {
+              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+                user.save(connection)
+                Logger.info("User ${user.email} added")
+                Redirect(routes.UserController.user(connection))
+              }
+              case None => {
+                Logger.warn(s"Add feature not enabled")
+                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+              }
+              case Some(_) => {
+                Logger.warn(s"User maildir ${user.maildir} already exists")
+                implicit val errorMessages = List(ErrorMessage("User's maildir already exist"))
+                BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+              }
+            }
           }
           case Some(_) => {
             Logger.warn(s"User ${user.email} already exists")
