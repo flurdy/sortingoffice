@@ -3,27 +3,38 @@ Sorting Office
 
 A mail server user data management tool.
 
-It assumes a build based on flurdy's howto: http://flurdy.com/docs/postfix/
+It assumes a mail server based on flurdy's "How to set up a mail server on a GNU / Linux system":
+	http://flurdy.com/docs/postfix/
 
 
 Features
 ----
 * View data that are contained in the mail database.
+* View data on several mail databases.
 * View which domains a server are responsible for.
-* View users that will store emails on a server.
+* View which domains are backed up if enabled.
 * View aliases to forward emails.
-* View alias relays and backups if enabled
-* Support several server's mail database
-
+* View alias relays to accept if enabled.
+* View users that will store emails on a server.
+* Edit data that are contained in the server's database.
+* Toggle between enable and disable for domains, aliases and users.
+* Add new domains, aliases and users.
 
 
 Soon
 ---
-* Edit data that are contained in the server's database.
-* Edit which domains this server are responsible for.
-* Edit users that will store emails on this server.
-* Edit aliases to forward emails.
+* Remove domains, aliases and users.
+* Edit domains, aliases and users.
 * Check DNS entries for relevant domain(s).
+* Authentication level for application access.
+
+
+Maybe
+---
+* Caching for frequent data.
+* TLS encryption
+* Password resets
+* Dynamically add server
 
 
 Not
@@ -34,13 +45,104 @@ Not
 * Nor read, monitor or alter any actual emails.
 
 
-
-Future
-----
-* Dynamic server additions
-
-
 Source code
 -----
 * http://github.com/flurdy/sortingoffice
+
+
+Live demo
+-----
+* http://sortingoffice-demo.herokuapp.com
+
+
+Run
+-----
+
+Unmodified the application will run the internal memory database as an example.
+
+Modify your own version of application.conf with your own:
+
+* Databases
+* Database features
+* Common cross aliases
+
+And then run the application with
+
+	activator -Dconfig.file=conf/yoursettings.conf
+
+Remember at the top of your file to always include the line:
+
+	include "application-default"
+
+
+Hosting
+----
+
+It is out of scope to describe in detail how you host this application.
+
+This application is a Play! 2.x Scala based application and requires access to your mail databases.
+
+* https://www.playframework.com/documentation/2.2.x/Production
+* http://flurdy.com/docs/scalainit/startscala.html
+
+Please also read the security tips below.
+
+
+Security: encryption, authentication and authorisation
+------
+
+This is admin application and should never be exposed directly on the internet.
+
+Two resources can and should be secured:
+
+# Access to the application
+# Access to the databases
+
+Application authentication
+---
+
+The application access is currently not secured.
+If you want to expose it on wider network you can put a secured apache or nginx in front as a temporary measure.
+Soon there will be a simple Play authentication with plugin either LDAP or in memory properties for authentication.
+
+Application authorisation
+----
+
+The application does not have any plans for application level authorisation feature.
+
+
+Application encryption
+----
+
+Apache or nginx can be put infront of the application to provide SSL/TLS transport encryption.
+
+Database authentication
+---
+
+Normal MySQL authentication. Passwords are stored in configuration files. These can be an environment property.
+
+
+Database authorisation
+---
+
+The database user that the application connects with can be given different database access levels.
+
+
+Database encryption
+---
+
+The passwords are encrypted using the howtos/postfix's encryption, and are not used in this application.
+
+You can connect the database via unencrypted standard mysql port, via MySQL's SSL connection feature or via a SSH tunnel.
+
+If you deploy to a PAAS such as Heroku, you need to add SSL authentication to your AWS or elsewhere hosted database. You can modify Heroku's RDS suggestions to your MySQL solution: https://devcenter.heroku.com/articles/amazon_rds#require-ssl
+
+Security suggestions
+----
+
+* Don't run the application on the same server as the database.
+* Don't expose the MySQL port unencrypted.
+* Don't expose this application to everyone.
+* You can configure the application with a read only database user.
+
 
