@@ -99,5 +99,18 @@ insert into relays (recipient,status,enabled) values ({recipient},{status},{enab
       }
    }
 
+   def delete(connectionName: ConnectionName, relay: Relay) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+delete from relays where recipient = {recipient}
+            """
+         ).on(
+            'recipient -> relay.recipient
+         ).execute
+      }
+   }
+
+
 }
 

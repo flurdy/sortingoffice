@@ -11,11 +11,25 @@ import models.Environment.ConnectionName
 
 case class Relay(recipient: String, enabled: Boolean, status: String){
 
-   def disable(connection: ConnectionName) = RelayRepository.disable(connection,this.recipient)
+   def disable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.disable(connection,this.recipient)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def enable(connection: ConnectionName) = RelayRepository.enable(connection,this.recipient)
+   def enable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.enable(connection,this.recipient)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def save(connection: ConnectionName) = RelayRepository.save(connection,this)
+   def save(connection: ConnectionName) = {
+      if(FeatureToggles.isAddEnabled(connection)) RelayRepository.save(connection,this)
+      else throw new IllegalStateException("Add feature is disabled")
+   }
+
+   def delete(connection: ConnectionName) = {
+      if(FeatureToggles.isRemoveEnabled(connection)) RelayRepository.delete(connection,this)
+      else throw new IllegalStateException("Remove feature is disabled")
+   }
 
 }
 

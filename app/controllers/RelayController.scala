@@ -106,4 +106,13 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(connectionRequest)
   }
 
+  def remove(connection: ConnectionName, domainName: String, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainOrBackupAction(domainName).async { implicit domainRequest =>
+      RelayAction(recipient) { implicit request =>
+        request.relay.delete(connection)
+        Redirect(routes.DomainController.alias(connection,domainName))
+      }(connectionRequest)
+    }(connectionRequest)
+  }
+
 }
