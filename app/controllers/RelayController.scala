@@ -38,17 +38,21 @@ trait RelayInjector {
 
 object RelayController extends Controller with DbController with RelayInjector with DomainInjector with FeatureToggler {
 
-  def disable(connection: ConnectionName, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    RelayAction(recipient) { implicit request =>
-      request.relay.disable(connection)
-      Redirect(routes.AliasController.alias(connection))
+  def disable(connection: ConnectionName, domainName: String, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainOrBackupAction(domainName).async { implicit domainRequest =>
+      RelayAction(recipient) { implicit request =>
+        request.relay.disable(connection)
+        Redirect(routes.DomainController.alias(connection,domainName))
+      }(connectionRequest)
     }(connectionRequest)
   }
 
-  def enable(connection: ConnectionName, recipient: String) =ConnectionAction(connection).async { implicit connectionRequest =>
-    RelayAction(recipient) { implicit request =>
-      request.relay.enable(connection)
-      Redirect(routes.AliasController.alias(connection))
+  def enable(connection: ConnectionName, domainName: String, recipient: String) =ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainOrBackupAction(domainName).async { implicit domainRequest =>
+      RelayAction(recipient) { implicit request =>
+        request.relay.enable(connection)
+        Redirect(routes.DomainController.alias(connection,domainName))
+      }(connectionRequest)
     }(connectionRequest)
   }
 

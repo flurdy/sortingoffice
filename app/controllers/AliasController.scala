@@ -68,17 +68,21 @@ object AliasController extends Controller with DbController with FeatureToggler 
     Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
-  def disable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest =>
-      aliasRequest.alias.disable(connection)
-      Redirect(routes.AliasController.alias(connectionRequest.connection))
+  def disable(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainAction(domainName).async { implicit domainRequest =>
+      AliasAction(email) { implicit aliasRequest =>
+        aliasRequest.alias.disable(connection)
+        Redirect(routes.DomainController.alias(connection,domainName))
+      }(connectionRequest)
     }(connectionRequest)
   }
 
-  def enable(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest =>
-        aliasRequest.alias.enable(connection)
-        Redirect(routes.AliasController.alias(connection))
+  def enable(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainAction(domainName).async { implicit domainRequest =>
+      AliasAction(email) { implicit aliasRequest =>
+          aliasRequest.alias.enable(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+      }(connectionRequest)
     }(connectionRequest)
   }
 
