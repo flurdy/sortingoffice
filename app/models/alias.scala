@@ -9,11 +9,25 @@ import models.Environment.ConnectionName
 
 case class Alias(mail: String, destination: String, enabled: Boolean){
 
-   def disable(connection: ConnectionName) = AliasRepository.disable(connection,mail)
+   def disable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) AliasRepository.disable(connection,mail)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def enable(connection: ConnectionName) = AliasRepository.enable(connection,mail)
+   def enable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) AliasRepository.enable(connection,mail)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-   def save(connection: ConnectionName) = AliasRepository.save(connection,this)
+   def save(connection: ConnectionName) = {
+      if(FeatureToggles.isAddEnabled(connection)) AliasRepository.save(connection,this)
+      else throw new IllegalStateException("Add feature is disabled")
+   }
+
+   def delete(connection: ConnectionName) = {
+      if(FeatureToggles.isRemoveEnabled(connection)) AliasRepository.delete(connection,this)
+      else throw new IllegalStateException("Remove feature is disabled")
+   }
 
 }
 

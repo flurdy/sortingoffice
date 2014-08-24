@@ -108,4 +108,16 @@ insert into aliases (mail,destination,enabled) values ({mail},{destination},{ena
       }
    }
 
+   def delete(connectionName: ConnectionName, alias: Alias) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+delete from aliases where mail = {mail}
+            """
+         ).on(
+            'mail -> alias.mail
+         ).execute
+      }
+   }
+
 }

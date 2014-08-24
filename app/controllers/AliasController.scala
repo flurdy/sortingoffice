@@ -135,5 +135,14 @@ object AliasController extends Controller with DbController with FeatureToggler 
       }(connectionRequest)
   }
 
+  def remove(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainAction(domainName).async { implicit domainRequest =>
+      AliasAction(email) { implicit aliasRequest =>
+        aliasRequest.alias.delete(connection)
+        Redirect(routes.DomainController.alias(connection,domainName))  
+      }(connectionRequest)
+    }(connectionRequest)
+  }
+
 }
 
