@@ -45,7 +45,7 @@
       </table>
 
       @if(featureToggles.isEnabled("add")){
-         <button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+         <a href="@routes.UserController.viewAdd(currentDatabaseConnection)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</a>
       }
 
    </section>

@@ -188,9 +188,14 @@ object DomainController extends Controller with DbController with FeatureToggler
         Domains.findDomain(connection, nameDesired) match {
           case None => {
             Domains.findBackupDomain(connection, nameDesired) match {
-              case None => {
+              case None if FeatureToggles.isAddEnabled(request.connection) => {
                 Domains.newDomain(connection,nameDesired).save
                 Redirect(routes.DomainController.alias(connection,nameDesired))
+              }
+              case None  => {
+                Logger.warn(s"Add feature not enabled")
+               implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
               }
               case Some(_) => {
                 Logger.warn(s"Domain backup $nameDesired already exists")
@@ -233,10 +238,15 @@ object DomainController extends Controller with DbController with FeatureToggler
         Domains.findDomain(connection, backup.name) match {
           case None => {
             Domains.findBackupDomain(connection, backup.name) match {
-              case None => {
+              case None if FeatureToggles.isAddEnabled(request.connection) => {
                 backup.copy(connection=Some(request.connection)).saveBackup
                 Logger.info(s"Domain backup ${backup.name} added")
                 Redirect(routes.DomainController.alias(connection,backup.name))
+              }
+              case None  => {
+                Logger.warn(s"Add feature not enabled")
+               implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
               }
               case Some(_) => {
                 Logger.warn(s"Domain backup ${backup.name} already exists")

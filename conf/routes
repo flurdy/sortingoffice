@@ -38,6 +38,11 @@ GET     /db/:db/user                 controllers.UserController.user(db: String)
 GET     /db/:db/user/:email/edit     controllers.UserController.edituser(db: String, email: String)
 POST    /db/:db/user/:email/disable  controllers.UserController.disable(db: String, email: String)
 POST    /db/:db/user/:email/enable   controllers.UserController.enable(db: String, email: String)
+GET     /db/:db/user/add  			    controllers.UserController.viewAdd(db: String)
+GET     /db/:db/domain/:domain/user/add  controllers.UserController.viewAddWithDomain(db: String, domain: String)
+POST    /db/:db/user 				    controllers.UserController.add(db: String)
+POST    /db/:db/domain/:domain/user  controllers.UserController.addWithDomain(db: String, domain: String)
+
 
 
 # Map static webjar resources

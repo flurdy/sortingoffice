@@ -168,8 +168,10 @@
 			</tbody>
 		</table>
 
-		@if(featureToggles.isEnabled("add")){
-			<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</button>
+		@for(domainFound <- domain){
+			@if(featureToggles.isEnabled("add")){
+				<a href="@routes.UserController.viewAddWithDomain(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</a>
+			}
 		}
 
 	</section>

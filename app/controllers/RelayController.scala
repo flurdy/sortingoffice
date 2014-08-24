@@ -76,9 +76,14 @@ object RelayController extends Controller with DbController with RelayInjector w
         },
         relay => {
           Relays.findRelay(connectionRequest.connection, relay.recipient) match {
-            case None => {
+            case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
               relay.save(connection)
               Redirect(routes.DomainController.alias(connection,domainName))
+            }
+            case None => {
+              Logger.warn(s"Add feature not enabled")
+              implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+              BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
             }
             case Some(_) => {
               Logger.warn(s"Relay ${relay.recipient} already exists")

@@ -13,6 +13,8 @@ case class User(email: String, passwordReset: Boolean, enabled: Boolean){
 
 	def enable(connection: ConnectionName) = UserRepository.enable(connection,this)
 
+	def save(connection: ConnectionName) = UserRepository.save(connection,this)
+
 }
 
 object Users {

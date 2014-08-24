@@ -4,6 +4,8 @@ import scala.concurrent.Future
 import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.data._
+import play.api.data.Forms._
 import models._
 import models.Environment.ConnectionName
 
@@ -13,8 +15,8 @@ class RequestWithUser[A](val user: User, request: Request[A]) extends WrappedReq
 trait UserInjector {
 
   def UserAction(email: String) = new ActionBuilder[RequestWithUser] {
-    def invokeBlock[A](request: Request[A], block: (RequestWithUser[A]) => Future[SimpleResult]) = {      
-      request match { 
+    def invokeBlock[A](request: Request[A], block: (RequestWithUser[A]) => Future[SimpleResult]) = {
+      request match {
         case connectionRequest: RequestWithConnection[A] => {
           Users.findUser(connectionRequest.connection, email) match {
             case Some(user) => {
@@ -28,7 +30,7 @@ trait UserInjector {
                 NotFound(views.html.user.user( connectionRequest.connection, users)(
                   errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection) ) ) )
             }
-          }          
+          }
         }
         case _ => Future.successful(InternalServerError)
       }
@@ -38,7 +40,7 @@ trait UserInjector {
 }
 
 
-object UserController extends Controller with DbController with FeatureToggler with UserInjector {
+object UserController extends Controller with DbController with FeatureToggler with UserInjector with DomainInjector {
 
   def user(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val users = Users.findUsers(connection)
@@ -49,7 +51,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
           Ok(views.html.user.edituser(connection,userRequest.user))
-      }(connectionRequest) 
+      }(connectionRequest)
     }
   }
 
@@ -58,7 +60,7 @@ object UserController extends Controller with DbController with FeatureToggler w
       UserAction(email) { implicit userRequest =>
         userRequest.user.disable(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
-      }(connectionRequest) 
+      }(connectionRequest)
     }
   }
 
@@ -67,8 +69,86 @@ object UserController extends Controller with DbController with FeatureToggler w
       UserAction(email) { implicit userRequest =>
         userRequest.user.enable(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
-      }(connectionRequest) 
+      }(connectionRequest)
     }
+  }
+
+  val userFormFields = mapping (
+    "email" -> text,
+    "passwordReset" -> ignored(true),
+    "enabled" -> ignored(false)
+  )(User.apply)(User.unapply)
+
+  val userForm = Form( userFormFields )
+
+  def viewAdd(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
+    Ok(views.html.user.addUser( connection, None, userForm))
+  }
+
+
+  def viewAddWithDomain(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { implicit domainRequest =>
+        Ok(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm))
+      }(connectionRequest)
+  }
+
+
+  def add(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
+    userForm.bindFromRequest.fold(
+      errors => {
+        Logger.warn(s"Add user form error")
+        BadRequest(views.html.user.addUser( connection, None, errors ))
+      },
+      user => {
+        Users.findUser(connectionRequest.connection, user.email) match {
+          case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+            user.save(connection)
+            Logger.info("User ${user.email} added")
+            Redirect(routes.UserController.user(connection))
+          }
+          case None => {
+            Logger.warn(s"Add feature not enabled")
+            implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+            BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+          }
+          case Some(_) => {
+            Logger.warn(s"User ${user.email} already exists")
+            implicit val errorMessages = List(ErrorMessage("User already exist"))
+            BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+          }
+        }
+      }
+    )
+  }
+
+  def addWithDomain(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    DomainAction(domainName) { domainRequest =>
+      userForm.bindFromRequest.fold(
+        errors => {
+          Logger.warn(s"Add user form error")
+          BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), errors ))
+        },
+        user => {
+          Users.findUser(connectionRequest.connection, user.email) match {
+            case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+              user.save(connection)
+              Logger.info("User ${user.email} added")
+              Redirect(routes.DomainController.alias(connection,domainName))
+            }
+            case None => {
+              Logger.warn(s"Add feature not enabled")
+              implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+              BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+            }
+            case Some(_) => {
+              Logger.warn(s"User ${user.email} already exists")
+              implicit val errorMessages = List(ErrorMessage("User already exist"))
+              BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+            }
+          }
+        }
+      )
+    }(connectionRequest)
   }
 
 }

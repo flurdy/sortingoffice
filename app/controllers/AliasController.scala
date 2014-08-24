@@ -105,9 +105,14 @@ object AliasController extends Controller with DbController with FeatureToggler 
           },
           aliasToAdd => {
             Aliases.findAlias(connectionRequest.connection, aliasToAdd.mail) match {
-              case None => {
+              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 aliasToAdd.save(connection)
                 Redirect(routes.DomainController.alias(connection,domainName))
+              }
+              case None => {
+                Logger.warn(s"Add feature not enabled")
+                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm.fill(aliasToAdd)))
               }
               case Some(_) => {
                 Logger.warn(s"Alias ${aliasToAdd.mail} already exists")

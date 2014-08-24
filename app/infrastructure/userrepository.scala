@@ -87,5 +87,19 @@ order by id
       }
    }
 
+   def save(connectionName: ConnectionName, user: User) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+insert into users (id,change_password,enabled) values ({email},{passwordReset},{enabled})
+            """
+         ).on(
+            'email -> user.email,
+            'passwordReset -> user.passwordReset,
+            'enabled -> user.enabled
+         ).execute
+      }
+   }
+
 
 }
