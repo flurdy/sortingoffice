@@ -9,11 +9,25 @@ import models.Environment.ConnectionName
 
 case class User(email: String, name: String, maildir: String, passwordReset: Boolean, enabled: Boolean){
 
-	def disable(connection: ConnectionName) = UserRepository.disable(connection,this)
+	def disable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) UserRepository.disable(connection,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-	def enable(connection: ConnectionName) = UserRepository.enable(connection,this)
+	def enable(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) UserRepository.enable(connection,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
 
-	def save(connection: ConnectionName) = UserRepository.save(connection,this)
+	def save(connection: ConnectionName) = {
+      if(FeatureToggles.isAddEnabled(connection)) UserRepository.save(connection,this)
+      else throw new IllegalStateException("Add feature is disabled")
+   }
+
+	def delete(connection: ConnectionName) = {
+      if(FeatureToggles.isRemoveEnabled(connection)) UserRepository.delete(connection,this)
+      else throw new IllegalStateException("Remove feature is disabled")
+   }
 
 }
 

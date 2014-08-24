@@ -19,11 +19,11 @@ Features
 * Edit data that are contained in the server's database.
 * Toggle between enable and disable for domains, aliases and users.
 * Add new domains, aliases and users.
+* Remove domains, aliases and users.
 
 
 Soon
 ---
-* Remove domains, aliases and users.
 * Edit domains, aliases and users.
 * Check DNS entries for relevant domain(s).
 * Authentication level for application access.

@@ -162,4 +162,14 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(connectionRequest)
   }
 
+  def remove(connection: ConnectionName, email: String) = {
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      UserAction(email) { implicit userRequest =>
+        userRequest.user.delete(connection)
+        Redirect(routes.UserController.user(connectionRequest.connection))
+      }(connectionRequest)
+    }
+  }
+
+
 }

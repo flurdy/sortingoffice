@@ -58,7 +58,13 @@
                <tr>
                   <th></th>
                   <td>
-                        <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
+                     @if(!user.enabled){
+                        @form(action=routes.UserController.remove(currentDatabaseConnection,user.email)){
+                           <button type="submit" title="remove" class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
+                        }
+                     } else {
+                        <button disabled title="Can only remove disabled users" class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
+                     }
                   </td>
                </tr>
             }

@@ -118,5 +118,17 @@ values ({email},{name},{maildir},{passwordReset},{enabled})
       }
    }
 
+   def delete(connectionName: ConnectionName, user: User) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+delete from users where id = {email}
+            """
+         ).on(
+            'email -> user.email
+         ).execute
+      }
+   }
+
 
 }
