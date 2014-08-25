@@ -15,7 +15,7 @@
 	@if(featureToggles.isEnabled("remove") && !relay.enabled){
 		@form(action=routes.RelayController.remove(currentDatabaseConnection,relayDomain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
 			<button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-		}	
+		}
 	}
 }
 
@@ -72,7 +72,7 @@
 							@if(featureToggles.isEnabled("remove") && !alias.enabled){
 								@form(action=routes.AliasController.remove(currentDatabaseConnection,domainFound.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
 									<button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-								}	
+								}
 							}
 						</td>
 					</tr>
@@ -214,7 +214,7 @@
 		}
 
 		@if(featureToggles.isEnabled("remove")){
-			<section title="Can not remove an enabled domain">
+			<section title="Can only remove a disabled domain">
 				@if(!domainFound.enabled){
 					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
 				} else {

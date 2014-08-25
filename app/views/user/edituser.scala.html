@@ -12,65 +12,61 @@
          <tbody>
             <tr>
                <th>email</th>
-               <td>@user.email</td>
+               <td colspan="2">@user.email</td>
             </tr>
             <tr>
                <th>name</th>
-               <td>@user.name</td>
+               <td colspan="2">@user.name</td>
             </tr>
             <tr>
                <th>maildir</th>
-               <td>@user.maildir</td>
+               <td colspan="2">@user.maildir</td>
             </tr>
             <tr>
                <th>reset password on next login</th>
-               <td>@user.passwordReset</td>
+               <td colspan="2">@user.passwordReset</td>
             </tr>
             <tr>
                <th>enabled</th>
-               <td>@user.enabled</td>
+               <td colspan="2">@user.enabled</td>
             </tr>
-            @if(featureToggles.isEnabled("edit")){
-               <tr>
-                  <th></th>
-                  <td class="actions">
-                        <button disabled class="btn btn-sm col-sm-4 col-xs-4 btn-warning">reset password</button>
-                  </td>
-               </tr>
-            }
-            <tr>
-               <th></th>
-               <td>
-                  @if(featureToggles.isEnabled("toggle")){
-                     @if(user.enabled){
-                        @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
-                           <button type="submit" title="disable" class="btn btn-sm col-sm-4 col-xs-4 btn-warning">disable</button>
-                        }
-                     } else {
-                        @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
-                           <button type="submit" title="enable" class="btn btn-sm col-sm-4 col-xs-4 btn-success">enable</button>
-                        }
-                     }
-                  }
-               </td>
-            </tr>
-            @if(featureToggles.isEnabled("remove")){
-               <tr>
-                  <th></th>
-                  <td>
-                     @if(!user.enabled){
-                        @form(action=routes.UserController.remove(currentDatabaseConnection,user.email)){
-                           <button type="submit" title="remove" class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
-                        }
-                     } else {
-                        <button disabled title="Can only remove disabled users" class="btn btn-sm col-sm-4 col-xs-4 btn-danger">remove</button>
-                     }
-                  </td>
-               </tr>
-            }
          </tbody>
       </table>
 
    </section>
+
+   @if(featureToggles.isEnabled("edit") && !user.passwordReset){
+      <section>
+         @form(action=routes.UserController.resetPassword(currentDatabaseConnection,user.email)){
+            <button type="submit" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reset password</button>
+         }
+      </section>
+   }
+
+   @if(featureToggles.isEnabled("toggle")){
+      <section>
+         @if(user.enabled){
+            @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
+               <button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable</button>
+            }
+         } else {
+            @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
+               <button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable</button>
+            }
+         }
+      </section>
+   }
+
+   @if(featureToggles.isEnabled("remove")){
+      <section>
+         @if(!user.enabled){
+            @form(action=routes.UserController.remove(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+               <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove</button>
+            }
+         } else {
+            <button disabled title="Can only remove disabled users" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove</button>
+         }
+      </section>
+   }
 
 }

@@ -81,7 +81,7 @@ order by id
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
-               update users set enabled = 0 where id = {email}
+update users set enabled = 0 where id = {email}
             """
          ).on(
             'email -> user.email
@@ -93,7 +93,7 @@ order by id
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
-               update users set enabled = 1 where id = {email}
+update users set enabled = 1 where id = {email}
             """
          ).on(
             'email -> user.email
@@ -118,7 +118,7 @@ values ({email},{name},{maildir},{passwordReset},{enabled})
       }
    }
 
-   def delete(connectionName: ConnectionName, user: User) = {
+   def delete(connectionName: ConnectionName, user: User) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -130,5 +130,16 @@ delete from users where id = {email}
       }
    }
 
+   def resetPassword(connectionName: ConnectionName, user: User) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+update users set change_password = 1 where id = {email}
+            """
+         ).on(
+            'email -> user.email
+         ).executeUpdate
+      }
+   }
 
 }

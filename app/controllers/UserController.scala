@@ -171,5 +171,14 @@ object UserController extends Controller with DbController with FeatureToggler w
     }
   }
 
+  def resetPassword(connection: ConnectionName, email: String) = {
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      UserAction(email) { implicit userRequest =>
+        userRequest.user.resetPassword(connection)
+        Redirect(routes.UserController.user(connectionRequest.connection))
+      }(connectionRequest)
+    }
+  }
+
 
 }

@@ -20,7 +20,7 @@ insert into aliases (mail,destination) values ('postmaster@example.com','me@exam
 insert into aliases (mail,destination) values ('abuse@example.com','me@example.com');
 insert into aliases (mail,destination) values ('me@example.com','me@example.com');
 
-insert into users (id,name,maildir,enabled) values ('me@example.com','me','example.com/me',1);
+insert into users (id,name,maildir,enabled,change_password) values ('me@example.com','me','example.com/me',1,0);
 insert into users (id,name,maildir,enabled) values ('you@example.com','you','example.com/you',0);
 
 # --- !Downs

@@ -25,9 +25,14 @@ case class User(email: String, name: String, maildir: String, passwordReset: Boo
       else throw new IllegalStateException("Add feature is disabled")
    }
 
-	def delete(connection: ConnectionName) = {
+   def delete(connection: ConnectionName) = {
       if(FeatureToggles.isRemoveEnabled(connection)) UserRepository.delete(connection,this)
       else throw new IllegalStateException("Remove feature is disabled")
+   }
+
+	def resetPassword(connection: ConnectionName) = {
+      if(FeatureToggles.isEditEnabled(connection)) UserRepository.resetPassword(connection,this)
+      else throw new IllegalStateException("Edit feature is disabled")
    }
 
 }

@@ -35,8 +35,8 @@ case class FeatureToggleMap(toggles: Map[String,FeatureToggle]){
 }
 
 object FeatureToggles {
-	
-	private val featureNames = List("toggle","add","remove")
+
+	private val featureNames = List("toggle","add","remove","edit")
 
 	private def isDatabaseFeatureEnabled(connection: ConnectionName, featureName: String): Boolean = {
 		Play.configuration.getBoolean(s"databases.${connection}.features.${featureName}").getOrElse(false)
@@ -57,8 +57,10 @@ object FeatureToggles {
 	def isToggleEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"toggle")
 
 	def isAddEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"add")
-	
+
 	def isRemoveEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"remove")
+
+	def isEditEnabled(connection: ConnectionName): Boolean = isDatabaseFeatureEnabled(connection,"edit")
 
 }
 
