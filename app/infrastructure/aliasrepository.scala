@@ -50,6 +50,18 @@ order by mail
       }
    }
 
+
+   def findAliases(connection: ConnectionName): List[Alias] = {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+select * from aliases
+order by mail
+            """
+         ).as(simpleAlias *)
+      }
+   }
+
    def findDomainAlias(alias: String, domain: Domain): Option[Alias] = {
       domain.connection flatMap( connection => findAlias(connection,s"${alias}@${domain.name}") )
    }

@@ -43,6 +43,17 @@ order by recipient
       }
    }
 
+   def findRelays(connection: ConnectionName): List[Relay] = {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+select * from relays
+order by recipient
+            """
+         ).as(simpleRelay *)
+      }
+   }
+
    def findCatchAll(connection: ConnectionName, domain: Domain): Option[Relay] = findRelay(connection,s"@${domain.name}")
 
    def findRelay(alias: String, domain: Domain): Option[Relay] = findRelay(domain.connection.get, s"${alias}@${domain.name}")

@@ -47,6 +47,13 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(connectionRequest)
   }
 
+  def disableRelay(connection: ConnectionName, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    RelayAction(recipient) { implicit request =>
+      request.relay.disable(connection)
+      Redirect(routes.AliasController.orphan(connection))
+    }(connectionRequest)
+  }
+
   def enable(connection: ConnectionName, domainName: String, recipient: String) =ConnectionAction(connection).async { implicit connectionRequest =>
     DomainOrBackupAction(domainName).async { implicit domainRequest =>
       RelayAction(recipient) { implicit request =>
@@ -112,6 +119,13 @@ object RelayController extends Controller with DbController with RelayInjector w
         request.relay.delete(connection)
         Redirect(routes.DomainController.alias(connection,domainName))
       }(connectionRequest)
+    }(connectionRequest)
+  }
+
+  def removeRelay(connection: ConnectionName, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    RelayAction(recipient) { implicit request =>
+      request.relay.delete(connection)
+      Redirect(routes.AliasController.orphan(connection))
     }(connectionRequest)
   }
 

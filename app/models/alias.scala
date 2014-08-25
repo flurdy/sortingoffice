@@ -2,6 +2,7 @@ package models
 
 import infrastructure._
 import play.api.Play
+import play.api.Logger
 import play.api.Play.current
 import scala.collection.JavaConverters._
 import models.Environment.ConnectionName
@@ -32,6 +33,8 @@ case class Alias(mail: String, destination: String, enabled: Boolean){
 }
 
 object Aliases {
+
+   type Email = String
 
    val requiredAliases = List("","abuse","postmaster")
 
@@ -74,5 +77,26 @@ object Aliases {
    }
 
    def findAlias(connection: ConnectionName, email: String): Option[Alias] = AliasRepository.findAlias(connection, email)
+
+   def findOrphanAliases(connection: ConnectionName, domains: List[Domain]): List[Alias] = {
+      val aliases = AliasRepository.findAliases(connection)
+      val nonOrphans = for{
+         alias <- aliases
+         domainName <- parseDomainName(alias)
+         if domains.exists( _.name == domainName)
+      } yield alias
+      aliases diff nonOrphans
+   }
+
+   private val EmailPattern = """.*@([\w\.]+)$""".r
+
+   private def parseDomainName(alias: Alias): Option[String] = parseDomainName(alias.mail)
+
+   def parseDomainName(email: Email): Option[String] = {
+      email match {
+         case EmailPattern(domain) => Some(domain)
+         case _ => None
+      }
+   }
 
 }

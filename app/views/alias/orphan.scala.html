@@ -1,0 +1,165 @@
+@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[Alias],  relays: List[Relay], users: List[User])(implicit featureToggles: FeatureToggleMap)
+
+@import helper._
+
+@main(Some("Aliases | Catch All"), Some(currentDatabaseConnection)) {
+
+   <h3>
+      Orphaned
+      <a href="@routes.AliasController.alias(currentDatabaseConnection)">aliases</a>, relays and
+      <a href="@routes.UserController.user(currentDatabaseConnection)">users</a>
+   </h3>
+
+   <section>
+
+      <h4>Aliases</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>Mail</th>
+               <th>Destination</th>
+               <th>Enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            @for(alias <- aliases){
+               <tr>
+                  <td>
+                     @if(!alias.enabled){ <s> }
+                     @alias.mail
+                     @if(!alias.enabled){ </s> }
+                  </td>
+                  <td>
+                     @if(!alias.enabled){ <s> }
+                     @alias.destination
+                     @if(!alias.enabled){ </s> }
+                  </td>
+                  <td>
+                     @alias.enabled
+                  </td>
+                  <td class="actions">
+                     @if(featureToggles.isEnabled("toggle")){
+                        @if(alias.enabled){
+                           @form(action=routes.AliasController.disableAlias(currentDatabaseConnection,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           }
+                        }
+                     }
+                     @if(featureToggles.isEnabled("remove")){
+                        @form(action=routes.AliasController.removeAlias(currentDatabaseConnection,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                        }
+                     }
+                  </td>
+               </tr>
+            }
+         </tbody>
+      </table>
+
+   </section>
+
+   <section>
+
+      <h4>Relays</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>Recipient</th>
+               <th>Status</th>
+               <th>Enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            @for(relay <- relays){
+               <tr>
+                  <td>
+                     @if(!relay.enabled){ <s> }
+                     @relay.recipient
+                     @if(!relay.enabled){ </s> }
+                  </td>
+                  <td>
+                     @if(!relay.enabled){ <s> }
+                     @relay.status
+                     @if(!relay.enabled){ </s> }
+                  </td>
+                  <td>
+                     @relay.enabled
+                  </td>
+                  <td class="actions">
+                     @if(featureToggles.isEnabled("toggle")){
+                        @if(relay.enabled){
+                           @form(action=routes.RelayController.disableRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           }
+                        }
+                     }
+                     @if(featureToggles.isEnabled("remove")){
+                        @form(action=routes.RelayController.removeRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                        }
+                     }
+                  </td>
+               </tr>
+            }
+         </tbody>
+      </table>
+
+   </section>
+
+   <section>
+
+      <h4>Users</h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>Email</th>
+               <th>Maildir</th>
+               <th>Enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            @for(user <- users){
+               <tr>
+                  <td>
+                     @if(!user.enabled){ <s> }
+                     @user.email
+                     @if(!user.enabled){ </s> }
+                  </td>
+                  <td>
+                     @if(!user.enabled){ <s> }
+                     @user.maildir
+                     @if(!user.enabled){ </s> }
+                  </td>
+                  <td>
+                     @user.enabled
+                  </td>
+                  <td class="actions">
+                     @if(featureToggles.isEnabled("toggle")){
+                        @if(user.enabled){
+                           @form(action=routes.UserController.disable(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           }
+                        }
+                     }
+                     @if(featureToggles.isEnabled("remove")){
+                        @form(action=routes.UserController.remove(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                        }
+                     }
+                  </td>
+               </tr>
+            }
+         </tbody>
+      </table>
+
+   </section>
+
+
+
+}

@@ -95,4 +95,16 @@ object Relays {
 
    def findRelay(connection: ConnectionName, recipient: String): Option[Relay] = RelayRepository.findRelay(connection,recipient)
 
+   def findOrphanRelays(connection: ConnectionName, domains: List[Domain]): List[Relay] = {
+      val relays = RelayRepository.findRelays(connection)
+      val nonOrphans = for{
+         relay <- relays
+         domainName <- parseDomainName(relay)
+         if domains.exists( _.name == domainName)
+      } yield relay
+      relays diff nonOrphans
+   }
+
+   private def parseDomainName(relay: Relay): Option[String] = Aliases.parseDomainName(relay.recipient)
+
 }

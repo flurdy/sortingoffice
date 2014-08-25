@@ -2,42 +2,25 @@
 
 @main(Some("Aliases"), Some(currentDatabaseConnection)) {
 
-   <style>button.btn{ display: none; }</style>
-
    <h3>Aliases</h3>
 
    <ul>
 
       <li>
          <h4><a href="@routes.AliasController.catchAll(currentDatabaseConnection)">Catch alls</a></h4>
-         <p>
-
-         </p>
       </li>
       <li>
          <h4><a href="@routes.AliasController.common(currentDatabaseConnection)">Common alias matrix</a></h4>
-         <p>
-
-         </p>
       </li>
       <li>
          <h4><a href="@routes.AliasController.crossDomain(currentDatabaseConnection)">Cross domain alias</a></h4>
-         <p>
-
-         </p>
+      </li>
+      <li>
+         <h4><a href="@routes.AliasController.orphan(currentDatabaseConnection)">Orphans</a></h4>
       </li>
       <li>
          <h4><a href="@routes.DomainController.domain(currentDatabaseConnection)">Alias per domain</a></h4>
-         <p>
-
-         </p>
       </li>
    </ul>
-
-   <section>
-      <button class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</button>
-   </section>
-
-
 
 }

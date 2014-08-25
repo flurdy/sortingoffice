@@ -63,6 +63,9 @@ header h1 a:active {
    text-decoration: none;
    color: navy;
 }
+h3 {
+   margin-bottom: 1em;
+}
 footer {
    padding: 1em;
    margin-top: 0.5em;

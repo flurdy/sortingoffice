@@ -2,6 +2,7 @@ package models
 
 import infrastructure._
 import play.api.Play
+import play.api.Logger
 import play.api.Play.current
 import scala.collection.JavaConverters._
 import models.Environment.ConnectionName
@@ -38,6 +39,18 @@ object Users {
    def findUser(connection: ConnectionName, email: String): Option[User] = UserRepository.findUser(connection,email)
 
    def findUserByMaildir(connection: ConnectionName, maildir: String): Option[User] = UserRepository.findUserByMaildir(connection,maildir)
+
+   def findOrphanUsers(connection: ConnectionName, domains: List[Domain]): List[User] = {
+      val users = UserRepository.findUsers(connection)
+      val nonOrphans = for{
+         user <- users
+         domainName <- parseDomainName(user)
+         if domains.exists( _.name == domainName)
+      } yield user
+      users diff nonOrphans
+   }
+
+   private def parseDomainName(user: User): Option[String] = Aliases.parseDomainName(user.email)
 
 }
 

@@ -68,12 +68,28 @@ object AliasController extends Controller with DbController with FeatureToggler 
     Ok(views.html.alias.cross(connection, aliases, customAliases) )
   }
 
+  def orphan(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
+    val domains = Domains.findDomains(connection)
+    val backups = Domains.findBackupDomains(connection)
+    val aliases = Aliases.findOrphanAliases(connection,domains)
+    val relays = Relays.findOrphanRelays(connection,domains++backups)
+    val users = Users.findOrphanUsers(connection,domains)
+    Ok(views.html.alias.orphan(connection, aliases, relays, users) )
+  }
+
   def disable(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
     DomainAction(domainName).async { implicit domainRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.disable(connection)
         Redirect(routes.DomainController.alias(connection,domainName))
       }(connectionRequest)
+    }(connectionRequest)
+  }
+
+  def disableAlias(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    AliasAction(email) { implicit aliasRequest =>
+      aliasRequest.alias.disable(connection)
+      Redirect(routes.AliasController.orphan(connection))
     }(connectionRequest)
   }
 
@@ -139,8 +155,15 @@ object AliasController extends Controller with DbController with FeatureToggler 
     DomainAction(domainName).async { implicit domainRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.delete(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))  
+        Redirect(routes.DomainController.alias(connection,domainName))
       }(connectionRequest)
+    }(connectionRequest)
+  }
+
+  def removeAlias(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+    AliasAction(email) { implicit aliasRequest =>
+      aliasRequest.alias.delete(connection)
+      Redirect(routes.AliasController.orphan(connection))
     }(connectionRequest)
   }
 
