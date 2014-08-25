@@ -66,7 +66,7 @@ object RelayController extends Controller with DbController with RelayInjector w
   val relayFormFields = mapping (
     "recipient" -> text,
     "enabled" -> ignored(false),
-    "status" -> ignored("OK")
+    "status" -> text
   )(Relay.apply)(Relay.unapply)
 
   val relayForm = Form( relayFormFields )
