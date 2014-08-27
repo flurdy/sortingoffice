@@ -107,7 +107,7 @@ object UserController extends Controller with DbController with FeatureToggler w
             Users.findUserByMaildir(connectionRequest.connection, user.maildir) match {
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 user.save(connection)
-                Logger.info("User ${user.email} added")
+                Logger.info(s"User ${user.email} added")
                 Redirect(routes.UserController.user(connection))
               }
               case None => {
@@ -143,7 +143,7 @@ object UserController extends Controller with DbController with FeatureToggler w
           Users.findUser(connectionRequest.connection, user.email) match {
             case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
               user.save(connection)
-              Logger.info("User ${user.email} added")
+              Logger.info(s"User ${user.email} added")
               Redirect(routes.DomainController.alias(connection,domainName))
             }
             case None => {

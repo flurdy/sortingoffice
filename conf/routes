@@ -56,6 +56,12 @@ GET     /db/:db/domain/:domain/user/add  controllers.UserController.viewAddWithD
 POST    /db/:db/user 				    controllers.UserController.add(db: String)
 POST    /db/:db/domain/:domain/user  controllers.UserController.addWithDomain(db: String, domain: String)
 
+GET     /login.html    controllers.Application.viewLogin
+POST    /login         controllers.Application.login
+GET     /logout        controllers.Application.logout
+GET     /register.html controllers.Application.viewRegister
+POST    /register      controllers.Application.register
+
 
 
 # Map static webjar resources

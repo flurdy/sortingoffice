@@ -3,7 +3,10 @@ package controllers
 import scala.concurrent.Future
 import play.api._
 import play.api.mvc._
+import play.api.mvc.Security._
 import play.api.mvc.Results._
+import play.api.data._
+import play.api.data.Forms._
 import models._
 import models.Environment.ConnectionName
 
@@ -33,10 +36,32 @@ trait DbController {
 
 }
 
+
 trait FeatureToggler {
 
   implicit def featureToggles[A](implicit request: RequestWithConnection[A]): FeatureToggleMap = FeatureToggles.findFeatureToggles(request.connection)
 
+}
+
+
+class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
+
+trait Secured {
+
+  def Authenticated = new ActionBuilder[AuthenticatedRequest] {
+    def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
+      request.session.get("username") match {
+        case Some(username) => {
+          block(new AuthenticatedRequest(username, request))
+        }
+        case None => {
+          Logger.debug("Not authenticated")
+          implicit val errorMessages = List(ErrorMessage("Not authenticated"))
+          Future.successful(Forbidden(views.html.login(Application.loginForm)))
+        }
+      }
+    }
+  }
 }
 
 
@@ -62,4 +87,69 @@ object Application extends Controller with DbController {
     Ok(views.html.contact())
   }
 
+  val loginFields = mapping (
+    "username" -> text,
+    "password" -> text
+  )(LoginDetails.apply)(LoginDetails.unapply)
+
+  val loginForm = Form( loginFields )
+
+  def viewLogin = Action {
+    Ok(views.html.login(loginForm)).withNewSession
+  }
+
+  def login = Action { implicit request =>
+    loginForm.bindFromRequest.fold(
+      errors => {
+        Logger.warn(s"Login form error")
+        BadRequest(views.html.login(errors))
+      },
+      loginDetails => {
+        ApplicationUsers.authenticateLoginDetails(loginDetails) match {
+          case Some(applicationUser) => {
+
+            Redirect(routes.Application.index()).withSession("username" -> loginDetails.username)
+
+          }
+          case None => {
+            Logger.warn(s"Authentication failed. Either the user does not exist or the password is incorrect")
+            implicit val errorMessages = List(ErrorMessage(
+                "Authentication failed. Either the user does not exist or the password is incorrect"))
+            BadRequest(views.html.login(loginForm.fill(loginDetails)))
+          }
+        }
+      }
+    )
+  }
+
+  def logout = Action {
+    Redirect(routes.Application.index()).withNewSession
+  }
+
+  val registerFields = mapping (
+    "username" -> text,
+    "password" -> text,
+    "confirmPassword" -> text
+  )(RegisterDetails.apply)(RegisterDetails.unapply) verifying("Password does not match", fields => fields match {
+    case registerDetails => registerDetails.password == registerDetails.confirmPassword
+  })
+
+  val registerForm = Form( registerFields )
+
+  def viewRegister = Action {
+    Ok(views.html.register(registerForm)).withNewSession
+  }
+
+  def register = Action { implicit request =>
+    registerForm.bindFromRequest.fold(
+      errors => {
+        Logger.warn(s"Register form error")
+        BadRequest(views.html.register(errors))
+      },
+      registerDetails => {
+        ApplicationUsers.register(registerDetails)
+        Ok(views.html.registered(registerForm))
+      }
+    )
+  }
 }

@@ -1,0 +1,24 @@
+@(registerForm: Form[RegisterDetails])
+
+@import helper._
+
+@main(Some("Registered"), None) {
+
+
+	<h3>Registered</h3>
+
+	<section>
+
+		<h4>Your user @registerForm("username").value has been registered, sort of</h4>
+
+		<p>
+			You have to manually add this user to the configuration files
+		</p>
+
+		<p>
+			To find the encrypted password please read your logs
+		</p>
+
+	</section>
+
+}

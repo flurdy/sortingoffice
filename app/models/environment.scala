@@ -4,6 +4,7 @@ import play.api.Play
 import play.api.Play.current
 import play.api.Logger
 import scala.collection.JavaConverters._
+import com.typesafe.config.Config
 
 
 object Environment {
@@ -20,6 +21,14 @@ object Environment {
 
 	val databaseConnections: List[(ConnectionName,String)] = {
 		connectionNames.map( name => (name, connectionDescription(name).getOrElse("")))
+	}
+
+	def findPasswordForApplicationUser(username: String): Option[String] = {
+		for{
+			 userConfigs <- Play.configuration.getConfig("application.users")	
+			 userConfig  <- userConfigs.getConfig(username)
+			 password    <- userConfig.getString("password")
+		} yield password	
 	}
 
 }
