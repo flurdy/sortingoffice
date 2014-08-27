@@ -94,9 +94,9 @@ trait DomainInjector {
 
 }
 
-object DomainController extends Controller with DbController with FeatureToggler with DomainInjector {
+object DomainController extends Controller with DbController with FeatureToggler with DomainInjector with Secured {
 
-  def domain(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
+  def domain(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
     val relayDomains = Domains.findDomains(connection)
     val backups = Domains.findBackupDomainsIfEnabled(connection)
     Ok(views.html.domain.domain( connection, relayDomains, backups))
@@ -132,40 +132,40 @@ object DomainController extends Controller with DbController with FeatureToggler
     // }
   }
 
-  def disable(connection: ConnectionName, name: String) = {
+  def disable(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
           domainRequest.domainRequested.disable
           Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def enable(connection: ConnectionName, name: String) = {
+  def enable(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
           domainRequest.domainRequested.enable
           Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def disableBackup(connection: ConnectionName, name: String) = {
+  def disableBackup(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.disableBackup
         Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def enableBackup(connection: ConnectionName, name: String) = {
+  def enableBackup(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.enableBackup
         Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
   val domainFormFields = single(
@@ -174,44 +174,48 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   val domainForm = Form( domainFormFields )
 
-  def viewAdd(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    Ok(views.html.domain.addDomain( connection, domainForm ))
+  def viewAdd(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      Ok(views.html.domain.addDomain( connection, domainForm ))
+    }(authRequest)
   }
 
-  def add(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    domainForm.bindFromRequest.fold(
-      errors => {
-        Logger.warn(s"Add domain form error")
-        BadRequest(views.html.domain.addDomain(connection,errors))
-      },
-      nameDesired => {
-        Domains.findDomain(connection, nameDesired) match {
-          case None => {
-            Domains.findBackupDomain(connection, nameDesired) match {
-              case None if FeatureToggles.isAddEnabled(request.connection) => {
-                Domains.newDomain(connection,nameDesired).save
-                Redirect(routes.DomainController.alias(connection,nameDesired))
-              }
-              case None  => {
-                Logger.warn(s"Add feature not enabled")
-               implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
-              }
-              case Some(_) => {
-                Logger.warn(s"Domain backup $nameDesired already exists")
-               implicit val errorMessages = List(ErrorMessage("Domain already exist"))
-                BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+  def add(connection: ConnectionName) = Authenticated.async { authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      domainForm.bindFromRequest.fold(
+        errors => {
+          Logger.warn(s"Add domain form error")
+          BadRequest(views.html.domain.addDomain(connection,errors))
+        },
+        nameDesired => {
+          Domains.findDomain(connection, nameDesired) match {
+            case None => {
+              Domains.findBackupDomain(connection, nameDesired) match {
+                case None if FeatureToggles.isAddEnabled(request.connection) => {
+                  Domains.newDomain(connection,nameDesired).save
+                  Redirect(routes.DomainController.alias(connection,nameDesired))
+                }
+                case None  => {
+                  Logger.warn(s"Add feature not enabled")
+                 implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                  BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+                }
+                case Some(_) => {
+                  Logger.warn(s"Domain backup $nameDesired already exists")
+                 implicit val errorMessages = List(ErrorMessage("Domain already exist"))
+                  BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+                }
               }
             }
-          }
-          case Some(_) => {
-            Logger.warn(s"Domain $nameDesired already exists")
-            implicit val errorMessages = List(ErrorMessage("Domain already exist"))
-            BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+            case Some(_) => {
+              Logger.warn(s"Domain $nameDesired already exists")
+              implicit val errorMessages = List(ErrorMessage("Domain already exist"))
+              BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+            }
           }
         }
-      }
-    )
+      )
+    }(authRequest)
   }
 
 
@@ -224,61 +228,66 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   val backupForm = Form( backupFormFields )
 
-  def viewAddBackup(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    Ok(views.html.domain.addBackup( connection, backupForm ))
+  def viewAddBackup(connection: ConnectionName) = Authenticated.async { authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      Ok(views.html.domain.addBackup( connection, backupForm ))
+    }(authRequest)
   }
 
-  def addBackup(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    backupForm.bindFromRequest.fold(
-      errors => {
-        Logger.warn(s"Add backup domain form error")
-        BadRequest(views.html.domain.addBackup( connection, errors))
-      },
-      backup => {
-        Domains.findDomain(connection, backup.name) match {
-          case None => {
-            Domains.findBackupDomain(connection, backup.name) match {
-              case None if FeatureToggles.isAddEnabled(request.connection) => {
-                backup.copy(connection=Some(request.connection)).saveBackup
-                Logger.info(s"Domain backup ${backup.name} added")
-                Redirect(routes.DomainController.alias(connection,backup.name))
-              }
-              case None  => {
-                Logger.warn(s"Add feature not enabled")
-               implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
-              }
-              case Some(_) => {
-                Logger.warn(s"Domain backup ${backup.name} already exists")
-               implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
-                BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+  def addBackup(connection: ConnectionName) = Authenticated.async { authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      backupForm.bindFromRequest.fold(
+        errors => {
+          Logger.warn(s"Add backup domain form error")
+          BadRequest(views.html.domain.addBackup( connection, errors))
+        },
+        backup => {
+          Domains.findDomain(connection, backup.name) match {
+            case None => {
+              Domains.findBackupDomain(connection, backup.name) match {
+                case None if FeatureToggles.isAddEnabled(request.connection) => {
+                  backup.copy(connection=Some(request.connection)).saveBackup
+                  Logger.info(s"Domain backup ${backup.name} added")
+                  Redirect(routes.DomainController.alias(connection,backup.name))
+                }
+                case None  => {
+                  Logger.warn(s"Add feature not enabled")
+                 implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                  BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+                }
+                case Some(_) => {
+                  Logger.warn(s"Domain backup ${backup.name} already exists")
+                 implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
+                  BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+                }
               }
             }
-          }
-          case Some(_) => {
-            Logger.warn(s"Domain ${backup.name} already exists")
-            implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
-            BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+            case Some(_) => {
+              Logger.warn(s"Domain ${backup.name} already exists")
+              implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
+              BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
+            }
           }
         }
-      }
-    )
+      )
+    }(authRequest)
   }
 
-  def viewRemove(connection: ConnectionName, name: String) = {
+  def viewRemove(connection: ConnectionName, name: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
         Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested ))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def remove(connection: ConnectionName, name: String) = 
+  def remove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
           domainRequest.domainRequested.delete
           Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
-    }
+    }(authRequest)
+  }
 
 }

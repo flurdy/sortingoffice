@@ -36,7 +36,7 @@ trait AliasInjector {
 
 }
 
-object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector {
+object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector with Secured {
 
   def alias(connection: ConnectionName) = ConnectionAction(connection) {
     Ok(views.html.alias.alias(connection))
@@ -77,29 +77,35 @@ object AliasController extends Controller with DbController with FeatureToggler 
     Ok(views.html.alias.orphan(connection, aliases, relays, users) )
   }
 
-  def disable(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainAction(domainName).async { implicit domainRequest =>
+  def disable(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email) { implicit aliasRequest =>
+          aliasRequest.alias.disable(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def disableAlias(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.disable(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))
+        Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
-    }(connectionRequest)
+    }(authRequest)
   }
 
-  def disableAlias(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest =>
-      aliasRequest.alias.disable(connection)
-      Redirect(routes.AliasController.orphan(connection))
-    }(connectionRequest)
-  }
-
-  def enable(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainAction(domainName).async { implicit domainRequest =>
-      AliasAction(email) { implicit aliasRequest =>
-          aliasRequest.alias.enable(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+  def enable(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email) { implicit aliasRequest =>
+            aliasRequest.alias.enable(connection)
+            Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
       }(connectionRequest)
-    }(connectionRequest)
+    }(authRequest)
   }
 
   val aliasFormFields = mapping (
@@ -110,21 +116,27 @@ object AliasController extends Controller with DbController with FeatureToggler 
 
   val aliasForm = Form( aliasFormFields )
 
-  def viewAdd(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+  def viewAdd(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
         Ok(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm ))
       }(connectionRequest)
+    }(authRequest)
   }
 
-  def viewAddCatchAll(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+  def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
         Ok(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm.fill(Alias(s"@$domainName","",false)) ))
       }(connectionRequest)
+    }(authRequest)
   }
 
-  def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName) { domainRequest =>
-        aliasForm.bindFromRequest.fold(
+  def add(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { implicit domainRequest =>
+        aliasForm.bindFromRequest()(domainRequest).fold(
+          // implicit val request = connectionRequest
           errors => {
             Logger.warn(s"Add alias form error")
             BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, errors ))
@@ -149,23 +161,29 @@ object AliasController extends Controller with DbController with FeatureToggler 
           }
         )
       }(connectionRequest)
+    }(authRequest)
   }
 
-  def remove(connection: ConnectionName, domainName: String, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainAction(domainName).async { implicit domainRequest =>
+  def remove(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email) { implicit aliasRequest =>
+          aliasRequest.alias.delete(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def removeAlias(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.delete(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))
-      }(connectionRequest)
-    }(connectionRequest)
+        Redirect(routes.AliasController.orphan(connection))
+      }(connectionRequest)      
+    }(authRequest)
   }
 
-  def removeAlias(connection: ConnectionName, email: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    AliasAction(email) { implicit aliasRequest =>
-      aliasRequest.alias.delete(connection)
-      Redirect(routes.AliasController.orphan(connection))
-    }(connectionRequest)
-  }
 
 }
 

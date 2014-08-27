@@ -20,13 +20,13 @@ Features
 * Toggle between enable and disable for domains, aliases and users.
 * Add new domains, aliases and users.
 * Remove domains, aliases and users.
+* Authentication for application access.
 
 
 Soon
 ---
 * Edit domains, aliases and users.
 * Check DNS entries for relevant domain(s).
-* Authentication level for application access.
 
 
 Maybe
@@ -35,6 +35,7 @@ Maybe
 * TLS encryption
 * Password resets
 * Dynamically add server
+* LDAP authentication
 
 
 Not
@@ -65,6 +66,7 @@ Modify your own version of application.conf with your own:
 * Databases
 * Database features
 * Common cross aliases
+* Application user(s)
 
 And then run the application with
 
@@ -101,9 +103,7 @@ Two resources can and should be secured:
 Application authentication
 ---
 
-The application access is currently not secured.
-If you want to expose it on wider network you can put a secured apache or nginx in front as a temporary measure.
-Soon there will be a simple Play authentication with plugin either LDAP or in memory properties for authentication.
+Using built in authentication. Users and credentials specified in a properties file.
 
 Application authorisation
 ----

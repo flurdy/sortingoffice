@@ -40,7 +40,7 @@ trait UserInjector {
 }
 
 
-object UserController extends Controller with DbController with FeatureToggler with UserInjector with DomainInjector {
+object UserController extends Controller with DbController with FeatureToggler with UserInjector with DomainInjector with Secured {
 
   def user(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
     val users = Users.findUsers(connection)
@@ -55,22 +55,22 @@ object UserController extends Controller with DbController with FeatureToggler w
     }
   }
 
-  def disable(connection: ConnectionName, email: String) = {
+  def disable(connection: ConnectionName, email: String) = Authenticated.async { authRequest => 
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.disable(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def enable(connection: ConnectionName, email: String) = {
+  def enable(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.enable(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
   val userFormFields = mapping (
@@ -83,102 +83,109 @@ object UserController extends Controller with DbController with FeatureToggler w
 
   val userForm = Form( userFormFields )
 
-  def viewAdd(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
-    Ok(views.html.user.addUser( connection, None, userForm))
+  def viewAdd(connection: ConnectionName) = Authenticated.async { authRequest =>
+    ConnectionAction(connection) { implicit connectionRequest =>
+      Ok(views.html.user.addUser( connection, None, userForm))
+    }(authRequest)
   }
 
 
-  def viewAddWithDomain(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+  def viewAddWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
         Ok(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm))
       }(connectionRequest)
+    }(authRequest)
   }
 
 
-  def add(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
-    userForm.bindFromRequest.fold(
-      errors => {
-        Logger.warn(s"Add user form error")
-        BadRequest(views.html.user.addUser( connection, None, errors ))
-      },
-      user => {
-        Users.findUser(connectionRequest.connection, user.email) match {
-          case None => {
-            Users.findUserByMaildir(connectionRequest.connection, user.maildir) match {
-              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-                user.save(connection)
-                Logger.info(s"User ${user.email} added")
-                Redirect(routes.UserController.user(connection))
-              }
-              case None => {
-                Logger.warn(s"Add feature not enabled")
-                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-              }
-              case Some(_) => {
-                Logger.warn(s"User maildir ${user.maildir} already exists")
-                implicit val errorMessages = List(ErrorMessage("User's maildir already exist"))
-                BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-              }
-            }
-          }
-          case Some(_) => {
-            Logger.warn(s"User ${user.email} already exists")
-            implicit val errorMessages = List(ErrorMessage("User already exist"))
-            BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-          }
-        }
-      }
-    )
-  }
-
-  def addWithDomain(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainAction(domainName) { domainRequest =>
+  def add(connection: ConnectionName) = Authenticated.async { authRequest =>
+    ConnectionAction(connection) { implicit connectionRequest =>
       userForm.bindFromRequest.fold(
         errors => {
           Logger.warn(s"Add user form error")
-          BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), errors ))
+          BadRequest(views.html.user.addUser( connection, None, errors ))
         },
         user => {
           Users.findUser(connectionRequest.connection, user.email) match {
-            case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-              user.save(connection)
-              Logger.info(s"User ${user.email} added")
-              Redirect(routes.DomainController.alias(connection,domainName))
-            }
             case None => {
-              Logger.warn(s"Add feature not enabled")
-              implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-              BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+              Users.findUserByMaildir(connectionRequest.connection, user.maildir) match {
+                case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+                  user.save(connection)
+                  Logger.info(s"User ${user.email} added")
+                  Redirect(routes.UserController.user(connection))
+                }
+                case None => {
+                  Logger.warn(s"Add feature not enabled")
+                  implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                  BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+                }
+                case Some(_) => {
+                  Logger.warn(s"User maildir ${user.maildir} already exists")
+                  implicit val errorMessages = List(ErrorMessage("User's maildir already exist"))
+                  BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
+                }
+              }
             }
             case Some(_) => {
               Logger.warn(s"User ${user.email} already exists")
               implicit val errorMessages = List(ErrorMessage("User already exist"))
-              BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+              BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
             }
           }
         }
       )
-    }(connectionRequest)
+    }(authRequest)
   }
 
-  def remove(connection: ConnectionName, email: String) = {
+  def addWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { domainRequest =>
+        userForm.bindFromRequest.fold(
+          errors => {
+            Logger.warn(s"Add user form error")
+            BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), errors ))
+          },
+          user => {
+            Users.findUser(connectionRequest.connection, user.email) match {
+              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+                user.save(connection)
+                Logger.info(s"User ${user.email} added")
+                Redirect(routes.DomainController.alias(connection,domainName))
+              }
+              case None => {
+                Logger.warn(s"Add feature not enabled")
+                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+              }
+              case Some(_) => {
+                Logger.warn(s"User ${user.email} already exists")
+                implicit val errorMessages = List(ErrorMessage("User already exist"))
+                BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
+              }
+            }
+          }
+        )
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def remove(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.delete(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def resetPassword(connection: ConnectionName, email: String) = {
+  def resetPassword(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.resetPassword(connection)
         Redirect(routes.UserController.user(connectionRequest.connection))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
-
 
 }

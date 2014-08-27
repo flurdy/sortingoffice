@@ -36,31 +36,37 @@ trait RelayInjector {
 }
 
 
-object RelayController extends Controller with DbController with RelayInjector with DomainInjector with FeatureToggler {
+object RelayController extends Controller with DbController with RelayInjector with DomainInjector with FeatureToggler with Secured {
 
-  def disable(connection: ConnectionName, domainName: String, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainOrBackupAction(domainName).async { implicit domainRequest =>
+  def disable(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        RelayAction(recipient) { implicit request =>
+          request.relay.disable(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def disableRelay(connection: ConnectionName, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.disable(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))
+        Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
-    }(connectionRequest)
+    }(authRequest)
   }
 
-  def disableRelay(connection: ConnectionName, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    RelayAction(recipient) { implicit request =>
-      request.relay.disable(connection)
-      Redirect(routes.AliasController.orphan(connection))
-    }(connectionRequest)
-  }
-
-  def enable(connection: ConnectionName, domainName: String, recipient: String) =ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainOrBackupAction(domainName).async { implicit domainRequest =>
-      RelayAction(recipient) { implicit request =>
-        request.relay.enable(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))
+  def enable(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        RelayAction(recipient) { implicit request =>
+          request.relay.enable(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
       }(connectionRequest)
-    }(connectionRequest)
+    }(authRequest)
   }
 
   val relayFormFields = mapping (
@@ -72,61 +78,71 @@ object RelayController extends Controller with DbController with RelayInjector w
   val relayForm = Form( relayFormFields )
 
 
-  def viewAdd(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+  def viewAdd(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
         Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm))
       }(connectionRequest)
+    }(authRequest)
   }
 
-  def viewAddCatchAll(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
+  def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
         Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(s"@$domainName",false,"OK"))))
       }(connectionRequest)
+    }(authRequest)
   }
 
-  def add(connection: ConnectionName, domainName: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainOrBackupAction(domainName) { domainRequest =>
-      relayForm.bindFromRequest.fold(
-        errors => {
-          Logger.warn(s"Add relay form error")
-          BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
-        },
-        relay => {
-          Relays.findRelay(connectionRequest.connection, relay.recipient) match {
-            case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-              relay.save(connection)
-              Redirect(routes.DomainController.alias(connection,domainName))
-            }
-            case None => {
-              Logger.warn(s"Add feature not enabled")
-              implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-              BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
-            }
-            case Some(_) => {
-              Logger.warn(s"Relay ${relay.recipient} already exists")
-              implicit val errorMessages = List(ErrorMessage("Relay already exist"))
-              BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
+  def add(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName) { domainRequest =>
+        relayForm.bindFromRequest.fold(
+          errors => {
+            Logger.warn(s"Add relay form error")
+            BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
+          },
+          relay => {
+            Relays.findRelay(connectionRequest.connection, relay.recipient) match {
+              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
+                relay.save(connection)
+                Redirect(routes.DomainController.alias(connection,domainName))
+              }
+              case None => {
+                Logger.warn(s"Add feature not enabled")
+                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
+              }
+              case Some(_) => {
+                Logger.warn(s"Relay ${relay.recipient} already exists")
+                implicit val errorMessages = List(ErrorMessage("Relay already exist"))
+                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
+              }
             }
           }
-        }
-      )
-    }(connectionRequest)
+        )
+      }(connectionRequest)
+    }(authRequest)
   }
 
-  def remove(connection: ConnectionName, domainName: String, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    DomainOrBackupAction(domainName).async { implicit domainRequest =>
+  def remove(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        RelayAction(recipient) { implicit request =>
+          request.relay.delete(connection)
+          Redirect(routes.DomainController.alias(connection,domainName))
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def removeRelay(connection: ConnectionName, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.delete(connection)
-        Redirect(routes.DomainController.alias(connection,domainName))
+        Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
-    }(connectionRequest)
-  }
-
-  def removeRelay(connection: ConnectionName, recipient: String) = ConnectionAction(connection).async { implicit connectionRequest =>
-    RelayAction(recipient) { implicit request =>
-      request.relay.delete(connection)
-      Redirect(routes.AliasController.orphan(connection))
-    }(connectionRequest)
+    }(authRequest)
   }
 
 }
