@@ -24,7 +24,8 @@ trait RelayInjector {
             case None => {
               Logger.warn(s"Relay $recipient not found")
               implicit val errorMessages = List(ErrorMessage("Relay not found"))
-              Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection)(errorMessages) ) )
+              implicit val user: Option[ApplicationUser] = None
+              Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection) ) )
             }
           }
         }
@@ -78,7 +79,7 @@ object RelayController extends Controller with DbController with RelayInjector w
   val relayForm = Form( relayFormFields )
 
 
-  def viewAdd(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def viewAdd(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
         Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm))
@@ -86,7 +87,7 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
         Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(s"@$domainName",false,"OK"))))
@@ -94,10 +95,10 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def add(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def add(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { domainRequest =>
-        relayForm.bindFromRequest.fold(
+        relayForm.bindFromRequest()(domainRequest).fold(
           errors => {
             Logger.warn(s"Add relay form error")
             BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
@@ -125,7 +126,7 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def remove(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+  def remove(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
@@ -136,7 +137,7 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def removeRelay(connection: ConnectionName, recipient: String) = Authenticated.async { authRequest =>
+  def removeRelay(connection: ConnectionName, recipient: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.delete(connection)

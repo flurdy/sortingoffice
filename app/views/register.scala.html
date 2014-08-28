@@ -1,4 +1,4 @@
-@(registerForm: Form[RegisterDetails])(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(registerForm: Form[RegisterDetails])(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
 
 @import helper._
 

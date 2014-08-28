@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Domain], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])(implicit featureToggles: FeatureToggleMap)
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Domain], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 

@@ -1,4 +1,4 @@
-@(title: Option[String],currentDatabaseConnection: Option[Environment.ConnectionName])(content: Html)(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(title: Option[String],currentDatabaseConnection: Option[Environment.ConnectionName])(content: Html)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
 
 <!DOCTYPE html>
 
@@ -25,9 +25,19 @@
 
         @for(connection <- currentDatabaseConnection){
           <div id="connections" class="">
-             <a href="@routes.Application.connectionIndex(connection)">Current database <em> @connection </em></a>
+             Current database <em> @connection </em>. <a href="@routes.Application.connectionIndex(connection)">Change</a>
           </div>
         }
+        <div id="applicationuser" class="">
+          @currentUser match {
+            case Some(user) => {
+              Current user <em>@user.username</em>. <a href="@routes.Application.logout">Log out</a>
+            }
+            case None => {
+              Not logged in. <a href="@routes.Application.viewLogin">Log in</a>
+            }
+          }
+        </div>  
 
         <header>
            <h1><a href="@routes.Application.index">Sorting Office</a></h1>

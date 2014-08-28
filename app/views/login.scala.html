@@ -1,4 +1,4 @@
-@(loginForm: Form[LoginDetails])(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(loginForm: Form[LoginDetails])(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser] = None)
 
 @import helper._
 

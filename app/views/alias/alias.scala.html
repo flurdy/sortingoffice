@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName)(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(currentDatabaseConnection: Environment.ConnectionName)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
 
 @main(Some("Aliases"), Some(currentDatabaseConnection)) {
 

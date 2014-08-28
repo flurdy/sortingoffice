@@ -28,7 +28,7 @@ trait DomainInjector {
               implicit val errorMessages = List(ErrorMessage("Domain not found"))
               Future.successful(NotFound(views.html.domain.domain(
                 connectionRequest.connection, relayDomains, backups)(
-                errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection))))
+                errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection),None)))
             }
           }
         }
@@ -52,7 +52,7 @@ trait DomainInjector {
               implicit val errorMessages = List(ErrorMessage("Domain not found"))
               Future.successful(NotFound(views.html.domain.domain(
                 connectionRequest.connection, relayDomains, backups)(
-                errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection))))
+                errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection),None)))
             }
           }
         }
@@ -81,7 +81,7 @@ trait DomainInjector {
                   implicit val errorMessages = List(ErrorMessage("Domain not found"))
                   Future.successful(NotFound(views.html.domain.domain(
                     connectionRequest.connection, relayDomains, backups)(
-                    errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection))))
+                    errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection),None)))
                 }
               }
             }
@@ -96,13 +96,16 @@ trait DomainInjector {
 
 object DomainController extends Controller with DbController with FeatureToggler with DomainInjector with Secured {
 
-  def domain(connection: ConnectionName) = ConnectionAction(connection) { implicit connectionRequest =>
-    val relayDomains = Domains.findDomains(connection)
-    val backups = Domains.findBackupDomainsIfEnabled(connection)
-    Ok(views.html.domain.domain( connection, relayDomains, backups))
+  def domain(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit connectionRequest =>
+      val relayDomains = Domains.findDomains(connection)
+      val backups = Domains.findBackupDomainsIfEnabled(connection)
+      Ok(views.html.domain.domain( connection, relayDomains, backups))
+    }(authRequest)
   }
 
-  def alias(connection: ConnectionName, name: String) = ConnectionAction(connection) { implicit connectionRequest =>
+  def alias(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit connectionRequest =>
     // DomainAction(connection, name) { implicit domainRequest =>
       Domains.findDomain(connection, name) match {
         case Some(domain) =>{
@@ -129,7 +132,7 @@ object DomainController extends Controller with DbController with FeatureToggler
           }
         }
       }
-    // }
+    }(authRequest)
   }
 
   def disable(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
@@ -180,9 +183,9 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
-  def add(connection: ConnectionName) = Authenticated.async { authRequest =>
+  def add(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
-      domainForm.bindFromRequest.fold(
+      domainForm.bindFromRequest()(request).fold(
         errors => {
           Logger.warn(s"Add domain form error")
           BadRequest(views.html.domain.addDomain(connection,errors))
@@ -228,15 +231,15 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   val backupForm = Form( backupFormFields )
 
-  def viewAddBackup(connection: ConnectionName) = Authenticated.async { authRequest =>
+  def viewAddBackup(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
       Ok(views.html.domain.addBackup( connection, backupForm ))
     }(authRequest)
   }
 
-  def addBackup(connection: ConnectionName) = Authenticated.async { authRequest =>
+  def addBackup(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
-      backupForm.bindFromRequest.fold(
+      backupForm.bindFromRequest()(request).fold(
         errors => {
           Logger.warn(s"Add backup domain form error")
           BadRequest(views.html.domain.addBackup( connection, errors))
@@ -273,7 +276,7 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
-  def viewRemove(connection: ConnectionName, name: String) = Authenticated.async { authRequest =>
+  def viewRemove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
         Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested ))

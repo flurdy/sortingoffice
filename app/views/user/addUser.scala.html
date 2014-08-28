@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], userForm: Form[User])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap)
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], userForm: Form[User])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import models._
 @import helper._

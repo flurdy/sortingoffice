@@ -25,7 +25,7 @@ trait AliasInjector {
             case None => {
               Logger.warn(s"Alias $email not found")
               implicit val errorMessages = List(ErrorMessage("Alias not found"))
-              Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection)(errorMessages) ) )
+              Future.successful( NotFound(views.html.alias.alias(connectionRequest.connection)(errorMessages,None) ) )
             }
           }
         }
@@ -38,43 +38,53 @@ trait AliasInjector {
 
 object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector with Secured {
 
-  def alias(connection: ConnectionName) = ConnectionAction(connection) {
-    Ok(views.html.alias.alias(connection))
+  def alias(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) {
+      Ok(views.html.alias.alias(connection))
+    }(authRequest)
   }
 
-  def catchAll(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    val allDomains: List[Domain] = Domains.findDomains(connection)
-    val catchAllAliases: (List[(Domain,Alias)],List[(Domain,Option[Alias])]) = Aliases.findCatchAllDomains(connection,allDomains)
-    val allBackups = Domains.findBackupDomains(connection)
-    val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = Relays.findCatchAllDomainsIfEnabled(connection,allDomains++allBackups)
-    Ok(views.html.alias.catchall(
-      connection,catchAllAliases._1,catchAllAliases._2,
-      catchAllRelays.map(_._1),catchAllRelays.map(_._2) ) )
+  def catchAll(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      val allDomains: List[Domain] = Domains.findDomains(connection)
+      val catchAllAliases: (List[(Domain,Alias)],List[(Domain,Option[Alias])]) = Aliases.findCatchAllDomains(connection,allDomains)
+      val allBackups = Domains.findBackupDomains(connection)
+      val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = Relays.findCatchAllDomainsIfEnabled(connection,allDomains++allBackups)
+      Ok(views.html.alias.catchall(
+        connection,catchAllAliases._1,catchAllAliases._2,
+        catchAllRelays.map(_._1),catchAllRelays.map(_._2) ) )
+    }(authRequest)
   }
 
-  def common(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    val domains = Domains.findDomains(connection)
-    val requiredAliases: List[(Domain,Map[String,Boolean])] = Aliases.findRequiredAndCommonAliases(domains)
-    val requiredRelays: Option[List[(Domain,Map[String,Boolean])]] = Relays.findRequiredAndCommonRelaysIfEnabled(connection,domains)
-    Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
+  def common(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      val domains = Domains.findDomains(connection)
+      val requiredAliases: List[(Domain,Map[String,Boolean])] = Aliases.findRequiredAndCommonAliases(domains)
+      val requiredRelays: Option[List[(Domain,Map[String,Boolean])]] = Relays.findRequiredAndCommonRelaysIfEnabled(connection,domains)
+      Ok(views.html.alias.common( connection, requiredAliases, requiredRelays ))
+    }(authRequest)
   }
 
-  def crossDomain(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    val aliases = Aliases.customAliases
-    val relayDomains = Domains.findDomains(connection)
-    val customAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] = relayDomains.map{ d =>
-      ( d, d.findCustomAliasesAndRelays )
-    }
-    Ok(views.html.alias.cross(connection, aliases, customAliases) )
+  def crossDomain(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      val aliases = Aliases.customAliases
+      val relayDomains = Domains.findDomains(connection)
+      val customAliases: List[(Domain, (Map[String,Boolean], Option[Map[String,Boolean]]))] = relayDomains.map{ d =>
+        ( d, d.findCustomAliasesAndRelays )
+      }
+      Ok(views.html.alias.cross(connection, aliases, customAliases) )
+    }(authRequest)
   }
 
-  def orphan(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    val domains = Domains.findDomains(connection)
-    val backups = Domains.findBackupDomains(connection)
-    val aliases = Aliases.findOrphanAliases(connection,domains)
-    val relays = Relays.findOrphanRelays(connection,domains++backups)
-    val users = Users.findOrphanUsers(connection,domains)
-    Ok(views.html.alias.orphan(connection, aliases, relays, users) )
+  def orphan(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      val domains = Domains.findDomains(connection)
+      val backups = Domains.findBackupDomains(connection)
+      val aliases = Aliases.findOrphanAliases(connection,domains)
+      val relays = Relays.findOrphanRelays(connection,domains++backups)
+      val users = Users.findOrphanUsers(connection,domains)
+      Ok(views.html.alias.orphan(connection, aliases, relays, users) )
+    }(authRequest)
   }
 
   def disable(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
@@ -132,14 +142,13 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
-  def add(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def add(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
         aliasForm.bindFromRequest()(domainRequest).fold(
-          // implicit val request = connectionRequest
           errors => {
             Logger.warn(s"Add alias form error")
-            BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, errors ))
+            BadRequest(views.html.alias.addAlias( connection, domainRequest.domainRequested, errors))
           },
           aliasToAdd => {
             Aliases.findAlias(connectionRequest.connection, aliasToAdd.mail) match {

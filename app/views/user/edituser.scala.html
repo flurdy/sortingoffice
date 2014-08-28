@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap)
+@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 

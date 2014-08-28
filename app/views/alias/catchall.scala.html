@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[(Domain,Alias)],nonCatchAllAliases: List[(Domain,Option[Alias])], catchAllRelays: Option[List[(Domain,Relay)]], nonCatchAllRelays: Option[List[(Domain,Option[Relay])]])(implicit featureToggles: FeatureToggleMap)
+@(currentDatabaseConnection: Environment.ConnectionName, catchAllAliases: List[(Domain,Alias)],nonCatchAllAliases: List[(Domain,Option[Alias])], catchAllRelays: Option[List[(Domain,Relay)]], nonCatchAllRelays: Option[List[(Domain,Option[Relay])]])(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 

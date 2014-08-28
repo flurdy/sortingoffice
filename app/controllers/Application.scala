@@ -1,5 +1,6 @@
 package controllers
 
+
 import scala.concurrent.Future
 import play.api._
 import play.api.mvc._
@@ -27,6 +28,7 @@ trait DbController {
         block(new RequestWithConnection(connection, request))
       } else {
         implicit val errorMessages = List(ErrorMessage("Connection not found"))
+        implicit val user: Option[ApplicationUser] = None
         Future.successful(
           NotFound(views.html.connections(databaseConnections))
         )
@@ -46,6 +48,8 @@ trait FeatureToggler {
 
 class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
 
+class AuthenticatedPossibleRequest[A](val username: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+
 trait Secured {
 
   def Authenticated = new ActionBuilder[AuthenticatedRequest] {
@@ -55,19 +59,34 @@ trait Secured {
           block(new AuthenticatedRequest(username, request))
         }
         case None => {
-          Logger.debug("Not authenticated")
           implicit val errorMessages = List(ErrorMessage("Not authenticated"))
+          implicit val user: Option[ApplicationUser] = None
           Future.successful(Forbidden(views.html.login(Application.loginForm)))
         }
       }
     }
   }
+
+  def AuthenticatedPossible = new ActionBuilder[AuthenticatedPossibleRequest] {
+    def invokeBlock[A](request: Request[A], block: (AuthenticatedPossibleRequest[A]) => Future[SimpleResult]) = {
+      block(new AuthenticatedPossibleRequest(request.session.get("username"), request))
+    }
+  }
+
+  implicit def currentUser[A](implicit request: AuthenticatedRequest[A]): Option[ApplicationUser] = {        
+    Some(ApplicationUser(request.username))
+  }
+
+  implicit def currentPossibleUser[A](implicit request: AuthenticatedPossibleRequest[A]): Option[ApplicationUser] = {      
+    request.username.map( ApplicationUser(_) )
+  }
+
 }
 
 
-object Application extends Controller with DbController {
+object Application extends Controller with DbController with Secured {
 
-  def index = Action {
+  def index = AuthenticatedPossible { implicit authRequest =>
     databaseConnections.size match {
       case 0 => NotFound(views.html.connections(List.empty))
       case 1 => Redirect(routes.Application.connectionIndex(databaseConnections.head._1))
@@ -75,15 +94,17 @@ object Application extends Controller with DbController {
     }
   }
 
-  def connectionIndex(connection: ConnectionName) = ConnectionAction(connection) {
+  def connectionIndex(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { request =>
       Ok(views.html.index(connection))
+    }(authRequest)
   }
 
-  def about = Action {
+  def about = AuthenticatedPossible { implicit authRequest =>
     Ok(views.html.about())
   }
 
-  def contact = Action {
+  def contact = AuthenticatedPossible { implicit authRequest =>
     Ok(views.html.contact())
   }
 
@@ -136,11 +157,11 @@ object Application extends Controller with DbController {
 
   val registerForm = Form( registerFields )
 
-  def viewRegister = Action {
-    Ok(views.html.register(registerForm)).withNewSession
+  def viewRegister = AuthenticatedPossible { implicit authRequest =>
+    Ok(views.html.register(registerForm))
   }
 
-  def register = Action { implicit request =>
+  def register = AuthenticatedPossible { implicit authRequest =>
     registerForm.bindFromRequest.fold(
       errors => {
         Logger.warn(s"Register form error")
@@ -148,7 +169,7 @@ object Application extends Controller with DbController {
       },
       registerDetails => {
         ApplicationUsers.register(registerDetails)
-        Ok(views.html.registered(registerForm))
+        Ok(views.html.registered(registerForm)).withNewSession
       }
     )
   }

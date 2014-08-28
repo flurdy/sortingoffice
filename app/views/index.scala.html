@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName)
+@(currentDatabaseConnection: Environment.ConnectionName)(implicit currentUser: Option[ApplicationUser] )
 
 @main(None, Some(currentDatabaseConnection)) {
 

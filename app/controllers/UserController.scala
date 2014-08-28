@@ -26,9 +26,10 @@ trait UserInjector {
               Logger.warn(s"User $email not found")
               val users = Users.findUsers(connectionRequest.connection)
               implicit val errorMessages = List(ErrorMessage("User not found"))
+              implicit val user: Option[ApplicationUser] = None
+              implicit val features = FeatureToggles.findFeatureToggles(connectionRequest.connection)
               Future.successful(
-                NotFound(views.html.user.user( connectionRequest.connection, users)(
-                  errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection) ) ) )
+                NotFound(views.html.user.user( connectionRequest.connection, users) ) )
             }
           }
         }
@@ -42,20 +43,22 @@ trait UserInjector {
 
 object UserController extends Controller with DbController with FeatureToggler with UserInjector with DomainInjector with Secured {
 
-  def user(connection: ConnectionName) = ConnectionAction(connection) { implicit request =>
-    val users = Users.findUsers(connection)
-    Ok(views.html.user.user(connection,users))
+  def user(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      val users = Users.findUsers(connection)
+      Ok(views.html.user.user(connection,users))
+    }(authRequest)
   }
 
-  def edituser(connection: ConnectionName, email: String) = {
+  def edituser(connection: ConnectionName, email: String) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
           Ok(views.html.user.edituser(connection,userRequest.user))
       }(connectionRequest)
-    }
+    }(authRequest)
   }
 
-  def disable(connection: ConnectionName, email: String) = Authenticated.async { authRequest => 
+  def disable(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest => 
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.disable(connection)
@@ -64,7 +67,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def enable(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
+  def enable(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.enable(connection)
@@ -83,14 +86,14 @@ object UserController extends Controller with DbController with FeatureToggler w
 
   val userForm = Form( userFormFields )
 
-  def viewAdd(connection: ConnectionName) = Authenticated.async { authRequest =>
+  def viewAdd(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit connectionRequest =>
       Ok(views.html.user.addUser( connection, None, userForm))
     }(authRequest)
   }
 
 
-  def viewAddWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def viewAddWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
         Ok(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm))
@@ -99,9 +102,9 @@ object UserController extends Controller with DbController with FeatureToggler w
   }
 
 
-  def add(connection: ConnectionName) = Authenticated.async { authRequest =>
+  def add(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit connectionRequest =>
-      userForm.bindFromRequest.fold(
+      userForm.bindFromRequest()(connectionRequest).fold(
         errors => {
           Logger.warn(s"Add user form error")
           BadRequest(views.html.user.addUser( connection, None, errors ))
@@ -138,10 +141,10 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def addWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { authRequest =>
+  def addWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { domainRequest =>
-        userForm.bindFromRequest.fold(
+        userForm.bindFromRequest()(domainRequest).fold(
           errors => {
             Logger.warn(s"Add user form error")
             BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), errors ))
@@ -170,7 +173,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def remove(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
+  def remove(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.delete(connection)

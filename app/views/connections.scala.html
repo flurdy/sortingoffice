@@ -1,4 +1,4 @@
-@(databaseConnections: List[(Environment.ConnectionName,String)])(implicit errorMessages: List[ErrorMessage] = List.empty)
+@(databaseConnections: List[(Environment.ConnectionName,String)])(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
 
 @main(Some("Choose database connection"),None) {
 

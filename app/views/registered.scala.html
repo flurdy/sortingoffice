@@ -1,4 +1,4 @@
-@(registerForm: Form[RegisterDetails])
+@(registerForm: Form[RegisterDetails])(implicit currentUser: Option[ApplicationUser])
 
 @import helper._
 

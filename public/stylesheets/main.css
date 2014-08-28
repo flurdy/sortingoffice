@@ -134,3 +134,10 @@ footer #flurdy-footer {
    font-size: 9pt;
    color: gray;
 }
+#applicationuser {
+   float: right;
+   clear: right;
+   padding: 0.2em 1em;
+   font-size: 9pt;
+   color: gray;
+}

@@ -55,6 +55,8 @@ Live demo
 -----
 * http://sortingoffice-demo.herokuapp.com
 
+Application users are john and mary with 123 as password
+
 
 Run
 -----
