@@ -44,7 +44,7 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.disable(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+          Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -64,7 +64,7 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.enable(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+          Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -107,7 +107,7 @@ object RelayController extends Controller with DbController with RelayInjector w
             Relays.findRelay(connectionRequest.connection, relay.recipient) match {
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 relay.save(connection)
-                Redirect(routes.DomainController.alias(connection,domainName))
+                Redirect(routes.DomainController.details(connection,domainName))
               }
               case None => {
                 Logger.warn(s"Add feature not enabled")
@@ -131,7 +131,7 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.delete(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+          Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)

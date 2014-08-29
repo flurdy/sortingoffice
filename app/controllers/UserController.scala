@@ -154,7 +154,7 @@ object UserController extends Controller with DbController with FeatureToggler w
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 user.save(connection)
                 Logger.info(s"User ${user.email} added")
-                Redirect(routes.DomainController.alias(connection,domainName))
+                Redirect(routes.DomainController.details(connection,domainName))
               }
               case None => {
                 Logger.warn(s"Add feature not enabled")

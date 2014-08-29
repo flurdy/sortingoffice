@@ -92,7 +92,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           aliasRequest.alias.disable(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+          Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -112,7 +112,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
             aliasRequest.alias.enable(connection)
-            Redirect(routes.DomainController.alias(connection,domainName))
+            Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -154,7 +154,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
             Aliases.findAlias(connectionRequest.connection, aliasToAdd.mail) match {
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 aliasToAdd.save(connection)
-                Redirect(routes.DomainController.alias(connection,domainName))
+                Redirect(routes.DomainController.details(connection,domainName))
               }
               case None => {
                 Logger.warn(s"Add feature not enabled")
@@ -178,7 +178,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           aliasRequest.alias.delete(connection)
-          Redirect(routes.DomainController.alias(connection,domainName))
+          Redirect(routes.DomainController.details(connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)

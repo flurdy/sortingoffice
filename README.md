@@ -16,17 +16,15 @@ Features
 * View aliases to forward emails.
 * View alias relays to accept if enabled.
 * View users that will store emails on a server.
-* Edit data that are contained in the server's database.
 * Toggle between enable and disable for domains, aliases and users.
-* Add new domains, aliases and users.
-* Remove domains, aliases and users.
+* Add new domains, backup domains, aliases, relays and users.
+* Remove domains, backup domains, aliases, relays and users.
 * Authentication for application access.
 
 
 Soon
 ---
 * Edit domains, aliases and users.
-* Check DNS entries for relevant domain(s).
 
 
 Maybe
@@ -36,6 +34,8 @@ Maybe
 * Password resets
 * Dynamically add server
 * LDAP authentication
+* Check DNS entries for relevant domain(s).
+* Application authentication roles
 
 
 Not
@@ -99,8 +99,8 @@ This is admin application and should never be exposed directly on the internet.
 
 Two resources can and should be secured:
 
-# Access to the application
-# Access to the databases
+* Access to the application
+* Access to the databases
 
 Application authentication
 ---

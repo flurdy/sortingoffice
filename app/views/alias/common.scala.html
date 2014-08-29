@@ -99,7 +99,7 @@
             @for( (domain, aliases) <- commonAliases){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("abuse",aliases)
                   @aliasTick("postmaster",aliases)
@@ -130,7 +130,7 @@
             @for( (domain, aliases) <- commonAliases){
                <tr>
                   <td>
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                   </td>
                   @aliasTick("info",aliases)
                   @aliasTick("root",aliases)
@@ -163,7 +163,7 @@
                @for( (domain, aliases) <- commonRelays){
                   <tr>
                      <td>
-                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                      </td>
                      @aliasTick("abuse",aliases)
                      @aliasTick("postmaster",aliases)
@@ -194,7 +194,7 @@
                @for( (domain, aliases) <- commonRelays){
                   <tr>
                      <td>
-                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                      </td>
                      @aliasTick("info",aliases)
                      @aliasTick("root",aliases)

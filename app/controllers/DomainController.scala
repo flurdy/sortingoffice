@@ -104,15 +104,14 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
-  def alias(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
+  def details(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection) { implicit connectionRequest =>
-    // DomainAction(connection, name) { implicit domainRequest =>
       Domains.findDomain(connection, name) match {
         case Some(domain) =>{
           val relays = domain.findRelaysIfEnabled
           val aliases = domain.findAliases
           val users = domain.findUsers
-          Ok(views.html.domain.domainalias( connection, Some(domain), None, relays, aliases, users))
+          Ok(views.html.domain.domaindetails( connection, Some(domain), None, relays, aliases, users))
         }
         case None => {
           Domains.findBackupDomain(connection, name) match {
@@ -120,7 +119,7 @@ object DomainController extends Controller with DbController with FeatureToggler
               val relays = domain.findRelaysIfEnabled
               val aliases = domain.findAliases
               val users = domain.findUsers
-              Ok(views.html.domain.domainalias( connection, None, Some(domain), relays, aliases, users))
+              Ok(views.html.domain.domaindetails( connection, None, Some(domain), relays, aliases, users))
             }
             case None => {
               Logger.warn(s"Domain $name not found")
@@ -196,7 +195,7 @@ object DomainController extends Controller with DbController with FeatureToggler
               Domains.findBackupDomain(connection, nameDesired) match {
                 case None if FeatureToggles.isAddEnabled(request.connection) => {
                   Domains.newDomain(connection,nameDesired).save
-                  Redirect(routes.DomainController.alias(connection,nameDesired))
+                  Redirect(routes.DomainController.details(connection,nameDesired))
                 }
                 case None  => {
                   Logger.warn(s"Add feature not enabled")
@@ -251,16 +250,16 @@ object DomainController extends Controller with DbController with FeatureToggler
                 case None if FeatureToggles.isAddEnabled(request.connection) => {
                   backup.copy(connection=Some(request.connection)).saveBackup
                   Logger.info(s"Domain backup ${backup.name} added")
-                  Redirect(routes.DomainController.alias(connection,backup.name))
+                  Redirect(routes.DomainController.details(connection,backup.name))
                 }
                 case None  => {
                   Logger.warn(s"Add feature not enabled")
-                 implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                  implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
                   BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
                 }
                 case Some(_) => {
                   Logger.warn(s"Domain backup ${backup.name} already exists")
-                 implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
+                  implicit val errorMessages = List(ErrorMessage("Backup domain already exist"))
                   BadRequest(views.html.domain.addBackup( connection, backupForm.fill(backup)))
                 }
               }
@@ -287,8 +286,8 @@ object DomainController extends Controller with DbController with FeatureToggler
   def remove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
-          domainRequest.domainRequested.delete
-          Redirect(routes.DomainController.domain(connection))
+        domainRequest.domainRequested.delete
+        Redirect(routes.DomainController.domain(connection))
       }(connectionRequest)
     }(authRequest)
   }

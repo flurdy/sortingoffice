@@ -25,7 +25,7 @@
 				<tr>
 					<td>
 						@if(!domain.enabled){ <s> }
-						<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+						<a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
 						@if(!domain.enabled){ </s> }
 					</td>
 					<td>@domain.enabled</td>
@@ -79,7 +79,7 @@
 					<tr>
 						<td>
 							@if(!domain.enabled){ <s> }
-							<a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+							<a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
 							@if(!domain.enabled){ </s> }
 						</td>
 						<td>@domain.enabled</td>

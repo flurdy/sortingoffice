@@ -24,7 +24,7 @@
                <tr>
                   <td>
                      @if(!alias.enabled){ <s> }
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(!alias.enabled){ </s> }
                   </td>
                   <td>
@@ -76,7 +76,7 @@
                <tr>
                   <td>
                      @if(alias.map(!_.enabled).getOrElse(false)){ <s> }
-                     <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                      @if(alias.map(!_.enabled).getOrElse(false)){ </s> }
                   </td>
                   <td class="actions">
@@ -126,7 +126,7 @@
                   <tr>
                      <td>
                         @if(!relay.enabled){ <s> }
-                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                         @if(!relay.enabled){ </s> }
                      </td>
                      <td>
@@ -182,7 +182,7 @@
                   <tr>
                      <td>
                         @if(relay.map(!_.enabled).getOrElse(false)){ <s> }
-                        <a href="@routes.DomainController.alias(currentDatabaseConnection,domain.name)">@domain.name</a>
+                        <a href="@routes.DomainController.details(currentDatabaseConnection,domain.name)">@domain.name</a>
                         @if(relay.map(!_.enabled).getOrElse(false)){ </s> }
                      </td>
                      <td class="actions">
