@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, aliasForm: Form[Alias])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, aliasForm: Form[Alias], returnUrl: String)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import models._
 @import helper._
@@ -22,7 +22,7 @@
 
     <section>
 
-		@form(action=routes.AliasController.add(currentDatabaseConnection,domain.name), 'class -> "form-horizontal", 'role -> ""){
+		@form(action=routes.AliasController.add(currentDatabaseConnection,domain.name,returnUrl), 'class -> "form-horizontal", 'role -> ""){
 
 			<div class="form-group">
 				<label for="inputMail" class="col-sm-2 control-label">Mail</label>

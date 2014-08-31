@@ -38,19 +38,19 @@
                   <td class="actions">
                      @if(featureToggles.isEnabled("toggle")){
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         } else {
-                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                            }
                         }
                      }
                      @if(featureToggles.isEnabled("remove") && !alias.enabled){
-                        @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                        @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                            <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-                        }  
+                        }
                      }
                   </td>
                </tr>
@@ -83,8 +83,13 @@
                      @alias match{
                         case Some(aliasFound) => {
                            @if(featureToggles.isEnabled("toggle")){
-                              @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,aliasFound.mail)){
+                              @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                              }
+                           }
+                           @if(featureToggles.isEnabled("remove")){
+                              @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                 <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                               }
                            }
                         }
@@ -140,19 +145,19 @@
                      <td class="actions">
                         @if(featureToggles.isEnabled("toggle")){
                            @if(relay.enabled){
-                              @form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                              @form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                  <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                               }
                             } else {
-                              @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                              @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                               }
                            }
                         }
                         @if(featureToggles.isEnabled("remove") && !relay.enabled){
-                           @form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-                           }  
+                           }
                         }
                      </td>
                   </tr>
@@ -161,6 +166,7 @@
          </table>
 
       </section>
+
    }
 
 
@@ -189,8 +195,13 @@
                         @relay match{
                            case Some(relayFound) => {
                               @if(featureToggles.isEnabled("toggle")){
-                                 @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relayFound.recipient)){
+                                 @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                     <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                                 }
+                              }
+                              @if(featureToggles.isEnabled("remove")){
+                                 @form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                    <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                                  }
                               }
                            }
@@ -210,6 +221,5 @@
 
       </section>
    }
-
 
 }

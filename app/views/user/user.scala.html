@@ -32,11 +32,11 @@
                <td class="actions">
                   @if(featureToggles.isEnabled("toggle")){
                      @if(user.enabled){
-                        @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
+                        @form(action=routes.UserController.disableUser(currentDatabaseConnection,user.email, "user")){
                            <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                         }
                      } else {
-                        @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
+                        @form(action=routes.UserController.enableUser(currentDatabaseConnection,user.email, "user")){
                            <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                         }
                      }

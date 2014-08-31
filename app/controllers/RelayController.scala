@@ -39,12 +39,15 @@ trait RelayInjector {
 
 object RelayController extends Controller with DbController with RelayInjector with DomainInjector with FeatureToggler with Secured {
 
-  def disable(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+  def disable(connection: ConnectionName, domainName: String, recipient: String, returnUrl: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.disable(connection)
-          Redirect(routes.DomainController.details(connection,domainName))
+          returnUrl match {
+            case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case _ => Redirect(routes.DomainController.details(connection,domainName))
+          }
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -59,12 +62,15 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def enable(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { authRequest =>
+  def enable(connection: ConnectionName, domainName: String, recipient: String, returnUrl: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.enable(connection)
-          Redirect(routes.DomainController.details(connection,domainName))
+          returnUrl match {
+            case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case _ => Redirect(routes.DomainController.details(connection,domainName))
+          }
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -126,12 +132,15 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def remove(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { implicit authRequest =>
+  def remove(connection: ConnectionName, domainName: String, recipient: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.delete(connection)
-          Redirect(routes.DomainController.details(connection,domainName))
+          returnUrl match {
+            case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case _ => Redirect(routes.DomainController.details(connection,domainName))
+          }
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)

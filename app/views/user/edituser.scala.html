@@ -46,11 +46,11 @@
    @if(featureToggles.isEnabled("toggle")){
       <section>
          @if(user.enabled){
-            @form(action=routes.UserController.disable(currentDatabaseConnection,user.email)){
+            @form(action=routes.UserController.disableUser(currentDatabaseConnection,user.email, "edituser")){
                <button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable</button>
             }
          } else {
-            @form(action=routes.UserController.enable(currentDatabaseConnection,user.email)){
+            @form(action=routes.UserController.enableUser(currentDatabaseConnection,user.email, "edituser")){
                <button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable</button>
             }
          }
@@ -60,7 +60,7 @@
    @if(featureToggles.isEnabled("remove")){
       <section>
          @if(!user.enabled){
-            @form(action=routes.UserController.remove(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+            @form(action=routes.UserController.remove(currentDatabaseConnection,user.email, "edituser"), 'class -> "form-inline", 'role -> "form"){
                <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove</button>
             }
          } else {

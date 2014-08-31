@@ -58,20 +58,50 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def disable(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest => 
+  def disableUser(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.disable(connection)
-        Redirect(routes.UserController.user(connectionRequest.connection))
+        returnUrl match {
+          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
+          case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
+          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
 
-  def enable(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+  def disable(connection: ConnectionName, domainName: String, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        UserAction(email) { implicit userRequest =>
+          userRequest.user.disable(connection)
+          Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
+        }(domainRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def enableUser(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.enable(connection)
-        Redirect(routes.UserController.user(connectionRequest.connection))
+        returnUrl match {
+          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
+          case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
+          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
+        }
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def enable(connection: ConnectionName, domainName: String, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        UserAction(email) { implicit userRequest =>
+          userRequest.user.enable(connection)
+          Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
+        }(domainRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -173,11 +203,14 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def remove(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+  def remove(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.delete(connection)
-        Redirect(routes.UserController.user(connectionRequest.connection))
+          returnUrl match {
+            case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
+            case _ => Redirect(routes.UserController.user(connectionRequest.connection))
+          }
       }(connectionRequest)
     }(authRequest)
   }

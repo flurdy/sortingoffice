@@ -142,13 +142,13 @@
                   <td class="actions">
                      @if(featureToggles.isEnabled("toggle")){
                         @if(user.enabled){
-                           @form(action=routes.UserController.disable(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.UserController.disableUser(currentDatabaseConnection,user.email, "orphan"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         }
                      }
                      @if(featureToggles.isEnabled("remove")){
-                        @form(action=routes.UserController.remove(currentDatabaseConnection,user.email), 'class -> "form-inline", 'role -> "form"){
+                        @form(action=routes.UserController.remove(currentDatabaseConnection,user.email, "orphan"), 'class -> "form-inline", 'role -> "form"){
                            <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                         }
                      }
