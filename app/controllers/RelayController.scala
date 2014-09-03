@@ -88,7 +88,7 @@ object RelayController extends Controller with DbController with RelayInjector w
   def viewAdd(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
-        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm))
+        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm, "domaindetails"))
       }(connectionRequest)
     }(authRequest)
   }
@@ -96,34 +96,37 @@ object RelayController extends Controller with DbController with RelayInjector w
   def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
-        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(s"@$domainName",false,"OK"))))
+        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(s"@$domainName",false,"OK")), "catchall"))
       }(connectionRequest)
     }(authRequest)
   }
 
-  def add(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
+  def add(connection: ConnectionName, domainName: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { domainRequest =>
         relayForm.bindFromRequest()(domainRequest).fold(
           errors => {
             Logger.warn(s"Add relay form error")
-            BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors ))
+            BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, errors, returnUrl ))
           },
           relay => {
             Relays.findRelay(connectionRequest.connection, relay.recipient) match {
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 relay.save(connection)
-                Redirect(routes.DomainController.details(connection,domainName))
+                returnUrl match {
+                  case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+                  case _ => Redirect(routes.DomainController.details(connection,domainName))
+                }
               }
               case None => {
                 Logger.warn(s"Add feature not enabled")
                 implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
+                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay), returnUrl))
               }
               case Some(_) => {
                 Logger.warn(s"Relay ${relay.recipient} already exists")
                 implicit val errorMessages = List(ErrorMessage("Relay already exist"))
-                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay)))
+                BadRequest(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(relay), returnUrl))
               }
             }
           }

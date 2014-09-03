@@ -37,11 +37,11 @@
 					<td class="actions">
 						@if(featureToggles.isEnabled("toggle")){
 							@if(domain.enabled){
-								@form(action=routes.DomainController.disable(currentDatabaseConnection,domain.name), 'class -> "form-inline", 'role -> "form"){
+								@form(action=routes.DomainController.disable(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 									<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
 								}
 							} else {
-								@form(action=routes.DomainController.enable(currentDatabaseConnection,domain.name), 'class -> "form-inline", 'role -> "form"){
+								@form(action=routes.DomainController.enable(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 									<button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
 								}
 							}
@@ -91,11 +91,11 @@
 						<td class="actions">
 							@if(featureToggles.isEnabled("toggle")){
 								@if(domain.enabled){
-									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domain.name), 'class -> "form-inline", 'role -> "form"){
+									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 										<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
 									}
 								} else {
-									@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domain.name), 'class -> "form-inline", 'role -> "form"){
+									@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 										<button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
 									}
 								}

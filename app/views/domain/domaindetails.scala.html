@@ -41,11 +41,11 @@
 		@if(featureToggles.isEnabled("toggle")){
 			<section>
 				@if(domainFound.enabled){
-					@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name)){
+					@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name,"domaindetails")){
 						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable domain</button>
 					}
 				} else {
-					@form(action=routes.DomainController.enable(currentDatabaseConnection,domainFound.name)){
+					@form(action=routes.DomainController.enable(currentDatabaseConnection,domainFound.name,"domaindetails")){
 						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable domain</button>
 					}
 				}
@@ -86,11 +86,11 @@
 		@if(featureToggles.isEnabled("toggle")){
 			<section>
 				@if(domainFound.enabled){
-					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domainFound.name)){
+					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domainFound.name,"domaindetails")){
 						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable backup</button>
 					}
 				} else {
-					@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domainFound.name)){
+					@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domainFound.name,"domaindetails")){
 						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable backup</button>
 					}
 				}

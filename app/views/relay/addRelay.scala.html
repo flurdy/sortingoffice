@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relayForm: Form[Relay])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, relayForm: Form[Relay], returnUrl: String)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import models._
 @import helper._
@@ -22,7 +22,7 @@
 
     <section>
 
-		@form(action=routes.RelayController.add(currentDatabaseConnection,domain.name), 'class -> "form-horizontal", 'role -> "form"){
+		@form(action=routes.RelayController.add(currentDatabaseConnection,domain.name,returnUrl), 'class -> "form-horizontal", 'role -> "form"){
 
 			<div class="form-group">
 				<label for="inputRecipient" class="col-sm-2 control-label">Recipient</label>

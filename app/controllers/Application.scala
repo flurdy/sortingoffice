@@ -151,7 +151,7 @@ object Application extends Controller with DbController with Secured {
     "username" -> text,
     "password" -> text,
     "confirmPassword" -> text
-  )(RegisterDetails.apply)(RegisterDetails.unapply) verifying("Password does not match", fields => fields match {
+  )(RegisterDetails.apply)(RegisterDetails.unapply) verifying("Passwords does not match", fields => fields match {
     case registerDetails => registerDetails.password == registerDetails.confirmPassword
   })
 

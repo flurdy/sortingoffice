@@ -203,5 +203,18 @@ delete from domains where domain = {name}
       }
    }
 
+
+   def deleteBackup(connectionName: ConnectionName, domain: Domain) = {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+delete from backups where domain = {name}
+            """
+         ).on(
+            'name -> domain.name
+         ).execute
+      }
+   }
+
 }
 

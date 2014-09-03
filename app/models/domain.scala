@@ -43,38 +43,43 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
         findCustomRelaysIfEnabled.map( r => r.map( re => (re._1,re._2.enabled) ) ) )
    }
 
-   def disable = connection.map{ con => 
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disable(con,this) 
+   def disable = connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disable(con,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def enable = connection.map{ con => 
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enable(con,this) 
+   def enable = connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enable(con,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def disableBackup = connection.map{ con => 
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disableBackup(con,this) 
+   def disableBackup = connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disableBackup(con,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def enableBackup = connection.map{ con => 
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enableBackup(con,this) 
+   def enableBackup = connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enableBackup(con,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def save = connection.map{ con => 
-      if(FeatureToggles.isAddEnabled(con)) DomainRepository.save(con,this) 
+   def save = connection.map{ con =>
+      if(FeatureToggles.isAddEnabled(con)) DomainRepository.save(con,this)
       else throw new IllegalStateException("Add feature is disabled")
    }
 
-   def saveBackup = connection.map{ con => 
-      if(FeatureToggles.isAddEnabled(con)) DomainRepository.saveBackup(con,this) 
+   def saveBackup = connection.map{ con =>
+      if(FeatureToggles.isAddEnabled(con)) DomainRepository.saveBackup(con,this)
       else throw new IllegalStateException("Add feature is disabled")
    }
 
-   def delete = connection.map{ con => 
-      if(FeatureToggles.isRemoveEnabled(con)) DomainRepository.delete(con,this) 
+   def delete = connection.map{ con =>
+      if(FeatureToggles.isRemoveEnabled(con)) DomainRepository.delete(con,this)
+      else throw new IllegalStateException("Remove feature is disabled")
+   }
+
+   def deleteBackup = connection.map{ con =>
+      if(FeatureToggles.isRemoveEnabled(con)) DomainRepository.deleteBackup(con,this)
       else throw new IllegalStateException("Remove feature is disabled")
    }
 

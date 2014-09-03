@@ -19,6 +19,7 @@ trait DomainInjector {
         case connectionRequest: RequestWithConnection[A] => {
           Domains.findDomain(connectionRequest.connection, name) match {
             case Some(domain) => {
+              Logger.debug(s"Domain $name found")
               block(new RequestWithDomain(domain, connectionRequest))
             }
             case None => {
@@ -134,38 +135,54 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
-  def disable(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+  def disable(connection: ConnectionName, name: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
-          domainRequest.domainRequested.disable
-          Redirect(routes.DomainController.domain(connection))
+        domainRequest.domainRequested.disable
+        Logger.info(s"Domain disabled: $name")
+        returnUrl match {
+          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case _ => Redirect(routes.DomainController.domain(connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
 
-  def enable(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+  def enable(connection: ConnectionName, name: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(name) { implicit domainRequest =>
-          domainRequest.domainRequested.enable
-          Redirect(routes.DomainController.domain(connection))
+        domainRequest.domainRequested.enable
+        Logger.info(s"Domain enabled: $name")
+        returnUrl match {
+          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case _ => Redirect(routes.DomainController.domain(connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
 
-  def disableBackup(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+  def disableBackup(connection: ConnectionName, name: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.disableBackup
-        Redirect(routes.DomainController.domain(connection))
+        Logger.info(s"Backup disabled: $name")
+        returnUrl match {
+          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case _ => Redirect(routes.DomainController.domain(connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
 
-  def enableBackup(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+  def enableBackup(connection: ConnectionName, name: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       BackupAction(name) { implicit domainRequest =>
         domainRequest.domainRequested.enableBackup
-        Redirect(routes.DomainController.domain(connection))
+        Logger.info(s"Backup enabled: $name")
+        returnUrl match {
+          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case _ => Redirect(routes.DomainController.domain(connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
@@ -195,6 +212,7 @@ object DomainController extends Controller with DbController with FeatureToggler
               Domains.findBackupDomain(connection, nameDesired) match {
                 case None if FeatureToggles.isAddEnabled(request.connection) => {
                   Domains.newDomain(connection,nameDesired).save
+                  Logger.info(s"Domain added: $nameDesired")
                   Redirect(routes.DomainController.details(connection,nameDesired))
                 }
                 case None  => {
@@ -277,18 +295,45 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   def viewRemove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(name) { implicit domainRequest =>
+      DomainOrBackupAction(name) { implicit domainRequest =>
         Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested ))
       }(connectionRequest)
     }(authRequest)
   }
 
   def remove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(name) { implicit domainRequest =>
-        domainRequest.domainRequested.delete
-        Redirect(routes.DomainController.domain(connection))
-      }(connectionRequest)
+    ConnectionAction(connection) { implicit connectionRequest =>
+      if(FeatureToggles.isRemoveEnabled(connectionRequest.connection) ){
+        Domains.findDomain(connection, name) match {
+          case Some(domain) => {
+            domain.delete
+            Logger.info(s"Domain removed: $name")
+            Redirect(routes.DomainController.domain(connection))
+          }
+          case None => {
+            Domains.findBackupDomain(connection, name) match {
+              case Some(backup) => {
+                backup.deleteBackup
+                Logger.info(s"Backup domain removed: $name")
+                Redirect(routes.DomainController.domain(connection))
+              }
+              case None  => {
+                Logger.warn(s"Domain $name not found")
+                val relayDomains = Domains.findDomains(connectionRequest.connection)
+                val backups = Domains.findBackupDomainsIfEnabled(connectionRequest.connection)
+                implicit val errorMessages = List(ErrorMessage("Domain not found"))
+                NotFound(views.html.domain.domain(connectionRequest.connection, relayDomains, backups))
+              }
+            }
+          }
+        }
+      } else {
+        Logger.warn(s"Remove feature not enabled")
+        val relayDomains = Domains.findDomains(connection)
+        val backups = Domains.findBackupDomainsIfEnabled(connection)
+        implicit val errorMessages = List(ErrorMessage("Remove feature not enabled"))
+        BadRequest(views.html.domain.domain(connectionRequest.connection, relayDomains, backups))
+      }
     }(authRequest)
   }
 

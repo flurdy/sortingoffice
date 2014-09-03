@@ -20,6 +20,7 @@ trait UserInjector {
         case connectionRequest: RequestWithConnection[A] => {
           Users.findUser(connectionRequest.connection, email) match {
             case Some(user) => {
+              Logger.warn(s"User $email found")
               block(new RequestWithUser(user, connectionRequest))
             }
             case None => {
@@ -33,7 +34,10 @@ trait UserInjector {
             }
           }
         }
-        case _ => Future.successful(InternalServerError)
+        case _ => {
+          Logger.error(s"Im so confused")
+          Future.successful(InternalServerError)
+        }
       }
     }
   }
@@ -62,6 +66,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.disable(connection)
+        Logger.info(s"User disabled: $email")
         returnUrl match {
           case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
           case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
@@ -75,9 +80,11 @@ object UserController extends Controller with DbController with FeatureToggler w
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         UserAction(email) { implicit userRequest =>
+          Logger.debug(s"User disabled soon: $email")
           userRequest.user.disable(connection)
+          Logger.info(s"User disabled: $email")
           Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
-        }(domainRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -85,7 +92,9 @@ object UserController extends Controller with DbController with FeatureToggler w
   def enableUser(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
+          Logger.debug(s"User enabled soon: $email")
         userRequest.user.enable(connection)
+        Logger.info(s"User enabled: $email")
         returnUrl match {
           case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
           case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
@@ -100,8 +109,9 @@ object UserController extends Controller with DbController with FeatureToggler w
       DomainAction(domainName).async { implicit domainRequest =>
         UserAction(email) { implicit userRequest =>
           userRequest.user.enable(connection)
+          Logger.info(s"User enabled: $email")
           Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
-        }(domainRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -207,6 +217,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.delete(connection)
+        Logger.info(s"User removed: $email")
           returnUrl match {
             case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
             case _ => Redirect(routes.UserController.user(connectionRequest.connection))
@@ -219,6 +230,7 @@ object UserController extends Controller with DbController with FeatureToggler w
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
         userRequest.user.resetPassword(connection)
+        Logger.info(s"User password reset: $email")
         Redirect(routes.UserController.user(connectionRequest.connection))
       }(connectionRequest)
     }(authRequest)
