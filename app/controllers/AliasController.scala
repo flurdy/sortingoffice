@@ -206,6 +206,18 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
+  def viewAlias(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email) { implicit aliasRequest =>
+          
+          Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias))
+
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
 
 }
 

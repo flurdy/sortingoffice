@@ -1,0 +1,26 @@
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, alias: Alias)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
+
+@main(Some("Alias"), Some(currentDatabaseConnection)) {
+
+   <h3>Alias</h3>
+
+
+   <table class="table">
+      <tbody>
+         <tr>
+            <th>mail</th>
+            <td colspan="2">@alias.mail</td>
+         </tr>
+         <tr>
+            <th>destination</th>
+            <td colspan="2">@alias.destination</td>
+         </tr>
+         <tr>
+            <th>enabled</th>
+            <td colspan="2">@alias.enabled</td>
+         </tr>
+      </tbody>
+   </table>
+   
+
+}

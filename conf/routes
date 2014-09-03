@@ -30,6 +30,7 @@ GET     /db/:db/alias/catchall       controllers.AliasController.catchAll(db: St
 GET     /db/:db/alias/common         controllers.AliasController.common(db: String)
 GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)
 GET     /db/:db/alias/orphan         controllers.AliasController.orphan(db: String)
+GET     /db/:db/domain/:domain/alias/:email controllers.AliasController.viewAlias(db: String, domain: String, email: String)
 POST    /db/:db/alias/:email/disable controllers.AliasController.disableAlias(db: String, email: String)
 POST    /db/:db/domain/:domain/alias/:email/disable/returnUrl/:returnUrl controllers.AliasController.disable(db: String, domain: String, email: String, returnUrl: String)
 POST    /db/:db/domain/:domain/alias/:email/enable/returnUrl/:returnUrl  controllers.AliasController.enable(db: String, domain: String, email: String, returnUrl: String)

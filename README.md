@@ -24,7 +24,10 @@ Features
 
 Soon
 ---
-* Edit domains, aliases and users.
+* Edit domains.
+* Edit aliases.
+* Edit relays.
+* Edit users.
 
 
 Maybe
@@ -121,7 +124,7 @@ Apache or nginx can be put infront of the application to provide SSL/TLS transpo
 Database authentication
 ---
 
-Normal MySQL authentication. Passwords are stored in configuration files. These can be an environment property.
+Normal MySQL authentication. Passwords are stored in configuration files. These can be environment properties.
 
 
 Database authorisation
@@ -133,7 +136,7 @@ The database user that the application connects with can be given different data
 Database encryption
 ---
 
-The passwords are encrypted using the howtos/postfix's encryption, and are not used in this application.
+The mail user's passwords are encrypted using the howtos/postfix's encryption, and are not used at all in this application.
 
 You can connect the database via unencrypted standard mysql port, via MySQL's SSL connection feature or via a SSH tunnel.
 

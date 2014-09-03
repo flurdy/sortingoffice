@@ -32,6 +32,10 @@
                <td colspan="2">@domainFound.name</td>
             </tr>
             <tr>
+               <th>transport</th>
+               <td colspan="2">@domainFound.transport</td>
+            </tr>
+            <tr>
                <th>enabled</th>
                <td colspan="2">@domainFound.enabled</td>
             </tr>
@@ -56,8 +60,6 @@
 			<section title="Can only remove a disabled domain">
 				@if(!domainFound.enabled){
 					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
-				} else {
-					<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</button>
 				}
 			</section>
 		}
@@ -102,8 +104,6 @@
 			<section title="Can only remove a disabled domain">
 				@if(!domainFound.enabled){
 					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
-				} else {
-					<button disabled class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</button>
 				}
 			</section>
 		}
@@ -129,11 +129,11 @@
 				<tbody>
 					@for(alias <- aliases){
 					<tr>
-						<td>@if(!alias.enabled){ <s> } @alias.mail @if(!alias.enabled){ </s> }</td>
-						<td>
-							@if(!alias.enabled){ <s> }
-								@alias.destination
-							@if(!alias.enabled){ </s> }
+						<td @if(!alias.enabled){ class="disabled" }>
+							<a href="@routes.AliasController.viewAlias(currentDatabaseConnection,domainFound.name,alias.mail)">@alias.mail</a>
+						</td>
+						<td @if(!alias.enabled){ class="disabled" }>
+							@alias.destination
 						</td>
 						<td>@alias.enabled</td>
 						<td class="actions">
