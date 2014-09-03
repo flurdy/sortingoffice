@@ -94,6 +94,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
           aliasRequest.alias.disable(connection)
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
           }
         }(connectionRequest)
@@ -117,6 +118,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
           aliasRequest.alias.enable(connection)
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
           }
         }(connectionRequest)

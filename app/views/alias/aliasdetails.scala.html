@@ -1,8 +1,10 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, alias: Alias)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, alias: Alias)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser], featureToggles: FeatureToggleMap)
+
+@import helper._
 
 @main(Some("Alias"), Some(currentDatabaseConnection)) {
 
-   <h3>Alias</h3>
+   <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Alias</a></h3>
 
 
    <table class="table">
@@ -22,5 +24,25 @@
       </tbody>
    </table>
    
+   @if(featureToggles.isEnabled("toggle")){
+      <section>
+         @if(alias.enabled){
+            @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail, "aliasdetails"), 'class -> "form-inline", 'role -> "form"){
+               <button type"submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable alias</button>
+            }
+         } else {
+            @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"aliasdetails"), 'class -> "form-inline", 'role -> "form"){
+            <button type"submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable alias</button>
+            }
+         }
+      </section>
+   }
 
+   @if(featureToggles.isEnabled("remove") && !alias.enabled){
+      <section>
+         @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,alias.mail,"aliasdetails"), 'class -> "form-inline", 'role -> "form"){
+            <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove alias</button>
+         }
+      </section>
+   }
 }
