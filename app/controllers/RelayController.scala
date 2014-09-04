@@ -37,7 +37,7 @@ trait RelayInjector {
 }
 
 
-object RelayController extends Controller with DbController with RelayInjector with DomainInjector with FeatureToggler with Secured {
+object RelayController extends Controller with DbController with RelayInjector with DomainInjector with AliasInjector with FeatureToggler with Secured {
 
   def disable(connection: ConnectionName, domainName: String, recipient: String, returnUrl: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
@@ -53,11 +53,39 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
+  def disableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        AliasAction(email).async { implicit aliasRequest =>
+          RelayAction(recipient) { implicit request =>
+            request.relay.disable(connection)
+            Logger.info("Relay disabled: $recipient")
+            Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+          }(aliasRequest)
+        }(domainRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
   def disableRelay(connection: ConnectionName, recipient: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.disable(connection)
         Redirect(routes.AliasController.orphan(connection))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+   def enableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        AliasAction(email).async { implicit aliasRequest =>
+          RelayAction(recipient) { implicit request =>
+            request.relay.enable(connection)
+            Logger.info(s"Relay enabled: $recipient")
+            Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+          }(aliasRequest)
+        }(domainRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -140,6 +168,7 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.delete(connection)
+          Logger.info(s"Relay ${recipient} removed")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
@@ -149,10 +178,25 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
+  def removeAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email).async { implicit aliasRequest =>
+          RelayAction(recipient) { implicit request =>
+            request.relay.delete(connection)
+            Logger.info(s"Relay ${recipient} removed")
+            Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+          }(aliasRequest)
+        }(domainRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
   def removeRelay(connection: ConnectionName, recipient: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.delete(connection)
+        Logger.info(s"Relay ${recipient} removed")
         Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
     }(authRequest)

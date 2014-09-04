@@ -1,6 +1,32 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, alias: Alias)(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser], featureToggles: FeatureToggleMap)
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, alias: Alias, relays: Option[(Option[Relay],Option[Relay])])(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser], featureToggles: FeatureToggleMap)
 
 @import helper._
+
+@relayRow(relay: Relay) = {
+   <tr>
+      <td @if(!relay.enabled){class="disabled"}>@relay.recipient</td>
+      <td @if(!relay.enabled){class="disabled"}>@relay.status</td>
+      <td>@relay.enabled</td>
+      <td class="actions">
+         @if(featureToggles.isEnabled("toggle")){                        
+            @if(relay.enabled){
+               @form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                  <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
+               }
+            } else {
+               @form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                  <button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
+               }
+            }
+            @if(featureToggles.isEnabled("remove") && !relay.enabled){
+               @form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                  <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+               }
+            }
+         }
+      </td>
+   </tr>   
+}
 
 @main(Some("Alias"), Some(currentDatabaseConnection)) {
 
@@ -45,4 +71,33 @@
          }
       </section>
    }
+
+   @for(relaysFound <- relays){
+
+       <section>
+
+         <h4>Relay maps</h4>
+
+         <table class="table table-hover">
+            <thead>
+               <tr>
+                  <th>recipient</th>
+                  <th>enabled</th>
+                  <th>status</th>
+                  <th></th>
+               </tr>
+            </thead>
+            <tbody>
+               @for(relay <- relaysFound._1){
+                  @relayRow(relay)
+               }
+               @for(relay <- relaysFound._2){
+                  @relayRow(relay)
+               }
+            </tbody>
+         </table>
+
+      </section>
+   }
+
 }

@@ -107,4 +107,10 @@ object Relays {
 
    private def parseDomainName(relay: Relay): Option[String] = Aliases.parseDomainName(relay.recipient)
 
+   def findRelaysForAliasIfEnabled(connection: ConnectionName, domain: Domain, alias: Alias): Option[(Option[Relay],Option[Relay])] = {
+      if( FeatureToggles.isRelayEnabled(connection) ){  
+         Some( RelayRepository.findCatchAll(connection,domain) , RelayRepository.findRelay(connection, alias.mail) )
+      } else None
+   }
+
 }

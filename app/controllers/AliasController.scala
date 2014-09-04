@@ -212,9 +212,8 @@ object AliasController extends Controller with DbController with FeatureToggler 
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
-          
-          Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias))
-
+          val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)          
+          Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
