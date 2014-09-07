@@ -42,7 +42,7 @@
                   <td class="actions">
                      @if(featureToggles.isEnabled("toggle")){
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disableAlias(currentDatabaseConnection,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"orphan"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         }

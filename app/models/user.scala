@@ -35,6 +35,10 @@ case class User(email: String, name: String, maildir: String, passwordReset: Boo
       else throw new IllegalStateException("Edit feature is disabled")
    }
 
+   def findAlias(connection: ConnectionName): Option[Alias] = AliasRepository.findAlias(connection,email)
+   
+   def findDomain(connection: ConnectionName): Option[Domain] = Domains.extractAndFindDomain(connection,email)
+
 }
 
 object Users {

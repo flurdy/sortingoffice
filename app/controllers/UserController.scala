@@ -54,10 +54,12 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
-  def edituser(connection: ConnectionName, email: String) = AuthenticatedPossible.async { implicit authRequest =>
+  def viewUser(connection: ConnectionName, email: String) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       UserAction(email) { implicit userRequest =>
-          Ok(views.html.user.edituser(connection,userRequest.user))
+        val domain = userRequest.user.findDomain(connection)
+        val alias = userRequest.user.findAlias(connection)
+        Ok(views.html.user.edituser(connection,userRequest.user,domain,alias))
       }(connectionRequest)
     }(authRequest)
   }
@@ -69,7 +71,7 @@ object UserController extends Controller with DbController with FeatureToggler w
         Logger.info(s"User disabled: $email")
         returnUrl match {
           case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-          case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
+          case "edituser" => Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
           case _ => Redirect(routes.UserController.user(connectionRequest.connection))
         }
       }(connectionRequest)
@@ -97,7 +99,7 @@ object UserController extends Controller with DbController with FeatureToggler w
         Logger.info(s"User enabled: $email")
         returnUrl match {
           case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-          case "edituser" => Redirect(routes.UserController.edituser(connectionRequest.connection, email))
+          case "edituser" => Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
           case _ => Redirect(routes.UserController.user(connectionRequest.connection))
         }
       }(connectionRequest)

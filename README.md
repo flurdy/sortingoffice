@@ -105,36 +105,36 @@ Two resources can and should be secured:
 * Access to the application
 * Access to the databases
 
-Application authentication
----
+#### Application authentication
+
 
 Using built in authentication. Users and credentials specified in a properties file.
 
-Application authorisation
-----
+#### Application authorisation
+
 
 The application does not have any plans for application level authorisation feature.
 
 
-Application encryption
-----
+#### Application encryption
+
 
 Apache or nginx can be put infront of the application to provide SSL/TLS transport encryption.
 
-Database authentication
----
+#### Database authentication
+
 
 Normal MySQL authentication. Passwords are stored in configuration files. These can be environment properties.
 
 
-Database authorisation
----
+#### Database authorisation
+
 
 The database user that the application connects with can be given different database access levels.
 
 
-Database encryption
----
+#### Database encryption
+
 
 The mail user's passwords are encrypted using the howtos/postfix's encryption, and are not used at all in this application.
 

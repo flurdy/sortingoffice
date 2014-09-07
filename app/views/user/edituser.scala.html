@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName,user: User)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, user: User, userDomain: Option[Domain], userAlias: Option[Alias])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 
@@ -47,11 +47,11 @@
       <section>
          @if(user.enabled){
             @form(action=routes.UserController.disableUser(currentDatabaseConnection,user.email, "edituser")){
-               <button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable</button>
+               <button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable user</button>
             }
          } else {
             @form(action=routes.UserController.enableUser(currentDatabaseConnection,user.email, "edituser")){
-               <button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable</button>
+               <button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable user</button>
             }
          }
       </section>
@@ -61,12 +61,87 @@
       <section>
          @if(!user.enabled){
             @form(action=routes.UserController.remove(currentDatabaseConnection,user.email, "edituser"), 'class -> "form-inline", 'role -> "form"){
-               <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove</button>
+               <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove user</button>
             }
-         } else {
-            <button disabled title="Can only remove disabled users" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove</button>
          }
       </section>
    }
+
+   <section>
+
+      <h4><a href="@routes.AliasController.alias(currentDatabaseConnection)">Aliases</a></h4>
+
+
+      @userAlias match {
+         case Some(alias) => {
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th>mail</th>
+                     <th>destination</th>
+                     <th>enabled</th>
+                     <th colspan="2"></th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr>
+                     @userDomain match {
+                        case Some(domain) => {
+                           <td @if(!alias.enabled){ class="disabled" }>
+                              <a href="@routes.AliasController.viewAlias(currentDatabaseConnection,domain.name,alias.mail)">@alias.mail</a>
+                           </td>
+                           <td @if(!alias.enabled){ class="disabled" }>
+                              @alias.destination
+                           </td>
+                           <td>@alias.enabled</td>
+                           <td class="actions">
+                              @if(featureToggles.isEnabled("toggle")){
+                                 @if(alias.enabled){
+                                    @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail, "userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                       <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                                    }
+                                 } else {
+                                    @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                    <button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
+                                    }
+                                 }
+                              }
+                           </td>
+                        }
+                        case None => {
+                           <td @if(!alias.enabled){ class="disabled" }>
+                              @alias.mail
+                           </td>
+                           <td @if(!alias.enabled){ class="disabled" }>
+                              @alias.destination
+                           </td>
+                           <td>@alias.enabled</td>
+                           <td class="actions">
+                              @if(featureToggles.isEnabled("toggle")){
+                                 @if(alias.enabled){
+                                    @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                       <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                                    }
+                                 }
+                              }
+                           </td>
+                        }
+                     }
+                  </tr>
+               </tbody>         
+            </table>
+         }
+         case None => {        
+            @for(domain <- userDomain){
+               @if(featureToggles.isEnabled("add")){
+                  @form(action=routes.AliasController.addUserAlias(currentDatabaseConnection,domain.name,user.email), 'class -> "form-inline", 'role -> "form"){
+                     <button type="submit" title="add" class="btn btn-sm col-sm-2 col-xs-2 btn-primary">add alias</button>
+                  }  
+               }
+            }
+         }
+      }
+
+   </section>  
 
 }

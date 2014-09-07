@@ -104,6 +104,10 @@ object Domains {
 
    def newDomain(connection: ConnectionName, name: String): Domain = Domain(Some(connection),name,false,"virtual:")
 
+   def extractAndFindDomain(connection: ConnectionName, email: String): Option[Domain] = {
+      Aliases.parseDomainName(email).flatMap( name => findDomain(connection,name) )
+   }
+
 }
 
 

@@ -22,20 +22,23 @@ POST    /db/:db/domain/:domain/backup/enable/returnUrl/:returnUrl controllers.Do
 GET     /db/:db/domain/backup/add    controllers.DomainController.viewAddBackup(db: String)
 POST    /db/:db/domain/backup        controllers.DomainController.addBackup(db: String)
 
+
 GET     /db/:db/alias                controllers.AliasController.alias(db: String)
-GET     /db/:db/domain/:domain/alias/add controllers.AliasController.viewAdd(db: String, domain: String)
-GET     /db/:db/domain/:domain/alias/add/catchall controllers.AliasController.viewAddCatchAll(db: String, domain: String)
-POST    /db/:db/domain/:domain/alias/returnUrl/:returnUrl controllers.AliasController.add(db: String, domain: String, returnUrl: String)
+GET     /db/:db/domain/:domain/alias/add 					controllers.AliasController.viewAdd(db: String, domain: String)
+GET     /db/:db/domain/:domain/alias/add/catchall 			controllers.AliasController.viewAddCatchAll(db: String, domain: String)
+POST    /db/:db/domain/:domain/alias/returnUrl/:returnUrl   controllers.AliasController.add(db: String, domain: String, returnUrl: String)
+POST    /db/:db/domain/:domain/user/:email/alias 			controllers.AliasController.addUserAlias(db: String, domain: String, email: String)
 GET     /db/:db/alias/catchall       controllers.AliasController.catchAll(db: String)
 GET     /db/:db/alias/common         controllers.AliasController.common(db: String)
 GET     /db/:db/alias/cross          controllers.AliasController.crossDomain(db: String)
 GET     /db/:db/alias/orphan         controllers.AliasController.orphan(db: String)
 GET     /db/:db/domain/:domain/alias/:email controllers.AliasController.viewAlias(db: String, domain: String, email: String)
-POST    /db/:db/alias/:email/disable controllers.AliasController.disableAlias(db: String, email: String)
+POST    /db/:db/alias/:email/disable/returnUrl/:returnUrl				 controllers.AliasController.disableOrphanAlias(db: String, email: String, returnUrl: String)
 POST    /db/:db/domain/:domain/alias/:email/disable/returnUrl/:returnUrl controllers.AliasController.disable(db: String, domain: String, email: String, returnUrl: String)
 POST    /db/:db/domain/:domain/alias/:email/enable/returnUrl/:returnUrl  controllers.AliasController.enable(db: String, domain: String, email: String, returnUrl: String)
-POST    /db/:db/alias/:email/remove  controllers.AliasController.removeAlias(db: String, email: String)
+POST    /db/:db/alias/:email/remove 									 controllers.AliasController.removeAlias(db: String, email: String)
 POST    /db/:db/domain/:domain/alias/:email/remove/returnUrl/:returnUrl  controllers.AliasController.remove(db: String, domain: String, email: String, returnUrl: String)
+
 
 POST    /db/:db/relay/:recipient/disable 									 controllers.RelayController.disableRelay(db: String, recipient: String)
 POST    /db/:db/domain/:domain/relay/:recipient/disable/returnUrl/:returnUrl controllers.RelayController.disable(db: String, domain: String, recipient: String, returnUrl: String)
@@ -50,8 +53,9 @@ POST    /db/:db/domain/:domain/relay/:recipient/remove/returnUrl/:returnUrl cont
 POST    /db/:db/relay/:recipient/remove  									controllers.RelayController.removeRelay(db: String, recipient: String)
 POST    /db/:db/domain/:domain/alias/:email/relay/:recipient/remove  		controllers.RelayController.removeAliasRelay(db: String, domain: String, email: String, recipient: String)
 
+
 GET     /db/:db/user                 controllers.UserController.user(db: String)
-GET     /db/:db/user/:email/edit     controllers.UserController.edituser(db: String, email: String)
+GET     /db/:db/user/:email/edit     controllers.UserController.viewUser(db: String, email: String)
 POST    /db/:db/domain/:domain/user/:email/disable/returnUrl/:returnUrl  controllers.UserController.disable(db: String, domain: String, email: String, returnUrl: String)
 POST    /db/:db/domain/:domain/user/:email/enable/returnUrl/:returnUrl   controllers.UserController.enable(db: String, domain: String, email: String, returnUrl: String)
 POST    /db/:db/user/:email/disable/returnUrl/:returnUrl  controllers.UserController.disableUser(db: String, email: String, returnUrl: String)

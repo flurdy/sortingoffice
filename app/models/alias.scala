@@ -99,4 +99,6 @@ object Aliases {
       }
    }
 
+   def createAlias(email: Email) = Alias(email,email,false)
+
 }

@@ -235,7 +235,7 @@
 					<tr>
 						<td>
 							@if(!user.enabled){ <s> }
-							<a href="@routes.UserController.edituser(currentDatabaseConnection,user.email)">@user.email</a>
+							<a href="@routes.UserController.viewUser(currentDatabaseConnection,user.email)">@user.email</a>
 							@if(!user.enabled){ </s> }
 						</td>
 						<td>

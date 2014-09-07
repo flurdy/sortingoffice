@@ -41,7 +41,7 @@ trait AliasInjector {
 
 }
 
-object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector with Secured {
+object AliasController extends Controller with DbController with FeatureToggler with AliasInjector with DomainInjector with UserInjector with Secured {
 
   def alias(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection) {
@@ -97,9 +97,11 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           aliasRequest.alias.disable(connection)
+          Logger.info(s"Alias ${email} disabled")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            case "userdetails" => Redirect(routes.UserController.viewUser(connection,email))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
           }
         }(connectionRequest)
@@ -107,11 +109,15 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
-  def disableAlias(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+  def disableOrphanAlias(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.disable(connection)
-        Redirect(routes.AliasController.orphan(connection))
+        Logger.info(s"Alias ${email} disabled")
+        returnUrl match {
+          case "userdetails" => Redirect(routes.UserController.viewUser(connection,email))
+          case _ => Redirect(routes.AliasController.orphan(connection))
+        }
       }(connectionRequest)
     }(authRequest)
   }
@@ -121,9 +127,11 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           aliasRequest.alias.enable(connection)
+          Logger.info(s"Alias ${email} enabled")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            case "userdetails" => Redirect(routes.UserController.viewUser(connection,email))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
           }
         }(connectionRequest)
@@ -168,6 +176,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
             Aliases.findAlias(connectionRequest.connection, aliasToAdd.mail) match {
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 aliasToAdd.save(connection)
+                Logger.info(s"Alias ${aliasToAdd.mail} added")
                 returnUrl match {
                   case "catchall" => Redirect(routes.AliasController.catchAll(connection))
                   case _ => Redirect(routes.DomainController.details(connection,domainName))
@@ -190,11 +199,34 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
+  def addUserAlias(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        UserAction(email) { implicit userRequest => 
+          Aliases.findAlias(connectionRequest.connection, email) match {
+            case None => {
+              Aliases.createAlias(email).save(connection)
+              Logger.info(s"Alias ${email} added")
+              Redirect(routes.UserController.viewUser(connection,email))
+            }
+            case Some(alias) => {
+              Logger.warn(s"Alias ${email} already exists")
+              implicit val errorMessages = List(ErrorMessage("Alias already exist"))
+              BadRequest(views.html.user.edituser( connection, userRequest.user, Some(domainRequest.domainRequested), Some(alias) ))
+            }
+          }
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+
   def remove(connection: ConnectionName, domainName: String, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           aliasRequest.alias.delete(connection)
+          Logger.info(s"Alias ${email} deleted")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
@@ -208,6 +240,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
     ConnectionAction(connection).async { implicit connectionRequest =>
       AliasAction(email) { implicit aliasRequest =>
         aliasRequest.alias.delete(connection)
+        Logger.info(s"Alias ${email} deleted")
         Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
     }(authRequest)
