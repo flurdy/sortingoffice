@@ -19,6 +19,7 @@ trait RelayInjector {
         case connectionRequest: RequestWithConnection[A] => {
           Relays.findRelay(connectionRequest.connection, recipient) match {
             case Some(relay) => {
+              Logger.debug(s"Relay ${relay.recipient} found")
               block(new RequestWithRelay(relay, connectionRequest))
             }
             case None => {
@@ -55,14 +56,14 @@ object RelayController extends Controller with DbController with RelayInjector w
 
   def disableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
             request.relay.disable(connection)
             Logger.info("Relay disabled: $recipient")
             Redirect(routes.AliasController.viewAlias(connection,domainName,email))
-          }(aliasRequest)
-        }(domainRequest)
+          }(connectionRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -71,6 +72,7 @@ object RelayController extends Controller with DbController with RelayInjector w
     ConnectionAction(connection).async { implicit connectionRequest =>
       RelayAction(recipient) { implicit request =>
         request.relay.disable(connection)
+        Logger.info("Relay disabled: $recipient")
         Redirect(routes.AliasController.orphan(connection))
       }(connectionRequest)
     }(authRequest)
@@ -78,14 +80,14 @@ object RelayController extends Controller with DbController with RelayInjector w
 
    def enableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
             request.relay.enable(connection)
             Logger.info(s"Relay enabled: $recipient")
             Redirect(routes.AliasController.viewAlias(connection,domainName,email))
-          }(aliasRequest)
-        }(domainRequest)
+          }(connectionRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -95,6 +97,7 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           request.relay.enable(connection)
+          Logger.info(s"Relay enabled: $recipient")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case _ => Redirect(routes.DomainController.details(connection,domainName))
@@ -143,6 +146,7 @@ object RelayController extends Controller with DbController with RelayInjector w
                 relay.save(connection)
                 returnUrl match {
                   case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+                  case "aliasdetails" => Redirect(routes.AliasController.catchAll(connection))
                   case _ => Redirect(routes.DomainController.details(connection,domainName))
                 }
               }
@@ -159,6 +163,27 @@ object RelayController extends Controller with DbController with RelayInjector w
             }
           }
         )
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def addAliasRelay(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { domainRequest =>
+        AliasAction(email) { aliasRequest =>
+          relayForm.bindFromRequest()(domainRequest).fold(
+            errors => {
+              Logger.warn(s"Add relay form error")
+              implicit val errorMessages = List(ErrorMessage("Add relay failed"))
+              val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
+              BadRequest(views.html.alias.aliasdetails( connection, domainRequest.domainRequested, aliasRequest.alias, relays ))
+            },
+            relay => {
+              relay.save(connection)
+              Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            }
+          )
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
@@ -186,8 +211,8 @@ object RelayController extends Controller with DbController with RelayInjector w
             request.relay.delete(connection)
             Logger.info(s"Relay ${recipient} removed")
             Redirect(routes.AliasController.viewAlias(connection,domainName,email))
-          }(aliasRequest)
-        }(domainRequest)
+          }(connectionRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }

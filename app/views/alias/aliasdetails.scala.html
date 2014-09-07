@@ -8,7 +8,7 @@
       <td @if(!relay.enabled){class="disabled"}>@relay.status</td>
       <td>@relay.enabled</td>
       <td class="actions">
-         @if(featureToggles.isEnabled("toggle")){                        
+         @if(featureToggles.isEnabled("toggle")){
             @if(relay.enabled){
                @form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
                   <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -25,7 +25,37 @@
             }
          }
       </td>
-   </tr>   
+   </tr>
+}
+
+@addCatchallRow() = {
+   <tr>
+      <td colspan="3">&nbsp;</td>
+      <td class="actions">
+         @if(featureToggles.isEnabled("add")){
+            @form(action=routes.RelayController.addAliasRelay(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+               <input type="hidden" name="recipient" value="@@@domain.name"/>
+               <input type="hidden" name="status" value="OK"/>
+               <button type="submit" title="add" class="btn btn-xs col-sm-5 col-xs-5 btn-success">add catchall relay</button>
+            }
+         }
+      </td>
+   </tr>
+}
+
+@addRelayRow() = {
+   <tr>
+      <td colspan="3">&nbsp;</td>
+      <td class="actions">
+         @if(featureToggles.isEnabled("add")){
+            @form(action=routes.RelayController.addAliasRelay(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+               <input type="hidden" name="recipient" value="@alias.mail"/>
+               <input type="hidden" name="status" value="OK"/>
+               <button type="submit" title="add" class="btn btn-xs col-sm-5 col-xs-5 btn-success">add alias relay</button>
+            }
+         }
+      </td>
+   </tr>
 }
 
 @main(Some("Alias"), Some(currentDatabaseConnection)) {
@@ -49,7 +79,7 @@
          </tr>
       </tbody>
    </table>
-   
+
    @if(featureToggles.isEnabled("toggle")){
       <section>
          @if(alias.enabled){
@@ -82,17 +112,33 @@
             <thead>
                <tr>
                   <th>recipient</th>
-                  <th>enabled</th>
                   <th>status</th>
+                  <th>enabled</th>
                   <th></th>
                </tr>
             </thead>
             <tbody>
-               @for(relay <- relaysFound._1){
-                  @relayRow(relay)
-               }
-               @for(relay <- relaysFound._2){
-                  @relayRow(relay)
+               @relaysFound match {
+                  case (None,None) => {
+                     @addCatchallRow()
+                     @addRelayRow()
+                  }
+                  case (None,Some(relay)) => {
+                     @relayRow(relay)
+                     @if(!relay.enabled){
+                        @addCatchallRow()
+                     }
+                  }
+                  case (Some(catchall),None) => {
+                     @relayRow(catchall)
+                     @if(!catchall.enabled){
+                        @addRelayRow()
+                     }
+                  }
+                  case (Some(catchall),Some(relay)) => {
+                     @relayRow(catchall)
+                     @relayRow(relay)
+                  }
                }
             </tbody>
          </table>

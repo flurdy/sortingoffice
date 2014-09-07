@@ -148,11 +148,6 @@
 									}
 								}
 							}
-							@if(featureToggles.isEnabled("remove") && !alias.enabled){
-								@form(action=routes.AliasController.remove(currentDatabaseConnection,domainFound.name,alias.mail,"domaindetails"), 'class -> "form-inline", 'role -> "form"){
-									<button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-								}
-							}
 						</td>
 					</tr>
 					}

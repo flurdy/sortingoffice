@@ -106,6 +106,9 @@ footer #flurdy-footer {
 #cargo section table .actions {
    text-align: right;
 }
+#cargo section table .actions .btn {
+   float: right;
+}
 #cargo section table button {
    margin: 0 0.1em;
 }

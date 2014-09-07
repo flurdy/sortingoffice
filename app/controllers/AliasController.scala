@@ -20,6 +20,7 @@ trait AliasInjector {
         case connectionRequest: RequestWithConnection[A] => {
           Aliases.findAlias(connectionRequest.connection, email) match {
             case Some(alias) => {
+              Logger.debug(s"Alias ${alias.mail} found")
               block(new RequestWithAlias(alias, connectionRequest))
             }
             case None => {
@@ -29,7 +30,11 @@ trait AliasInjector {
             }
           }
         }
-        case _ => Future.successful(InternalServerError)
+        case _ => {
+          Logger.error(s"Alias $email created server error")
+          implicit val errorMessages = List(ErrorMessage("Internal error"))
+          Future.successful(InternalServerError(views.html.connections(Nil)(errorMessages,None) ) )
+        }
       }
     }
   }
@@ -212,7 +217,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
-          val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)          
+          val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
           Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays))
         }(connectionRequest)
       }(connectionRequest)
