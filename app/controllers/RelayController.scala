@@ -47,7 +47,8 @@ object RelayController extends Controller with DbController with RelayInjector w
           request.relay.disable(connection)
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case "removedomain" => Redirect(routes.DomainController.viewRemove(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)
@@ -100,7 +101,7 @@ object RelayController extends Controller with DbController with RelayInjector w
           Logger.info(s"Relay enabled: $recipient")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)
@@ -147,7 +148,7 @@ object RelayController extends Controller with DbController with RelayInjector w
                 returnUrl match {
                   case "catchall" => Redirect(routes.AliasController.catchAll(connection))
                   case "aliasdetails" => Redirect(routes.AliasController.catchAll(connection))
-                  case _ => Redirect(routes.DomainController.details(connection,domainName))
+                  case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
                 }
               }
               case None => {
@@ -196,7 +197,8 @@ object RelayController extends Controller with DbController with RelayInjector w
           Logger.info(s"Relay ${recipient} removed")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case "removedomain" => Redirect(routes.DomainController.viewRemove(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)

@@ -105,7 +105,7 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
-  def details(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
+  def viewDomain(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection) { implicit connectionRequest =>
       Domains.findDomain(connection, name) match {
         case Some(domain) =>{
@@ -141,7 +141,7 @@ object DomainController extends Controller with DbController with FeatureToggler
         domainRequest.domainRequested.disable
         Logger.info(s"Domain disabled: $name")
         returnUrl match {
-          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case "domaindetails" => Redirect(routes.DomainController.viewDomain(connection,name))
           case _ => Redirect(routes.DomainController.domain(connection))
         }
       }(connectionRequest)
@@ -154,7 +154,7 @@ object DomainController extends Controller with DbController with FeatureToggler
         domainRequest.domainRequested.enable
         Logger.info(s"Domain enabled: $name")
         returnUrl match {
-          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case "domaindetails" => Redirect(routes.DomainController.viewDomain(connection,name))
           case _ => Redirect(routes.DomainController.domain(connection))
         }
       }(connectionRequest)
@@ -167,7 +167,7 @@ object DomainController extends Controller with DbController with FeatureToggler
         domainRequest.domainRequested.disableBackup
         Logger.info(s"Backup disabled: $name")
         returnUrl match {
-          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case "domaindetails" => Redirect(routes.DomainController.viewDomain(connection,name))
           case _ => Redirect(routes.DomainController.domain(connection))
         }
       }(connectionRequest)
@@ -180,7 +180,7 @@ object DomainController extends Controller with DbController with FeatureToggler
         domainRequest.domainRequested.enableBackup
         Logger.info(s"Backup enabled: $name")
         returnUrl match {
-          case "domaindetails" => Redirect(routes.DomainController.details(connection,name))
+          case "domaindetails" => Redirect(routes.DomainController.viewDomain(connection,name))
           case _ => Redirect(routes.DomainController.domain(connection))
         }
       }(connectionRequest)
@@ -213,7 +213,7 @@ object DomainController extends Controller with DbController with FeatureToggler
                 case None if FeatureToggles.isAddEnabled(request.connection) => {
                   Domains.newDomain(connection,nameDesired).save
                   Logger.info(s"Domain added: $nameDesired")
-                  Redirect(routes.DomainController.details(connection,nameDesired))
+                  Redirect(routes.DomainController.viewDomain(connection,nameDesired))
                 }
                 case None  => {
                   Logger.warn(s"Add feature not enabled")
@@ -268,7 +268,7 @@ object DomainController extends Controller with DbController with FeatureToggler
                 case None if FeatureToggles.isAddEnabled(request.connection) => {
                   backup.copy(connection=Some(request.connection)).saveBackup
                   Logger.info(s"Domain backup ${backup.name} added")
-                  Redirect(routes.DomainController.details(connection,backup.name))
+                  Redirect(routes.DomainController.viewDomain(connection,backup.name))
                 }
                 case None  => {
                   Logger.warn(s"Add feature not enabled")
@@ -296,7 +296,10 @@ object DomainController extends Controller with DbController with FeatureToggler
   def viewRemove(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(name) { implicit domainRequest =>
-        Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested ))
+        val aliases = domainRequest.domainRequested.findAliases
+        val relays  = domainRequest.domainRequested.findRelaysIfEnabled.getOrElse(Nil)
+        val users   = domainRequest.domainRequested.findUsers
+        Ok(views.html.domain.removeDomain( connection, domainRequest.domainRequested, aliases, relays, users ))
       }(connectionRequest)
     }(authRequest)
   }

@@ -85,7 +85,10 @@ object UserController extends Controller with DbController with FeatureToggler w
           Logger.debug(s"User disabled soon: $email")
           userRequest.user.disable(connection)
           Logger.info(s"User disabled: $email")
-          Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
+          returnUrl match {
+            case "removedomain" => Redirect(routes.DomainController.viewRemove(connectionRequest.connection, domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connectionRequest.connection,domainName))
+          }
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -112,7 +115,7 @@ object UserController extends Controller with DbController with FeatureToggler w
         UserAction(email) { implicit userRequest =>
           userRequest.user.enable(connection)
           Logger.info(s"User enabled: $email")
-          Redirect(routes.DomainController.details(connectionRequest.connection,domainName))
+          Redirect(routes.DomainController.viewDomain(connectionRequest.connection,domainName))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -196,7 +199,7 @@ object UserController extends Controller with DbController with FeatureToggler w
               case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
                 user.save(connection)
                 Logger.info(s"User ${user.email} added")
-                Redirect(routes.DomainController.details(connection,domainName))
+                Redirect(routes.DomainController.viewDomain(connection,domainName))
               }
               case None => {
                 Logger.warn(s"Add feature not enabled")
@@ -220,10 +223,22 @@ object UserController extends Controller with DbController with FeatureToggler w
       UserAction(email) { implicit userRequest =>
         userRequest.user.delete(connection)
         Logger.info(s"User removed: $email")
-          returnUrl match {
-            case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-            case _ => Redirect(routes.UserController.user(connectionRequest.connection))
-          }
+        returnUrl match {
+          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
+          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
+        }
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def removeDomainUser(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { domainRequest =>
+        UserAction(email) { implicit userRequest =>
+          userRequest.user.delete(connection)
+          Logger.info(s"User removed: $email")
+          Redirect(routes.DomainController.viewRemove(connectionRequest.connection,domainName))
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }

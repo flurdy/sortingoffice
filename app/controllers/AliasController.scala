@@ -102,7 +102,8 @@ object AliasController extends Controller with DbController with FeatureToggler 
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
             case "userdetails" => Redirect(routes.UserController.viewUser(connection,email))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case "removedomain" => Redirect(routes.DomainController.viewRemove(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)
@@ -132,7 +133,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case "aliasdetails" => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
             case "userdetails" => Redirect(routes.UserController.viewUser(connection,email))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)
@@ -179,7 +180,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
                 Logger.info(s"Alias ${aliasToAdd.mail} added")
                 returnUrl match {
                   case "catchall" => Redirect(routes.AliasController.catchAll(connection))
-                  case _ => Redirect(routes.DomainController.details(connection,domainName))
+                  case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
                 }
               }
               case None => {
@@ -229,7 +230,8 @@ object AliasController extends Controller with DbController with FeatureToggler 
           Logger.info(s"Alias ${email} deleted")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
-            case _ => Redirect(routes.DomainController.details(connection,domainName))
+            case "removedomain" => Redirect(routes.DomainController.viewRemove(connection,domainName))
+            case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
       }(connectionRequest)

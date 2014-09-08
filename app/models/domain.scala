@@ -22,9 +22,15 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       }
    }
 
-   def findAliases = AliasRepository.findAllAliasesForDomain(this)
+   def findAliases: List[Alias] = connection match { 
+      case Some(conn) => AliasRepository.findAllAliasesForDomain(this) 
+      case None => throw new IllegalStateException("No connection for domain")
+   }
 
-   def findUsers = UserRepository.findUsersForDomain(this)
+   def findUsers = connection match { 
+      case Some(conn) => UserRepository.findUsersForDomain(this) 
+      case None => throw new IllegalStateException("No connection for domain")
+   }
 
    def findRequiredAliases: Map[String,Alias] = Aliases.findRequiredAliases(this)
 
