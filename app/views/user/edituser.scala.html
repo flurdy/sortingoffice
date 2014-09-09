@@ -30,6 +30,12 @@
                <th>enabled</th>
                <td colspan="2">@user.enabled</td>
             </tr>
+            @for(domain <- userDomain){
+               <tr>
+                  <th>domain</th>
+                  <td colspan="2" @if(!domain.enabled){class="disabled"}><a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a></td>
+               </tr>
+            }
          </tbody>
       </table>
 

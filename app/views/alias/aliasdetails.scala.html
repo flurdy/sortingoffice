@@ -62,7 +62,6 @@
 
    <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Alias</a></h3>
 
-
    <table class="table">
       <tbody>
          <tr>
@@ -76,6 +75,10 @@
          <tr>
             <th>enabled</th>
             <td colspan="2">@alias.enabled</td>
+         </tr>
+         <tr>
+            <th>domain</th>
+            <td colspan="2" @if(!domain.enabled){class="disabled"}><a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a></td>
          </tr>
       </tbody>
    </table>

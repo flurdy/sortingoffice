@@ -15,25 +15,21 @@
 			<thead>
 				<tr>
 					<th>domain</th>
-					<th>enabled</th>
 					<th>transport</th>
+					<th>enabled</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				@for(domain <- relays){
 				<tr>
-					<td>
-						@if(!domain.enabled){ <s> }
+                    <td @if(!domain.enabled){class="disabled"}>
 						<a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
-						@if(!domain.enabled){ </s> }
+					</td>
+                    <td @if(!domain.enabled){class="disabled"}>
+						@domain.transport
 					</td>
 					<td>@domain.enabled</td>
-					<td>
-						@if(!domain.enabled){ <s> }
-						@domain.transport
-						@if(!domain.enabled){ </s> }
-					</td>
 					<td class="actions">
 						@if(featureToggles.isEnabled("toggle")){
 							@if(domain.enabled){
