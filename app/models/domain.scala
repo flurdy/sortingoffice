@@ -89,6 +89,10 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
+   def updateBackup = connection.map{ con =>
+      if(FeatureToggles.isEditEnabled(con)) DomainRepository.updateBackup(con,this)
+      else throw new IllegalStateException("Edit feature is disabled")
+   }
 }
 
 

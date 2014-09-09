@@ -216,5 +216,18 @@ delete from backups where domain = {name}
       }
    }
 
+   def updateBackup(connectionName: ConnectionName, domain: Domain) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update backups set transport = {transport} where domain = {name}
+            """
+         ).on(
+            'transport -> domain.transport,
+            'name -> domain.name
+         ).executeUpdate
+      }
+   }
+
 }
 

@@ -340,4 +340,34 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
+  val updateBackupFormFields = mapping(
+    "connection" -> ignored(None:Option[ConnectionName]),
+    "name" -> ignored(""),
+    "enabled" -> ignored(false),
+    "transport" -> text
+  )(Domain.apply)(Domain.unapply)
+
+  val updateBackupForm = Form( updateBackupFormFields )
+
+  def updateBackup(connection: ConnectionName, name: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      BackupAction(name) { implicit domainRequest =>
+        updateBackupForm.bindFromRequest()(connectionRequest).fold(
+          errors => {
+            Logger.warn(s"Update backup domain form error")
+            val relays  = domainRequest.domainRequested.findRelaysIfEnabled
+            val aliases = domainRequest.domainRequested.findAliases
+            val users   = domainRequest.domainRequested.findUsers
+            BadRequest(views.html.domain.domaindetails( connection, None, Some(domainRequest.domainRequested), relays, aliases, users))
+          },
+          backup => {
+            domainRequest.domainRequested.copy(transport=backup.transport).updateBackup
+            Logger.info(s"Domain updated: $name")
+            Redirect(routes.DomainController.viewDomain(connection,name))
+          }
+        )
+      }(connectionRequest)
+    }(authRequest)
+  }
+
 }

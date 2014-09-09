@@ -68,22 +68,37 @@
 
    @for(domainFound <- backup){
 
-      <table class="table">
-         <tbody>
-            <tr>
-               <th>domain name</th>
-               <td colspan="2">@domainFound.name</td>
-            </tr>
-            <tr>
-               <th>transport</th>
-               <td colspan="2">@domainFound.transport</td>
-            </tr>
-            <tr>
-               <th>enabled</th>
-               <td colspan="2">@domainFound.enabled</td>
-            </tr>
-         </tbody>
-      </table>
+   	
+		@form(action=routes.DomainController.updateBackup(currentDatabaseConnection,domainFound.name,"domaindetails")){
+	      <table class="table">
+	         <tbody>
+	            <tr>
+	               <th>domain name</th>
+	               <td colspan="2">@domainFound.name</td>
+	            </tr>
+	            <tr>
+	               <th>transport</th>
+	               <td colspan="2">
+					 		@if(featureToggles.isEnabled("edit")){
+	               		<input type="text" name="transport" class="form-control" value="@domainFound.transport" placeholder=":[smtp.example.net]"/>
+	               	} else {
+	               		@domainFound.transport
+	               	}
+	               </td>
+	            </tr>
+	            <tr>
+	               <th>enabled</th>
+	               <td colspan="2">@domainFound.enabled</td>
+	            </tr>
+	         </tbody>
+	      </table>
+
+	 		@if(featureToggles.isEnabled("edit")){
+				<section>
+					<button type="submit" title="update" class="btn btn-sm col-sm-2 col-xs-2 btn-success">update transport</button>
+				</section>
+			}
+ 		}
 
 		@if(featureToggles.isEnabled("toggle")){
 			<section>
