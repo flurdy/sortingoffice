@@ -62,26 +62,40 @@
 
    <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Alias</a></h3>
 
-   <table class="table">
-      <tbody>
-         <tr>
-            <th>mail</th>
-            <td colspan="2">@alias.mail</td>
-         </tr>
-         <tr>
-            <th>destination</th>
-            <td colspan="2">@alias.destination</td>
-         </tr>
-         <tr>
-            <th>enabled</th>
-            <td colspan="2">@alias.enabled</td>
-         </tr>
-         <tr>
-            <th>domain</th>
-            <td colspan="2" @if(!domain.enabled){class="disabled"}><a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a></td>
-         </tr>
-      </tbody>
-   </table>
+   @form(action=routes.AliasController.updateAlias(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
+      <table class="table">
+         <tbody>
+            <tr>
+               <th>mail</th>
+               <td colspan="2">@alias.mail</td>
+            </tr>
+            <tr>
+               <th>destination</th>
+               <td colspan="2">
+                  @if(featureToggles.isEnabled("edit")){
+                     <input type="text" name="destination" class="form-control" value="@alias.destination" placeholder="another@@example.org"/>
+                  } else {
+                     @alias.destination
+                  }
+               </td>
+            </tr>
+            <tr>
+               <th>enabled</th>
+               <td colspan="2">@alias.enabled</td>
+            </tr>
+            <tr>
+               <th>domain</th>
+               <td colspan="2" @if(!domain.enabled){class="disabled"}><a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a></td>
+            </tr>
+         </tbody>
+      </table>
+
+      @if(featureToggles.isEnabled("edit")){
+         <section>
+            <button type="submit" title="update" class="btn btn-sm col-sm-2 col-xs-2 btn-success">update alias</button>
+         </section>
+      }
+   }
 
    @if(featureToggles.isEnabled("toggle")){
       <section>

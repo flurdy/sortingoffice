@@ -39,6 +39,7 @@ POST    /db/:db/domain/:domain/alias/:email/disable/returnUrl/:returnUrl control
 POST    /db/:db/domain/:domain/alias/:email/enable/returnUrl/:returnUrl  controllers.AliasController.enable(db: String, domain: String, email: String, returnUrl: String)
 POST    /db/:db/alias/:email/remove 									 controllers.AliasController.removeAlias(db: String, email: String)
 POST    /db/:db/domain/:domain/alias/:email/remove/returnUrl/:returnUrl  controllers.AliasController.remove(db: String, domain: String, email: String, returnUrl: String)
+POST    /db/:db/domain/:domain/alias/:email/update 	controllers.AliasController.updateAlias(db: String, domain: String, email: String)
 
 
 POST    /db/:db/relay/:recipient/disable 									 controllers.RelayController.disableRelay(db: String, recipient: String)

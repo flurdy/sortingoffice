@@ -259,6 +259,34 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
+  val updateAliasFormFields = mapping (
+    "mail" -> ignored(""),
+    "destination" -> text,
+    "enabled" -> ignored(false)
+  )(Alias.apply)(Alias.unapply)
+
+  val updateAliasForm = Form( updateAliasFormFields )
+
+  def updateAlias(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName).async { implicit domainRequest =>
+        AliasAction(email) { implicit aliasRequest =>
+          updateAliasForm.bindFromRequest()(domainRequest).fold(
+            errors => {
+              Logger.warn(s"Update alias form error")
+              val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
+              BadRequest(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays))
+            },
+            alias => {
+              aliasRequest.alias.copy(destination=alias.destination).update(connection)
+              Logger.info(s"Alias ${email} updated")
+              Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            }
+          )
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
 
 }
 

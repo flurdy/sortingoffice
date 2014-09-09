@@ -30,6 +30,11 @@ case class Alias(mail: String, destination: String, enabled: Boolean){
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
+   def update(connection: ConnectionName) = { 
+      if(FeatureToggles.isEditEnabled(connection)) AliasRepository.updateDestination(connection,this)
+      else throw new IllegalStateException("Edit feature is disabled")
+   } 
+
 }
 
 object Aliases {

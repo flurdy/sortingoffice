@@ -132,4 +132,17 @@ delete from aliases where mail = {mail}
       }
    }
 
+   def updateDestination(connectionName: ConnectionName, alias: Alias) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+               update aliases set destination = {destination} where mail = {email}
+            """
+         ).on(
+            'destination -> alias.destination,
+            'email -> alias.mail
+         ).executeUpdate
+      }
+   }
+
 }
