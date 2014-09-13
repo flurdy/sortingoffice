@@ -1,0 +1,76 @@
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, possibleAlias: Option[Alias], relay: Relay)(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+
+@import helper._
+
+
+@main(Some("Relay"), Some(currentDatabaseConnection)) {
+
+
+   <h3>Relay</h3>
+
+  <table class="table">
+     <tbody>
+        <tr>
+           <th>recipient</th>
+           <td colspan="2">@relay.recipient</td>
+        </tr>
+        <tr>
+           <th>status</th>
+           <td colspan="2">@relay.status</td>
+        </tr>
+        <tr>
+           <th>enabled</th>
+           <td colspan="2">@relay.enabled</td>
+        </tr>
+     </tbody>
+  </table>
+
+	@if(featureToggles.isEnabled("toggle")){
+		<section>
+			@possibleAlias match {
+				case Some(alias) => {
+					@if(relay.enabled){
+						@form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable relay</button>
+						}
+					} else {
+						@form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable relay</button>
+						}
+					}
+				}
+				case None => {
+					@if(relay.enabled){
+						@form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable relay</button>
+						}
+					} else {
+						@form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable relay</button>
+						}
+					}
+				}
+			}
+		</section>	
+	}
+	
+	@if(featureToggles.isEnabled("remove") && !relay.enabled){
+		<section>	
+			@possibleAlias match {
+				case Some(alias) => {
+					@form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+						<button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove relay</button>
+					}
+				}
+				case None => {
+					@form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+						<button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove relay</button>
+					}
+				}
+			}
+		</section>	
+	}
+
+}
+
+

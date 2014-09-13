@@ -12,11 +12,6 @@
 			<button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
 		}
 	}
-	@if(featureToggles.isEnabled("remove") && !relay.enabled){
-		@form(action=routes.RelayController.remove(currentDatabaseConnection,relayDomain.name,relay.recipient,"domaindetails"), 'class -> "form-inline", 'role -> "form"){
-			<button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-		}
-	}
 }
 
 @main(Some("Domain aliases and users"), Some(currentDatabaseConnection)) {
@@ -187,17 +182,33 @@
 				<thead>
 					<tr>
 						<th>recipient</th>
-						<th>enabled</th>
 						<th>status</th>
+						<th>enabled</th>
 						<th></th>
 					</tr>
 				</thead>
 				<tbody>
 					@for(relay <- relays){
 					<tr>
-						<td>@if(!relay.enabled){ <s> } @relay.recipient @if(!relay.enabled){ </s> }</td>
+						<td @if(!relay.enabled){ class="disabled" }> 
+							@domain match {
+								case Some(domainFound) => {
+									<a href="@routes.RelayController.viewRelay(currentDatabaseConnection,domainFound.name,relay.recipient)">@relay.recipient</a>
+								}
+								case None => {
+									@backup match {
+										case Some(domainFound) => {
+											<a href="@routes.RelayController.viewRelay(currentDatabaseConnection,domainFound.name,relay.recipient)">@relay.recipient</a>
+										}
+										case None => {
+											@relay.recipient
+										}
+									}
+								}
+							}
+						</td>
+						<td @if(!relay.enabled){ class="disabled" }>@relay.status</td>
 						<td>@relay.enabled</td>
-						<td>@relay.status</td>
 						<td class="actions">
 							@if(featureToggles.isEnabled("toggle")){
 								@for(relayDomain <- domain){

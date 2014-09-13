@@ -48,6 +48,7 @@ object RelayController extends Controller with DbController with RelayInjector w
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
             case "removedomain" => Redirect(routes.DomainController.viewRemove(connection,domainName))
+            case "relaydetails" => Redirect(routes.RelayController.viewRelay(connection,domainName,recipient))
             case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
@@ -55,14 +56,17 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-  def disableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
+  def disableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String, returnUrl: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
             request.relay.disable(connection)
             Logger.info("Relay disabled: $recipient")
-            Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            returnUrl match {
+              case "relaydetails" => Redirect(routes.RelayController.viewAliasRelay(connection,domainName,email,recipient))
+              case _ => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            }
           }(connectionRequest)
         }(connectionRequest)
       }(connectionRequest)
@@ -79,14 +83,17 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
-   def enableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { authRequest =>
+   def enableAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String, returnUrl: String) = Authenticated.async { authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
             request.relay.enable(connection)
             Logger.info(s"Relay enabled: $recipient")
-            Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            returnUrl match {
+              case "relaydetails" => Redirect(routes.RelayController.viewAliasRelay(connection,domainName,email,recipient))
+              case _ => Redirect(routes.AliasController.viewAlias(connection,domainName,email))
+            }
           }(connectionRequest)
         }(connectionRequest)
       }(connectionRequest)
@@ -101,6 +108,7 @@ object RelayController extends Controller with DbController with RelayInjector w
           Logger.info(s"Relay enabled: $recipient")
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
+            case "relaydetails" => Redirect(routes.RelayController.viewRelay(connection,domainName,recipient))
             case _ => Redirect(routes.DomainController.viewDomain(connection,domainName))
           }
         }(connectionRequest)
@@ -225,6 +233,32 @@ object RelayController extends Controller with DbController with RelayInjector w
         request.relay.delete(connection)
         Logger.info(s"Relay ${recipient} removed")
         Redirect(routes.AliasController.orphan(connection))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def viewRelay(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        RelayAction(recipient) { implicit request =>
+          Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,None,request.relay))
+        }(connectionRequest)
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+
+  def viewAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName).async { implicit domainRequest =>
+        AliasAction(email).async { implicit aliasRequest =>
+          RelayAction(recipient) { implicit request =>
+            // returnUrl match {
+              // case _ => 
+              Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,Some(aliasRequest.alias),request.relay))
+            // }
+          }(connectionRequest)
+        }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }

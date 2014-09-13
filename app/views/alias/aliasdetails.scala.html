@@ -4,23 +4,20 @@
 
 @relayRow(relay: Relay) = {
    <tr>
-      <td @if(!relay.enabled){class="disabled"}>@relay.recipient</td>
+      <td @if(!relay.enabled){class="disabled"}>
+         <a href="@routes.RelayController.viewAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient)">@relay.recipient</a>
+      </td>
       <td @if(!relay.enabled){class="disabled"}>@relay.status</td>
       <td>@relay.enabled</td>
       <td class="actions">
          @if(featureToggles.isEnabled("toggle")){
             @if(relay.enabled){
-               @form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+               @form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"aliasdetails"), 'class -> "form-inline", 'role -> "form"){
                   <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
                }
             } else {
-               @form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+               @form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"aliasdetails"), 'class -> "form-inline", 'role -> "form"){
                   <button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
-               }
-            }
-            @if(featureToggles.isEnabled("remove") && !relay.enabled){
-               @form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
-                  <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                }
             }
          }
@@ -36,7 +33,7 @@
             @form(action=routes.RelayController.addAliasRelay(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
                <input type="hidden" name="recipient" value="@@@domain.name"/>
                <input type="hidden" name="status" value="OK"/>
-               <button type="submit" title="add" class="btn btn-xs col-sm-5 col-xs-5 btn-success">add catchall relay</button>
+               <button type="submit" title="add" class="btn btn-sm col-sm-7 col-xs-7 btn-primary">add catchall relay</button>
             }
          }
       </td>
@@ -51,7 +48,7 @@
             @form(action=routes.RelayController.addAliasRelay(currentDatabaseConnection,domain.name,alias.mail), 'class -> "form-inline", 'role -> "form"){
                <input type="hidden" name="recipient" value="@alias.mail"/>
                <input type="hidden" name="status" value="OK"/>
-               <button type="submit" title="add" class="btn btn-xs col-sm-5 col-xs-5 btn-success">add alias relay</button>
+               <button type="submit" title="add" class="btn btn-sm col-sm-7 col-xs-7 btn-primary">add alias relay</button>
             }
          }
       </td>

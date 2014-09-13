@@ -20,14 +20,12 @@ Features
 * Add new domains, backup domains, aliases, relays and users.
 * Remove domains, backup domains, aliases, relays and users.
 * Authentication for application access.
+* Edit domains, aliases and users.
 
 
 Soon
 ---
-* Edit domains.
-* Edit aliases.
 * Edit relays.
-* Edit users.
 
 
 Maybe
@@ -39,6 +37,8 @@ Maybe
 * LDAP authentication
 * Check DNS entries for relevant domain(s).
 * Application authentication roles
+* Transfer domains between databases
+* Report on alias and relays differences between databases
 
 
 Not
