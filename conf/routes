@@ -69,6 +69,7 @@ GET     /db/:db/user/add  			    controllers.UserController.viewAdd(db: String)
 GET     /db/:db/domain/:domain/user/add  controllers.UserController.viewAddWithDomain(db: String, domain: String)
 POST    /db/:db/user 				    controllers.UserController.add(db: String)
 POST    /db/:db/domain/:domain/user  controllers.UserController.addWithDomain(db: String, domain: String)
+POST    /db/:db/user/:email/update   controllers.UserController.update(db: String, email: String)
 
 GET     /login.html    controllers.Application.viewLogin
 POST    /login         controllers.Application.login

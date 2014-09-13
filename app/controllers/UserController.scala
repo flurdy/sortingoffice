@@ -20,7 +20,7 @@ trait UserInjector {
         case connectionRequest: RequestWithConnection[A] => {
           Users.findUser(connectionRequest.connection, email) match {
             case Some(user) => {
-              Logger.warn(s"User $email found")
+              Logger.debug(s"User $email found")
               block(new RequestWithUser(user, connectionRequest))
             }
             case None => {
@@ -59,7 +59,7 @@ object UserController extends Controller with DbController with FeatureToggler w
       UserAction(email) { implicit userRequest =>
         val domain = userRequest.user.findDomain(connection)
         val alias = userRequest.user.findAlias(connection)
-        Ok(views.html.user.edituser(connection,userRequest.user,domain,alias))
+        Ok(views.html.user.edituser(connection,userRequest.user,domain,alias,updateUserForm))
       }(connectionRequest)
     }(authRequest)
   }
@@ -253,4 +253,38 @@ object UserController extends Controller with DbController with FeatureToggler w
     }(authRequest)
   }
 
+  val updateUserFormFields = mapping (
+    "email" -> ignored("invalid@example"),
+    "name" -> text,
+    "maildir" -> text,
+    "passwordReset" -> ignored(true),
+    "enabled" -> ignored(false)
+  )(User.apply)(User.unapply)
+
+  val updateUserForm = Form( updateUserFormFields )
+
+  def update(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      UserAction(email) { implicit userRequest =>
+        updateUserForm.bindFromRequest()(connectionRequest).fold(
+          errors => {
+            Logger.warn(s"Update user form error")
+            val domain = userRequest.user.findDomain(connection)
+            val alias = userRequest.user.findAlias(connection)
+                implicit val errorMessages = List(ErrorMessage("Update failed"))
+            BadRequest(views.html.user.edituser(connection,userRequest.user,domain,alias,errors))
+          },
+          user => {
+            userRequest.user.copy(name=user.name,maildir=user.maildir).update(connection)
+            Logger.info(s"User updated: $email")
+            Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
+          }
+        )
+      }(connectionRequest)
+    }(authRequest)
+  }
+
 }
+
+
+

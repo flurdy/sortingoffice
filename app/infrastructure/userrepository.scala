@@ -142,4 +142,19 @@ update users set change_password = 1 where id = {email}
       }
    }
 
+   def update(connectionName: ConnectionName, user: User) {
+      DB.withConnection(connectionName) { implicit connection =>
+         SQL(
+            """
+update users set name = {name}, maildir = {maildir}
+where id = {email}
+            """
+         ).on(
+            'name    -> user.name,
+            'maildir -> user.maildir,
+            'email   -> user.email
+         ).executeUpdate
+      }
+   }
+
 }

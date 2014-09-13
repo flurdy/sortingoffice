@@ -207,31 +207,32 @@ object DomainController extends Controller with DbController with FeatureToggler
           BadRequest(views.html.domain.addDomain(connection,errors))
         },
         nameDesired => {
-          Domains.findDomain(connection, nameDesired) match {
-            case None => {
-              Domains.findBackupDomain(connection, nameDesired) match {
-                case None if FeatureToggles.isAddEnabled(request.connection) => {
-                  Domains.newDomain(connection,nameDesired).save
-                  Logger.info(s"Domain added: $nameDesired")
-                  Redirect(routes.DomainController.viewDomain(connection,nameDesired))
-                }
-                case None  => {
-                  Logger.warn(s"Add feature not enabled")
-                 implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                  BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
-                }
-                case Some(_) => {
-                  Logger.warn(s"Domain backup $nameDesired already exists")
-                 implicit val errorMessages = List(ErrorMessage("Domain already exist"))
-                  BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+          if(FeatureToggles.isAddEnabled(request.connection)){
+            Domains.findDomain(connection, nameDesired) match {
+              case None => {
+                Domains.findBackupDomain(connection, nameDesired) match {
+                  case None => {
+                    Domains.newDomain(connection,nameDesired).save
+                    Logger.info(s"Domain added: $nameDesired")
+                    Redirect(routes.DomainController.viewDomain(connection,nameDesired))
+                  }
+                  case Some(_) => {
+                    Logger.warn(s"Domain backup $nameDesired already exists")
+                   implicit val errorMessages = List(ErrorMessage("Domain already exist"))
+                    BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+                  }
                 }
               }
+              case Some(_) => {
+                Logger.warn(s"Domain $nameDesired already exists")
+                implicit val errorMessages = List(ErrorMessage("Domain already exist"))
+                BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
+              }
             }
-            case Some(_) => {
-              Logger.warn(s"Domain $nameDesired already exists")
-              implicit val errorMessages = List(ErrorMessage("Domain already exist"))
-              BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
-            }
+          } else {
+            Logger.warn(s"Add feature not enabled")
+            implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
+            BadRequest(views.html.domain.addDomain(connection,domainForm.fill(nameDesired)))
           }
         }
       )

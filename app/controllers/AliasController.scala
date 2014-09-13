@@ -213,7 +213,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
             case Some(alias) => {
               Logger.warn(s"Alias ${email} already exists")
               implicit val errorMessages = List(ErrorMessage("Alias already exist"))
-              BadRequest(views.html.user.edituser( connection, userRequest.user, Some(domainRequest.domainRequested), Some(alias) ))
+              BadRequest(views.html.user.edituser( connection, userRequest.user, Some(domainRequest.domainRequested), Some(alias), UserController.updateUserForm ))
             }
           }
         }(connectionRequest)

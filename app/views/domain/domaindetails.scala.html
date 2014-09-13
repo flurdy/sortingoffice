@@ -67,7 +67,6 @@
    }
 
    @for(domainFound <- backup){
-
    	
 		@form(action=routes.DomainController.updateBackup(currentDatabaseConnection,domainFound.name,"domaindetails")){
 	      <table class="table">
@@ -79,7 +78,7 @@
 	            <tr>
 	               <th>transport</th>
 	               <td colspan="2">
-					 		@if(featureToggles.isEnabled("edit")){
+					@if(featureToggles.isEnabled("edit")){
 	               		<input type="text" name="transport" class="form-control" value="@domainFound.transport" placeholder=":[smtp.example.net]"/>
 	               	} else {
 	               		@domainFound.transport

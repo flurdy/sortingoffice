@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, user: User, userDomain: Option[Domain], userAlias: Option[Alias])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, user: User, userDomain: Option[Domain], userAlias: Option[Alias], userForm: Form[User])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 
@@ -8,45 +8,69 @@
 
    <section>
 
-      <table class="table">
-         <tbody>
-            <tr>
-               <th>email</th>
-               <td colspan="2">@user.email</td>
-            </tr>
-            <tr>
-               <th>name</th>
-               <td colspan="2">@user.name</td>
-            </tr>
-            <tr>
-               <th>maildir</th>
-               <td colspan="2">@user.maildir</td>
-            </tr>
-            <tr>
-               <th>reset password on next login</th>
-               <td colspan="2">@user.passwordReset</td>
-            </tr>
-            <tr>
-               <th>enabled</th>
-               <td colspan="2">@user.enabled</td>
-            </tr>
-            @for(domain <- userDomain){
+      @form(action=routes.UserController.update(currentDatabaseConnection,user.email)){
+
+         <table class="table">
+            <tbody>
                <tr>
-                  <th>domain</th>
-                  <td colspan="2" @if(!domain.enabled){class="disabled"}><a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a></td>
+                  <th>email</th>
+                  <td colspan="2">@user.email</td>
                </tr>
-            }
-         </tbody>
-      </table>
+               <tr>
+                  <th>name</th>
+                  <td colspan="2">
+                     @if(featureToggles.isEnabled("edit")){
+                        <input type="text" name="name" class="form-control" value="@userForm("name").value.getOrElse(user.name)" placeholder="John or example-john"/>
+                     } else {
+                        @user.name
+                     }
+                  </td>
+               </tr>
+               <tr>
+                  <th>maildir</th>
+                  <td colspan="2">
+                     @if(featureToggles.isEnabled("edit")){
+                        <input type="text" name="maildir" class="form-control" value="@userForm("maildir").value.getOrElse(user.maildir)" placeholder="example.com/john"/>
+                     } else {
+                        @user.maildir
+                     }
+                  </td>
+               </tr>
+               <tr>
+                  <th>reset password on next login</th>
+                  <td colspan="2">@user.passwordReset</td>
+               </tr>
+               <tr>
+                  <th>enabled</th>
+                  <td colspan="2">@user.enabled</td>
+               </tr>
+               @for(domain <- userDomain){
+                  <tr>
+                     <th>domain</th>
+                     <td colspan="2" @if(!domain.enabled){class="disabled"}>
+                        <a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
+                     </td>
+                  </tr>
+               }
+            </tbody>
+         </table>
 
-   </section>
-
-   @if(featureToggles.isEnabled("edit") && !user.passwordReset){
-      <section>
-         @form(action=routes.UserController.resetPassword(currentDatabaseConnection,user.email)){
-            <button type="submit" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reset password</button>
-         }
       </section>
+
+
+      @if(featureToggles.isEnabled("edit")){
+         <section>
+            <button type="submit" title="update" class="btn btn-sm col-sm-2 col-xs-2 btn-success">update user</button>
+         </section>
+      }
+   }
+  
+   @if(featureToggles.isEnabled("edit") && !user.passwordReset){
+         <section>
+            @form(action=routes.UserController.resetPassword(currentDatabaseConnection,user.email)){
+               <button type="submit" class="btn btn-sm col-sm-2 col-xs-2 btn-primary">reset password</button>
+            }
+         </section>
    }
 
    @if(featureToggles.isEnabled("toggle")){

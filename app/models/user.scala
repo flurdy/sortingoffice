@@ -39,6 +39,11 @@ case class User(email: String, name: String, maildir: String, passwordReset: Boo
    
    def findDomain(connection: ConnectionName): Option[Domain] = Domains.extractAndFindDomain(connection,email)
 
+   def update(connection: ConnectionName) = {
+      if(FeatureToggles.isEditEnabled(connection)) UserRepository.update(connection,this)
+      else throw new IllegalStateException("Edit feature is disabled")
+   }
+
 }
 
 object Users {
