@@ -122,6 +122,29 @@ delete from relays where recipient = {recipient}
       }
    }
 
+   def reject(connection: ConnectionName, relay: Relay) = {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+update relays set status = 'REJECT' where recipient = {recipient}
+            """
+         ).on(
+            'recipient -> relay.recipient
+         ).executeUpdate
+      }
+   }
+
+   def accept(connection: ConnectionName, relay: Relay) = {
+      DB.withConnection(connection) { implicit connection =>
+         SQL(
+            """
+update relays set status = 'OK' where recipient = {recipient}
+            """
+         ).on(
+            'recipient -> relay.recipient
+         ).executeUpdate
+      }
+   }
 
 }
 

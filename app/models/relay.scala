@@ -31,6 +31,16 @@ case class Relay(recipient: String, enabled: Boolean, status: String){
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
+   def reject(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.reject(connection,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
+
+   def accept(connection: ConnectionName) = {
+      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.accept(connection,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
+
 }
 
 object Relays {
@@ -108,7 +118,7 @@ object Relays {
    private def parseDomainName(relay: Relay): Option[String] = Aliases.parseDomainName(relay.recipient)
 
    def findRelaysForAliasIfEnabled(connection: ConnectionName, domain: Domain, alias: Alias): Option[(Option[Relay],Option[Relay])] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){  
+      if( FeatureToggles.isRelayEnabled(connection) ){
          Some( RelayRepository.findCatchAll(connection,domain) , RelayRepository.findRelay(connection, alias.mail) )
       } else None
    }

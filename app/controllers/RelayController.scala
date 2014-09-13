@@ -253,14 +253,73 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
-            // returnUrl match {
-              // case _ => 
-              Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,Some(aliasRequest.alias),request.relay))
-            // }
+            Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,Some(aliasRequest.alias),request.relay))
           }(connectionRequest)
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
 
+  def rejectAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = {
+    Authenticated.async { implicit authRequest =>
+      ConnectionAction(connection).async { implicit connectionRequest =>
+        DomainOrBackupAction(domainName).async { implicit domainRequest =>
+          AliasAction(email).async { implicit aliasRequest =>
+            RelayAction(recipient) { implicit request =>
+              request.relay.reject(connection)
+              Logger.info(s"Relay ${recipient} set to reject")
+              Redirect(routes.RelayController.viewAliasRelay(connection,domainName,email,recipient))
+            }(connectionRequest)
+          }(connectionRequest)
+        }(connectionRequest)
+      }(authRequest)
+    }
+  }
+
+  def rejectRelay(connection: ConnectionName, domainName: String, recipient: String) = {
+    Authenticated.async { implicit authRequest =>
+      ConnectionAction(connection).async { implicit connectionRequest =>
+        DomainOrBackupAction(domainName).async { implicit domainRequest =>
+          RelayAction(recipient) { implicit request =>
+            request.relay.reject(connection)
+            Logger.info(s"Relay ${recipient} set to reject")
+            Redirect(routes.RelayController.viewRelay(connection,domainName,recipient))
+          }(connectionRequest)
+        }(connectionRequest)
+      }(authRequest)
+    }
+  }
+
+  def acceptAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = {
+    Authenticated.async { implicit authRequest =>
+      ConnectionAction(connection).async { implicit connectionRequest =>
+        DomainOrBackupAction(domainName).async { implicit domainRequest =>
+          AliasAction(email).async { implicit aliasRequest =>
+            RelayAction(recipient) { implicit request =>
+              request.relay.accept(connection)
+              Logger.info(s"Relay ${recipient} set to accept")
+              Redirect(routes.RelayController.viewAliasRelay(connection,domainName,email,recipient))
+            }(connectionRequest)
+          }(connectionRequest)
+        }(connectionRequest)
+      }(authRequest)
+    }
+  }
+
+  def acceptRelay(connection: ConnectionName, domainName: String, recipient: String) = {
+    Authenticated.async { implicit authRequest =>
+      ConnectionAction(connection).async { implicit connectionRequest =>
+        DomainOrBackupAction(domainName).async { implicit domainRequest =>
+          RelayAction(recipient) { implicit request =>
+            request.relay.accept(connection)
+            Logger.info(s"Relay ${recipient} set to accept")
+            Redirect(routes.RelayController.viewRelay(connection,domainName,recipient))
+          }(connectionRequest)
+        }(connectionRequest)
+      }(authRequest)
+    }
+  }
+
 }
+
+

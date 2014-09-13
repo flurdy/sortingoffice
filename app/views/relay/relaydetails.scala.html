@@ -22,10 +22,43 @@
            <th>enabled</th>
            <td colspan="2">@relay.enabled</td>
         </tr>
+         <tr>
+            <th>domain</th>
+            <td colspan="2" @if(!domain.enabled){class="disabled"}>
+            	<a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
+            </td>
+         </tr>
      </tbody>
   </table>
 
 	@if(featureToggles.isEnabled("toggle")){
+		<section>
+			@possibleAlias match {
+				case Some(alias) => {
+					@if(relay.status=="OK"){
+						@form(action=routes.RelayController.rejectAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="reject" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reject relay</button>
+						}
+					} else {
+						@form(action=routes.RelayController.acceptAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="accept" class="btn btn-sm col-sm-2 col-xs-2 btn-success">accept relay</button>
+						}
+					}
+				}
+				case None => {
+					@if(relay.status=="OK"){
+						@form(action=routes.RelayController.rejectRelay(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="reject" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reject relay</button>
+						}
+					} else {
+						@form(action=routes.RelayController.acceptRelay(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+							<button type"submit" title="accept" class="btn btn-sm col-sm-2 col-xs-2 btn-success">accept relay</button>
+						}
+					}
+				}
+			}
+		</section>
+
 		<section>
 			@possibleAlias match {
 				case Some(alias) => {
@@ -51,11 +84,11 @@
 					}
 				}
 			}
-		</section>	
+		</section>
 	}
-	
+
 	@if(featureToggles.isEnabled("remove") && !relay.enabled){
-		<section>	
+		<section>
 			@possibleAlias match {
 				case Some(alias) => {
 					@form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
@@ -68,7 +101,7 @@
 					}
 				}
 			}
-		</section>	
+		</section>
 	}
 
 }
