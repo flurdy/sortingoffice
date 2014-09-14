@@ -4,7 +4,7 @@
 
 @main(Some("Aliases | Catch All"), Some(currentDatabaseConnection)) {
 
-   <h3><a href="@routes.AliasController.alias(currentDatabaseConnection)">Catch all aliases</a></h3>
+   <h3>Catch all <a href="@routes.AliasController.alias(currentDatabaseConnection)">aliases</a></h3>
 
    <section>
 
@@ -45,11 +45,6 @@
                            @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                            }
-                        }
-                     }
-                     @if(featureToggles.isEnabled("remove") && !alias.enabled){
-                        @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
-                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                         }
                      }
                   </td>
@@ -152,11 +147,6 @@
                               @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                               }
-                           }
-                        }
-                        @if(featureToggles.isEnabled("remove") && !relay.enabled){
-                           @form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
-                              <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
                            }
                         }
                      </td>

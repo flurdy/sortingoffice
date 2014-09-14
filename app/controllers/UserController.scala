@@ -248,7 +248,7 @@ object UserController extends Controller with DbController with FeatureToggler w
       UserAction(email) { implicit userRequest =>
         userRequest.user.resetPassword(connection)
         Logger.info(s"User password reset: $email")
-        Redirect(routes.UserController.user(connectionRequest.connection))
+        Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
       }(connectionRequest)
     }(authRequest)
   }
@@ -271,7 +271,7 @@ object UserController extends Controller with DbController with FeatureToggler w
             Logger.warn(s"Update user form error")
             val domain = userRequest.user.findDomain(connection)
             val alias = userRequest.user.findAlias(connection)
-                implicit val errorMessages = List(ErrorMessage("Update failed"))
+            implicit val errorMessages = List(ErrorMessage("Update failed"))
             BadRequest(views.html.user.edituser(connection,userRequest.user,domain,alias,errors))
           },
           user => {

@@ -30,10 +30,12 @@ case class Alias(mail: String, destination: String, enabled: Boolean){
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
-   def update(connection: ConnectionName) = { 
+   def update(connection: ConnectionName) = {
       if(FeatureToggles.isEditEnabled(connection)) AliasRepository.updateDestination(connection,this)
       else throw new IllegalStateException("Edit feature is disabled")
-   } 
+   }
+
+   def parseDomainName = Aliases.parseDomainName(mail)
 
 }
 
@@ -59,6 +61,12 @@ object Aliases {
       val nonCatchAllDomains: List[Domain]  = domains diff catchAlls.map(_._1)
       val nonCatchAlls: List[(Domain,Option[Alias])]  = nonCatchAllDomains.map( (_,None) ) ++ disabledCatchAlls
       (catchAlls, nonCatchAlls)
+   }
+
+   def findAllAliases(connection: ConnectionName): List[(Alias,Option[Domain])] = {
+      val domains: Map[String,Domain] = Domains.findDomains(connection).map( d => (d.name,d) ).toMap
+      val aliases = AliasRepository.findAliases(connection)
+      aliases.map( alias => (alias, alias.parseDomainName.flatMap(domains.get(_)) ) )
    }
 
    def findRequiredAliases(domain: Domain): Map[String,Alias] = findAliases(requiredAliases,domain)

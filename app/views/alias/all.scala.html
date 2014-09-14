@@ -1,0 +1,65 @@
+@(currentDatabaseConnection: Environment.ConnectionName, aliases: List[(Alias,Option[Domain])])(implicit errorMessages: List[ErrorMessage] = List.empty, currentUser: Option[ApplicationUser], featureToggles: FeatureToggleMap)
+
+@import helper._
+
+@main(Some("Aliases"), Some(currentDatabaseConnection)) {
+
+   <h3>All <a href="@routes.AliasController.alias(currentDatabaseConnection)">aliases</a></h3>
+
+   <table class="table table-hover">
+      <thead>
+         <tr>
+            <th>mail</th>
+            <th>destination</th>
+            <th>enabled</th>
+            <th colspan="2"></th>
+         </tr>
+      </thead>
+      <tbody>
+         @for((alias,possibleDomain) <- aliases){
+         <tr>
+            <td @if(!alias.enabled){ class="disabled" }>
+               @possibleDomain match {
+                  case Some(domain) => {
+                     <a href="@routes.AliasController.viewAlias(currentDatabaseConnection,domain.name,alias.mail)">@alias.mail</a>
+                  }
+                  case None => {
+                     @alias.mail
+                  }
+               }
+            </td>
+            <td @if(!alias.enabled){ class="disabled" }>
+               @alias.destination
+            </td>
+            <td>@alias.enabled</td>
+            <td class="actions">
+               @if(featureToggles.isEnabled("toggle")){
+                  @possibleDomain match {
+                     case Some(domain) => {
+                        @if(alias.enabled){
+                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           }
+                        } else {
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
+                           }
+                        }
+                     }
+                     case None => {
+                        @if(alias.enabled){
+                           @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           }
+                        }
+                     }
+                  }
+               }
+            </td>
+         </tr>
+         }
+      </tbody>
+   </table>
+
+
+}
