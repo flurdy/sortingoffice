@@ -65,6 +65,14 @@ object Relays {
       } else None
    }
 
+   def findCatchAllBackupsIfEnabled(connection: ConnectionName,domains: List[Domain]): Option[(List[(Backup,Relay)],List[(Backup,Option[Relay])])] = {
+      if( FeatureToggles.isRelayEnabled(connection) ){
+         findCatchAllDomainsIfEnabled(connection,domains).map( catchAlls =>
+            (  catchAlls._1.map( c => (Backup(c._1),c._2) ),
+               catchAlls._2.map( c => (Backup(c._1),c._2) ) ) )
+      } else None
+   }
+
    def findRequiredRelaysIfEnabled(domain: Domain): Option[Map[String,Relay]] = {
       if( FeatureToggles.isRelayEnabled(domain.connection.get) ){
          Some( findRelays(Aliases.requiredAliases,domain) )

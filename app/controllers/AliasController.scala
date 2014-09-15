@@ -52,12 +52,20 @@ object AliasController extends Controller with DbController with FeatureToggler 
   def catchAll(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
       val allDomains: List[Domain] = Domains.findDomains(connection)
-      val catchAllAliases: (List[(Domain,Alias)],List[(Domain,Option[Alias])]) = Aliases.findCatchAllDomains(connection,allDomains)
-      val allBackups = Domains.findBackupDomains(connection)
-      val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = Relays.findCatchAllDomainsIfEnabled(connection,allDomains++allBackups)
-      Ok(views.html.alias.catchall(
-        connection,catchAllAliases._1,catchAllAliases._2,
-        catchAllRelays.map(_._1),catchAllRelays.map(_._2) ) )
+      val catchAllAliases: (List[(Domain,Alias)],List[(Domain,Option[Alias])]) =
+          Aliases.findCatchAllDomains(connection,allDomains)
+      val allBackups: List[Domain] = Domains.findBackupDomains(connection).map(_.domain)
+      val catchAllRelays: Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] =
+          Relays.findCatchAllDomainsIfEnabled(connection,allDomains)
+      val catchAllBackupRelays: Option[(List[(Backup,Relay)],List[(Backup,Option[Relay])])] =
+          Relays.findCatchAllBackupsIfEnabled(connection,allBackups)
+      Ok(views.html.alias.catchall( connection,
+                                    catchAllAliases._1,
+                                    catchAllAliases._2,
+                                    catchAllRelays.map(_._1),
+                                    catchAllBackupRelays.map(_._1),
+                                    catchAllRelays.map(_._2),
+                                    catchAllBackupRelays.map(_._2) ) )
     }(authRequest)
   }
 
@@ -84,7 +92,7 @@ object AliasController extends Controller with DbController with FeatureToggler 
   def orphan(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
       val domains = Domains.findDomains(connection)
-      val backups = Domains.findBackupDomains(connection)
+      val backups = Domains.findBackupDomains(connection).map(_.domain)
       val aliases = Aliases.findOrphanAliases(connection,domains)
       val relays = Relays.findOrphanRelays(connection,domains++backups)
       val users = Users.findOrphanUsers(connection,domains)

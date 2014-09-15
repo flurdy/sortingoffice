@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, relays: List[Domain], backupDomains: Option[List[Domain]])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, relays: List[Domain], backupDomains: Option[List[Backup]])(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import models._
 @import helper._
@@ -71,27 +71,23 @@
 					</tr>
 				</thead>
 				<tbody>
-					@for(domain <- backups){
+					@for(backup <- backups){
 					<tr>
-						<td>
-							@if(!domain.enabled){ <s> }
-							<a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
-							@if(!domain.enabled){ </s> }
+						<td @if(!backup.domain.enabled){ class="disabled" }>
+							<a href="@routes.DomainController.viewBackup(currentDatabaseConnection,backup.domain.name)">@backup.domain.name</a>
 						</td>
-						<td>@domain.enabled</td>
-						<td>
-							@if(!domain.enabled){ <s> }
-							@domain.transport
-							@if(!domain.enabled){ </s> }
+						<td>@backup.domain.enabled</td>
+						<td @if(!backup.domain.enabled){ class="disabled" }>
+							@backup.domain.transport
 						</td>
 						<td class="actions">
 							@if(featureToggles.isEnabled("toggle")){
-								@if(domain.enabled){
-									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
+								@if(backup.domain.enabled){
+									@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,backup.domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 										<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
 									}
 								} else {
-									@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
+									@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,backup.domain.name,"domain"), 'class -> "form-inline", 'role -> "form"){
 										<button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
 									}
 								}

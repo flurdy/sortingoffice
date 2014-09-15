@@ -22,13 +22,13 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       }
    }
 
-   def findAliases: List[Alias] = connection match { 
-      case Some(conn) => AliasRepository.findAllAliasesForDomain(this) 
+   def findAliases: List[Alias] = connection match {
+      case Some(conn) => AliasRepository.findAllAliasesForDomain(this)
       case None => throw new IllegalStateException("No connection for domain")
    }
 
-   def findUsers = connection match { 
-      case Some(conn) => UserRepository.findUsersForDomain(this) 
+   def findUsers = connection match {
+      case Some(conn) => UserRepository.findUsersForDomain(this)
       case None => throw new IllegalStateException("No connection for domain")
    }
 
@@ -59,23 +59,8 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def disableBackup = connection.map{ con =>
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disableBackup(con,this)
-      else throw new IllegalStateException("Toggle feature is disabled")
-   }
-
-   def enableBackup = connection.map{ con =>
-      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enableBackup(con,this)
-      else throw new IllegalStateException("Toggle feature is disabled")
-   }
-
    def save = connection.map{ con =>
       if(FeatureToggles.isAddEnabled(con)) DomainRepository.save(con,this)
-      else throw new IllegalStateException("Add feature is disabled")
-   }
-
-   def saveBackup = connection.map{ con =>
-      if(FeatureToggles.isAddEnabled(con)) DomainRepository.saveBackup(con,this)
       else throw new IllegalStateException("Add feature is disabled")
    }
 
@@ -84,15 +69,38 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
-   def deleteBackup = connection.map{ con =>
+}
+
+
+case class Backup(domain: Domain){
+
+   def withConnection(connection: ConnectionName) = Backup( domain.withConnection(connection) )
+
+   def enable = domain.connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.enableBackup(con,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
+
+   def disable = domain.connection.map{ con =>
+      if(FeatureToggles.isToggleEnabled(con)) DomainRepository.disableBackup(con,this)
+      else throw new IllegalStateException("Toggle feature is disabled")
+   }
+
+   def save = domain.connection.map{ con =>
+      if(FeatureToggles.isAddEnabled(con)) DomainRepository.saveBackup(con,this)
+      else throw new IllegalStateException("Add feature is disabled")
+   }
+
+   def delete = domain.connection.map{ con =>
       if(FeatureToggles.isRemoveEnabled(con)) DomainRepository.deleteBackup(con,this)
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
-   def updateBackup = connection.map{ con =>
+   def update = domain.connection.map{ con =>
       if(FeatureToggles.isEditEnabled(con)) DomainRepository.updateBackup(con,this)
       else throw new IllegalStateException("Edit feature is disabled")
    }
+
 }
 
 
@@ -100,22 +108,25 @@ object Domains {
 
    def findDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findDomain(connection, name)
 
-   def findBackupDomain(connection: ConnectionName, name: String): Option[Domain] = DomainRepository.findBackupDomain(connection, name)
-
    def findDomains(connection: ConnectionName): List[Domain] = DomainRepository.findDomains(connection)
-
-   def findBackupDomains(connection: ConnectionName): List[Domain] = DomainRepository.findBackupDomains(connection)
-
-   def findBackupDomainsIfEnabled(connection: ConnectionName): Option[List[Domain]] = {
-      if( FeatureToggles.isBackupEnabled(connection)){
-         Some( DomainRepository.findBackupDomains(connection) )
-      } else None
-   }
 
    def newDomain(connection: ConnectionName, name: String): Domain = Domain(Some(connection),name,false,"virtual:")
 
    def extractAndFindDomain(connection: ConnectionName, email: String): Option[Domain] = {
       Aliases.parseDomainName(email).flatMap( name => findDomain(connection,name) )
+   }
+
+// }
+// object Backups {
+
+   def findBackupDomain(connection: ConnectionName, name: String): Option[Backup] = DomainRepository.findBackupDomain(connection, name)
+
+   def findBackupDomains(connection: ConnectionName): List[Backup] = DomainRepository.findBackupDomains(connection)
+
+   def findBackupDomainsIfEnabled(connection: ConnectionName): Option[List[Backup]] = {
+      if( FeatureToggles.isBackupEnabled(connection)){
+         Some( DomainRepository.findBackupDomains(connection) )
+      } else None
    }
 
 }

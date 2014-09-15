@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, possibleAlias: Option[Alias], relay: Relay)(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, backup: Option[Backup], possibleAlias: Option[Alias], relay: Relay)(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 
@@ -25,7 +25,14 @@
          <tr>
             <th>domain</th>
             <td colspan="2" @if(!domain.enabled){class="disabled"}>
-            	<a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
+            	@backup match {
+            		case Some(_) => {
+            			<a href="@routes.DomainController.viewBackup(currentDatabaseConnection,domain.name)">@domain.name</a>
+            		}
+            		case None => {
+            			<a href="@routes.DomainController.viewDomain(currentDatabaseConnection,domain.name)">@domain.name</a>
+            		}
+            	}
             </td>
          </tr>
      </tbody>

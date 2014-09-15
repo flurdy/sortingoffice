@@ -241,19 +241,19 @@ object RelayController extends Controller with DbController with RelayInjector w
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
-          Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,None,request.relay))
+          val backup = Domains.findBackupDomain(connection,domainName)
+          Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,backup,None,request.relay))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
   }
-
 
   def viewAliasRelay(connection: ConnectionName, domainName: String, email: String, recipient: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
-            Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,Some(aliasRequest.alias),request.relay))
+            Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,None,Some(aliasRequest.alias),request.relay))
           }(connectionRequest)
         }(connectionRequest)
       }(connectionRequest)

@@ -22,13 +22,12 @@ object DomainRepository {
       }
    }
 
-
    val simpleBackup = {
       get[String]("domain") ~
       get[String]("transport") ~
       get[Boolean]("enabled") map {
          case domain~transport~enabled => {
-            new Domain(domain,enabled,transport)
+            Backup(new Domain(domain,enabled,transport))
          }
       }
    }
@@ -43,7 +42,7 @@ select * from domains order by domain
       }
    }
 
-   def findBackupDomains(connectionName: ConnectionName): List[Domain] = {
+   def findBackupDomains(connectionName: ConnectionName): List[Backup] = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -66,7 +65,7 @@ where domain = {name}
       }
    }
 
-   def findBackupDomain(connectionName: ConnectionName, name: String): Option[Domain] = {
+   def findBackupDomain(connectionName: ConnectionName, name: String): Option[Backup] = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
@@ -75,12 +74,12 @@ where domain = {name}
             """
          ).on(
             'name -> name
-         ).as(simpleDomain *).map( _.withConnection(connectionName) ).headOption
+         ).as(simpleBackup *).map( _.withConnection(connectionName) ).headOption
       }
    }
 
    def findCatchAllDomains(connectionName: ConnectionName): List[(Domain,Alias)] = {
-      val domains = DB.withConnection(connectionName) { implicit connection =>
+      val domains: List[Domain] = DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,a.enabled from domains d
@@ -98,7 +97,7 @@ order by d.domain
    }
 
    def findCatchAllRelayDomains(connectionName: ConnectionName): List[(Domain,Relay)] = {
-      val domains = DB.withConnection(connectionName) { implicit connection =>
+      val domains: List[Domain] = DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 select d.domain,d.transport,r.enabled from domains d
@@ -110,8 +109,8 @@ order by d.domain
       }
       for{
          domain <- domains
-         name = domain.name
-         relay <- RelayRepository.findRelay(connectionName,s"@$name")
+         name   =  domain.name
+         relay  <- RelayRepository.findRelay(connectionName,s"@$name")
       } yield (domain,relay)
    }
 
@@ -139,26 +138,26 @@ order by d.domain
       }
    }
 
-   def disableBackup(connectionName: ConnectionName, domain: Domain) {
+   def disableBackup(connectionName: ConnectionName, backup: Backup) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
                update backups set enabled = 0 where domain = {name}
             """
          ).on(
-            'name -> domain.name
+            'name -> backup.domain.name
          ).executeUpdate
       }
    }
 
-   def enableBackup(connectionName: ConnectionName, domain: Domain) {
+   def enableBackup(connectionName: ConnectionName, backup: Backup) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
                update backups set enabled = 1 where domain = {name}
             """
          ).on(
-            'name -> domain.name
+            'name -> backup.domain.name
          ).executeUpdate
       }
    }
@@ -177,16 +176,16 @@ insert into domains (domain,enabled,transport) values ({name},{enabled},{transpo
       }
    }
 
-   def saveBackup(connectionName: ConnectionName, domain: Domain) = {
+   def saveBackup(connectionName: ConnectionName, backup: Backup) = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 insert into backups (domain,enabled,transport) values ({name},{enabled},{transport})
             """
          ).on(
-            'name -> domain.name,
-            'enabled -> domain.enabled,
-            'transport -> domain.transport
+            'name      -> backup.domain.name,
+            'enabled   -> backup.domain.enabled,
+            'transport -> backup.domain.transport
          ).execute
       }
    }
@@ -204,27 +203,27 @@ delete from domains where domain = {name}
    }
 
 
-   def deleteBackup(connectionName: ConnectionName, domain: Domain) = {
+   def deleteBackup(connectionName: ConnectionName, backup: Backup) = {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
 delete from backups where domain = {name}
             """
          ).on(
-            'name -> domain.name
+            'name -> backup.domain.name
          ).execute
       }
    }
 
-   def updateBackup(connectionName: ConnectionName, domain: Domain) {
+   def updateBackup(connectionName: ConnectionName, backup: Backup) {
       DB.withConnection(connectionName) { implicit connection =>
          SQL(
             """
-               update backups set transport = {transport} where domain = {name}
+update backups set transport = {transport} where domain = {name}
             """
          ).on(
-            'transport -> domain.transport,
-            'name -> domain.name
+            'transport -> backup.domain.transport,
+            'name -> backup.domain.name
          ).executeUpdate
       }
    }
