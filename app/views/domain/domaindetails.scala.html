@@ -37,26 +37,30 @@
          </tbody>
       </table>
 
-		@if(featureToggles.isEnabled("toggle")){
-			<section>
-				@if(domainFound.enabled){
-					@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name,"domaindetails")){
-						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable domain</button>
-					}
-				} else {
-					@form(action=routes.DomainController.enable(currentDatabaseConnection,domainFound.name,"domaindetails")){
-						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable domain</button>
-					}
-				}
-			</section>
-		}
+      	@if(currentUser.isDefined){
 
-		@if(featureToggles.isEnabled("remove")){
-			<section title="Can only remove a disabled domain">
-				@if(!domainFound.enabled){
-					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
-				}
-			</section>
+			@if(featureToggles.isEnabled("toggle")){
+				<section>
+					@if(domainFound.enabled){
+						@form(action=routes.DomainController.disable(currentDatabaseConnection,domainFound.name,"domaindetails")){
+							<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable domain</button>
+						}
+					} else {
+						@form(action=routes.DomainController.enable(currentDatabaseConnection,domainFound.name,"domaindetails")){
+							<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable domain</button>
+						}
+					}
+				</section>
+			}
+
+			@if(featureToggles.isEnabled("remove")){
+				<section title="Can only remove a disabled domain">
+					@if(!domainFound.enabled){
+						<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,domainFound.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
+					}
+				</section>
+			}
+
 		}
 
    }
@@ -75,7 +79,7 @@
 	            <tr>
 	               <th>transport</th>
 	               <td colspan="2">
-							@if(featureToggles.isEnabled("edit")){
+					@if(featureToggles.isEnabled("edit") && currentUser.isDefined){
 	               		<input type="text" name="transport" class="form-control" value="@backupFound.domain.transport" placeholder=":[smtp.example.net]"/>
 	               	} else {
 	               		@backupFound.domain.transport
@@ -89,14 +93,14 @@
 	         </tbody>
 	      </table>
 
-	 		@if(featureToggles.isEnabled("edit")){
+	 		@if(featureToggles.isEnabled("edit") && currentUser.isDefined){
 				<section>
 					<button type="submit" title="update" class="btn btn-sm col-sm-2 col-xs-2 btn-success">update transport</button>
 				</section>
 			}
  		}
 
-		@if(featureToggles.isEnabled("toggle")){
+		@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
 			<section>
 				@if(backupFound.domain.enabled){
 					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,backupFound.domain.name,"domaindetails")){
@@ -111,7 +115,7 @@
 		}
 
 
-		@if(featureToggles.isEnabled("remove")){
+		@if(featureToggles.isEnabled("remove") && currentUser.isDefined){
 			<section title="Can only remove a disabled domain">
 				@if(!backupFound.domain.enabled){
 					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,backupFound.domain.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
@@ -148,7 +152,7 @@
 						</td>
 						<td>@alias.enabled</td>
 						<td class="actions">
-							@if(featureToggles.isEnabled("toggle")){
+							@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
 								@if(alias.enabled){
 									@form(action=routes.AliasController.disable(currentDatabaseConnection,domainFound.name,alias.mail, "domaindetails"), 'class -> "form-inline", 'role -> "form"){
 										<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -165,7 +169,7 @@
 				</tbody>
 			</table>
 
-			@if(featureToggles.isEnabled("add")){
+			@if(featureToggles.isEnabled("add") && currentUser.isDefined){
 				<a href="@routes.AliasController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add alias</a>
 			}
 
@@ -212,7 +216,7 @@
 						<td @if(!relay.enabled){ class="disabled" }>@relay.status</td>
 						<td>@relay.enabled</td>
 						<td class="actions">
-							@if(featureToggles.isEnabled("toggle")){
+							@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
 								@for(relayDomain <- domain){
 									@toggleRelay(relay,relayDomain)
 								}
@@ -227,12 +231,12 @@
 			</table>
 
 			@for(domainFound <- domain){
-				@if(featureToggles.isEnabled("add")){
+				@if(featureToggles.isEnabled("add") && currentUser.isDefined){
 					<a href="@routes.RelayController.viewAdd(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</a>
 				}
 			}
 			@for(backupFound <- backup){
-				@if(featureToggles.isEnabled("add")){
+				@if(featureToggles.isEnabled("add") && currentUser.isDefined){
 					<a href="@routes.RelayController.viewAdd(currentDatabaseConnection,backupFound.domain.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add relay</a>
 				}
 			}
@@ -273,7 +277,7 @@
 						<td>@user.passwordReset</td>
 						<td>@user.enabled</td>
 						<td class="actions">
-							@if(featureToggles.isEnabled("toggle")){
+							@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
 								@if(user.enabled){
 									@form(action=routes.UserController.disable(currentDatabaseConnection, domainFound.name, user.email, "domaindetails")){
 										<button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -290,7 +294,7 @@
 				</tbody>
 			</table>
 
-			@if(featureToggles.isEnabled("add")){
+			@if(featureToggles.isEnabled("add") && currentUser.isDefined){
 				<a href="@routes.UserController.viewAddWithDomain(currentDatabaseConnection,domainFound.name)" class="btn btn-sm col-sm-2 col-xs-2 btn-info">add user</a>
 			}
 

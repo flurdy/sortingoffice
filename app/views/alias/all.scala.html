@@ -33,7 +33,7 @@
             </td>
             <td>@alias.enabled</td>
             <td class="actions">
-               @if(featureToggles.isEnabled("toggle")){
+               @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                   @possibleDomain match {
                      case Some(domain) => {
                         @if(alias.enabled){

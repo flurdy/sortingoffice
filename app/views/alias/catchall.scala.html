@@ -43,7 +43,7 @@
                      @alias.enabled
                   </td>
                   <td class="actions">
-                     @if(featureToggles.isEnabled("toggle")){
+                     @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                         @if(alias.enabled){
                            @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -84,7 +84,7 @@
                   <td class="actions">
                      @alias match{
                         case Some(aliasFound) => {
-                           @if(featureToggles.isEnabled("toggle")){
+                           @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                               @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                               }
@@ -98,7 +98,7 @@
                            **@
                         }
                         case None => {
-                           @if(featureToggles.isEnabled("add")){
+                           @if(featureToggles.isEnabled("add") && currentUser.isDefined){
                               @form(action=routes.AliasController.viewAddCatchAll(currentDatabaseConnection,domain.name)){
                                  <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
                               }
@@ -145,7 +145,7 @@
                               @relay.enabled
                            </td>
                            <td class="actions">
-                              @if(featureToggles.isEnabled("toggle")){
+                              @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                  @if(relay.enabled){
                                     @form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                        <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -173,7 +173,7 @@
                               @relay.enabled
                            </td>
                            <td class="actions">
-                              @if(featureToggles.isEnabled("toggle")){
+                              @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                  @if(relay.enabled){
                                     @form(action=routes.RelayController.disable(currentDatabaseConnection,backup.domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                        <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
@@ -218,7 +218,7 @@
                            <td class="actions">
                               @relay match{
                                  case Some(relayFound) => {
-                                    @if(featureToggles.isEnabled("toggle")){
+                                    @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                        @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                           <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                        }
@@ -232,7 +232,7 @@
                                     **@
                                  }
                                  case None => {
-                                    @if(featureToggles.isEnabled("add")){
+                                    @if(featureToggles.isEnabled("add") && currentUser.isDefined){
                                        @form(action=routes.RelayController.viewAddCatchAll(currentDatabaseConnection,domain.name)){
                                           <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
                                        }
@@ -252,7 +252,7 @@
                            <td class="actions">
                               @relay match{
                                  case Some(relayFound) => {
-                                    @if(featureToggles.isEnabled("toggle")){
+                                    @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                        @form(action=routes.RelayController.enable(currentDatabaseConnection,backup.domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
                                           <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                        }
@@ -266,7 +266,7 @@
                                     **@
                                  }
                                  case None => {
-                                    @if(featureToggles.isEnabled("add")){
+                                    @if(featureToggles.isEnabled("add") && currentUser.isDefined){
                                        @form(action=routes.RelayController.viewAddCatchAll(currentDatabaseConnection,backup.domain.name)){
                                           <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
                                        }
