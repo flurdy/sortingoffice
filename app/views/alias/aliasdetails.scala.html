@@ -139,7 +139,7 @@
                   }
                   case (None,Some(relay)) => {
                      @relayRow(relay)
-                     @if(!relay.enabled){
+                     @if(!relay.enabled && !relay.isCatchAll){
                         @addCatchallRow()
                      }
                   }

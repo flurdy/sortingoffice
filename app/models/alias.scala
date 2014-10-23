@@ -101,7 +101,7 @@ object Aliases {
       aliases diff nonOrphans
    }
 
-   private val EmailPattern = """.*@([\w\.]+)$""".r
+   private val EmailPattern = """.*@([\w\.-]+)$""".r
 
    private def parseDomainName(alias: Alias): Option[String] = parseDomainName(alias.mail)
 

@@ -41,6 +41,8 @@ case class Relay(recipient: String, enabled: Boolean, status: String){
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
+   def isCatchAll = recipient.startsWith("@")
+
 }
 
 object Relays {
@@ -127,7 +129,11 @@ object Relays {
 
    def findRelaysForAliasIfEnabled(connection: ConnectionName, domain: Domain, alias: Alias): Option[(Option[Relay],Option[Relay])] = {
       if( FeatureToggles.isRelayEnabled(connection) ){
-         Some( RelayRepository.findCatchAll(connection,domain) , RelayRepository.findRelay(connection, alias.mail) )
+         RelayRepository.findRelay(connection, alias.mail) match {
+            case Some(relay) if relay.isCatchAll => Some(None, Some(relay) )
+            case Some(relay) => Some(RelayRepository.findCatchAll(connection,domain), Some(relay) )
+            case None        => Some(RelayRepository.findCatchAll(connection,domain), None )
+         }
       } else None
    }
 

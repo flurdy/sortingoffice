@@ -25,7 +25,7 @@
 
         @for(connection <- currentDatabaseConnection){
           <div id="connections" class="">
-             Current database <em> @connection </em>. <a href="@routes.Application.connectionIndex(connection)">Change</a>
+             Current database <em> @connection </em>. <a href="@routes.Application.index">Change</a>
           </div>
         }
         <div id="applicationuser" class="">
@@ -40,7 +40,14 @@
         </div>  
 
         <header>
-           <h1><a href="@routes.Application.index">Sorting Office</a></h1>
+          @currentDatabaseConnection match {
+            case Some(connection) => {
+              <h1><a href="@routes.Application.connectionIndex(connection)">Sorting Office</a></h1>
+            }
+            case _ => {
+              <h1><a href="@routes.Application.index">Sorting Office</a></h1>
+            }
+          }
         </header>
 
         <div id="cargo">
