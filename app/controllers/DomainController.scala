@@ -113,8 +113,9 @@ object DomainController extends Controller with DbController with FeatureToggler
         val relays  = domainRequest.domainRequested.findRelaysIfEnabled
         val aliases = domainRequest.domainRequested.findAliases
         val users   = domainRequest.domainRequested.findUsers
+        val databaseDomains = domainRequest.domainRequested.findInDatabases
         Ok(views.html.domain.domaindetails(
-          connection, Some(domainRequest.domainRequested), None, relays, aliases, users))
+          connection, Some(domainRequest.domainRequested), None, relays, aliases, users, databaseDomains))
       }(connectionRequest)
     }(authRequest)
   }
@@ -125,8 +126,9 @@ object DomainController extends Controller with DbController with FeatureToggler
         val relays  = domainRequest.backup.domain.findRelaysIfEnabled
         val aliases = domainRequest.backup.domain.findAliases
         val users   = domainRequest.backup.domain.findUsers
+        val databaseDomains = domainRequest.backup.domain.findInDatabases
         Ok(views.html.domain.domaindetails(
-          connection, None, Some(domainRequest.backup), relays, aliases, users))
+          connection, None, Some(domainRequest.backup), relays, aliases, users, databaseDomains))
       }(connectionRequest)
     }(authRequest)
   }
@@ -355,7 +357,8 @@ object DomainController extends Controller with DbController with FeatureToggler
             val relays  = domainRequest.backup.domain.findRelaysIfEnabled
             val aliases = domainRequest.backup.domain.findAliases
             val users   = domainRequest.backup.domain.findUsers
-            BadRequest(views.html.domain.domaindetails( connection, None, Some(domainRequest.backup), relays, aliases, users))
+            val databaseDomains = domainRequest.backup.domain.findInDatabases
+            BadRequest(views.html.domain.domaindetails( connection, None, Some(domainRequest.backup), relays, aliases, users, databaseDomains))
           },
           backup => {
             Backup(domainRequest.backup.domain.copy(transport=backup.transport)).update

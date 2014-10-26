@@ -69,6 +69,19 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
+   def findInDatabases: List[(ConnectionName,Option[Domain],Option[Backup])] = {
+      val domains: List[(ConnectionName,Option[Domain],Option[Backup])] = for {
+         connectionName <- Environment.connectionNames
+         domain         = Domains.findDomain(connectionName,name)
+         backup         = Domains.findBackupDomain(connectionName,name)
+      } yield (connectionName,domain,backup) 
+      domains map {
+         case (connectionName: ConnectionName, Some(domain), backup ) => (connectionName, Some(domain), backup )
+         case (connectionName: ConnectionName, None, Some(backup) ) => (connectionName, Some(backup.domain), Some(backup) )
+         case (connectionName: ConnectionName, domain, backup ) => (connectionName, domain, backup )
+      } 
+   }
+
 }
 
 

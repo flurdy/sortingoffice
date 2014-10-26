@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Backup], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User])(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Option[Domain], backup: Option[Backup], relaysFound: Option[List[Relay]], aliases: List[Alias], users: List[User], databaseDomains: List[(Environment.ConnectionName,Option[Domain],Option[Backup])])(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 
@@ -301,5 +301,53 @@
 		</section>
 
 	}
+
+	@if( !databaseDomains.isEmpty ){
+
+		<section>
+
+			<h4><a href="@routes.Application.index)">Databases</a></h4>
+
+
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>database</th>
+						<th>type</th>
+						<th>transport</th>
+						<th>enabled</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					@for( (database,databaseDomain,databaseBackup) <- databaseDomains){
+						@for( thisDomain <- databaseDomain){
+							<tr>
+								<td>
+									<a href="@routes.Application.connectionIndex(database)">@database</a>
+								</td>
+								<td @if(!thisDomain.enabled){ class="disabled" }>
+									@databaseBackup match {
+										case Some(thisBackup) => {
+											<a href="@routes.DomainController.viewBackup(database,thisDomain.name)">backup</a>
+										}
+										case None => {
+											<a href="@routes.DomainController.viewDomain(database,thisDomain.name)">domain</a>
+										}
+									}
+								</td>	
+								<td @if(!thisDomain.enabled){ class="disabled" }>@thisDomain.transport</td>
+								<td>@thisDomain.enabled</td>
+								<td colspan="1"></td>
+							</tr>	
+						}
+					}
+				</tbody>
+			</table>	
+
+		</section>
+
+	}
+
 
 }
