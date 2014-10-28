@@ -64,15 +64,15 @@ Application users are john and mary with 123 as password
 
 Run
 -----
-See separate RUN.md file
+See separate [RUN.md](RUN.md) file
 
 
 Hosting
 ----
-See separate RUN.md file
+See separate [RUN.md](RUN.md) file
 
 
 Security
 ----
-See separate SECURITY.md file
+See separate [SECURITY.md](SECURITY.md) file
 

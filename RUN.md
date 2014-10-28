@@ -82,7 +82,7 @@ This application is a Play! 2.x Scala based application and requires access to y
 * https://www.playframework.com/documentation/2.2.x/Production
 * http://flurdy.com/docs/scalainit/startscala.html
 
-Please also read the security advice in SECURITY.md.
+Please also read the security advice in [SECURITY.md](SECURITY.md).
 
 
 
