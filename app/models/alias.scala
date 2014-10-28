@@ -35,7 +35,16 @@ case class Alias(mail: String, destination: String, enabled: Boolean){
       else throw new IllegalStateException("Edit feature is disabled")
    }
 
-   def parseDomainName = Aliases.parseDomainName(mail)
+   def parseDomainName: Option[String] = Aliases.parseDomainName(mail)
+
+   def findInDatabases: List[(ConnectionName,Option[Alias])] = {
+      for {
+         connectionName <- Environment.connectionNames
+         domainName     <- parseDomainName
+         domain         <- Domains.findDomain(connectionName,domainName)
+         alias          =  Aliases.findAlias(connectionName,mail)
+      } yield (connectionName,alias) 
+   }
 
 }
 

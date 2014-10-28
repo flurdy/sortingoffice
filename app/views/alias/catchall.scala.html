@@ -89,13 +89,6 @@
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                               }
                            }
-                           @**
-                           @if(featureToggles.isEnabled("remove")){
-                              @form(action=routes.AliasController.remove(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
-                                 <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-                              }
-                           }
-                           **@
                         }
                         case None => {
                            @if(featureToggles.isEnabled("add") && currentUser.isDefined){

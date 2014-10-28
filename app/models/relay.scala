@@ -43,6 +43,13 @@ case class Relay(recipient: String, enabled: Boolean, status: String){
 
    def isCatchAll = recipient.startsWith("@")
 
+   def findInDatabases: List[(ConnectionName,Option[Relay])] = {
+      for {
+         connectionName <- Environment.connectionNames
+         relay          = Relays.findRelay(connectionName,recipient)
+      } yield (connectionName,relay) 
+   }
+
 }
 
 object Relays {

@@ -175,6 +175,14 @@ object AliasController extends Controller with DbController with FeatureToggler 
     }(authRequest)
   }
 
+  def viewAddAlias(connection: ConnectionName, domainName: String, mail: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(domainName) { implicit domainRequest =>
+        Ok(views.html.alias.addAlias( connection, domainRequest.domainRequested, aliasForm.fill(Alias(mail,"",false)), "aliasdetails" ))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
   def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainAction(domainName) { implicit domainRequest =>
@@ -271,7 +279,8 @@ object AliasController extends Controller with DbController with FeatureToggler 
       DomainAction(domainName).async { implicit domainRequest =>
         AliasAction(email) { implicit aliasRequest =>
           val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
-          Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays))
+          val databaseAliases = aliasRequest.alias.findInDatabases
+          Ok(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays,databaseAliases))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -293,7 +302,8 @@ object AliasController extends Controller with DbController with FeatureToggler 
             errors => {
               Logger.warn(s"Update alias form error")
               val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
-              BadRequest(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays))
+              val databaseAliases = aliasRequest.alias.findInDatabases
+              BadRequest(views.html.alias.aliasdetails(connection,domainRequest.domainRequested,aliasRequest.alias,relays,databaseAliases))
             },
             alias => {
               aliasRequest.alias.copy(destination=alias.destination).update(connection)

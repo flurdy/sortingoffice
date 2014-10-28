@@ -21,13 +21,13 @@ Features
 * Remove domains, backup domains, aliases, relays and users.
 * Authentication for application access.
 * Edit domains, aliases, relays and users.
+* Check domains, aliases and relays across multiple databases
+* Docker image available
 
 
 Soon
 ---
 * External alias report
-* Run examples
-* Deltas across multiple databases reports
 
 
 Maybe

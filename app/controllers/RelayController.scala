@@ -133,6 +133,14 @@ object RelayController extends Controller with DbController with RelayInjector w
     }(authRequest)
   }
 
+  def viewAddRelay(connection: ConnectionName, domainName: String, recipient: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainOrBackupAction(domainName) { implicit domainRequest =>
+        Ok(views.html.relay.addRelay( connection, domainRequest.domainRequested, relayForm.fill(Relay(recipient,false,"OK")), "relaydetails"))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
   def viewAddCatchAll(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName) { implicit domainRequest =>
@@ -185,7 +193,8 @@ object RelayController extends Controller with DbController with RelayInjector w
               Logger.warn(s"Add relay form error")
               implicit val errorMessages = List(ErrorMessage("Add relay failed"))
               val relays = Relays.findRelaysForAliasIfEnabled(connection, domainRequest.domainRequested, aliasRequest.alias)
-              BadRequest(views.html.alias.aliasdetails( connection, domainRequest.domainRequested, aliasRequest.alias, relays ))
+              val databaseAliases = aliasRequest.alias.findInDatabases
+              BadRequest(views.html.alias.aliasdetails( connection, domainRequest.domainRequested, aliasRequest.alias, relays, databaseAliases ))
             },
             relay => {
               relay.save(connection)
@@ -242,7 +251,8 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
           val backup = Domains.findBackupDomain(connection,domainName)
-          Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,backup,None,request.relay))
+          val databaseRelays = request.relay.findInDatabases
+          Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,backup,None,request.relay,databaseRelays))
         }(connectionRequest)
       }(connectionRequest)
     }(authRequest)
@@ -253,7 +263,8 @@ object RelayController extends Controller with DbController with RelayInjector w
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
-            Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,None,Some(aliasRequest.alias),request.relay))
+            val databaseRelays = request.relay.findInDatabases
+            Ok(views.html.relay.relaydetails(connection,domainRequest.domainRequested,None,Some(aliasRequest.alias),request.relay,databaseRelays))
           }(connectionRequest)
         }(connectionRequest)
       }(connectionRequest)

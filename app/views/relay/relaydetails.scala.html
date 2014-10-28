@@ -1,4 +1,4 @@
-@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, backup: Option[Backup], possibleAlias: Option[Alias], relay: Relay)(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
+@(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, backup: Option[Backup], possibleAlias: Option[Alias], relay: Relay, databaseRelays: List[(Environment.ConnectionName,Option[Relay])])(implicit featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import helper._
 
@@ -110,6 +110,55 @@
 			}
 		</section>
 	}
+
+
+
+
+   <section>
+
+      <h4><a href="@routes.Application.index)">Databases</a></h4>
+
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th>database</th>
+               <th>status</th>
+               <th>enabled</th>
+               <th></th>
+            </tr>
+         </thead>
+         <tbody>
+            @for( (database,databaseRelay) <- databaseRelays){
+               <tr>
+                  <td>
+                     <a href="@routes.Application.connectionIndex(database)">@database</a>
+                  </td>
+                  @databaseRelay match {
+                     case Some(thisRelay) => {
+                        <td @if(!thisRelay.enabled){ class="disabled" }>
+                           <a href="@routes.RelayController.viewRelay(database,domain.name,relay.recipient)">@thisRelay.status</a>
+                        </td>
+                        <td>@thisRelay.enabled</td>
+                        <td colspan="1"></td>
+                     }
+                     case None => {
+                        <td colspan="2"></td>
+                        <td colspan="1">
+                           @if(featureToggles.isEnabled("add") && currentUser.isDefined){
+                              @form(action=routes.RelayController.viewAddRelay(database,domain.name,relay.recipient)){
+                                 <button type="submit" title="add" class="btn btn-xs btn-success">+</button>
+                              }
+                           }
+                        </td>
+                     }
+                  }
+               </tr> 
+            }
+         </tbody>
+      </table> 
+
+   </section>
+
 
 }
 
