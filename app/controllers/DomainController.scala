@@ -109,13 +109,34 @@ object DomainController extends Controller with DbController with FeatureToggler
 
   def viewDomain(connection: ConnectionName, name: String) = AuthenticatedPossible.async { implicit authRequest =>
     ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(name) { implicit domainRequest =>
-        val relays  = domainRequest.domainRequested.findRelaysIfEnabled
-        val aliases = domainRequest.domainRequested.findAliases
-        val users   = domainRequest.domainRequested.findUsers
-        val databaseDomains = domainRequest.domainRequested.findInDatabases
-        Ok(views.html.domain.domaindetails(
-          connection, Some(domainRequest.domainRequested), None, relays, aliases, users, databaseDomains))
+      DomainOrBackupAction(name) { implicit domainRequest =>
+        Domains.findDomain(connectionRequest.connection, name) match {
+          case Some(domain) => {
+            val relays  = domain.findRelaysIfEnabled
+            val aliases = domain.findAliases
+            val users   = domain.findUsers
+            val databaseDomains = domain.findInDatabases
+            Ok(views.html.domain.domaindetails(
+              connection, Some(domain), None, relays, aliases, users, databaseDomains))
+          } 
+          case None => {
+            Domains.findBackupDomain(connectionRequest.connection, name) match {
+              case Some(backup) => {
+                  Logger.debug(s"Domain $name is a backup not relay")
+                  Redirect(routes.DomainController.viewBackup(connection,name))
+              } 
+              case None => {
+                  Logger.warn(s"Domain $name not found")
+                  val relayDomains = Domains.findDomains(connectionRequest.connection)
+                  val backups = Domains.findBackupDomainsIfEnabled(connectionRequest.connection)
+                  implicit val errorMessages = List(ErrorMessage("Domain not found"))
+                  NotFound(views.html.domain.domain(
+                    connectionRequest.connection, relayDomains, backups)(
+                    errorMessages,FeatureToggles.findFeatureToggles(connectionRequest.connection),None))
+              }
+            }
+          }
+        }
       }(connectionRequest)
     }(authRequest)
   }
