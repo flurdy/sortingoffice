@@ -391,4 +391,22 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
+  def convertToBackup(connection: ConnectionName, name: String) =  Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      DomainAction(name) { implicit domainRequest =>
+        domainRequest.domainRequested.convertToBackup
+        Redirect(routes.DomainController.viewBackup(connection,name))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
+  def convertToRelay(connection: ConnectionName, name: String) =  Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection).async { implicit connectionRequest =>
+      BackupAction(name) { implicit domainRequest =>
+        domainRequest.backup.convertToRelay
+        Redirect(routes.DomainController.viewDomain(connection,name))
+      }(connectionRequest)
+    }(authRequest)
+  }
+
 }

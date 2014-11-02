@@ -52,6 +52,14 @@
 					}
 				</section>
 			}
+				
+			@if(featureToggles.isEnabled("edit")){
+				<section>
+					@form(action=routes.DomainController.convertToBackup(currentDatabaseConnection,domainFound.name)){
+						<button type="submit" title="convert" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">convert to backup</button>
+					}
+				</section>
+			}
 
 			@if(featureToggles.isEnabled("remove")){
 				<section title="Can only remove a disabled domain">
@@ -113,7 +121,14 @@
 				}
 			</section>
 		}
-
+			
+		@if(featureToggles.isEnabled("edit") && currentUser.isDefined){
+			<section>
+				@form(action=routes.DomainController.convertToRelay(currentDatabaseConnection,backupFound.domain.name)){
+					<button type="submit" title="convert" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">convert to relay</button>
+				}
+			</section>
+		}
 
 		@if(featureToggles.isEnabled("remove") && currentUser.isDefined){
 			<section title="Can only remove a disabled domain">

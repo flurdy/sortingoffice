@@ -82,6 +82,14 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
       } 
    }
 
+   def convertToBackup = connection.map{ con =>
+      if(FeatureToggles.isEditEnabled(con)){
+         val newBackup = Backup(this.copy(transport = ":[]")).save
+         this.delete
+         newBackup
+      } else throw new IllegalStateException("Edit feature is disabled")
+   }
+
 }
 
 
@@ -114,6 +122,14 @@ case class Backup(domain: Domain){
       else throw new IllegalStateException("Edit feature is disabled")
    }
 
+   def convertToRelay = domain.connection.map{ con =>
+      if(FeatureToggles.isEditEnabled(con)){
+         val newDomain = domain.copy(transport="virtual:").save
+         this.delete
+         newDomain
+      } else throw new IllegalStateException("Edit feature is disabled")
+   }
+   
 }
 
 
