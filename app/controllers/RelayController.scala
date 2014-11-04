@@ -44,6 +44,7 @@ object RelayController extends Controller with DbController with RelayInjector w
     ConnectionAction(connection).async { implicit connectionRequest =>
       DomainOrBackupAction(domainName).async { implicit domainRequest =>
         RelayAction(recipient) { implicit request =>
+          Logger.info(s"Relay disabled: $recipient")
           request.relay.disable(connection)
           returnUrl match {
             case "catchall" => Redirect(routes.AliasController.catchAll(connection))
@@ -62,7 +63,7 @@ object RelayController extends Controller with DbController with RelayInjector w
         AliasAction(email).async { implicit aliasRequest =>
           RelayAction(recipient) { implicit request =>
             request.relay.disable(connection)
-            Logger.info("Relay disabled: $recipient")
+            Logger.info(s"Relay disabled: $recipient")
             returnUrl match {
               case "relaydetails" => Redirect(routes.RelayController.viewAliasRelay(connection,domainName,email,recipient))
               case _ => Redirect(routes.AliasController.viewAlias(connection,domainName,email))

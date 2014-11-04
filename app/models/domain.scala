@@ -12,6 +12,8 @@ case class Domain(connection: Option[ConnectionName], name: String, enabled: Boo
 
    def this(name: String, enabled: Boolean, transport: String) = this( None, name, enabled, transport)
 
+   def this(name: String) = this( None, name, false, ":[]")
+
    def withConnection(connection: ConnectionName) = Domain( Some(connection), name, enabled, transport)
 
    def findRelaysIfEnabled = {

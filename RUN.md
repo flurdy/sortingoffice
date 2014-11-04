@@ -61,6 +61,9 @@ To run with your own configuration:
 
 You could run a MySQL server as a Docker container and import the data into it.
 ( https://registry.hub.docker.com/u/flurdy/mysql/ )
+Or run a container that is a ssh tunnel to a real mysql database:
+( https://github.com/flurdy/Dockerfiles/tree/master/sshtunnel )
+
 To run with an already containerised database :
 
    docker -ti --rm -p 49900:9000 \

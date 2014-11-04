@@ -26,32 +26,31 @@
          <tbody>
             @for(alias <- aliases){
                <tr>
-                  <td>
-                     @if(!alias.enabled){ <s> }
+                  <td @if(!alias.enabled){ class="disabled"}>
                      @alias.mail
-                     @if(!alias.enabled){ </s> }
                   </td>
-                  <td>
-                     @if(!alias.enabled){ <s> }
+                  <td @if(!alias.enabled){ class="disabled"}>
                      @alias.destination
-                     @if(!alias.enabled){ </s> }
                   </td>
                   <td>
                      @alias.enabled
                   </td>
                   <td class="actions">
-                     @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
+                     @if(currentUser.isDefined){
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"orphan"), 'class -> "form-inline", 'role -> "form"){
-                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           @if(featureToggles.isEnabled("toggle") ){
+                              @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"orphan"), 'class -> "form-inline", 'role -> "form"){
+                                 <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>                           
+                              }
+                           }
+                        } else {
+                           @if(featureToggles.isEnabled("remove") ){
+                              @form(action=routes.AliasController.removeAlias(currentDatabaseConnection,alias.mail), 'class -> "form-inline", 'role -> "form"){
+                                 <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                              }
                            }
                         }
-                     }
-                     @if(featureToggles.isEnabled("remove") && currentUser.isDefined){
-                        @form(action=routes.AliasController.removeAlias(currentDatabaseConnection,alias.mail), 'class -> "form-inline", 'role -> "form"){
-                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
-                        }
-                     }
+                     }  
                   </td>
                </tr>
             }
@@ -76,30 +75,29 @@
          <tbody>
             @for(relay <- relays){
                <tr>
-                  <td>
-                     @if(!relay.enabled){ <s> }
+                  <td @if(!relay.enabled){ class="disabled"}>
                      @relay.recipient
-                     @if(!relay.enabled){ </s> }
                   </td>
-                  <td>
-                     @if(!relay.enabled){ <s> }
+                  <td @if(!relay.enabled){ class="disabled"}>
                      @relay.status
-                     @if(!relay.enabled){ </s> }
                   </td>
                   <td>
                      @relay.enabled
                   </td>
                   <td class="actions">
-                     @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
+                     @if(currentUser.isDefined){
                         @if(relay.enabled){
-                           @form(action=routes.RelayController.disableRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
-                              <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                           @if(featureToggles.isEnabled("toggle")){
+                              @form(action=routes.RelayController.disableRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                                 <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
+                              }
                            }
-                        }
-                     }
-                     @if(featureToggles.isEnabled("remove") && currentUser.isDefined){
-                        @form(action=routes.RelayController.removeRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
-                           <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                        } else {   
+                           @if(featureToggles.isEnabled("remove")){
+                              @form(action=routes.RelayController.removeRelay(currentDatabaseConnection,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+                                 <button type="submit" title="remove" class="btn btn-xs btn-danger">x</button>
+                              }
+                           }
                         }
                      }
                   </td>

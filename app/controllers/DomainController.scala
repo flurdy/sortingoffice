@@ -218,6 +218,12 @@ object DomainController extends Controller with DbController with FeatureToggler
     }(authRequest)
   }
 
+  def viewAddDatabaseDomain(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      Ok(views.html.domain.addDomain( connection, domainForm.fill( name  ) ) )
+    }(authRequest)
+  }
+
   def add(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
       domainForm.bindFromRequest()(request).fold(
@@ -271,6 +277,12 @@ object DomainController extends Controller with DbController with FeatureToggler
   def viewAddBackup(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
     ConnectionAction(connection) { implicit request =>
       Ok(views.html.domain.addBackup( connection, backupForm ))
+    }(authRequest)
+  }
+
+  def viewAddDatabaseBackup(connection: ConnectionName, name: String) = Authenticated.async { implicit authRequest =>
+    ConnectionAction(connection) { implicit request =>
+      Ok(views.html.domain.addBackup( connection, backupForm.fill( new Domain(name ) ) ))
     }(authRequest)
   }
 

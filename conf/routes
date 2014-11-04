@@ -10,6 +10,7 @@ GET     /db/:db/              controllers.Application.connectionIndex(db: String
 
 GET     /db/:db/domain               controllers.DomainController.domain(db: String)
 GET     /db/:db/domain/add           controllers.DomainController.viewAdd(db: String)
+GET     /db/:db/domain/:domain/add    controllers.DomainController.viewAddDatabaseDomain(db: String, domain: String)
 POST    /db/:db/domain               controllers.DomainController.add(db: String)
 GET     /db/:db/domain/:domain/remove controllers.DomainController.viewRemove(db: String, domain: String)
 POST    /db/:db/domain/:domain/remove controllers.DomainController.remove(db: String, domain: String)
@@ -21,6 +22,7 @@ POST    /db/:db/domain/:domain/enable/returnUrl/:returnUrl  controllers.DomainCo
 POST    /db/:db/domain/:domain/backup/disable/returnUrl/:returnUrl controllers.DomainController.disableBackup(db: String, domain: String, returnUrl: String)
 POST    /db/:db/domain/:domain/backup/enable/returnUrl/:returnUrl controllers.DomainController.enableBackup(db: String, domain: String, returnUrl: String)
 GET     /db/:db/domain/backup/add    controllers.DomainController.viewAddBackup(db: String)
+GET     /db/:db/domain/backup/:domain/add    controllers.DomainController.viewAddDatabaseBackup(db: String, domain: String)
 POST    /db/:db/domain/backup        controllers.DomainController.addBackup(db: String)
 POST    /db/:db/domain/backup/:domain/update/returnUrl/:returnUrl 	controllers.DomainController.updateBackup(db: String, domain: String, returnUrl: String)
 POST    /db/:db/domain/backup/:domain/convert controllers.DomainController.convertToRelay(db: String, domain: String)

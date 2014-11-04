@@ -14,6 +14,15 @@
 	}
 }
 
+@addDatabaseDomain(database: Environment.ConnectionName, name: String) = {
+	<div class="pull-right">
+		<a title="add" href="@routes.DomainController.viewAddDatabaseDomain(database,name)" 
+			class="btn btn-sm btn-primary">add domain</a>
+		<a title="add" href="@routes.DomainController.viewAddDatabaseBackup(database,name)" 
+			class="btn btn-sm btn-primary">add backup</a>
+	</div>	
+}
+
 @main(Some("Domain aliases and users"), Some(currentDatabaseConnection)) {
 
    @for(domainFound <- domain){
@@ -108,34 +117,36 @@
 			}
  		}
 
-		@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
-			<section>
-				@if(backupFound.domain.enabled){
-					@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,backupFound.domain.name,"domaindetails")){
-						<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable backup</button>
+		@if(currentUser.isDefined){
+			@if(featureToggles.isEnabled("toggle")){
+				<section>
+					@if(backupFound.domain.enabled){
+						@form(action=routes.DomainController.disableBackup(currentDatabaseConnection,backupFound.domain.name,"domaindetails")){
+							<button type="submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable backup</button>
+						}
+					} else {
+						@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,backupFound.domain.name,"domaindetails")){
+							<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable backup</button>
+						}
 					}
-				} else {
-					@form(action=routes.DomainController.enableBackup(currentDatabaseConnection,backupFound.domain.name,"domaindetails")){
-						<button type="submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable backup</button>
-					}
-				}
-			</section>
-		}
+				</section>
+			}
 			
-		@if(featureToggles.isEnabled("edit") && currentUser.isDefined){
-			<section>
-				@form(action=routes.DomainController.convertToRelay(currentDatabaseConnection,backupFound.domain.name)){
-					<button type="submit" title="convert" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">convert to relay</button>
-				}
-			</section>
-		}
+			@if(featureToggles.isEnabled("edit")){
+				<section>
+					@form(action=routes.DomainController.convertToRelay(currentDatabaseConnection,backupFound.domain.name)){
+						<button type="submit" title="convert" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">convert to relay</button>
+					}
+				</section>
+			}
 
-		@if(featureToggles.isEnabled("remove") && currentUser.isDefined){
-			<section title="Can only remove a disabled domain">
-				@if(!backupFound.domain.enabled){
-					<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,backupFound.domain.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
-				}
-			</section>
+			@if(featureToggles.isEnabled("remove")){
+				<section title="Can only remove a disabled domain">
+					@if(!backupFound.domain.enabled){
+						<a href="@routes.DomainController.viewRemove(currentDatabaseConnection,backupFound.domain.name)" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove domain</a>
+					}
+				</section>
+			}
 		}
 
 	}
@@ -335,26 +346,39 @@
 				</thead>
 				<tbody>
 					@for( (database,databaseDomain,databaseBackup) <- databaseDomains){
-						@for( thisDomain <- databaseDomain){
-							<tr>
-								<td>
-									<a href="@routes.Application.connectionIndex(database)">@database</a>
-								</td>
-								<td @if(!thisDomain.enabled){ class="disabled" }>
-									@databaseBackup match {
-										case Some(thisBackup) => {
-											<a href="@routes.DomainController.viewBackup(database,thisDomain.name)">backup</a>
+						<tr>
+							<td>
+								<a href="@routes.Application.connectionIndex(database)">@database</a>
+							</td>
+							@databaseDomain match {
+								case Some(thisDomain) => {
+									<td @if(!thisDomain.enabled){ class="disabled" }>
+										@databaseBackup match {
+											case Some(thisBackup) => {
+												<a href="@routes.DomainController.viewBackup(database,thisDomain.name)">backup</a>
+											}
+											case None => {
+												<a href="@routes.DomainController.viewDomain(database,thisDomain.name)">domain</a>
+											}
 										}
-										case None => {
-											<a href="@routes.DomainController.viewDomain(database,thisDomain.name)">domain</a>
+									</td>	
+									<td @if(!thisDomain.enabled){ class="disabled" }>@thisDomain.transport</td>
+									<td>@thisDomain.enabled</td>
+									<td colspan="1"></td>
+								}
+								case None => {
+									<td colspan="3"></td>
+									<td colspan="1">	
+										@for(domainFound <- domain){	
+											@addDatabaseDomain(database,domainFound.name)
 										}
-									}
-								</td>	
-								<td @if(!thisDomain.enabled){ class="disabled" }>@thisDomain.transport</td>
-								<td>@thisDomain.enabled</td>
-								<td colspan="1"></td>
-							</tr>	
-						}
+										@for(backupFound <- backup){
+											@addDatabaseDomain(database,backupFound.domain.name)
+										}
+									</td>
+								}
+							}
+						</tr>	
 					}
 				</tbody>
 			</table>	
