@@ -1,4 +1,4 @@
-FROM flurdy/activator-mini:latest
+FROM flurdy/activator:latest
 
 MAINTAINER flurdy
 
@@ -9,10 +9,9 @@ ENV APPBRANCH master
 ENV APPNAME sortingoffice
 ENV APPDIR /var/local/sortingoffice
 
-RUN wget https://github.com/$GITHUBUSER/$APPNAME/archive/$APPBRANCH.zip && \
-  unzip $APPBRANCH.zip && \
-  rm $APPBRANCH.zip && \
-  mv $APPNAME-$APPBRANCH $APPDIR
+ADD . /var/local/sortingoffice
+
+ADD repositories /root/.sbt/repositories
 
 WORKDIR /var/local/sortingoffice
 
