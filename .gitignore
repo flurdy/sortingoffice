@@ -16,3 +16,7 @@ dist
 /conf/local.conf
 /conf/prod.conf
 /local
+/app.old
+/conf.old
+/public.old
+/test.old

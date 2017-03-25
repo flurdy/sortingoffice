@@ -7,6 +7,28 @@ It assumes a mail server based on flurdy's "How to set up a mail server on a GNU
 	http://flurdy.com/docs/postfix/
 
 
+Versions
+----
+
+### v1.x
+
+Version 1 is the stable and most feature rich version.
+
+It is currently on master, ie. this branch.
+
+It is the one you should use.
+
+
+### v2.x
+
+Version 2 is in development, unstable, and currently with very limited features.
+
+It is on branch v2.x until more stable.
+
+It is a rethink of how to approach multiple but related mail servers.
+
+
+
 Features
 ----
 * View data that are contained in the mail database.
@@ -75,4 +97,3 @@ See separate [RUN.md](RUN.md) file
 Security
 ----
 See separate [SECURITY.md](SECURITY.md) file
-
