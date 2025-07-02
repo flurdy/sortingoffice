@@ -4,11 +4,11 @@
 
 @toggleRelay(relay: Relay, relayDomain: Domain) = {
 	@if(relay.enabled){
-		@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient,"domaindetails"), 'class -> "form-inline", 'role -> "form"){
+		@form(action=routes.RelayController.disable(currentDatabaseConnection,relayDomain.name,relay.recipient,"domaindetails"), "class" -> "form-inline", "role" -> "form"){
 			<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
 		}
 	} else {
-		@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient,"domaindetails"), 'class -> "form-inline", 'role -> "form"){
+		@form(action=routes.RelayController.enable(currentDatabaseConnection,relayDomain.name,relay.recipient,"domaindetails"), "class" -> "form-inline", "role" -> "form"){
 			<button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
 		}
 	}
@@ -16,11 +16,11 @@
 
 @addDatabaseDomain(database: Environment.ConnectionName, name: String) = {
 	<div class="pull-right">
-		<a title="add" href="@routes.DomainController.viewAddDatabaseDomain(database,name)" 
+		<a title="add" href="@routes.DomainController.viewAddDatabaseDomain(database,name)"
 			class="btn btn-sm btn-primary">add domain</a>
-		<a title="add" href="@routes.DomainController.viewAddDatabaseBackup(database,name)" 
+		<a title="add" href="@routes.DomainController.viewAddDatabaseBackup(database,name)"
 			class="btn btn-sm btn-primary">add backup</a>
-	</div>	
+	</div>
 }
 
 @main(Some("Domain aliases and users"), Some(currentDatabaseConnection)) {
@@ -61,7 +61,7 @@
 					}
 				</section>
 			}
-				
+
 			@if(featureToggles.isEnabled("edit")){
 				<section>
 					@form(action=routes.DomainController.convertToBackup(currentDatabaseConnection,domainFound.name)){
@@ -131,7 +131,7 @@
 					}
 				</section>
 			}
-			
+
 			@if(featureToggles.isEnabled("edit")){
 				<section>
 					@form(action=routes.DomainController.convertToRelay(currentDatabaseConnection,backupFound.domain.name)){
@@ -180,11 +180,11 @@
 						<td class="actions">
 							@if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
 								@if(alias.enabled){
-									@form(action=routes.AliasController.disable(currentDatabaseConnection,domainFound.name,alias.mail, "domaindetails"), 'class -> "form-inline", 'role -> "form"){
+									@form(action=routes.AliasController.disable(currentDatabaseConnection,domainFound.name,alias.mail, "domaindetails"), "class" -> "form-inline", "role" -> "form"){
 										<button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
 									}
 								} else {
-									@form(action=routes.AliasController.enable(currentDatabaseConnection,domainFound.name,alias.mail,"domaindetails"), 'class -> "form-inline", 'role -> "form"){
+									@form(action=routes.AliasController.enable(currentDatabaseConnection,domainFound.name,alias.mail,"domaindetails"), "class" -> "form-inline", "role" -> "form"){
 									<button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
 									}
 								}
@@ -361,15 +361,15 @@
 												<a href="@routes.DomainController.viewDomain(database,thisDomain.name)">domain</a>
 											}
 										}
-									</td>	
+									</td>
 									<td @if(!thisDomain.enabled){ class="disabled" }>@thisDomain.transport</td>
 									<td>@thisDomain.enabled</td>
 									<td colspan="1"></td>
 								}
 								case None => {
 									<td colspan="3"></td>
-									<td colspan="1">	
-										@for(domainFound <- domain){	
+									<td colspan="1">
+										@for(domainFound <- domain){
 											@addDatabaseDomain(database,domainFound.name)
 										}
 										@for(backupFound <- backup){
@@ -378,10 +378,10 @@
 									</td>
 								}
 							}
-						</tr>	
+						</tr>
 					}
 				</tbody>
-			</table>	
+			</table>
 
 		</section>
 

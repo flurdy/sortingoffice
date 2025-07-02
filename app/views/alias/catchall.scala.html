@@ -45,11 +45,11 @@
                   <td class="actions">
                      @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), "class" -> "form-inline", "role" -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         } else {
-                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"catchall"), "class" -> "form-inline", "role" -> "form"){
                               <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                            }
                         }
@@ -85,7 +85,7 @@
                      @alias match{
                         case Some(aliasFound) => {
                            @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
-                              @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                              @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,aliasFound.mail,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                  <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                               }
                            }
@@ -140,11 +140,11 @@
                            <td class="actions">
                               @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                  @if(relay.enabled){
-                                    @form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                        <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                                     }
                                   } else {
-                                    @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                        <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                     }
                                  }
@@ -168,11 +168,11 @@
                            <td class="actions">
                               @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
                                  @if(relay.enabled){
-                                    @form(action=routes.RelayController.disable(currentDatabaseConnection,backup.domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.RelayController.disable(currentDatabaseConnection,backup.domain.name,relay.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                        <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                                     }
                                   } else {
-                                    @form(action=routes.RelayController.enable(currentDatabaseConnection,backup.domain.name,relay.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.RelayController.enable(currentDatabaseConnection,backup.domain.name,relay.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                        <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                     }
                                  }
@@ -212,7 +212,7 @@
                               @relay match{
                                  case Some(relayFound) => {
                                     @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
-                                       @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                       @form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relayFound.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                           <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                        }
                                     }
@@ -246,7 +246,7 @@
                               @relay match{
                                  case Some(relayFound) => {
                                     @if(featureToggles.isEnabled("toggle") && currentUser.isDefined){
-                                       @form(action=routes.RelayController.enable(currentDatabaseConnection,backup.domain.name,relayFound.recipient,"catchall"), 'class -> "form-inline", 'role -> "form"){
+                                       @form(action=routes.RelayController.enable(currentDatabaseConnection,backup.domain.name,relayFound.recipient,"catchall"), "class" -> "form-inline", "role" -> "form"){
                                           <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                                        }
                                     }

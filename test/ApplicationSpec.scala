@@ -4,6 +4,8 @@ import org.junit.runner._
 
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.Helpers._
 
 /**
  * Add your spec here.
@@ -15,16 +17,26 @@ class ApplicationSpec extends Specification {
 
   "Application" should {
 
-    "send 404 on a bad request" in new WithApplication{
-      route(FakeRequest(GET, "/boum")) must beNone
+    "send 404 on a bad request" in {
+      val app = new GuiceApplicationBuilder().build()
+      Helpers.running(app) {
+        val request = FakeRequest(GET, "/boum")
+        val result = route(app, request).get
+
+        status(result) must equalTo(NOT_FOUND)
+      }
     }
 
-    "render the index page" in new WithApplication{
-      val home = route(FakeRequest(GET, "/")).get
+    "render the index page" in {
+      val app = new GuiceApplicationBuilder().build()
+      Helpers.running(app) {
+        val request = FakeRequest(GET, "/")
+        val result = route(app, request).get
 
-      status(home) must equalTo(OK)
-      contentType(home) must beSome.which(_ == "text/html")
-      contentAsString(home) must contain ("Your new application is ready.")
+        status(result) must equalTo(OK)
+        contentType(result) must beSome.which(_ == "text/html")
+        contentAsString(result) must contain ("Your new application is ready.")
+      }
     }
   }
 }

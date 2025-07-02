@@ -1,174 +1,183 @@
 package controllers
 
-
-import scala.concurrent.Future
-import play.api._
+import javax.inject._
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
-import play.api.mvc.Security._
-import play.api.mvc.Results._
 import play.api.data._
 import play.api.data.Forms._
+import play.api.Logging
 import models._
-import models.Environment.ConnectionName
+import org.apache.pekko.stream.Materializer
 
+class RequestWithConnection[A](val connection: String, request: Request[A]) extends WrappedRequest[A](request)
 
-class RequestWithConnection[A](val connection: ConnectionName, request: Request[A]) extends WrappedRequest[A](request)
+class DbController @Inject()(environment: Environment, bodyParsers: PlayBodyParsers)(implicit mat: Materializer) {
+  implicit val databaseConnections: scala.List[(String, String)] = environment.databaseConnections
 
-trait DbController {
+  implicit def connectionName[A](implicit request: RequestWithConnection[A]): String = request.connection
 
-  implicit val databaseConnections: List[(String,String)] = Environment.databaseConnections
+  def isValidConnection(connection: String): Boolean = databaseConnections.exists(_._1 == connection)
 
-  implicit def connectionName[A](implicit request: RequestWithConnection[A]): ConnectionName = request.connection
-
-  def isValidConnection(connection: ConnectionName): Boolean = databaseConnections.exists( _._1 == connection )
-
-  def ConnectionAction(connection: ConnectionName) = new ActionBuilder[RequestWithConnection] {
-    def invokeBlock[A](request: Request[A], block: (RequestWithConnection[A]) => Future[SimpleResult]) = {
-      if( isValidConnection(connection) ){
-        block(new RequestWithConnection(connection, request))
-      } else {
-        implicit val errorMessages = List(ErrorMessage("Connection not found"))
-        implicit val user: Option[ApplicationUser] = None
-        Future.successful(
-          NotFound(views.html.connections(databaseConnections))
-        )
+  def ConnectionAction(connection: String)(implicit ec: ExecutionContext): ActionBuilder[RequestWithConnection, AnyContent] =
+    new ActionBuilder[RequestWithConnection, AnyContent] {
+      override def parser: BodyParser[AnyContent] = bodyParsers.default
+      override protected def executionContext: ExecutionContext = ec
+      override def invokeBlock[A](request: Request[A], block: RequestWithConnection[A] => Future[Result]): Future[Result] = {
+        if (isValidConnection(connection)) {
+          block(new RequestWithConnection(connection, request))
+        } else {
+          val errorMessages = scala.List(ErrorMessage("Connection not found"))
+          Future.successful(Results.NotFound(views.html.connections(databaseConnections)(errorMessages, None)))
+        }
       }
     }
-  }
-
 }
 
-
-trait FeatureToggler {
-
-  implicit def featureToggles[A](implicit request: RequestWithConnection[A]): FeatureToggleMap = FeatureToggles.findFeatureToggles(request.connection)
-
+class FeatureToggler @Inject()(featureToggles: FeatureToggles) {
+  implicit def featureTogglesForRequest[A](implicit request: RequestWithConnection[A]): FeatureToggleMap = featureToggles.findFeatureToggles(request.connection)
 }
-
 
 class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
-
 class AuthenticatedPossibleRequest[A](val username: Option[String], request: Request[A]) extends WrappedRequest[A](request)
 
-trait Secured {
-
-  def Authenticated = new ActionBuilder[AuthenticatedRequest] {
-    def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
+class Secured @Inject()(cc: MessagesControllerComponents)(implicit ec: ExecutionContext) {
+  def Authenticated: ActionBuilder[AuthenticatedRequest, AnyContent] = new ActionBuilder[AuthenticatedRequest, AnyContent] {
+    override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+    override protected def executionContext: ExecutionContext = ec
+    override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
       request.session.get("username") match {
-        case Some(username) => {
-          block(new AuthenticatedRequest(username, request))
-        }
-        case None => {
-          implicit val errorMessages = List(ErrorMessage("Not authenticated"))
-          implicit val user: Option[ApplicationUser] = None
-          Future.successful(Forbidden(views.html.login(Application.loginForm)))
-        }
+        case Some(username) => block(new AuthenticatedRequest(username, request))
+        case None =>
+          val errorMessages = scala.List(ErrorMessage("Not authenticated"))
+          Future.successful(Results.Forbidden(views.html.login(ApplicationController.loginForm)(errorMessages, None)))
       }
     }
   }
 
-  def AuthenticatedPossible = new ActionBuilder[AuthenticatedPossibleRequest] {
-    def invokeBlock[A](request: Request[A], block: (AuthenticatedPossibleRequest[A]) => Future[SimpleResult]) = {
+  def AuthenticatedPossible: ActionBuilder[AuthenticatedPossibleRequest, AnyContent] = new ActionBuilder[AuthenticatedPossibleRequest, AnyContent] {
+    override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
+    override protected def executionContext: ExecutionContext = ec
+    override def invokeBlock[A](request: Request[A], block: AuthenticatedPossibleRequest[A] => Future[Result]): Future[Result] = {
       block(new AuthenticatedPossibleRequest(request.session.get("username"), request))
     }
   }
 
-  implicit def currentUser[A](implicit request: AuthenticatedRequest[A]): Option[ApplicationUser] = {        
-    Some(ApplicationUser(request.username))
-  }
-
-  implicit def currentPossibleUser[A](implicit request: AuthenticatedPossibleRequest[A]): Option[ApplicationUser] = {      
-    request.username.map( ApplicationUser(_) )
-  }
-
+  implicit def currentUser[A](implicit request: AuthenticatedRequest[A]): scala.Option[ApplicationUser] = scala.Some(ApplicationUser(request.username))
+  implicit def currentPossibleUser[A](implicit request: AuthenticatedPossibleRequest[A]): scala.Option[ApplicationUser] = request.username.map(ApplicationUser(_))
 }
 
+object ApplicationController {
+  val loginFields = mapping(
+    "username" -> text,
+    "password" -> text
+  )((username, password) => LoginDetails(username, password))((ld: LoginDetails) => Some((ld.username, ld.password)))
+  val loginForm = Form(loginFields)
+}
 
-object Application extends Controller with DbController with Secured {
+@Singleton
+class ApplicationController @Inject()(
+  cc: MessagesControllerComponents,
+  environment: Environment,
+  applicationUsers: ApplicationUsers,
+  bodyParsers: PlayBodyParsers
+)(implicit ec: ExecutionContext, mat: Materializer)
+  extends AbstractController(cc)
+  with Logging {
 
-  def index = AuthenticatedPossible { implicit authRequest =>
+  val dbController = new DbController(environment, bodyParsers)
+  val secured = new Secured(cc)
+
+  import dbController._
+  import secured._
+
+  def index = AuthenticatedPossible { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
     databaseConnections.size match {
-      case 0 => NotFound(views.html.connections(List.empty))
-      case 1 => Redirect(routes.Application.connectionIndex(databaseConnections.head._1))
+      case 0 => NotFound(views.html.connections(scala.List.empty))
+      case 1 => Redirect(routes.ApplicationController.connectionIndex(databaseConnections.head._1))
       case _ => Ok(views.html.connections(databaseConnections))
     }
   }
 
-  def connectionIndex(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
-    ConnectionAction(connection) { request =>
-      Ok(views.html.index(connection))
-    }(authRequest)
+  def connectionIndex(connection: String) = AuthenticatedPossible.async { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
+    ConnectionAction(connection).invokeBlock(authRequest, { request =>
+      Future.successful(Ok(views.html.index(connection)))
+    })
   }
 
-  def about = AuthenticatedPossible { implicit authRequest =>
+  def about = AuthenticatedPossible { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
     Ok(views.html.about())
   }
 
-  def contact = AuthenticatedPossible { implicit authRequest =>
+  def contact = AuthenticatedPossible { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
     Ok(views.html.contact())
   }
 
-  val loginFields = mapping (
-    "username" -> text,
-    "password" -> text
-  )(LoginDetails.apply)(LoginDetails.unapply)
-
-  val loginForm = Form( loginFields )
-
-  def viewLogin = Action {
-    Ok(views.html.login(loginForm)).withNewSession
+  def viewLogin = Action { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = None
+    Ok(views.html.login(ApplicationController.loginForm)).withNewSession
   }
 
-  def login = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
+  def login = Action { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = None
+    ApplicationController.loginForm.bindFromRequest().fold(
       errors => {
-        Logger.warn(s"Login form error")
+        logger.warn(s"Login form error")
         BadRequest(views.html.login(errors))
       },
       loginDetails => {
-        ApplicationUsers.authenticateLoginDetails(loginDetails) match {
-          case Some(applicationUser) => {
-
-            Redirect(routes.Application.index()).withSession("username" -> loginDetails.username)
-
-          }
-          case None => {
-            Logger.warn(s"Authentication failed. Either the user does not exist or the password is incorrect")
-            implicit val errorMessages = List(ErrorMessage(
-                "Authentication failed. Either the user does not exist or the password is incorrect"))
-            BadRequest(views.html.login(loginForm.fill(loginDetails)))
-          }
+        applicationUsers.authenticateLoginDetails(loginDetails) match {
+          case Some(applicationUser) =>
+            Redirect(routes.ApplicationController.index).withSession("username" -> loginDetails.username)
+          case None =>
+            logger.warn(s"Authentication failed. Either the user does not exist or the password is incorrect")
+            val errorMessages = scala.List(ErrorMessage(
+              "Authentication failed. Either the user does not exist or the password is incorrect"))
+            BadRequest(views.html.login(ApplicationController.loginForm.fill(loginDetails))(errorMessages, None))
         }
       }
     )
   }
 
   def logout = Action {
-    Redirect(routes.Application.index()).withNewSession
+    Redirect(routes.ApplicationController.index).withNewSession
   }
 
-  val registerFields = mapping (
+  val registerFields = mapping(
     "username" -> text,
     "password" -> text,
     "confirmPassword" -> text
-  )(RegisterDetails.apply)(RegisterDetails.unapply) verifying("Passwords does not match", fields => fields match {
-    case registerDetails => registerDetails.password == registerDetails.confirmPassword
+  )((username, password, confirmPassword) => RegisterDetails(username, password, confirmPassword))((rd: RegisterDetails) => Some((rd.username, rd.password, rd.confirmPassword))) verifying ("Passwords does not match", fields => fields match {
+    case RegisterDetails(_, password, confirmPassword) => password == confirmPassword
   })
 
-  val registerForm = Form( registerFields )
+  val registerForm = Form(registerFields)
 
-  def viewRegister = AuthenticatedPossible { implicit authRequest =>
+  def viewRegister = AuthenticatedPossible { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
     Ok(views.html.register(registerForm))
   }
 
-  def register = AuthenticatedPossible { implicit authRequest =>
-    registerForm.bindFromRequest.fold(
+  def register = AuthenticatedPossible { implicit authRequest: AuthenticatedPossibleRequest[AnyContent] =>
+    implicit val errorMessages: scala.List[ErrorMessage] = scala.List.empty
+    implicit val currentUser: scala.Option[ApplicationUser] = currentPossibleUser
+    registerForm.bindFromRequest().fold(
       errors => {
-        Logger.warn(s"Register form error")
+        logger.warn(s"Register form error")
         BadRequest(views.html.register(errors))
       },
       registerDetails => {
-        ApplicationUsers.register(registerDetails)
+        applicationUsers.register(registerDetails)
         Ok(views.html.registered(registerForm)).withNewSession
       }
     )

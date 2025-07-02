@@ -64,7 +64,7 @@
          </section>
       }
    }
-  
+
    @if(featureToggles.isEnabled("edit") && !user.passwordReset){
          <section>
             @form(action=routes.UserController.resetPassword(currentDatabaseConnection,user.email)){
@@ -90,7 +90,7 @@
    @if(featureToggles.isEnabled("remove")){
       <section>
          @if(!user.enabled){
-            @form(action=routes.UserController.remove(currentDatabaseConnection,user.email, "edituser"), 'class -> "form-inline", 'role -> "form"){
+            @form(action=routes.UserController.remove(currentDatabaseConnection,user.email, "edituser"), "class" -> "form-inline", "role" -> "form"){
                <button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove user</button>
             }
          }
@@ -127,11 +127,11 @@
                            <td class="actions">
                               @if(featureToggles.isEnabled("toggle")){
                                  @if(alias.enabled){
-                                    @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail, "userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail, "userdetails"), "class" -> "form-inline", "role" -> "form"){
                                        <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
                                     }
                                  } else {
-                                    @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"userdetails"), "class" -> "form-inline", "role" -> "form"){
                                     <button type"submit" title="enable" class="btn btn-xs btn-success">e</button>
                                     }
                                  }
@@ -149,7 +149,7 @@
                            <td class="actions">
                               @if(featureToggles.isEnabled("toggle")){
                                  @if(alias.enabled){
-                                    @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"userdetails"), 'class -> "form-inline", 'role -> "form"){
+                                    @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"userdetails"), "class" -> "form-inline", "role" -> "form"){
                                        <button type"submit" title="disable" class="btn btn-xs btn-warning">d</button>
                                     }
                                  }
@@ -158,20 +158,20 @@
                         }
                      }
                   </tr>
-               </tbody>         
+               </tbody>
             </table>
          }
-         case None => {        
+         case None => {
             @for(domain <- userDomain){
                @if(featureToggles.isEnabled("add")){
-                  @form(action=routes.AliasController.addUserAlias(currentDatabaseConnection,domain.name,user.email), 'class -> "form-inline", 'role -> "form"){
+                  @form(action=routes.AliasController.addUserAlias(currentDatabaseConnection,domain.name,user.email), "class" -> "form-inline", "role" -> "form"){
                      <button type="submit" title="add" class="btn btn-sm col-sm-2 col-xs-2 btn-primary">add alias</button>
-                  }  
+                  }
                }
             }
          }
       }
 
-   </section>  
+   </section>
 
 }

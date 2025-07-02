@@ -4,6 +4,8 @@ import org.junit.runner._
 
 import play.api.test._
 import play.api.test.Helpers._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.test.Helpers._
 
 /**
  * add your integration spec here.
@@ -14,11 +16,15 @@ class IntegrationSpec extends Specification {
 
   "Application" should {
 
-    "work from within a browser" in new WithBrowser {
+    "work from within a browser" in {
+      val app = new GuiceApplicationBuilder().build()
+      Helpers.running(app) {
+        val request = FakeRequest(GET, "/")
+        val result = route(app, request).get
 
-      browser.goTo("http://localhost:" + port)
-
-      browser.pageSource must contain("Your new application is ready.")
+        status(result) must equalTo(OK)
+        contentAsString(result) must contain("Your new application is ready.")
+      }
     }
   }
 }

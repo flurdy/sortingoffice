@@ -1,290 +1,270 @@
 package controllers
 
-import scala.concurrent.Future
-import play.api._
+import javax.inject._
+import scala.concurrent.{ExecutionContext, Future}
 import play.api.mvc._
-import play.api.mvc.Results._
 import play.api.data._
 import play.api.data.Forms._
+import play.api.Logging
 import models._
-import models.Environment.ConnectionName
+import infrastructure._
 
+@Singleton
+class UserController @Inject()(
+  cc: MessagesControllerComponents,
+  userRepository: UserRepository,
+  featureToggles: FeatureToggles,
+  domains: Domains,
+  aliases: Aliases,
+  users: Users,
+  aliasRepository: AliasRepository
+)(implicit ec: ExecutionContext)
+  extends AbstractController(cc)
+  with Logging {
 
-class RequestWithUser[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
-
-trait UserInjector {
-
-  def UserAction(email: String) = new ActionBuilder[RequestWithUser] {
-    def invokeBlock[A](request: Request[A], block: (RequestWithUser[A]) => Future[SimpleResult]) = {
-      request match {
-        case connectionRequest: RequestWithConnection[A] => {
-          Users.findUser(connectionRequest.connection, email) match {
-            case Some(user) => {
-              Logger.debug(s"User $email found")
-              block(new RequestWithUser(user, connectionRequest))
-            }
-            case None => {
-              Logger.warn(s"User $email not found")
-              val users = Users.findUsers(connectionRequest.connection)
-              implicit val errorMessages = List(ErrorMessage("User not found"))
-              implicit val user: Option[ApplicationUser] = None
-              implicit val features = FeatureToggles.findFeatureToggles(connectionRequest.connection)
-              Future.successful(
-                NotFound(views.html.user.user( connectionRequest.connection, users) ) )
-            }
-          }
-        }
-        case _ => {
-          Logger.error(s"Im so confused")
-          Future.successful(InternalServerError)
-        }
-      }
-    }
-  }
-
-}
-
-
-object UserController extends Controller with DbController with FeatureToggler with UserInjector with DomainInjector with Secured {
-
-  def user(connection: ConnectionName) = AuthenticatedPossible.async { implicit authRequest =>
-    ConnectionAction(connection) { implicit request =>
-      val users = Users.findUsers(connection)
-      Ok(views.html.user.user(connection,users))
-    }(authRequest)
-  }
-
-  def viewUser(connection: ConnectionName, email: String) = AuthenticatedPossible.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-        val domain = userRequest.user.findDomain(connection)
-        val alias = userRequest.user.findAlias(connection)
-        Ok(views.html.user.edituser(connection,userRequest.user,domain,alias,updateUserForm))
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def disableUser(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-        userRequest.user.disable(connection)
-        Logger.info(s"User disabled: $email")
-        returnUrl match {
-          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-          case "edituser" => Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
-          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
-        }
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def disable(connection: ConnectionName, domainName: String, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName).async { implicit domainRequest =>
-        UserAction(email) { implicit userRequest =>
-          Logger.debug(s"User disabled soon: $email")
-          userRequest.user.disable(connection)
-          Logger.info(s"User disabled: $email")
-          returnUrl match {
-            case "removedomain" => Redirect(routes.DomainController.viewRemove(connectionRequest.connection, domainName))
-            case _ => Redirect(routes.DomainController.viewDomain(connectionRequest.connection,domainName))
-          }
-        }(connectionRequest)
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def enableUser(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-          Logger.debug(s"User enabled soon: $email")
-        userRequest.user.enable(connection)
-        Logger.info(s"User enabled: $email")
-        returnUrl match {
-          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-          case "edituser" => Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
-          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
-        }
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def enable(connection: ConnectionName, domainName: String, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName).async { implicit domainRequest =>
-        UserAction(email) { implicit userRequest =>
-          userRequest.user.enable(connection)
-          Logger.info(s"User enabled: $email")
-          Redirect(routes.DomainController.viewDomain(connectionRequest.connection,domainName))
-        }(connectionRequest)
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  val userFormFields = mapping (
+  // --- Forms ---
+  val userFormFields = mapping(
     "email" -> text,
     "name" -> text,
     "maildir" -> text,
     "passwordReset" -> ignored(true),
     "enabled" -> ignored(false)
   )(User.apply)(User.unapply)
+  val userForm = Form(userFormFields)
 
-  val userForm = Form( userFormFields )
-
-  def viewAdd(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection) { implicit connectionRequest =>
-      Ok(views.html.user.addUser( connection, None, userForm))
-    }(authRequest)
-  }
-
-
-  def viewAddWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName) { implicit domainRequest =>
-        Ok(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm))
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-
-  def add(connection: ConnectionName) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection) { implicit connectionRequest =>
-      userForm.bindFromRequest()(connectionRequest).fold(
-        errors => {
-          Logger.warn(s"Add user form error")
-          BadRequest(views.html.user.addUser( connection, None, errors ))
-        },
-        user => {
-          Users.findUser(connectionRequest.connection, user.email) match {
-            case None => {
-              Users.findUserByMaildir(connectionRequest.connection, user.maildir) match {
-                case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-                  user.save(connection)
-                  Logger.info(s"User ${user.email} added")
-                  Redirect(routes.UserController.user(connection))
-                }
-                case None => {
-                  Logger.warn(s"Add feature not enabled")
-                  implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                  BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-                }
-                case Some(_) => {
-                  Logger.warn(s"User maildir ${user.maildir} already exists")
-                  implicit val errorMessages = List(ErrorMessage("User's maildir already exist"))
-                  BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-                }
-              }
-            }
-            case Some(_) => {
-              Logger.warn(s"User ${user.email} already exists")
-              implicit val errorMessages = List(ErrorMessage("User already exist"))
-              BadRequest(views.html.user.addUser( connection, None, userForm.fill(user)))
-            }
-          }
-        }
-      )
-    }(authRequest)
-  }
-
-  def addWithDomain(connection: ConnectionName, domainName: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName) { domainRequest =>
-        userForm.bindFromRequest()(domainRequest).fold(
-          errors => {
-            Logger.warn(s"Add user form error")
-            BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), errors ))
-          },
-          user => {
-            Users.findUser(connectionRequest.connection, user.email) match {
-              case None if FeatureToggles.isAddEnabled(connectionRequest.connection) => {
-                user.save(connection)
-                Logger.info(s"User ${user.email} added")
-                Redirect(routes.DomainController.viewDomain(connection,domainName))
-              }
-              case None => {
-                Logger.warn(s"Add feature not enabled")
-                implicit val errorMessages = List(ErrorMessage("Add feature not enabled"))
-                BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
-              }
-              case Some(_) => {
-                Logger.warn(s"User ${user.email} already exists")
-                implicit val errorMessages = List(ErrorMessage("User already exist"))
-                BadRequest(views.html.user.addUser( connection, Some(domainRequest.domainRequested), userForm.fill(user)))
-              }
-            }
-          }
-        )
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def remove(connection: ConnectionName, email: String, returnUrl: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-        userRequest.user.delete(connection)
-        Logger.info(s"User removed: $email")
-        returnUrl match {
-          case "orphan" => Redirect(routes.AliasController.orphan(connectionRequest.connection))
-          case _ => Redirect(routes.UserController.user(connectionRequest.connection))
-        }
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def removeDomainUser(connection: ConnectionName, domainName: String, email: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      DomainAction(domainName).async { domainRequest =>
-        UserAction(email) { implicit userRequest =>
-          userRequest.user.delete(connection)
-          Logger.info(s"User removed: $email")
-          Redirect(routes.DomainController.viewRemove(connectionRequest.connection,domainName))
-        }(connectionRequest)
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  def resetPassword(connection: ConnectionName, email: String) = Authenticated.async { authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-        userRequest.user.resetPassword(connection)
-        Logger.info(s"User password reset: $email")
-        Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
-      }(connectionRequest)
-    }(authRequest)
-  }
-
-  val updateUserFormFields = mapping (
+  val updateUserFormFields = mapping(
     "email" -> ignored("invalid@example"),
     "name" -> text,
     "maildir" -> text,
     "passwordReset" -> ignored(true),
     "enabled" -> ignored(false)
   )(User.apply)(User.unapply)
+  val updateUserForm = Form(updateUserFormFields)
 
-  val updateUserForm = Form( updateUserFormFields )
-
-  def update(connection: ConnectionName, email: String) = Authenticated.async { implicit authRequest =>
-    ConnectionAction(connection).async { implicit connectionRequest =>
-      UserAction(email) { implicit userRequest =>
-        updateUserForm.bindFromRequest()(connectionRequest).fold(
-          errors => {
-            Logger.warn(s"Update user form error")
-            val domain = userRequest.user.findDomain(connection)
-            val alias = userRequest.user.findAlias(connection)
-            implicit val errorMessages = List(ErrorMessage("Update failed"))
-            BadRequest(views.html.user.edituser(connection,userRequest.user,domain,alias,errors))
-          },
-          user => {
-            userRequest.user.copy(name=user.name,maildir=user.maildir).update(connection)
-            Logger.info(s"User updated: $email")
-            Redirect(routes.UserController.viewUser(connectionRequest.connection, email))
-          }
-        )
-      }(connectionRequest)
-    }(authRequest)
+  // --- Helper: UserAction ---
+  private def withUser(connection: String, email: String)(block: User => Future[Result]): Future[Result] = {
+    val togglesMap = featureToggles.findFeatureToggles(connection)
+    userRepository.findUser(connection, email) match {
+      case Some(user) =>
+        logger.debug(s"User $email found")
+        block(user)
+      case None =>
+        logger.warn(s"User $email not found")
+        val users = userRepository.findUsers(connection)
+        val errorMessages = List(ErrorMessage("User not found"))
+        Future.successful(NotFound(views.html.user.user(connection, users)(errorMessages, togglesMap, None)))
+    }
   }
 
+  // Helper: get feature toggles for a connection (for template rendering only)
+  private def togglesMap(connection: String): FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+
+  // --- Actions ---
+  def user(connection: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureToggleMap: FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+    implicit val currentUser: Option[ApplicationUser] = None
+    val users = userRepository.findUsers(connection)
+    Ok(views.html.user.user(connection, users))
+  }
+
+  def viewUser(connection: String, email: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureToggleMap: FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+    implicit val currentUser: Option[ApplicationUser] = None
+    withUser(connection, email) { user =>
+      val domain = user.findDomain(connection, domains, aliases)
+      val alias = user.findAlias(connection, aliasRepository)
+      Future.successful(Ok(views.html.user.edituser(connection, user, domain, alias, updateUserForm)))
+    }
+  }
+
+  def disableUser(connection: String, email: String, returnUrl: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.disable(connection, featureToggles, userRepository)
+      logger.info(s"User disabled: $email")
+      val redirect = returnUrl match {
+        case "orphan" => Redirect(routes.AliasController.orphan(connection))
+        case "edituser" => Redirect(routes.UserController.viewUser(connection, email))
+        case _ => Redirect(routes.UserController.user(connection))
+      }
+      Future.successful(redirect)
+    }
+  }
+
+  def enableUser(connection: String, email: String, returnUrl: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.enable(connection, featureToggles, userRepository)
+      logger.info(s"User enabled: $email")
+      val redirect = returnUrl match {
+        case "orphan" => Redirect(routes.AliasController.orphan(connection))
+        case "edituser" => Redirect(routes.UserController.viewUser(connection, email))
+        case _ => Redirect(routes.UserController.user(connection))
+      }
+      Future.successful(redirect)
+    }
+  }
+
+  def disable(connection: String, domain: String, email: String, returnUrl: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.disable(connection, featureToggles, userRepository)
+      logger.info(s"User disabled: $email")
+      val redirect = returnUrl match {
+        case "orphan" => Redirect(routes.AliasController.orphan(connection))
+        case "edituser" => Redirect(routes.UserController.viewUser(connection, email))
+        case _ => Redirect(routes.DomainController.viewDomain(connection, domain))
+      }
+      Future.successful(redirect)
+    }
+  }
+
+  def enable(connection: String, domain: String, email: String, returnUrl: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.enable(connection, featureToggles, userRepository)
+      logger.info(s"User enabled: $email")
+      val redirect = returnUrl match {
+        case "orphan" => Redirect(routes.AliasController.orphan(connection))
+        case "edituser" => Redirect(routes.UserController.viewUser(connection, email))
+        case _ => Redirect(routes.DomainController.viewDomain(connection, domain))
+      }
+      Future.successful(redirect)
+    }
+  }
+
+  def viewAdd(connection: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureToggleMap: FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+    implicit val currentUser: Option[ApplicationUser] = None
+    Ok(views.html.user.addUser(connection, None, userForm))
+  }
+
+  def viewAddWithDomain(connection: String, domainName: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureToggleMap: FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+    implicit val currentUser: Option[ApplicationUser] = None
+    val domainOpt = domains.findDomain(connection, domainName)
+    Ok(views.html.user.addUser(connection, domainOpt, userForm))
+  }
+
+  def add(connection: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    val togglesMap = featureToggles.findFeatureToggles(connection)
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureTogglesMap: FeatureToggleMap = togglesMap
+    implicit val currentUser: Option[ApplicationUser] = None
+    userForm.bindFromRequest().fold(
+      errors => {
+        logger.warn(s"Add user form error")
+        Future.successful(BadRequest(views.html.user.addUser(connection, None, errors)))
+      },
+      user => {
+        userRepository.findUser(connection, user.email) match {
+          case None =>
+            userRepository.findUserByMaildir(connection, user.maildir) match {
+              case None if featureToggles.isAddEnabled(connection) =>
+                user.save(connection, featureToggles, userRepository)
+                logger.info(s"User ${user.email} added")
+                Future.successful(Redirect(routes.UserController.user(connection)))
+              case None =>
+                logger.warn(s"Add feature not enabled")
+                val errorMessages = List(ErrorMessage("Add feature not enabled"))
+                Future.successful(BadRequest(views.html.user.addUser(connection, None, userForm.fill(user))(errorMessages, togglesMap, None)))
+              case Some(_) =>
+                logger.warn(s"User maildir ${user.maildir} already exists")
+                val errorMessages = List(ErrorMessage("User's maildir already exist"))
+                Future.successful(BadRequest(views.html.user.addUser(connection, None, userForm.fill(user))(errorMessages, togglesMap, None)))
+            }
+          case Some(_) =>
+            logger.warn(s"User ${user.email} already exists")
+            val errorMessages = List(ErrorMessage("User already exist"))
+            Future.successful(BadRequest(views.html.user.addUser(connection, None, userForm.fill(user))(errorMessages, togglesMap, None)))
+        }
+      }
+    )
+  }
+
+  def addWithDomain(connection: String, domainName: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    val togglesMap = featureToggles.findFeatureToggles(connection)
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureTogglesMap: FeatureToggleMap = togglesMap
+    implicit val currentUser: Option[ApplicationUser] = None
+    val domainOpt = domains.findDomain(connection, domainName)
+    userForm.bindFromRequest().fold(
+      errors => {
+        logger.warn(s"Add user form error")
+        Future.successful(BadRequest(views.html.user.addUser(connection, domainOpt, errors)))
+      },
+      user => {
+        userRepository.findUser(connection, user.email) match {
+          case None if featureToggles.isAddEnabled(connection) =>
+            user.save(connection, featureToggles, userRepository)
+            logger.info(s"User ${user.email} added")
+            Future.successful(Redirect(routes.DomainController.viewDomain(connection, domainName)))
+          case None =>
+            logger.warn(s"Add feature not enabled")
+            val errorMessages = List(ErrorMessage("Add feature not enabled"))
+            Future.successful(BadRequest(views.html.user.addUser(connection, domainOpt, userForm.fill(user))(errorMessages, togglesMap, None)))
+          case Some(_) =>
+            logger.warn(s"User ${user.email} already exists")
+            val errorMessages = List(ErrorMessage("User already exist"))
+            Future.successful(BadRequest(views.html.user.addUser(connection, domainOpt, userForm.fill(user))(errorMessages, togglesMap, None)))
+        }
+      }
+    )
+  }
+
+  def remove(connection: String, email: String, returnUrl: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.delete(connection, featureToggles, userRepository)
+      logger.info(s"User removed: $email")
+      val redirect = returnUrl match {
+        case "orphan" => Redirect(routes.AliasController.orphan(connection))
+        case _ => Redirect(routes.UserController.user(connection))
+      }
+      Future.successful(redirect)
+    }
+  }
+
+  def removeDomainUser(connection: String, domainName: String, email: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.delete(connection, featureToggles, userRepository)
+      logger.info(s"User removed: $email")
+      Future.successful(Redirect(routes.DomainController.viewRemove(connection, domainName)))
+    }
+  }
+
+  def resetPassword(connection: String, email: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      user.resetPassword(connection, featureToggles, userRepository)
+      logger.info(s"User password reset: $email")
+      Future.successful(Redirect(routes.UserController.viewUser(connection, email)))
+    }
+  }
+
+  def update(connection: String, email: String): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    withUser(connection, email) { user =>
+      updateUserForm.bindFromRequest().fold(
+        errors => {
+          logger.warn(s"Update user form error")
+          val domain = user.findDomain(connection, domains, aliases)
+          val alias = user.findAlias(connection, aliasRepository)
+          implicit val featureToggleMap: FeatureToggleMap = featureToggles.findFeatureToggles(connection)
+          Future.successful(BadRequest(views.html.user.edituser(connection, user, domain, alias, errors)))
+        },
+        updatedUser => {
+          user.copy(name = updatedUser.name, maildir = updatedUser.maildir).update(connection, featureToggles, userRepository)
+          logger.info(s"User updated: $email")
+          Future.successful(Redirect(routes.UserController.viewUser(connection, email)))
+        }
+      )
+    }
+  }
+
+  def viewAdd(connection: String, domainName: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    val togglesMap = featureToggles.findFeatureToggles(connection)
+    implicit val errorMessages: List[ErrorMessage] = List.empty
+    implicit val featureTogglesMap: FeatureToggleMap = togglesMap
+    implicit val currentUser: Option[ApplicationUser] = None
+    val domainOpt = domains.findDomain(connection, domainName)
+    Ok(views.html.user.addUser(connection, domainOpt, userForm))
+  }
 }
-
-
-

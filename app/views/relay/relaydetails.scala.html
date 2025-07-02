@@ -43,22 +43,22 @@
 			@possibleAlias match {
 				case Some(alias) => {
 					@if(relay.status=="OK"){
-						@form(action=routes.RelayController.rejectAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.rejectAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="reject" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reject relay</button>
 						}
 					} else {
-						@form(action=routes.RelayController.acceptAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.acceptAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="accept" class="btn btn-sm col-sm-2 col-xs-2 btn-success">accept relay</button>
 						}
 					}
 				}
 				case None => {
 					@if(relay.status=="OK"){
-						@form(action=routes.RelayController.rejectRelay(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.rejectRelay(currentDatabaseConnection,domain.name,relay.recipient), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="reject" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">reject relay</button>
 						}
 					} else {
-						@form(action=routes.RelayController.acceptRelay(currentDatabaseConnection,domain.name,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.acceptRelay(currentDatabaseConnection,domain.name,relay.recipient), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="accept" class="btn btn-sm col-sm-2 col-xs-2 btn-success">accept relay</button>
 						}
 					}
@@ -70,22 +70,22 @@
 			@possibleAlias match {
 				case Some(alias) => {
 					@if(relay.enabled){
-						@form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.disableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable relay</button>
 						}
 					} else {
-						@form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.enableAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient,"relaydetails"), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable relay</button>
 						}
 					}
 				}
 				case None => {
 					@if(relay.enabled){
-						@form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.disable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="disable" class="btn btn-sm col-sm-2 col-xs-2 btn-warning">disable relay</button>
 						}
 					} else {
-						@form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+						@form(action=routes.RelayController.enable(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), "class" -> "form-inline", "role" -> "form"){
 							<button type"submit" title="enable" class="btn btn-sm col-sm-2 col-xs-2 btn-success">enable relay</button>
 						}
 					}
@@ -98,12 +98,12 @@
 		<section>
 			@possibleAlias match {
 				case Some(alias) => {
-					@form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), 'class -> "form-inline", 'role -> "form"){
+					@form(action=routes.RelayController.removeAliasRelay(currentDatabaseConnection,domain.name,alias.mail,relay.recipient), "class" -> "form-inline", "role" -> "form"){
 						<button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove relay</button>
 					}
 				}
 				case None => {
-					@form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), 'class -> "form-inline", 'role -> "form"){
+					@form(action=routes.RelayController.remove(currentDatabaseConnection,domain.name,relay.recipient,"relaydetails"), "class" -> "form-inline", "role" -> "form"){
 						<button type="submit" title="remove" class="btn btn-sm col-sm-2 col-xs-2 btn-danger">remove relay</button>
 					}
 				}
@@ -152,14 +152,12 @@
                         </td>
                      }
                   }
-               </tr> 
+               </tr>
             }
          </tbody>
-      </table> 
+      </table>
 
    </section>
 
 
 }
-
-

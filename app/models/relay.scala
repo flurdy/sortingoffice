@@ -1,70 +1,65 @@
 package models
 
 import infrastructure._
-import play.api.Play
-import play.api.Logger
-import play.api.Play.current
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import models.Environment.ConnectionName
 
+case class Relay(recipient: String, enabled: Boolean, status: String) {
 
-
-case class Relay(recipient: String, enabled: Boolean, status: String){
-
-   def disable(connection: ConnectionName) = {
-      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.disable(connection,this.recipient)
+   def disable(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isToggleEnabled(connection)) relayRepository.disable(connection,this.recipient)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def enable(connection: ConnectionName) = {
-      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.enable(connection,this.recipient)
+   def enable(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isToggleEnabled(connection)) relayRepository.enable(connection,this.recipient)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def save(connection: ConnectionName) = {
-      if(FeatureToggles.isAddEnabled(connection)) RelayRepository.save(connection,this)
+   def save(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isAddEnabled(connection)) relayRepository.save(connection,this)
       else throw new IllegalStateException("Add feature is disabled")
    }
 
-   def delete(connection: ConnectionName) = {
-      if(FeatureToggles.isRemoveEnabled(connection)) RelayRepository.delete(connection,this)
+   def delete(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isRemoveEnabled(connection)) relayRepository.delete(connection,this)
       else throw new IllegalStateException("Remove feature is disabled")
    }
 
-   def reject(connection: ConnectionName) = {
-      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.reject(connection,this)
+   def reject(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isToggleEnabled(connection)) relayRepository.reject(connection,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
-   def accept(connection: ConnectionName) = {
-      if(FeatureToggles.isToggleEnabled(connection)) RelayRepository.accept(connection,this)
+   def accept(connection: ConnectionName, featureToggles: FeatureToggles, relayRepository: RelayRepository) = {
+      if(featureToggles.isToggleEnabled(connection)) relayRepository.accept(connection,this)
       else throw new IllegalStateException("Toggle feature is disabled")
    }
 
    def isCatchAll = recipient.startsWith("@")
 
-   def findInDatabases: List[(ConnectionName,Option[Relay])] = {
+   def findInDatabases(environment: Environment, relays: Relays): List[(ConnectionName,Option[Relay])] = {
       for {
-         connectionName <- Environment.connectionNames
-         relay          = Relays.findRelay(connectionName,recipient)
-      } yield (connectionName,relay) 
+         connectionName <- environment.connectionNames
+         relay          = relays.findRelay(connectionName,recipient)
+      } yield (connectionName,relay)
    }
 
 }
 
-object Relays {
+class Relays(featureToggles: FeatureToggles, aliases: Aliases, relayRepository: RelayRepository) {
 
    def findCatchAllDomainsIfEnabled(connection: ConnectionName): Option[List[(Domain,Relay)]] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){
-         Some( DomainRepository.findCatchAllRelayDomains(connection) )
+      if( featureToggles.isRelayEnabled(connection) ){
+         Some( relayRepository.findCatchAllRelayDomains(connection) )
       } else None
    }
 
    def findCatchAllDomainsIfEnabled(connection: ConnectionName,domains: List[Domain]): Option[(List[(Domain,Relay)],List[(Domain,Option[Relay])])] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){
+      if( featureToggles.isRelayEnabled(connection) ){
          val catchAlls: List[(Domain,Relay)] = for{
             domain <- domains
-            catchAll <- RelayRepository.findCatchAll(connection,domain)
+            catchAll <- relayRepository.findCatchAll(connection,domain)
          } yield (domain,catchAll)
          val disabled: List[(Domain,Relay)] = catchAlls.filterNot(_._2.enabled)
          val disabledCatchAlls: List[(Domain,Option[Relay])] = disabled.map( c => (c._1,Some(c._2) ) )
@@ -75,7 +70,7 @@ object Relays {
    }
 
    def findCatchAllBackupsIfEnabled(connection: ConnectionName,domains: List[Domain]): Option[(List[(Backup,Relay)],List[(Backup,Option[Relay])])] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){
+      if( featureToggles.isRelayEnabled(connection) ){
          findCatchAllDomainsIfEnabled(connection,domains).map( catchAlls =>
             (  catchAlls._1.map( c => (Backup(c._1),c._2) ),
                catchAlls._2.map( c => (Backup(c._1),c._2) ) ) )
@@ -83,47 +78,47 @@ object Relays {
    }
 
    def findRequiredRelaysIfEnabled(domain: Domain): Option[Map[String,Relay]] = {
-      if( FeatureToggles.isRelayEnabled(domain.connection.get) ){
-         Some( findRelays(Aliases.requiredAliases,domain) )
+      if( featureToggles.isRelayEnabled(domain.connection.get) ){
+         Some( findRelays(aliases.requiredAliases,domain) )
       } else None
    }
 
    def findCommonRelaysIfEnabled(domain: Domain): Option[Map[String,Relay]] = {
-      if( FeatureToggles.isRelayEnabled(domain.connection.get) ){
-         Some( findRelays(Aliases.commonAliases,domain) )
+      if( featureToggles.isRelayEnabled(domain.connection.get) ){
+         Some( findRelays(aliases.commonAliases,domain) )
       } else None
    }
 
    def findCustomRelaysIfEnabled(domain: Domain): Option[Map[String,Relay]] = {
-      if( FeatureToggles.isRelayEnabled(domain.connection.get) ){
-         Some( findRelays(Aliases.customAliases,domain) )
+      if( featureToggles.isRelayEnabled(domain.connection.get) ){
+         Some( findRelays(aliases.customAliases,domain) )
       } else None
    }
 
    private def findRelays(aliasesToFind: List[String], domain: Domain): Map[String,Relay] = {
       ( for{
          aliasToFind <- aliasesToFind
-         alias <- RelayRepository.findRelay(aliasToFind,domain)
+         alias <- relayRepository.findRelay(aliasToFind,domain)
       } yield (aliasToFind,alias) ).toMap
    }
 
    def findRequiredAndCommonRelaysIfEnabled(connection: ConnectionName, domains: List[Domain]) : Option[List[(Domain,Map[String,Boolean])]]= {
-      if( FeatureToggles.isRelayEnabled(connection) ){
+      if( featureToggles.isRelayEnabled(connection) ){
          Some(
             for {
                domain <- domains
-               requiredRelays <- domain.findRequiredRelaysIfEnabled
-               commonRelays <- domain.findCommonRelaysIfEnabled
+               requiredRelays <- findRequiredRelaysIfEnabled(domain)
+               commonRelays <- findCommonRelaysIfEnabled(domain)
                relays = requiredRelays ++ commonRelays
             } yield ( domain, relays.map( relay => (relay._1, relay._2.enabled) ) )
          )
       } else None
    }
 
-   def findRelay(connection: ConnectionName, recipient: String): Option[Relay] = RelayRepository.findRelay(connection,recipient)
+   def findRelay(connection: ConnectionName, recipient: String): Option[Relay] = relayRepository.findRelay(connection,recipient)
 
    def findOrphanRelays(connection: ConnectionName, domains: List[Domain]): List[Relay] = {
-      val relays = RelayRepository.findRelays(connection)
+      val relays = relayRepository.findRelays(connection)
       val nonOrphans = for{
          relay <- relays
          domainName <- parseDomainName(relay)
@@ -135,13 +130,17 @@ object Relays {
    private def parseDomainName(relay: Relay): Option[String] = Aliases.parseDomainName(relay.recipient)
 
    def findRelaysForAliasIfEnabled(connection: ConnectionName, domain: Domain, alias: Alias): Option[(Option[Relay],Option[Relay])] = {
-      if( FeatureToggles.isRelayEnabled(connection) ){
-         RelayRepository.findRelay(connection, alias.mail) match {
+      if( featureToggles.isRelayEnabled(connection) ){
+         relayRepository.findRelay(connection, alias.mail) match {
             case Some(relay) if relay.isCatchAll => Some(None, Some(relay) )
-            case Some(relay) => Some(RelayRepository.findCatchAll(connection,domain), Some(relay) )
-            case None        => Some(RelayRepository.findCatchAll(connection,domain), None )
+            case Some(relay) => Some(relayRepository.findCatchAll(connection,domain), Some(relay) )
+            case None        => Some(relayRepository.findCatchAll(connection,domain), None )
          }
       } else None
    }
 
+}
+
+object Relay {
+  def unapply(r: Relay): Option[(String, Boolean, String)] = Some((r.recipient, r.enabled, r.status))
 }

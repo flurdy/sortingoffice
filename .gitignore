@@ -20,3 +20,5 @@ dist
 /conf.old
 /public.old
 /test.old
+.metals
+.vscode

@@ -1,16 +1,19 @@
+enablePlugins(PlayScala)
+
 name := "sortingoffice"
 
 version := "1.0-SNAPSHOT"
 
-libraryDependencies ++= Seq(
-  jdbc,
-  anorm,
-  cache,
-  "org.webjars" %% "webjars-play" % "2.2.1",
-  "org.webjars" % "jquery" % "2.0.3-1",
-  "org.webjars" % "bootstrap" % "3.0.3",
-  "mysql" % "mysql-connector-java" % "5.1.27",
-  "com.github.t3hnar" %% "scala-bcrypt" % "2.4"
-)
+scalaVersion := "3.3.1"
 
-play.Project.playScalaSettings
+libraryDependencies ++= Seq(
+  "org.playframework" %% "play" % "3.0.0",
+  "org.playframework.anorm" %% "anorm" % "2.7.0",
+  "org.playframework" %% "play-jdbc" % "3.0.0",
+  "org.playframework" %% "play-cache" % "3.0.0",
+  "org.webjars" % "jquery" % "3.6.4",
+  "org.webjars" % "bootstrap" % "5.3.2",
+  "mysql" % "mysql-connector-java" % "8.0.33",
+  "com.github.t3hnar" % "scala-bcrypt_2.13" % "4.3.0",
+  "org.apache.pekko" %% "pekko-stream" % "1.0.2"
+)

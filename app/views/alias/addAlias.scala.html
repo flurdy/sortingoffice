@@ -1,3 +1,5 @@
+@import views.html.helper.Implicits.toAttributePair
+
 @(currentDatabaseConnection: Environment.ConnectionName, domain: Domain, aliasForm: Form[Alias], returnUrl: String)(implicit errorMessages: List[ErrorMessage] = List.empty, featureToggles: FeatureToggleMap, currentUser: Option[ApplicationUser])
 
 @import models._
@@ -22,7 +24,7 @@
 
     <section>
 
-		@form(action=routes.AliasController.add(currentDatabaseConnection,domain.name,returnUrl), 'class -> "form-horizontal", 'role -> ""){
+		@form(action=routes.AliasController.add(currentDatabaseConnection,domain.name,returnUrl), "class" -> "form-horizontal", "role" -> "form"){
 
 			<div class="form-group">
 				<label for="inputMail" class="col-sm-2 control-label">Mail</label>

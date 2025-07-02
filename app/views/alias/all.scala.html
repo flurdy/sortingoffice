@@ -37,18 +37,18 @@
                   @possibleDomain match {
                      case Some(domain) => {
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.disable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), "class" -> "form-inline", "role" -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         } else {
-                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.enable(currentDatabaseConnection,domain.name,alias.mail,"allalias"), "class" -> "form-inline", "role" -> "form"){
                               <button type="submit" title="enable" class="btn btn-xs btn-success">e</button>
                            }
                         }
                      }
                      case None => {
                         @if(alias.enabled){
-                           @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"allalias"), 'class -> "form-inline", 'role -> "form"){
+                           @form(action=routes.AliasController.disableOrphanAlias(currentDatabaseConnection,alias.mail,"allalias"), "class" -> "form-inline", "role" -> "form"){
                               <button type="submit" title="disable" class="btn btn-xs btn-warning">d</button>
                            }
                         }

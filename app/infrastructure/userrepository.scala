@@ -1,16 +1,15 @@
 package infrastructure
 
-import play.api.Play.current
-import play.api.Logger
+import javax.inject._
 import org.joda.time.DateTime
-import play.api.db.DB
+import play.api.db.Database
 import anorm._
 import anorm.SqlParser._
 import models._
 import models.Environment.ConnectionName
 
-
-object UserRepository {
+@Singleton
+class UserRepository @Inject()(db: Database) {
 
    val simpleUser = {
       get[String]("id") ~
@@ -25,7 +24,7 @@ object UserRepository {
    }
 
    def findUsersForDomain(domain: Domain): List[User] = {
-      DB.withConnection(domain.connection.get) { implicit connection =>
+      db.withConnection { implicit connection =>
          SQL(
             """
 select * from users
@@ -33,24 +32,24 @@ where id like {name}
 order by id
             """
          ).on(
-            'name -> s"%@${domain.name}"
-         ).as(simpleUser *)
+            "name" -> s"%@${domain.name}"
+         ).as(simpleUser.*)
       }
    }
 
    def findUsers(connection: ConnectionName): List[User] = {
-      DB.withConnection(connection) { implicit connection =>
+      db.withConnection { implicit connection =>
          SQL(
             """
 select * from users
 order by id
             """
-         ).as(simpleUser *)
+         ).as(simpleUser.*)
       }
    }
 
    def findUser(connection: ConnectionName, email: String): Option[User] = {
-      DB.withConnection(connection) { implicit connection =>
+      db.withConnection { implicit connection =>
          SQL(
             """
 select * from users
@@ -58,13 +57,13 @@ where id = {email}
 order by id
             """
          ).on(
-            'email -> email
-         ).as(simpleUser *).headOption
+            "email" -> email
+         ).as(simpleUser.*).headOption
       }
    }
 
    def findUserByMaildir(connection: ConnectionName, maildir: String): Option[User] = {
-      DB.withConnection(connection) { implicit connection =>
+      db.withConnection { implicit connection =>
          SQL(
             """
 select * from users
@@ -72,88 +71,88 @@ where maildir = {maildir}
 order by id
             """
          ).on(
-            'maildir -> maildir
-         ).as(simpleUser *).headOption
+            "maildir" -> maildir
+         ).as(simpleUser.*).headOption
       }
    }
 
-   def disable(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def disable(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 update users set enabled = 0 where id = {email}
             """
          ).on(
-            'email -> user.email
-         ).executeUpdate
+            "email" -> user.email
+         ).executeUpdate()
       }
    }
 
-   def enable(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def enable(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 update users set enabled = 1 where id = {email}
             """
          ).on(
-            'email -> user.email
-         ).executeUpdate
+            "email" -> user.email
+         ).executeUpdate()
       }
    }
 
-   def save(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def save(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 insert into users (id,name,maildir,change_password,enabled)
 values ({email},{name},{maildir},{passwordReset},{enabled})
             """
          ).on(
-            'email   -> user.email,
-            'name    -> user.name,
-            'maildir -> user.maildir,
-            'passwordReset -> user.passwordReset,
-            'enabled -> user.enabled
-         ).execute
+            "email"   -> user.email,
+            "name"    -> user.name,
+            "maildir" -> user.maildir,
+            "passwordReset" -> user.passwordReset,
+            "enabled" -> user.enabled
+         ).execute()
       }
    }
 
-   def delete(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def delete(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 delete from users where id = {email}
             """
          ).on(
-            'email -> user.email
-         ).execute
+            "email" -> user.email
+         ).execute()
       }
    }
 
-   def resetPassword(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def resetPassword(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 update users set change_password = 1 where id = {email}
             """
          ).on(
-            'email -> user.email
-         ).executeUpdate
+            "email" -> user.email
+         ).executeUpdate()
       }
    }
 
-   def update(connectionName: ConnectionName, user: User) {
-      DB.withConnection(connectionName) { implicit connection =>
+   def update(connectionName: ConnectionName, user: User): Unit = {
+      db.withConnection { implicit connection =>
          SQL(
             """
 update users set name = {name}, maildir = {maildir}
 where id = {email}
             """
          ).on(
-            'name    -> user.name,
-            'maildir -> user.maildir,
-            'email   -> user.email
-         ).executeUpdate
+            "name"    -> user.name,
+            "maildir" -> user.maildir,
+            "email"   -> user.email
+         ).executeUpdate()
       }
    }
 

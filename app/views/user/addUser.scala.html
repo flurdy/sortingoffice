@@ -65,14 +65,14 @@
 
     	@domain match {
     		case Some(domainName) => {
-				@form(action=routes.UserController.addWithDomain(currentDatabaseConnection,domainName.name), 'class -> "form-horizontal", 'role -> "form"){
+				@form(action=routes.UserController.addWithDomain(currentDatabaseConnection,domainName.name), "class" -> "form-horizontal", "role" -> "form"){
 
 					@userFormFields(domainName.name)
 
 				}
     		}
     		case None => {
-				@form(action=routes.UserController.add(currentDatabaseConnection), 'class -> "form-horizontal", 'role -> "form"){
+				@form(action=routes.UserController.add(currentDatabaseConnection), "class" -> "form-horizontal", "role" -> "form"){
 
 					@userFormFields("example.com")
 

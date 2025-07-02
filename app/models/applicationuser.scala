@@ -1,7 +1,7 @@
 package models
 
 import com.github.t3hnar.bcrypt._
-import play.api.Logger
+import org.slf4j.LoggerFactory
 
 
 case class LoginDetails(username: String, password: String)
@@ -10,23 +10,23 @@ case class RegisterDetails(username: String, password: String, confirmPassword: 
 
 case class ApplicationUser(username: String)
 
-
-object ApplicationUsers {
+class ApplicationUsers(environment: Environment) {
+	private val logger = LoggerFactory.getLogger(getClass)
 
 	def authenticateLoginDetails(loginDetails: LoginDetails): Option[ApplicationUser] = {
 		for{
-			password <- Environment.findPasswordForApplicationUser(loginDetails.username)
+			password <- environment.findPasswordForApplicationUser(loginDetails.username)
 			if matchPasswords(loginDetails,password)
 		} yield ApplicationUser(loginDetails.username)
 	}
 
 	def matchPasswords(loginDetails: LoginDetails, password: String): Boolean = {
-		loginDetails.password.isBcrypted(password) 
+		loginDetails.password.isBcrypted(password)
 	}
 
-	def register(registerDetails: RegisterDetails) {
+	def register(registerDetails: RegisterDetails): Unit = {
 		val encryptedPassword = registerDetails.password.bcrypt
-		Logger.info(s"Password for ${registerDetails.username} is $encryptedPassword")
-	} 
+		logger.info(s"Password for ${registerDetails.username} is $encryptedPassword")
+	}
 
 }
