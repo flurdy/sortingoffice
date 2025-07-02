@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Development overrides for the app service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      RUST_LOG: debug
+      RUST_BACKTRACE: 1
+    volumes:
+      - ./src:/app/src:ro
+      - ./templates:/app/templates:ro
+      - ./migrations:/app/migrations:ro
+      - ./Cargo.toml:/app/Cargo.toml:ro
+    command: ["cargo", "run"]
+    ports:
+      - "3000:3000"
+      - "35729:35729"  # Live reload port
+
+  # Development database with exposed ports
+  db:
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sortingoffice
+      MYSQL_USER: sortingoffice
+      MYSQL_PASSWORD: sortingoffice
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  mysql_dev_data:
+    driver: local 

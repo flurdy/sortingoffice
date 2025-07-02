@@ -30,11 +30,47 @@ A modern web-based admin tool for managing mail server data based on [flurdy's "
 
 ## Installation
 
+### Option 1: Docker (Recommended)
+
+The easiest way to run Sorting Office is using Docker Compose:
+
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
    cd sortingoffice
    ```
+
+2. **Build and start services**:
+   ```bash
+   # Make the Docker script executable
+   chmod +x docker.sh
+   
+   # Build and start all services
+   ./docker.sh build
+   ./docker.sh up
+   ```
+
+3. **Access the application**:
+   - **Sorting Office**: http://localhost:3000
+   - **phpMyAdmin**: http://localhost:8080
+   - **Default login**: admin/admin
+
+**Docker Management Commands**:
+```bash
+./docker.sh help          # Show all available commands
+./docker.sh status        # Check service status
+./docker.sh logs          # View logs
+./docker.sh down          # Stop services
+./docker.sh restart       # Restart services
+./docker.sh clean         # Remove all containers and volumes
+```
+
+### Option 2: Local Development
+
+1. **Prerequisites**:
+   - Rust 1.70+ and Cargo
+   - MySQL 8.0+ or MariaDB 10.5+
+   - Diesel CLI (`cargo install diesel_cli --no-default-features --features mysql`)
 
 2. **Set up the database**:
    ```bash
@@ -154,6 +190,67 @@ The main dashboard shows:
 - Set mailbox-specific quotas
 - Manage mailbox passwords
 - Configure mail directories
+
+## Docker
+
+### Production Deployment
+
+The Docker setup includes:
+
+- **Application**: Rust application with optimized multi-stage build
+- **Database**: MySQL 8.0 with persistent storage
+- **phpMyAdmin**: Web-based database management interface
+- **Networking**: Isolated network for secure communication
+- **Health Checks**: Automatic health monitoring for all services
+
+### Development Environment
+
+For development with live code reloading:
+
+```bash
+# Start development environment
+./docker.sh dev
+
+# Stop development environment
+./docker.sh dev-down
+```
+
+The development environment includes:
+- Volume mounts for live code changes
+- Debug logging enabled
+- Exposed database ports for direct access
+- Development-specific Dockerfile
+
+### Docker Compose Files
+
+- `docker-compose.yml`: Production configuration
+- `docker-compose.dev.yml`: Development overrides
+- `Dockerfile`: Production-optimized multi-stage build
+- `Dockerfile.dev`: Development environment with tools
+
+### Environment Variables
+
+Docker environment variables are configured in `docker-compose.yml`:
+
+```yaml
+environment:
+  DATABASE_URL: mysql://sortingoffice:sortingoffice@db:3306/sortingoffice
+  RUST_LOG: info
+  HOST: 0.0.0.0
+  PORT: 3000
+```
+
+### Volumes
+
+- `mysql_data`: Persistent MySQL data storage
+- `./templates`: Template files (read-only)
+- `./migrations`: Database migration files
+
+### Ports
+
+- `3000`: Sorting Office web application
+- `3306`: MySQL database (exposed for development)
+- `8080`: phpMyAdmin interface
 
 ## Development
 

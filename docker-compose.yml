@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: sortingoffice-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sortingoffice
+      MYSQL_USER: sortingoffice
+      MYSQL_PASSWORD: sortingoffice
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - sortingoffice-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Sorting Office Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sortingoffice-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://sortingoffice:sortingoffice@db:3306/sortingoffice
+      RUST_LOG: info
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sortingoffice-network
+    volumes:
+      - ./templates:/app/templates:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: sortingoffice-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: sortingoffice
+      PMA_PASSWORD: sortingoffice
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sortingoffice-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  sortingoffice-network:
+    driver: bridge 
