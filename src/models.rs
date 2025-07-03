@@ -122,7 +122,9 @@ pub struct DomainForm {
     pub maxquota: i64,
     pub quota: i64,
     pub transport: String,
+    #[serde(default)]
     pub backupmx: bool,
+    #[serde(default)]
     pub active: bool,
 }
 
@@ -133,6 +135,7 @@ pub struct UserForm {
     pub name: String,
     pub domain: String,
     pub quota: i64,
+    #[serde(default)]
     pub active: bool,
 }
 
@@ -141,6 +144,7 @@ pub struct AliasForm {
     pub address: String,
     pub goto: String,
     pub domain: String,
+    #[serde(default)]
     pub active: bool,
 }
 
@@ -151,6 +155,7 @@ pub struct MailboxForm {
     pub name: String,
     pub domain: String,
     pub quota: i64,
+    #[serde(default)]
     pub active: bool,
 }
 
