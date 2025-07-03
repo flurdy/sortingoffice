@@ -1,40 +1,71 @@
-FROM flurdy/activator:latest
+# Multi-stage build for Rust application
+FROM rust:1.75-slim as builder
 
-MAINTAINER flurdy
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libmysqlclient-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV DEBIAN_FRONTEND noninteractive
+# Set working directory
+WORKDIR /app
 
-ENV GITHUBUSER flurdy
-ENV APPBRANCH master
-ENV APPNAME sortingoffice
-ENV APPDIR /var/local/sortingoffice
+# Copy dependency files
+COPY Cargo.toml Cargo.lock ./
 
-ADD . /var/local/sortingoffice
+# Create a dummy main.rs to build dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
 
-ADD repositories /root/.sbt/repositories
+# Build dependencies (this layer will be cached)
+RUN cargo build --release
 
-WORKDIR /var/local/sortingoffice
+# Remove dummy main.rs and copy actual source code
+RUN rm src/main.rs
+COPY src/ ./src/
+COPY templates/ ./templates/
+COPY migrations/ ./migrations/
 
-RUN activator clean compile dist && \
-  rm $APPDIR/target/universal/$APPNAME-*.zip
+# Build the application
+RUN cargo build --release
 
-EXPOSE 9000
-EXPOSE 9999
+# Runtime stage
+FROM debian:bookworm-slim
 
-ENTRYPOINT ["/usr/local/bin/activator"]
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    libmysqlclient21 \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-CMD ["run"]
+# Create non-root user
+RUN useradd -m -u 1000 sortingoffice
 
-## To run image :
-# docker run -ti --rm -p 49900:9000 \
-#   flurdy/sortingoffice \
-#   run
-#
-## Complex alternative :
-# docker run -ti --rm -p 49910:9000 \
-#   -v /path/to/myconffolder:/etc/opt/sortingoffice:r \
-#   --link maildb:maildb \
-#   flurdy/sortingoffice \
-#   -Dconfig.file=/etc/opt/sortingoffice/my.conf \
-#   run
-#
+# Set working directory
+WORKDIR /app
+
+# Copy the binary from builder stage
+COPY --from=builder /app/target/release/sortingoffice /app/sortingoffice
+
+# Copy templates and migrations
+COPY --from=builder /app/templates /app/templates
+COPY --from=builder /app/migrations /app/migrations
+
+# Change ownership to non-root user
+RUN chown -R sortingoffice:sortingoffice /app
+
+# Switch to non-root user
+USER sortingoffice
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
+
+# Run the application
+CMD ["./sortingoffice"] 
