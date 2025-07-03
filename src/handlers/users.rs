@@ -5,6 +5,7 @@ use axum::{
 };
 use crate::{AppState, db, models::*};
 use crate::templates::users::*;
+use crate::templates::layout::BaseTemplate;
 use askama::Template;
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
@@ -15,7 +16,13 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
         Err(_) => vec![],
     };
     
-    let template = UserListTemplate { title: "Users", users };
+    let content_template = UserListTemplate { title: "Users", users };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Users".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -27,7 +34,13 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         Err(_) => return Html("User not found".to_string()),
     };
     
-    let template = UserShowTemplate { title: "Show User", user };
+    let content_template = UserShowTemplate { title: "Show User", user };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Show User".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -43,7 +56,13 @@ pub async fn create(
                 Ok(users) => users,
                 Err(_) => vec![],
             };
-            let template = UserListTemplate { title: "Users", users };
+            let content_template = UserListTemplate { title: "Users", users };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Users".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error creating user".to_string()),
@@ -63,7 +82,13 @@ pub async fn update(
                 Ok(users) => users,
                 Err(_) => vec![],
             };
-            let template = UserListTemplate { title: "Users", users };
+            let content_template = UserListTemplate { title: "Users", users };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Users".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error updating user".to_string()),
@@ -79,7 +104,13 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(users) => users,
                 Err(_) => vec![],
             };
-            let template = UserListTemplate { title: "Users", users };
+            let content_template = UserListTemplate { title: "Users", users };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Users".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting user".to_string()),

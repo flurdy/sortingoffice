@@ -1,5 +1,5 @@
 use axum::{
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use std::net::SocketAddr;

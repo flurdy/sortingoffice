@@ -4,6 +4,7 @@ use axum::{
 };
 use crate::{AppState, db};
 use crate::templates::stats::StatsTemplate;
+use crate::templates::layout::BaseTemplate;
 use askama::Template;
 
 pub async fn index(State(state): State<AppState>) -> Html<String> {
@@ -26,10 +27,16 @@ pub async fn index(State(state): State<AppState>) -> Html<String> {
         Err(_) => vec![],
     };
     
-    let template = StatsTemplate {
+    let content_template = StatsTemplate {
         title: "Stats",
         system_stats,
         domain_stats,
+    };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Statistics".to_string(), 
+        content 
     };
     Html(template.render().unwrap())
 } 

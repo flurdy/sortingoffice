@@ -5,6 +5,7 @@ use axum::{
 };
 use crate::{AppState, db, models::*};
 use crate::templates::mailboxes::*;
+use crate::templates::layout::BaseTemplate;
 use askama::Template;
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
@@ -15,7 +16,13 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
         Err(_) => vec![],
     };
     
-    let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+    let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Mailboxes".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -27,7 +34,13 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         Err(_) => return Html("Mailbox not found".to_string()),
     };
     
-    let template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
+    let content_template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Show Mailbox".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -43,7 +56,13 @@ pub async fn create(
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Mailboxes".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error creating mailbox".to_string()),
@@ -63,7 +82,13 @@ pub async fn update(
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Mailboxes".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error updating mailbox".to_string()),
@@ -79,7 +104,13 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Mailboxes".to_string(), 
+                content 
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting mailbox".to_string()),

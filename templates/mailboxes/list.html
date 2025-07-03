@@ -1,30 +1,63 @@
-<div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Mailboxes</h1>
-    <a href="/mailboxes/new" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block">New Mailbox</a>
-    <table class="min-w-full bg-white">
-        <thead>
-            <tr>
-                <th class="py-2 px-4 border-b">Username</th>
-                <th class="py-2 px-4 border-b">Name</th>
-                <th class="py-2 px-4 border-b">Domain</th>
-                <th class="py-2 px-4 border-b">Active</th>
-                <th class="py-2 px-4 border-b">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for mailbox in mailboxes %}
-            <tr>
-                <td class="py-2 px-4 border-b">{{ mailbox.username }}</td>
-                <td class="py-2 px-4 border-b">{{ mailbox.name }}</td>
-                <td class="py-2 px-4 border-b">{{ mailbox.domain }}</td>
-                <td class="py-2 px-4 border-b">{{ mailbox.active }}</td>
-                <td class="py-2 px-4 border-b">
-                    <a href="/mailboxes/{{ mailbox.id }}" class="text-blue-500 hover:underline">Show</a>
-                    <a href="/mailboxes/{{ mailbox.id }}/edit" class="text-blue-500 hover:underline ml-2">Edit</a>
-                    <button hx-delete="/mailboxes/{{ mailbox.id }}" hx-target="#main-content" class="text-red-500 hover:underline ml-2">Delete</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900">Mailboxes</h1>
+            <p class="mt-2 text-sm text-gray-700">
+                Manage mail server mailboxes and their settings.
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <button type="button" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
+                Add Mailbox
+            </button>
+        </div>
+    </div>
+
+    <!-- Mailbox List -->
+    <div class="mt-8 flex flex-col">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="relative px-6 py-3">
+                                    <span class="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for mailbox in mailboxes %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ mailbox.username }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ mailbox.name }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ mailbox.domain }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if mailbox.active %}
+                                    <span class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Active</span>
+                                    {% else %}
+                                    <span class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="/mailboxes/{{ mailbox.id }}" class="text-primary-600 hover:text-primary-900">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div> 

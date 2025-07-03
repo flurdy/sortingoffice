@@ -1,7 +1,7 @@
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "base.html")]
+#[template(path = "base.html", escape = "none")]
 pub struct BaseTemplate {
     pub title: String,
     pub content: String,
