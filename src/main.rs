@@ -52,15 +52,19 @@ async fn main() {
         .route("/", get(handlers::dashboard::index))
         // Domains
         .route("/domains", get(handlers::domains::list).post(handlers::domains::create))
+        .route("/domains/new", get(handlers::domains::new))
         .route("/domains/:id", get(handlers::domains::show).put(handlers::domains::update).delete(handlers::domains::delete))
         // Users
         .route("/users", get(handlers::users::list).post(handlers::users::create))
+        .route("/users/new", get(handlers::users::new))
         .route("/users/:id", get(handlers::users::show).put(handlers::users::update).delete(handlers::users::delete))
         // Aliases
         .route("/aliases", get(handlers::aliases::list).post(handlers::aliases::create))
+        .route("/aliases/new", get(handlers::aliases::new))
         .route("/aliases/:id", get(handlers::aliases::show).put(handlers::aliases::update).delete(handlers::aliases::delete))
         // Mailboxes
         .route("/mailboxes", get(handlers::mailboxes::list).post(handlers::mailboxes::create))
+        .route("/mailboxes/new", get(handlers::mailboxes::new))
         .route("/mailboxes/:id", get(handlers::mailboxes::show).put(handlers::mailboxes::update).delete(handlers::mailboxes::delete))
         // Stats
         .route("/stats", get(handlers::stats::index))

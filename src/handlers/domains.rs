@@ -26,6 +26,27 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
     Html(template.render().unwrap())
 }
 
+pub async fn new() -> Html<String> {
+    let form = DomainForm {
+        domain: "".to_string(),
+        description: "".to_string(),
+        aliases: 10,
+        mailboxes: 10,
+        maxquota: 0,
+        quota: 0,
+        transport: "virtual".to_string(),
+        backupmx: false,
+        active: true,
+    };
+    
+    let content_template = DomainFormTemplate { 
+        title: "New Domain", 
+        domain: None, 
+        form 
+    };
+    Html(content_template.render().unwrap())
+}
+
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
     

@@ -26,6 +26,22 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
     Html(template.render().unwrap())
 }
 
+pub async fn new() -> Html<String> {
+    let form = AliasForm {
+        address: "".to_string(),
+        goto: "".to_string(),
+        domain: "example.com".to_string(),
+        active: true,
+    };
+    
+    let content_template = AliasFormTemplate { 
+        title: "New Alias", 
+        alias: None, 
+        form 
+    };
+    Html(content_template.render().unwrap())
+}
+
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
     

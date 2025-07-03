@@ -26,6 +26,24 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
     Html(template.render().unwrap())
 }
 
+pub async fn new() -> Html<String> {
+    let form = MailboxForm {
+        username: "".to_string(),
+        password: "".to_string(),
+        name: "".to_string(),
+        domain: "example.com".to_string(),
+        quota: 1073741824, // 1GB
+        active: true,
+    };
+    
+    let content_template = MailboxFormTemplate { 
+        title: "New Mailbox", 
+        mailbox: None, 
+        form 
+    };
+    Html(content_template.render().unwrap())
+}
+
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
     
