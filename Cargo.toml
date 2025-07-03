@@ -11,7 +11,7 @@ tower-http = { version = "0.5", features = ["fs", "cors"] }
 tokio = { version = "1.0", features = ["full"] }
 
 # Database
-diesel = { version = "2.1", features = ["mysql", "chrono"] }
+diesel = { version = "2.1", features = ["mysql", "chrono", "r2d2"] }
 diesel_migrations = "2.1"
 
 # Serialization
@@ -51,7 +51,7 @@ axum-extra = { version = "0.9", features = ["typed-header"] }
 axum-sessions = "0.5"
 
 # CSRF protection
-axum-csrf = "0.4"
+axum_csrf = "0.4"
 
 [dev-dependencies]
 tokio-test = "0.4" 

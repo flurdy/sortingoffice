@@ -1,7 +1,5 @@
 use axum::{
     extract::State,
-    http::StatusCode,
-    response::Html,
     routing::{get, post},
     Router,
 };
@@ -9,9 +7,8 @@ use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use std::sync::Arc;
 use tower_http::services::ServeDir;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-mod auth;
 mod db;
 mod handlers;
 mod models;
@@ -19,11 +16,11 @@ mod schema;
 mod templates;
 
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
-pub type AppState = Arc<State>;
+pub type AppState = Arc<SharedState>;
 
 #[derive(Clone)]
-pub struct State {
-    pool: DbPool,
+pub struct SharedState {
+    pub pool: DbPool,
 }
 
 #[tokio::main]
@@ -33,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize tracing
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
+        .with(EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
@@ -48,10 +45,11 @@ async fn main() -> anyhow::Result<()> {
         .expect("Failed to create pool");
 
     // Run migrations
-    diesel_migrations::run_pending_migrations(&pool.get().unwrap())
+    diesel_migrations::embed_migrations!();
+    embedded_migrations::run(&mut pool.get().unwrap())
         .expect("Failed to run migrations");
 
-    let state = Arc::new(State { pool });
+    let state = Arc::new(SharedState { pool });
 
     // Build application
     let app = Router::new()

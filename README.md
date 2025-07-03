@@ -2,6 +2,13 @@
 
 A modern web-based admin tool for managing mail server data based on [flurdy's "How to set up a mail server on a GNU / Linux system"](http://flurdy.com/docs/postfix/).
 
+## Versions
+
+- v3: The current Rust based setup
+- v1: The original Play Framework with Scala based setup,
+   refer to the [git tag *v1*](https://github.com/flurdy/sortingoffice/tree/v1)
+ 
+
 ## Features
 
 - **Domain Management**: Add, edit, and remove mail domains with quota and transport settings
@@ -26,7 +33,32 @@ A modern web-based admin tool for managing mail server data based on [flurdy's "
 
 - Rust 1.70+ and Cargo
 - MySQL 8.0+ or MariaDB 10.5+
-- Diesel CLI (`cargo install diesel_cli --no-default-features --features mysql`)
+- Diesel CLI
+
+### Prerequisites hint
+- Install rustup
+
+      sudo dnf install rustup
+
+  or 
+      
+       brew install rustup
+
+- Initialise rustup
+       
+       rustup-init
+
+- Install *cargo binstall*
+
+       cargo install cargo-binstall
+
+- install Diesel CLI binary
+
+       cargo binstall diesel-cli
+
+  Or MySQL only 
+
+       cargo install diesel_cli --no-default-features --features mysql
 
 ## Installation
 
@@ -70,7 +102,7 @@ The easiest way to run Sorting Office is using Docker Compose:
 1. **Prerequisites**:
    - Rust 1.70+ and Cargo
    - MySQL 8.0+ or MariaDB 10.5+
-   - Diesel CLI (`cargo install diesel_cli --no-default-features --features mysql`)
+   - Diesel CLI
 
 2. **Set up the database**:
    ```bash

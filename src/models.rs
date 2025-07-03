@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name = crate::schema::domains)]
@@ -15,8 +15,8 @@ pub struct Domain {
     pub quota: i64,
     pub transport: Option<String>,
     pub backupmx: bool,
-    pub created: DateTime<Utc>,
-    pub modified: DateTime<Utc>,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
     pub active: bool,
 }
 
@@ -45,8 +45,8 @@ pub struct User {
     pub maildir: String,
     pub quota: i64,
     pub domain: String,
-    pub created: DateTime<Utc>,
-    pub modified: DateTime<Utc>,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
     pub active: bool,
 }
 
@@ -70,8 +70,8 @@ pub struct Alias {
     pub address: String,
     pub goto: String,
     pub domain: String,
-    pub created: DateTime<Utc>,
-    pub modified: DateTime<Utc>,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
     pub active: bool,
 }
 
@@ -95,8 +95,8 @@ pub struct Mailbox {
     pub maildir: String,
     pub quota: i64,
     pub domain: String,
-    pub created: DateTime<Utc>,
-    pub modified: DateTime<Utc>,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
     pub active: bool,
 }
 

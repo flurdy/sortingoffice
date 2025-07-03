@@ -2,7 +2,7 @@
 
 diesel::table! {
     aliases (id) {
-        id -> Int,
+        id -> Integer,
         address -> Varchar,
         goto -> Varchar,
         domain -> Varchar,
@@ -14,11 +14,11 @@ diesel::table! {
 
 diesel::table! {
     domains (id) {
-        id -> Int,
+        id -> Integer,
         domain -> Varchar,
         description -> Nullable<Varchar>,
-        aliases -> Int,
-        mailboxes -> Int,
+        aliases -> Integer,
+        mailboxes -> Integer,
         maxquota -> Bigint,
         quota -> Bigint,
         transport -> Nullable<Varchar>,
@@ -31,7 +31,7 @@ diesel::table! {
 
 diesel::table! {
     mailboxes (id) {
-        id -> Int,
+        id -> Integer,
         username -> Varchar,
         password -> Varchar,
         name -> Varchar,
@@ -46,7 +46,7 @@ diesel::table! {
 
 diesel::table! {
     users (id) {
-        id -> Int,
+        id -> Integer,
         username -> Varchar,
         password -> Varchar,
         name -> Varchar,
