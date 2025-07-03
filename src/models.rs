@@ -1,6 +1,14 @@
 use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Deserializer};
 use chrono::NaiveDateTime;
+
+fn deserialize_checkbox<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt = Option::<String>::deserialize(deserializer)?;
+    Ok(matches!(opt.as_deref(), Some("on") | Some("true") | Some("1")))
+}
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name = crate::schema::domains)]
@@ -124,8 +132,10 @@ pub struct DomainForm {
     pub quota: i64,
     pub transport: String,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub backupmx: bool,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub active: bool,
 }
 
@@ -137,6 +147,7 @@ pub struct UserForm {
     pub domain: String,
     pub quota: i64,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub active: bool,
 }
 
@@ -146,6 +157,7 @@ pub struct AliasForm {
     pub goto: String,
     pub domain: String,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub active: bool,
 }
 
@@ -157,6 +169,7 @@ pub struct MailboxForm {
     pub domain: String,
     pub quota: i64,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub active: bool,
 }
 
