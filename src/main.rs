@@ -47,6 +47,7 @@ async fn main() {
     let app = Router::new()
         // Auth
         .route("/login", get(handlers::auth::login_form).post(handlers::auth::login))
+        .route("/logout", post(handlers::auth::logout))
         // Dashboard
         .route("/", get(handlers::dashboard::index))
         // Domains
