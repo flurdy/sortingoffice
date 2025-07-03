@@ -1,11 +1,11 @@
 # Multi-stage build for Rust application
-FROM rust:1.75-slim as builder
+FROM rust:slim AS builder
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,7 +36,7 @@ FROM debian:bookworm-slim
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     libssl3 \
-    libmysqlclient21 \
+    libmariadb3 \
     ca-certificates \
     curl \
     && rm -rf /var/lib/apt/lists/*
