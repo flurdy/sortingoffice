@@ -1,0 +1,35 @@
+<div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">{% if alias.is_some() %}Edit Alias{% else %}New Alias{% endif %}</h1>
+
+    <form hx-post="/aliases" hx-target="#main-content" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
+                Address
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address" name="address" type="text" placeholder="alias@example.com" value="{{ form.address }}">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="goto">
+                Goto
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="goto" name="goto" type="text" placeholder="destination@example.com" value="{{ form.goto }}">
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="domain">
+                Domain
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="domain" name="domain" type="text" placeholder="example.com" value="{{ form.domain }}">
+        </div>
+        <div class="mb-4">
+            <label class="inline-flex items-center">
+                <input type="checkbox" class="form-checkbox" name="active" {% if form.active %}checked{% endif %}>
+                <span class="ml-2">Active</span>
+            </label>
+        </div>
+        <div class="flex items-center justify-between">
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Save
+            </button>
+        </div>
+    </form>
+</div> 

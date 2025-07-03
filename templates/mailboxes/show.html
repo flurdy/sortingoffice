@@ -1,0 +1,17 @@
+<div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">{{ mailbox.name }}</h1>
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-4">
+            <p><span class="font-bold">Username:</span> {{ mailbox.username }}</p>
+            <p><span class="font-bold">Domain:</span> {{ mailbox.domain }}</p>
+            <p><span class="font-bold">Quota:</span> {{ mailbox.quota }}</p>
+            <p><span class="font-bold">Active:</span> {{ mailbox.active }}</p>
+            <p><span class="font-bold">Created:</span> {{ mailbox.created }}</p>
+            <p><span class="font-bold">Modified:</span> {{ mailbox.modified }}</p>
+        </div>
+        <div class="flex items-center justify-between">
+            <a href="/mailboxes/{{ mailbox.id }}/edit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</a>
+            <button hx-delete="/mailboxes/{{ mailbox.id }}" hx-target="#main-content" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete</button>
+        </div>
+    </div>
+</div> 

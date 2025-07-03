@@ -4,10 +4,12 @@ use crate::DbPool;
 use diesel::prelude::*;
 use diesel::result::Error;
 use chrono::Utc;
+use bigdecimal::{BigDecimal, ToPrimitive};
 
 pub fn get_domains(pool: &DbPool) -> Result<Vec<Domain>, Error> {
     let mut conn = pool.get().unwrap();
     domains::table
+        .select(Domain::as_select())
         .order(domains::domain.asc())
         .load::<Domain>(&mut conn)
 }
@@ -16,6 +18,7 @@ pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
     let mut conn = pool.get().unwrap();
     domains::table
         .find(domain_id)
+        .select(Domain::as_select())
         .first::<Domain>(&mut conn)
 }
 
@@ -27,6 +30,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
     
     domains::table
         .order(domains::id.desc())
+        .select(Domain::as_select())
         .first::<Domain>(&mut conn)
 }
 
@@ -43,7 +47,7 @@ pub fn update_domain(pool: &DbPool, domain_id: i32, domain_data: DomainForm) -> 
             domains::transport.eq(domain_data.transport),
             domains::backupmx.eq(domain_data.backupmx),
             domains::active.eq(domain_data.active),
-            domains::modified.eq(Utc::now()),
+            domains::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
     
@@ -59,6 +63,7 @@ pub fn delete_domain(pool: &DbPool, domain_id: i32) -> Result<usize, Error> {
 pub fn get_users(pool: &DbPool) -> Result<Vec<User>, Error> {
     let mut conn = pool.get().unwrap();
     users::table
+        .select(User::as_select())
         .order(users::username.asc())
         .load::<User>(&mut conn)
 }
@@ -67,6 +72,15 @@ pub fn get_user(pool: &DbPool, user_id: i32) -> Result<User, Error> {
     let mut conn = pool.get().unwrap();
     users::table
         .find(user_id)
+        .select(User::as_select())
+        .first::<User>(&mut conn)
+}
+
+pub fn get_user_by_username(pool: &DbPool, uname: &str) -> Result<User, Error> {
+    let mut conn = pool.get().unwrap();
+    users::table
+        .filter(users::username.eq(uname))
+        .select(User::as_select())
         .first::<User>(&mut conn)
 }
 
@@ -75,7 +89,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
     
     // Hash the password
     let hashed_password = bcrypt::hash(user_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-        .map_err(|_| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new("Password hashing failed")))?;
+        .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
     
     let maildir = format!("{}/", user_data.username);
     
@@ -95,31 +109,40 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
     
     users::table
         .order(users::id.desc())
+        .select(User::as_select())
         .first::<User>(&mut conn)
 }
 
 pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<User, Error> {
     let mut conn = pool.get().unwrap();
     
-    let mut update_data = vec![
-        users::username.eq(user_data.username.clone()),
-        users::name.eq(user_data.name.clone()),
-        users::domain.eq(user_data.domain.clone()),
-        users::quota.eq(user_data.quota),
-        users::active.eq(user_data.active),
-        users::modified.eq(Utc::now()),
-    ];
-    
-    // Only update password if provided
     if !user_data.password.is_empty() {
         let hashed_password = bcrypt::hash(user_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-            .map_err(|_| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new("Password hashing failed")))?;
-        update_data.push(users::password.eq(hashed_password));
+            .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
+        
+        diesel::update(users::table.find(user_id))
+            .set((
+                users::username.eq(user_data.username),
+                users::name.eq(user_data.name),
+                users::domain.eq(user_data.domain),
+                users::quota.eq(user_data.quota),
+                users::active.eq(user_data.active),
+                users::modified.eq(Utc::now().naive_utc()),
+                users::password.eq(hashed_password),
+            ))
+            .execute(&mut conn)?;
+    } else {
+        diesel::update(users::table.find(user_id))
+            .set((
+                users::username.eq(user_data.username),
+                users::name.eq(user_data.name),
+                users::domain.eq(user_data.domain),
+                users::quota.eq(user_data.quota),
+                users::active.eq(user_data.active),
+                users::modified.eq(Utc::now().naive_utc()),
+            ))
+            .execute(&mut conn)?;
     }
-    
-    diesel::update(users::table.find(user_id))
-        .set(update_data)
-        .execute(&mut conn)?;
     
     get_user(pool, user_id)
 }
@@ -133,6 +156,7 @@ pub fn delete_user(pool: &DbPool, user_id: i32) -> Result<usize, Error> {
 pub fn get_aliases(pool: &DbPool) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
     aliases::table
+        .select(Alias::as_select())
         .order(aliases::address.asc())
         .load::<Alias>(&mut conn)
 }
@@ -141,6 +165,7 @@ pub fn get_alias(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
     let mut conn = pool.get().unwrap();
     aliases::table
         .find(alias_id)
+        .select(Alias::as_select())
         .first::<Alias>(&mut conn)
 }
 
@@ -160,6 +185,7 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
     
     aliases::table
         .order(aliases::id.desc())
+        .select(Alias::as_select())
         .first::<Alias>(&mut conn)
 }
 
@@ -171,7 +197,7 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
             aliases::goto.eq(alias_data.goto),
             aliases::domain.eq(alias_data.domain),
             aliases::active.eq(alias_data.active),
-            aliases::modified.eq(Utc::now()),
+            aliases::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
     
@@ -187,6 +213,7 @@ pub fn delete_alias(pool: &DbPool, alias_id: i32) -> Result<usize, Error> {
 pub fn get_mailboxes(pool: &DbPool) -> Result<Vec<Mailbox>, Error> {
     let mut conn = pool.get().unwrap();
     mailboxes::table
+        .select(Mailbox::as_select())
         .order(mailboxes::username.asc())
         .load::<Mailbox>(&mut conn)
 }
@@ -195,6 +222,7 @@ pub fn get_mailbox(pool: &DbPool, mailbox_id: i32) -> Result<Mailbox, Error> {
     let mut conn = pool.get().unwrap();
     mailboxes::table
         .find(mailbox_id)
+        .select(Mailbox::as_select())
         .first::<Mailbox>(&mut conn)
 }
 
@@ -203,7 +231,7 @@ pub fn create_mailbox(pool: &DbPool, mailbox_data: MailboxForm) -> Result<Mailbo
     
     // Hash the password
     let hashed_password = bcrypt::hash(mailbox_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-        .map_err(|_| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new("Password hashing failed")))?;
+        .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
     
     let maildir = format!("{}/", mailbox_data.username);
     
@@ -223,31 +251,40 @@ pub fn create_mailbox(pool: &DbPool, mailbox_data: MailboxForm) -> Result<Mailbo
     
     mailboxes::table
         .order(mailboxes::id.desc())
+        .select(Mailbox::as_select())
         .first::<Mailbox>(&mut conn)
 }
 
 pub fn update_mailbox(pool: &DbPool, mailbox_id: i32, mailbox_data: MailboxForm) -> Result<Mailbox, Error> {
     let mut conn = pool.get().unwrap();
     
-    let mut update_data = vec![
-        mailboxes::username.eq(mailbox_data.username.clone()),
-        mailboxes::name.eq(mailbox_data.name.clone()),
-        mailboxes::domain.eq(mailbox_data.domain.clone()),
-        mailboxes::quota.eq(mailbox_data.quota),
-        mailboxes::active.eq(mailbox_data.active),
-        mailboxes::modified.eq(Utc::now()),
-    ];
-    
-    // Only update password if provided
     if !mailbox_data.password.is_empty() {
         let hashed_password = bcrypt::hash(mailbox_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-            .map_err(|_| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new("Password hashing failed")))?;
-        update_data.push(mailboxes::password.eq(hashed_password));
+            .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
+
+        diesel::update(mailboxes::table.find(mailbox_id))
+            .set((
+                mailboxes::username.eq(mailbox_data.username),
+                mailboxes::name.eq(mailbox_data.name),
+                mailboxes::domain.eq(mailbox_data.domain),
+                mailboxes::quota.eq(mailbox_data.quota),
+                mailboxes::active.eq(mailbox_data.active),
+                mailboxes::modified.eq(Utc::now().naive_utc()),
+                mailboxes::password.eq(hashed_password),
+            ))
+            .execute(&mut conn)?;
+    } else {
+        diesel::update(mailboxes::table.find(mailbox_id))
+            .set((
+                mailboxes::username.eq(mailbox_data.username),
+                mailboxes::name.eq(mailbox_data.name),
+                mailboxes::domain.eq(mailbox_data.domain),
+                mailboxes::quota.eq(mailbox_data.quota),
+                mailboxes::active.eq(mailbox_data.active),
+                mailboxes::modified.eq(Utc::now().naive_utc()),
+            ))
+            .execute(&mut conn)?;
     }
-    
-    diesel::update(mailboxes::table.find(mailbox_id))
-        .set(update_data)
-        .execute(&mut conn)?;
     
     get_mailbox(pool, mailbox_id)
 }
@@ -269,7 +306,8 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     
     let total_quota: i64 = users::table
         .select(diesel::dsl::sum(users::quota))
-        .get_result(&mut conn)
+        .get_result::<Option<BigDecimal>>(&mut conn)?
+        .and_then(|d| d.to_i64())
         .unwrap_or(0);
     
     Ok(SystemStats {
@@ -308,7 +346,8 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
         let total_quota: i64 = users::table
             .filter(users::domain.eq(&domain.domain))
             .select(diesel::dsl::sum(users::quota))
-            .get_result(&mut conn)
+            .get_result::<Option<BigDecimal>>(&mut conn)?
+            .and_then(|d| d.to_i64())
             .unwrap_or(0);
         
         stats.push(DomainStats {

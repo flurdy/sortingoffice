@@ -6,9 +6,9 @@ diesel::table! {
         address -> Varchar,
         goto -> Varchar,
         domain -> Varchar,
+        active -> Bool,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
     }
 }
 
@@ -16,16 +16,16 @@ diesel::table! {
     domains (id) {
         id -> Integer,
         domain -> Varchar,
-        description -> Nullable<Varchar>,
+        description -> Varchar,
         aliases -> Integer,
         mailboxes -> Integer,
         maxquota -> Bigint,
         quota -> Bigint,
-        transport -> Nullable<Varchar>,
+        transport -> Varchar,
         backupmx -> Bool,
+        active -> Bool,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
     }
 }
 
@@ -38,9 +38,9 @@ diesel::table! {
         maildir -> Varchar,
         quota -> Bigint,
         domain -> Varchar,
+        active -> Bool,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
     }
 }
 
@@ -53,15 +53,15 @@ diesel::table! {
         maildir -> Varchar,
         quota -> Bigint,
         domain -> Varchar,
+        active -> Bool,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
     }
 }
 
-diesel::joinable!(aliases -> domains (domain));
-diesel::joinable!(mailboxes -> domains (domain));
-diesel::joinable!(users -> domains (domain));
+// diesel::joinable!(aliases -> domains (domain));
+// diesel::joinable!(mailboxes -> domains (domain));
+// diesel::joinable!(users -> domains (domain));
 
 diesel::allow_tables_to_appear_in_same_query!(
     aliases,

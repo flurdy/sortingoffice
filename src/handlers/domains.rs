@@ -5,6 +5,8 @@ use axum::{
 };
 use crate::{AppState, db, models::*};
 use crate::templates::domains::*;
+use crate::templates::layout::BaseTemplate;
+use askama::Template;
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
@@ -14,7 +16,13 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
         Err(_) => vec![],
     };
     
-    let template = DomainListTemplate { domains };
+    let content_template = DomainListTemplate { title: "Domains", domains };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Domains".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -26,7 +34,13 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         Err(_) => return Html("Domain not found".to_string()),
     };
     
-    let template = DomainShowTemplate { domain };
+    let content_template = DomainShowTemplate { title: "Show Domain", domain };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Show Domain".to_string(), 
+        content 
+    };
     Html(template.render().unwrap())
 }
 
@@ -54,7 +68,7 @@ pub async fn create(
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { domains };
+            let template = DomainListTemplate { title: "Domains", domains };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error creating domain".to_string()),
@@ -74,7 +88,7 @@ pub async fn update(
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { domains };
+            let template = DomainListTemplate { title: "Domains", domains };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error updating domain".to_string()),
@@ -90,7 +104,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { domains };
+            let template = DomainListTemplate { title: "Domains", domains };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting domain".to_string()),

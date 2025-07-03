@@ -1,20 +1,24 @@
 use askama::Template;
-use crate::models::Domain;
+use crate::models::{Domain, DomainForm};
 
 #[derive(Template)]
-#[template(path = "domains/list.html")]
-pub struct DomainListTemplate {
+#[template(path = "domains/list.html", escape = "html")]
+pub struct DomainListTemplate<'a> {
+    pub title: &'a str,
     pub domains: Vec<Domain>,
 }
 
 #[derive(Template)]
-#[template(path = "domains/show.html")]
-pub struct DomainShowTemplate {
+#[template(path = "domains/show.html", escape = "html")]
+pub struct DomainShowTemplate<'a> {
+    pub title: &'a str,
     pub domain: Domain,
 }
 
 #[derive(Template)]
-#[template(path = "domains/form.html")]
-pub struct DomainFormTemplate {
+#[template(path = "domains/form.html", escape = "html")]
+pub struct DomainFormTemplate<'a> {
+    pub title: &'a str,
     pub domain: Option<Domain>,
+    pub form: DomainForm,
 } 

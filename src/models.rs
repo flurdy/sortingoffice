@@ -8,12 +8,12 @@ use chrono::NaiveDateTime;
 pub struct Domain {
     pub id: i32,
     pub domain: String,
-    pub description: Option<String>,
+    pub description: String,
     pub aliases: i32,
     pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
-    pub transport: Option<String>,
+    pub transport: String,
     pub backupmx: bool,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
@@ -24,12 +24,12 @@ pub struct Domain {
 #[diesel(table_name = crate::schema::domains)]
 pub struct NewDomain {
     pub domain: String,
-    pub description: Option<String>,
+    pub description: String,
     pub aliases: i32,
     pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
-    pub transport: Option<String>,
+    pub transport: String,
     pub backupmx: bool,
     pub active: bool,
 }
@@ -113,15 +113,15 @@ pub struct NewMailbox {
 }
 
 // Form data structures for HTMX
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct DomainForm {
     pub domain: String,
-    pub description: Option<String>,
+    pub description: String,
     pub aliases: i32,
     pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
-    pub transport: Option<String>,
+    pub transport: String,
     pub backupmx: bool,
     pub active: bool,
 }

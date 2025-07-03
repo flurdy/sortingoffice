@@ -1,0 +1,30 @@
+<div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">Mailboxes</h1>
+    <a href="/mailboxes/new" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block">New Mailbox</a>
+    <table class="min-w-full bg-white">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b">Username</th>
+                <th class="py-2 px-4 border-b">Name</th>
+                <th class="py-2 px-4 border-b">Domain</th>
+                <th class="py-2 px-4 border-b">Active</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mailbox in mailboxes %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ mailbox.username }}</td>
+                <td class="py-2 px-4 border-b">{{ mailbox.name }}</td>
+                <td class="py-2 px-4 border-b">{{ mailbox.domain }}</td>
+                <td class="py-2 px-4 border-b">{{ mailbox.active }}</td>
+                <td class="py-2 px-4 border-b">
+                    <a href="/mailboxes/{{ mailbox.id }}" class="text-blue-500 hover:underline">Show</a>
+                    <a href="/mailboxes/{{ mailbox.id }}/edit" class="text-blue-500 hover:underline ml-2">Edit</a>
+                    <button hx-delete="/mailboxes/{{ mailbox.id }}" hx-target="#main-content" class="text-red-500 hover:underline ml-2">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> 

@@ -8,8 +8,8 @@ pub struct BaseTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "layout.html")]
-pub struct LayoutTemplate {
-    pub title: String,
-    pub content: String,
-} 
+#[template(path = "base.html", escape = "html")]
+pub struct LayoutTemplate<'a> {
+    pub title: &'a str,
+    pub content: &'a str,
+}

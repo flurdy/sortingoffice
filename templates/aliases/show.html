@@ -1,0 +1,16 @@
+<div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">{{ alias.address }}</h1>
+    <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div class="mb-4">
+            <p><span class="font-bold">Goto:</span> {{ alias.goto }}</p>
+            <p><span class="font-bold">Domain:</span> {{ alias.domain }}</p>
+            <p><span class="font-bold">Active:</span> {{ alias.active }}</p>
+            <p><span class="font-bold">Created:</span> {{ alias.created }}</p>
+            <p><span class="font-bold">Modified:</span> {{ alias.modified }}</p>
+        </div>
+        <div class="flex items-center justify-between">
+            <a href="/aliases/{{ alias.id }}/edit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Edit</a>
+            <button hx-delete="/aliases/{{ alias.id }}" hx-target="#main-content" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete</button>
+        </div>
+    </div>
+</div> 

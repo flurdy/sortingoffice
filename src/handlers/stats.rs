@@ -4,6 +4,7 @@ use axum::{
 };
 use crate::{AppState, db};
 use crate::templates::stats::StatsTemplate;
+use askama::Template;
 
 pub async fn index(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
@@ -26,6 +27,7 @@ pub async fn index(State(state): State<AppState>) -> Html<String> {
     };
     
     let template = StatsTemplate {
+        title: "Stats",
         system_stats,
         domain_stats,
     };

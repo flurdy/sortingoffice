@@ -1,92 +1,73 @@
 use axum::{
-    extract::State,
-    routing::{get, post},
+    routing::get,
     Router,
 };
-use diesel::prelude::*;
+use std::net::SocketAddr;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use diesel::r2d2::{self, ConnectionManager};
-use std::sync::Arc;
-use tower_http::services::ServeDir;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use diesel::mysql::MysqlConnection;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 
-mod db;
-mod handlers;
-mod models;
-mod schema;
-mod templates;
+pub mod db;
+pub mod handlers;
+pub mod models;
+pub mod schema;
+pub mod templates;
 
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
-pub type AppState = Arc<SharedState>;
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 #[derive(Clone)]
-pub struct SharedState {
-    pub pool: DbPool,
+pub struct AppState {
+    pool: DbPool,
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // Load environment variables
+async fn main() {
     dotenvy::dotenv().ok();
 
-    // Initialize tracing
     tracing_subscriber::registry()
-        .with(EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
-        ))
         .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
 
-    // Database connection
-    let database_url = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let manager = ConnectionManager::<MysqlConnection>::new(db_url);
     let pool = r2d2::Pool::builder()
         .build(manager)
-        .expect("Failed to create pool");
+        .expect("Failed to create pool.");
 
-    // Run migrations
-    diesel_migrations::embed_migrations!();
-    embedded_migrations::run(&mut pool.get().unwrap())
-        .expect("Failed to run migrations");
+    // Run database migrations
+    let mut conn = pool.get().expect("Failed to get db connection from pool");
+    conn.run_pending_migrations(MIGRATIONS).expect("Failed to run db migrations");
 
-    let state = Arc::new(SharedState { pool });
+    let app_state = AppState { pool };
 
-    // Build application
     let app = Router::new()
+        // Auth
+        .route("/login", get(handlers::auth::login_form).post(handlers::auth::login))
+        // Dashboard
         .route("/", get(handlers::dashboard::index))
-        .route("/login", get(handlers::auth::login_page))
-        .route("/login", post(handlers::auth::login))
-        .route("/logout", post(handlers::auth::logout))
-        .route("/domains", get(handlers::domains::list))
-        .route("/domains", post(handlers::domains::create))
-        .route("/domains/:id", get(handlers::domains::show))
-        .route("/domains/:id", post(handlers::domains::update))
-        .route("/domains/:id/delete", post(handlers::domains::delete))
-        .route("/users", get(handlers::users::list))
-        .route("/users", post(handlers::users::create))
-        .route("/users/:id", get(handlers::users::show))
-        .route("/users/:id", post(handlers::users::update))
-        .route("/users/:id/delete", post(handlers::users::delete))
-        .route("/aliases", get(handlers::aliases::list))
-        .route("/aliases", post(handlers::aliases::create))
-        .route("/aliases/:id", get(handlers::aliases::show))
-        .route("/aliases/:id", post(handlers::aliases::update))
-        .route("/aliases/:id/delete", post(handlers::aliases::delete))
-        .route("/mailboxes", get(handlers::mailboxes::list))
-        .route("/mailboxes", post(handlers::mailboxes::create))
-        .route("/mailboxes/:id", get(handlers::mailboxes::show))
-        .route("/mailboxes/:id", post(handlers::mailboxes::update))
-        .route("/mailboxes/:id/delete", post(handlers::mailboxes::delete))
+        // Domains
+        .route("/domains", get(handlers::domains::list).post(handlers::domains::create))
+        .route("/domains/:id", get(handlers::domains::show).put(handlers::domains::update).delete(handlers::domains::delete))
+        // Users
+        .route("/users", get(handlers::users::list).post(handlers::users::create))
+        .route("/users/:id", get(handlers::users::show).put(handlers::users::update).delete(handlers::users::delete))
+        // Aliases
+        .route("/aliases", get(handlers::aliases::list).post(handlers::aliases::create))
+        .route("/aliases/:id", get(handlers::aliases::show).put(handlers::aliases::update).delete(handlers::aliases::delete))
+        // Mailboxes
+        .route("/mailboxes", get(handlers::mailboxes::list).post(handlers::mailboxes::create))
+        .route("/mailboxes/:id", get(handlers::mailboxes::show).put(handlers::mailboxes::update).delete(handlers::mailboxes::delete))
+        // Stats
         .route("/stats", get(handlers::stats::index))
-        .nest_service("/static", ServeDir::new("static"))
-        .with_state(state);
+        .with_state(app_state)
+        .layer(TraceLayer::new_for_http());
 
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::info!("listening on {}", addr);
-
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
-
-    Ok(())
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    tracing::debug!("listening on {}", addr);
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 } 

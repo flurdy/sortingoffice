@@ -2,7 +2,8 @@ use askama::Template;
 use crate::models::SystemStats;
 
 #[derive(Template)]
-#[template(path = "dashboard.html")]
-pub struct DashboardTemplate {
+#[template(path = "dashboard.html", escape = "html")]
+pub struct DashboardTemplate<'a> {
+    pub title: &'a str,
     pub stats: SystemStats,
 } 

@@ -5,6 +5,7 @@ use axum::{
 };
 use crate::{AppState, db, models::*};
 use crate::templates::mailboxes::*;
+use askama::Template;
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
@@ -14,7 +15,7 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
         Err(_) => vec![],
     };
     
-    let template = MailboxListTemplate { mailboxes };
+    let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
     Html(template.render().unwrap())
 }
 
@@ -26,7 +27,7 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         Err(_) => return Html("Mailbox not found".to_string()),
     };
     
-    let template = MailboxShowTemplate { mailbox };
+    let template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
     Html(template.render().unwrap())
 }
 
@@ -42,7 +43,7 @@ pub async fn create(
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { mailboxes };
+            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error creating mailbox".to_string()),
@@ -62,7 +63,7 @@ pub async fn update(
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { mailboxes };
+            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error updating mailbox".to_string()),
@@ -78,7 +79,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(mailboxes) => mailboxes,
                 Err(_) => vec![],
             };
-            let template = MailboxListTemplate { mailboxes };
+            let template = MailboxListTemplate { title: "Mailboxes", mailboxes };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting mailbox".to_string()),
