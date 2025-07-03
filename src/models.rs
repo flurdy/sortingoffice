@@ -116,6 +116,7 @@ pub struct NewMailbox {
 #[derive(Deserialize, Debug)]
 pub struct DomainForm {
     pub domain: String,
+    #[serde(default)]
     pub description: String,
     pub aliases: i32,
     pub mailboxes: i32,
