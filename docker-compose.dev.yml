@@ -1,11 +1,11 @@
-version: '3.8'
-
 services:
   # Development overrides for the app service
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    env_file:
+      - docker.env
     environment:
       RUST_LOG: debug
       RUST_BACKTRACE: 1
@@ -14,10 +14,14 @@ services:
       - ./templates:/app/templates:ro
       - ./migrations:/app/migrations:ro
       - ./Cargo.toml:/app/Cargo.toml:ro
-    command: ["cargo", "run"]
+    command: ["/app/start.sh"]
     ports:
       - "3000:3000"
       - "35729:35729"  # Live reload port
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   # Development database with exposed ports
   db:

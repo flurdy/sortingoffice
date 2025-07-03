@@ -1,13 +1,16 @@
 # Development Dockerfile for Rust application
-FROM rust:1.75-slim
+FROM rust:slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
-    libmysqlclient-dev \
+    libmariadb-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Verify Rust and Cargo are available
+RUN rustc --version && cargo --version
 
 # Install Diesel CLI for development
 RUN cargo install diesel_cli --no-default-features --features mysql
@@ -32,8 +35,22 @@ COPY src/ ./src/
 COPY templates/ ./templates/
 COPY migrations/ ./migrations/
 
+# Create startup script
+RUN echo '#!/bin/bash\n\
+echo "Starting Sorting Office in development mode..."\n\
+echo "Current directory: $(pwd)"\n\
+echo "Environment variables:"\n\
+env | grep -E "(DATABASE_URL|RUST_LOG|RUST_BACKTRACE)"\n\
+echo "Running cargo run with full output..."\n\
+set -x\n\
+exec /usr/local/cargo/bin/cargo run 2>&1\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
 # Expose ports
 EXPOSE 3000 35729
 
+# Set PATH to ensure cargo is available
+ENV PATH="/usr/local/cargo/bin:${PATH}"
+
 # Default command (can be overridden in docker-compose)
-CMD ["cargo", "run"] 
+CMD ["/app/start.sh"] 
