@@ -75,13 +75,7 @@ pub async fn create(
                 Err(_) => vec![],
             };
             let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
-            let content = content_template.render().unwrap();
-            
-            let template = BaseTemplate { 
-                title: "Mailboxes".to_string(), 
-                content 
-            };
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error creating mailbox".to_string()),
     }
@@ -101,13 +95,7 @@ pub async fn update(
                 Err(_) => vec![],
             };
             let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
-            let content = content_template.render().unwrap();
-            
-            let template = BaseTemplate { 
-                title: "Mailboxes".to_string(), 
-                content 
-            };
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error updating mailbox".to_string()),
     }
@@ -123,13 +111,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Err(_) => vec![],
             };
             let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
-            let content = content_template.render().unwrap();
-            
-            let template = BaseTemplate { 
-                title: "Mailboxes".to_string(), 
-                content 
-            };
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error deleting mailbox".to_string()),
     }
