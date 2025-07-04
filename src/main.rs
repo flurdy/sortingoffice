@@ -54,18 +54,22 @@ async fn main() {
         .route("/domains", get(handlers::domains::list).post(handlers::domains::create))
         .route("/domains/new", get(handlers::domains::new))
         .route("/domains/:id", get(handlers::domains::show).put(handlers::domains::update).delete(handlers::domains::delete))
+        .route("/domains/:id/edit", get(handlers::domains::edit))
         // Users
         .route("/users", get(handlers::users::list).post(handlers::users::create))
         .route("/users/new", get(handlers::users::new))
         .route("/users/:id", get(handlers::users::show).put(handlers::users::update).delete(handlers::users::delete))
+        .route("/users/:id/edit", get(handlers::users::edit))
         // Aliases
         .route("/aliases", get(handlers::aliases::list).post(handlers::aliases::create))
         .route("/aliases/new", get(handlers::aliases::new))
         .route("/aliases/:id", get(handlers::aliases::show).put(handlers::aliases::update).delete(handlers::aliases::delete))
+        .route("/aliases/:id/edit", get(handlers::aliases::edit))
         // Mailboxes
         .route("/mailboxes", get(handlers::mailboxes::list).post(handlers::mailboxes::create))
         .route("/mailboxes/new", get(handlers::mailboxes::new))
         .route("/mailboxes/:id", get(handlers::mailboxes::show).put(handlers::mailboxes::update).delete(handlers::mailboxes::delete))
+        .route("/mailboxes/:id/edit", get(handlers::mailboxes::edit))
         // Stats
         .route("/stats", get(handlers::stats::index))
         .with_state(app_state)

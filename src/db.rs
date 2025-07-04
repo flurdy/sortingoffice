@@ -22,6 +22,14 @@ pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
         .first::<Domain>(&mut conn)
 }
 
+pub fn get_domain_by_name(pool: &DbPool, domain_name: &str) -> Result<Domain, Error> {
+    let mut conn = pool.get().unwrap();
+    domains::table
+        .filter(domains::domain.eq(domain_name))
+        .select(Domain::as_select())
+        .first::<Domain>(&mut conn)
+}
+
 pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Error> {
     let mut conn = pool.get().unwrap();
     diesel::insert_into(domains::table)

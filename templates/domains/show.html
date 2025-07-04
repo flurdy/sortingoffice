@@ -83,7 +83,10 @@
 
     <!-- Actions -->
     <div class="mt-6 flex space-x-3">
-        <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+        <button 
+            hx-get="/domains/{{ domain.id }}/edit" 
+            hx-target="#main-content"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
             Edit Domain
         </button>
         <button 

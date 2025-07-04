@@ -21,4 +21,5 @@ pub struct MailboxFormTemplate<'a> {
     pub title: &'a str,
     pub mailbox: Option<Mailbox>,
     pub form: MailboxForm,
+    pub error: Option<String>,
 } 

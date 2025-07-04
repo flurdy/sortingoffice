@@ -21,4 +21,5 @@ pub struct UserFormTemplate<'a> {
     pub title: &'a str,
     pub user: Option<User>,
     pub form: UserForm,
+    pub error: Option<String>,
 } 

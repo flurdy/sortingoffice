@@ -39,7 +39,8 @@ pub async fn new() -> Html<String> {
     let content_template = UserFormTemplate { 
         title: "New User", 
         user: None, 
-        form 
+        form,
+        error: None
     };
     Html(content_template.render().unwrap())
 }
@@ -62,22 +63,100 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     Html(template.render().unwrap())
 }
 
+pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    let user = match db::get_user(pool, id) {
+        Ok(user) => user,
+        Err(_) => return Html("User not found".to_string()),
+    };
+    
+    let form = UserForm {
+        username: user.username.clone(),
+        password: "".to_string(), // Don't populate password for security
+        name: user.name.clone(),
+        domain: user.domain.clone(),
+        quota: user.quota,
+        active: user.active,
+    };
+    
+    let content_template = UserFormTemplate { 
+        title: "Edit User", 
+        user: Some(user), 
+        form,
+        error: None
+    };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Edit User".to_string(), 
+        content 
+    };
+    Html(template.render().unwrap())
+}
+
 pub async fn create(
     State(state): State<AppState>,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
     let pool = &state.pool;
     
-    match db::create_user(pool, form) {
+    // First check if the domain exists
+    match db::get_domain_by_name(pool, &form.domain) {
         Ok(_) => {
-            let users = match db::get_users(pool) {
-                Ok(users) => users,
-                Err(_) => vec![],
-            };
-            let content_template = UserListTemplate { title: "Users", users };
-            Html(content_template.render().unwrap())
+            // Domain exists, proceed with user creation
+            match db::create_user(pool, form.clone()) {
+                Ok(_) => {
+                    let users = match db::get_users(pool) {
+                        Ok(users) => users,
+                        Err(_) => vec![],
+                    };
+                    let content_template = UserListTemplate { title: "Users", users };
+                    Html(content_template.render().unwrap())
+                }
+                Err(e) => {
+                    // Handle specific database errors
+                    let error_message = match e {
+                        diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, _) => {
+                            "A user with this username already exists."
+                        }
+                        diesel::result::Error::DatabaseError(diesel::result::DatabaseErrorKind::ForeignKeyViolation, _) => {
+                            "The specified domain does not exist. Please create the domain first."
+                        }
+                        _ => "Error creating user. Please check your input and try again."
+                    };
+                    
+                    // Return to form with error message
+                    let form_template = UserFormTemplate { 
+                        title: "New User", 
+                        user: None, 
+                        form: form.clone(),
+                        error: Some(error_message.to_string())
+                    };
+                    let content = form_template.render().unwrap();
+                    let template = BaseTemplate { 
+                        title: "New User".to_string(), 
+                        content 
+                    };
+                    Html(template.render().unwrap())
+                }
+            }
         }
-        Err(_) => Html("Error creating user".to_string()),
+        Err(_) => {
+            // Domain doesn't exist
+            let form_template = UserFormTemplate { 
+                title: "New User", 
+                user: None, 
+                form: form.clone(),
+                error: Some("The specified domain does not exist. Please create the domain first.".to_string())
+            };
+            let content = form_template.render().unwrap();
+            let template = BaseTemplate { 
+                title: "New User".to_string(), 
+                content 
+            };
+            Html(template.render().unwrap())
+        }
     }
 }
 

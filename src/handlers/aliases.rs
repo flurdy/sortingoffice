@@ -60,6 +60,35 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     Html(template.render().unwrap())
 }
 
+pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    let alias = match db::get_alias(pool, id) {
+        Ok(alias) => alias,
+        Err(_) => return Html("Alias not found".to_string()),
+    };
+    
+    let form = AliasForm {
+        address: alias.address.clone(),
+        goto: alias.goto.clone(),
+        domain: alias.domain.clone(),
+        active: alias.active,
+    };
+    
+    let content_template = AliasFormTemplate { 
+        title: "Edit Alias", 
+        alias: Some(alias), 
+        form 
+    };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Edit Alias".to_string(), 
+        content 
+    };
+    Html(template.render().unwrap())
+}
+
 pub async fn create(
     State(state): State<AppState>,
     Form(form): Form<AliasForm>,

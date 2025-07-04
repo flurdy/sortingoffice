@@ -65,6 +65,40 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     Html(template.render().unwrap())
 }
 
+pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    let domain = match db::get_domain(pool, id) {
+        Ok(domain) => domain,
+        Err(_) => return Html("Domain not found".to_string()),
+    };
+    
+    let form = DomainForm {
+        domain: domain.domain.clone(),
+        description: domain.description.clone(),
+        aliases: domain.aliases,
+        mailboxes: domain.mailboxes,
+        maxquota: domain.maxquota,
+        quota: domain.quota,
+        transport: domain.transport.clone(),
+        backupmx: domain.backupmx,
+        active: domain.active,
+    };
+    
+    let content_template = DomainFormTemplate { 
+        title: "Edit Domain", 
+        domain: Some(domain), 
+        form 
+    };
+    let content = content_template.render().unwrap();
+    
+    let template = BaseTemplate { 
+        title: "Edit Domain".to_string(), 
+        content 
+    };
+    Html(template.render().unwrap())
+}
+
 pub async fn create(
     State(state): State<AppState>,
     Form(form): Form<DomainForm>,

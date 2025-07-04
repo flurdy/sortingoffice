@@ -139,7 +139,7 @@ pub struct DomainForm {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct UserForm {
     pub username: String,
     pub password: String,
@@ -161,7 +161,7 @@ pub struct AliasForm {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MailboxForm {
     pub username: String,
     pub password: String,
