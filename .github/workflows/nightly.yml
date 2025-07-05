@@ -1,0 +1,139 @@
+name: Nightly Build
+
+on:
+  schedule:
+    # Run every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  nightly-test:
+    name: Nightly Comprehensive Test
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: sortingoffice_test
+          MYSQL_USER: sortingoffice
+          MYSQL_PASSWORD: sortingoffice
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Install MySQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y default-mysql-client
+
+    - name: Install Diesel CLI
+      run: cargo install diesel_cli --no-default-features --features mysql
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+          sleep 1
+        done
+
+    - name: Run database migrations
+      env:
+        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
+      run: diesel migration run
+
+    - name: Check code formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy with all warnings
+      run: cargo clippy --all-targets --all-features -- -D warnings -A clippy::too-many-arguments
+
+    - name: Run unit tests with coverage
+      env:
+        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
+        RUST_LOG: debug
+        CARGO_INCREMENTAL: 0
+        RUSTFLAGS: "-Cinstrument-coverage"
+        LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
+      run: |
+        cargo test --verbose
+        grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Build release version
+      run: cargo build --release
+
+    - name: Test Docker build
+      run: |
+        docker build -t sortingoffice:nightly .
+        docker run --rm sortingoffice:nightly --help || true
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nightly-build
+        path: |
+          target/release/sortingoffice
+          coverage/
+        retention-days: 30
+
+  dependency-update:
+    name: Check for Dependency Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Check for outdated dependencies
+      run: |
+        cargo install cargo-outdated
+        cargo outdated --exit-code 1 || echo "Some dependencies are outdated"
+
+    - name: Check for security vulnerabilities
+      run: |
+        cargo install cargo-audit
+        cargo audit 

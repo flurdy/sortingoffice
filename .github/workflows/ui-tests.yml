@@ -1,0 +1,136 @@
+name: UI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  ui-tests:
+    name: UI Tests with Selenium
+    runs-on: ubuntu-latest
+    
+    services:
+      # MySQL Database
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: sortingoffice_test
+          MYSQL_USER: sortingoffice
+          MYSQL_PASSWORD: sortingoffice
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+
+      # Selenium WebDriver
+      selenium:
+        image: selenium/standalone-chrome:114.0
+        env:
+          SE_CHROME_ARGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu"
+        options: >-
+          --health-cmd "curl -f http://localhost:4444/status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --shm-size 2g
+        ports:
+          - 4444:4444
+          - 7900:7900
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Install MySQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y default-mysql-client
+
+    - name: Install Diesel CLI
+      run: cargo install diesel_cli --no-default-features --features mysql
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+          sleep 1
+        done
+
+    - name: Run database migrations
+      env:
+        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
+      run: diesel migration run
+
+    - name: Wait for Selenium
+      run: |
+        while ! curl -s http://localhost:4444/status > /dev/null; do
+          sleep 1
+        done
+
+    - name: Start application
+      env:
+        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
+        RUST_LOG: info
+        HOST: 0.0.0.0
+        PORT: 3000
+      run: |
+        cargo build --release
+        timeout 30s cargo run --release &
+        sleep 10
+
+    - name: Wait for application
+      run: |
+        while ! curl -s http://localhost:3000/ > /dev/null; do
+          sleep 1
+        done
+
+    - name: Run basic UI tests
+      env:
+        RUST_TEST_THREADS: 1
+        RUST_LOG: info
+      run: |
+        cargo test --test ui -- --nocapture --test-threads=1
+
+    - name: Run advanced UI tests
+      env:
+        RUST_TEST_THREADS: 1
+        RUST_LOG: info
+      run: |
+        cargo test --test ui_advanced -- --nocapture --test-threads=1
+
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ui-test-screenshots
+        path: |
+          screenshots/
+          test-results/
+        retention-days: 7 
