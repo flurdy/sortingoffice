@@ -4,4 +4,5 @@ pub mod domains;
 pub mod users;
 pub mod aliases;
 pub mod mailboxes;
-pub mod stats; 
+pub mod stats;
+pub mod theme; 

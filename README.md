@@ -17,6 +17,7 @@ A modern web-based admin tool for managing mail server data based on [flurdy's "
 - **Mailbox Management**: Handle IMAP/POP3 mailboxes with individual settings
 - **Statistics Dashboard**: View system-wide and per-domain statistics
 - **Modern UI**: Built with Tailwind CSS for a clean, responsive interface
+- **Dark Mode Support**: Toggle between light and dark themes with persistent preference
 - **HTMX Integration**: Dynamic updates without full page reloads
 - **Secure Authentication**: Password hashing and session management
 
@@ -222,6 +223,23 @@ The main dashboard shows:
 - Set mailbox-specific quotas
 - Manage mailbox passwords
 - Configure mail directories
+
+### Theme Toggle
+The application supports both light and dark themes:
+
+- **Toggle Button**: Click the sun/moon icon in the top navigation bar
+- **Persistent Preference**: Your theme choice is saved in localStorage
+- **Automatic Detection**: The theme preference is restored on page reload
+- **Server Integration**: Theme changes are also sent to the server for potential future server-side persistence
+
+The theme toggle works across all pages including:
+- Dashboard
+- Domain management
+- User management
+- Alias management
+- Mailbox management
+- Statistics
+- Login page
 
 ## Docker
 

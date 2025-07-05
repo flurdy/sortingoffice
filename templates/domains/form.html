@@ -1,65 +1,76 @@
 <div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-4">{% if domain.is_some() %}Edit Domain{% else %}New Domain{% endif %}</h1>
+    <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{% if domain.is_some() %}Edit Domain{% else %}New Domain{% endif %}</h1>
 
-    <form {% if domain.is_some() %}hx-put="/domains/{{ domain.as_ref().unwrap().id }}"{% else %}hx-post="/domains"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form {% if domain.is_some() %}hx-put="/domains/{{ domain.as_ref().unwrap().id }}"{% else %}hx-post="/domains"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="domain">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="domain">
                 Domain
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="domain" name="domain" type="text" placeholder="example.com" value="{{ form.domain }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="domain" name="domain" type="text" placeholder="example.com" value="{{ form.domain }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="description">
                 Description
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" type="text" placeholder="Domain description" value="{{ form.description }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" type="text" placeholder="Domain description" value="{{ form.description }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="aliases">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="aliases">
                 Aliases
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="aliases" name="aliases" type="number" value="{{ form.aliases }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="aliases" name="aliases" type="number" value="{{ form.aliases }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="mailboxes">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="mailboxes">
                 Mailboxes
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="mailboxes" name="mailboxes" type="number" value="{{ form.mailboxes }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="mailboxes" name="mailboxes" type="number" value="{{ form.mailboxes }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="maxquota">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="maxquota">
                 Max Quota
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxquota" name="maxquota" type="number" value="{{ form.maxquota }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="maxquota" name="maxquota" type="number" value="{{ form.maxquota }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="quota">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="quota">
                 Quota
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quota" name="quota" type="number" value="{{ form.quota }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quota" name="quota" type="number" value="{{ form.quota }}">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="transport">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="transport">
                 Transport
             </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="transport" name="transport" type="text" placeholder="virtual" value="{{ form.transport }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="transport" name="transport" type="text" placeholder="virtual" value="{{ form.transport }}">
         </div>
         <div class="mb-4">
             <label class="inline-flex items-center">
                 <input type="checkbox" class="form-checkbox" name="backupmx" {% if form.backupmx %}checked{% endif %}>
-                <span class="ml-2">Backup MX</span>
+                <span class="ml-2 text-gray-700 dark:text-gray-300">Backup MX</span>
             </label>
         </div>
         <div class="mb-4">
             <label class="inline-flex items-center">
                 <input type="checkbox" class="form-checkbox" name="active" {% if form.active %}checked{% endif %}>
-                <span class="ml-2">Active</span>
+                <span class="ml-2 text-gray-700 dark:text-gray-300">Active</span>
             </label>
         </div>
         <div class="flex items-center justify-between">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                Save
-            </button>
+            <div class="flex space-x-3">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    Save
+                </button>
+                {% if domain.is_some() %}
+                <a href="/domains/{{ domain.as_ref().unwrap().id }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancel
+                </a>
+                {% else %}
+                <a href="/domains" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancel
+                </a>
+                {% endif %}
+            </div>
         </div>
     </form>
 </div> 

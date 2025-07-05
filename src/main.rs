@@ -84,6 +84,8 @@ async fn main() {
         .route("/mailboxes/:id/toggle", post(handlers::mailboxes::toggle_active))
         // Stats
         .route("/stats", get(handlers::stats::index))
+        // Theme
+        .route("/theme/toggle", post(handlers::theme::toggle_theme))
         .with_state(app_state)
         .layer(TraceLayer::new_for_http());
 
