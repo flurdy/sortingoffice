@@ -1,7 +1,7 @@
 # Sorting Office Makefile
 # Provides convenient shortcuts for common tasks
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-ui-setup test-ui-compose test-ui-cleanup
 
 # Default target
 help:
@@ -27,7 +27,13 @@ help:
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make install    - Install dependencies"
-	@echo "  make test       - Run tests"
+	@echo "  make test       - Run all tests (unit + UI)"
+	@echo "  make test-unit  - Run only unit/integration tests"
+	@echo "  make test-ui    - Run only UI tests"
+	@echo "  make test-all   - Run all tests (unit + UI)"
+	@echo "  make test-ui-setup - Setup Selenium for UI tests"
+	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
+	@echo "  make test-ui-cleanup - Clean up UI test environment"
 	@echo "  make run        - Run locally with cargo"
 
 # Docker commands
@@ -71,7 +77,32 @@ install:
 	cargo install diesel_cli --no-default-features --features mysql
 
 test:
-	cargo test
+	./tests/run_tests.sh all
+
+test-unit:
+	./tests/run_tests.sh unit
+
+test-ui:
+	./tests/run_tests.sh ui
+
+test-all:
+	./tests/run_tests.sh all
+
+test-ui-setup:
+	@echo "🔧 Setting up UI test environment..."
+	./tests/run_tests.sh ui-setup
+
+# Docker Compose UI test commands
+test-ui-compose:
+	@echo "🧪 Running UI tests with Docker Compose..."
+	docker compose --profile test up -d selenium
+	@echo "⏳ Waiting for Selenium to be ready..."
+	@sleep 5
+	./tests/run_tests.sh ui
+
+test-ui-cleanup:
+	@echo "🧹 Cleaning up UI test environment..."
+	docker compose --profile test down selenium
 
 run:
 	cargo run
@@ -116,4 +147,11 @@ info:
 	@echo "Services:"
 	@echo "  - Sorting Office: http://localhost:3000"
 	@echo "  - phpMyAdmin: http://localhost:8080"
-	@echo "  - MySQL: localhost:3306" 
+	@echo "  - MySQL: localhost:3306"
+
+# Test organization:
+#   src/tests/           - Unit and integration test modules
+#   tests/ui.rs          - Basic UI tests (Selenium)
+#   tests/ui_advanced.rs - Advanced UI tests (Selenium)
+#   tests/README.md      - Test documentation
+#   tests/run_tests.sh   - Unified test runner 

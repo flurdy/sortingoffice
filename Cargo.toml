@@ -63,6 +63,10 @@ r2d2 = "0.8.10"
 tokio-test = "0.4"
 serde_urlencoded = "0.7"
 hyper = "1.0"
+# UI Testing
+fantoccini = "0.19"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0"
 
 [workspace]
 members = []

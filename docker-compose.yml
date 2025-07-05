@@ -67,8 +67,31 @@ services:
     networks:
       - sortingoffice-network
 
+  # Selenium WebDriver for UI testing
+  selenium:
+    image: selenium/standalone-chrome:114.0
+    container_name: sortingoffice-selenium
+    restart: unless-stopped
+    environment:
+      SE_CHROME_ARGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu"
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: 2g
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - selenium_data:/tmp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - sortingoffice-network
+    profiles:
+      - test
+
 volumes:
   mysql_data:
+    driver: local
+  selenium_data:
     driver: local
 
 networks:
