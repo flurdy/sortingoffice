@@ -16,11 +16,11 @@ where
 pub struct Domain {
     pub id: i32,
     pub domain: String,
-    pub description: String,
+    pub description: Option<String>,
     pub aliases: i32,
     pub maxquota: i64,
     pub quota: i64,
-    pub transport: String,
+    pub transport: Option<String>,
     pub backupmx: bool,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
@@ -31,11 +31,11 @@ pub struct Domain {
 #[diesel(table_name = crate::schema::domains)]
 pub struct NewDomain {
     pub domain: String,
-    pub description: String,
+    pub description: Option<String>,
     pub aliases: i32,
     pub maxquota: i64,
     pub quota: i64,
-    pub transport: String,
+    pub transport: Option<String>,
     pub backupmx: bool,
     pub active: bool,
 }
@@ -73,7 +73,7 @@ pub struct NewUser {
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Alias {
     pub id: i32,
-    pub address: String,
+    pub mail: String,
     pub goto: String,
     pub domain: String,
     pub created: NaiveDateTime,
@@ -84,7 +84,7 @@ pub struct Alias {
 #[derive(Debug, Serialize, Deserialize, Insertable)]
 #[diesel(table_name = crate::schema::aliases)]
 pub struct NewAlias {
-    pub address: String,
+    pub mail: String,
     pub goto: String,
     pub domain: String,
     pub active: bool,
@@ -124,7 +124,7 @@ pub struct UserForm {
 
 #[derive(Debug, Deserialize)]
 pub struct AliasForm {
-    pub address: String,
+    pub mail: String,
     pub goto: String,
     pub domain: String,
     #[serde(default)]

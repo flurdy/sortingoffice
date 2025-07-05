@@ -32,8 +32,21 @@ pub fn get_domain_by_name(pool: &DbPool, domain_name: &str) -> Result<Domain, Er
 
 pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Error> {
     let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+    
     diesel::insert_into(domains::table)
-        .values(&new_domain)
+        .values((
+            domains::domain.eq(new_domain.domain),
+            domains::description.eq(new_domain.description),
+            domains::aliases.eq(new_domain.aliases),
+            domains::maxquota.eq(new_domain.maxquota),
+            domains::quota.eq(new_domain.quota),
+            domains::transport.eq(new_domain.transport),
+            domains::backupmx.eq(new_domain.backupmx),
+            domains::active.eq(new_domain.active),
+            domains::created.eq(now),
+            domains::modified.eq(now),
+        ))
         .execute(&mut conn)?;
     
     domains::table
@@ -110,8 +123,20 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         active: user_data.active,
     };
     
+    let now = Utc::now().naive_utc();
+    
     diesel::insert_into(users::table)
-        .values(&new_user)
+        .values((
+            users::username.eq(new_user.username),
+            users::password.eq(new_user.password),
+            users::name.eq(new_user.name),
+            users::maildir.eq(new_user.maildir),
+            users::quota.eq(new_user.quota),
+            users::domain.eq(new_user.domain),
+            users::active.eq(new_user.active),
+            users::created.eq(now),
+            users::modified.eq(now),
+        ))
         .execute(&mut conn)?;
     
     users::table
@@ -164,7 +189,7 @@ pub fn get_aliases(pool: &DbPool) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
     aliases::table
         .select(Alias::as_select())
-        .order(aliases::address.asc())
+        .order(aliases::mail.asc())
         .load::<Alias>(&mut conn)
 }
 
@@ -179,15 +204,17 @@ pub fn get_alias(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
 pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error> {
     let mut conn = pool.get().unwrap();
     
-    let new_alias = NewAlias {
-        address: alias_data.address,
-        goto: alias_data.goto,
-        domain: alias_data.domain,
-        active: alias_data.active,
-    };
+    let now = Utc::now().naive_utc();
     
     diesel::insert_into(aliases::table)
-        .values(&new_alias)
+        .values((
+            aliases::mail.eq(alias_data.mail),
+            aliases::goto.eq(alias_data.goto),
+            aliases::domain.eq(alias_data.domain),
+            aliases::active.eq(alias_data.active),
+            aliases::created.eq(now),
+            aliases::modified.eq(now),
+        ))
         .execute(&mut conn)?;
     
     aliases::table
@@ -200,7 +227,7 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
     let mut conn = pool.get().unwrap();
     diesel::update(aliases::table.find(alias_id))
         .set((
-            aliases::address.eq(alias_data.address),
+            aliases::mail.eq(alias_data.mail),
             aliases::goto.eq(alias_data.goto),
             aliases::domain.eq(alias_data.domain),
             aliases::active.eq(alias_data.active),

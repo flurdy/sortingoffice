@@ -2,13 +2,18 @@ use axum::{
     extract::{Path, State},
     response::Html,
     Form,
+    http::HeaderMap,
 };
 use crate::{AppState, db, models::*};
 use crate::templates::aliases::*;
 use crate::templates::layout::BaseTemplate;
 use askama::Template;
 
-pub async fn list(State(state): State<AppState>) -> Html<String> {
+fn is_htmx_request(headers: &HeaderMap) -> bool {
+    headers.get("HX-Request").map_or(false, |v| v == "true")
+}
+
+pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     
     let aliases = match db::get_aliases(pool) {
@@ -19,16 +24,20 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
     let content_template = AliasListTemplate { title: "Aliases", aliases };
     let content = content_template.render().unwrap();
     
-    let template = BaseTemplate { 
-        title: "Aliases".to_string(), 
-        content 
-    };
-    Html(template.render().unwrap())
+    if is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let template = BaseTemplate { 
+            title: "Aliases".to_string(), 
+            content 
+        };
+        Html(template.render().unwrap())
+    }
 }
 
-pub async fn new() -> Html<String> {
+pub async fn new(headers: HeaderMap) -> Html<String> {
     let form = AliasForm {
-        address: "".to_string(),
+        mail: "".to_string(),
         goto: "".to_string(),
         domain: "example.com".to_string(),
         active: true,
@@ -39,10 +48,20 @@ pub async fn new() -> Html<String> {
         alias: None, 
         form 
     };
-    Html(content_template.render().unwrap())
+    let content = content_template.render().unwrap();
+    
+    if is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let template = BaseTemplate { 
+            title: "New Alias".to_string(), 
+            content 
+        };
+        Html(template.render().unwrap())
+    }
 }
 
-pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     
     let alias = match db::get_alias(pool, id) {
@@ -53,14 +72,18 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     let content_template = AliasShowTemplate { title: "Show Alias", alias };
     let content = content_template.render().unwrap();
     
-    let template = BaseTemplate { 
-        title: "Show Alias".to_string(), 
-        content 
-    };
-    Html(template.render().unwrap())
+    if is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let template = BaseTemplate { 
+            title: "Show Alias".to_string(), 
+            content 
+        };
+        Html(template.render().unwrap())
+    }
 }
 
-pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     
     let alias = match db::get_alias(pool, id) {
@@ -69,7 +92,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     };
     
     let form = AliasForm {
-        address: alias.address.clone(),
+        mail: alias.mail.clone(),
         goto: alias.goto.clone(),
         domain: alias.domain.clone(),
         active: alias.active,
@@ -80,11 +103,22 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         alias: Some(alias), 
         form 
     };
-    Html(content_template.render().unwrap())
+    let content = content_template.render().unwrap();
+    
+    if is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let template = BaseTemplate { 
+            title: "Edit Alias".to_string(), 
+            content 
+        };
+        Html(template.render().unwrap())
+    }
 }
 
 pub async fn create(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
     let pool = &state.pool;
@@ -93,18 +127,35 @@ pub async fn create(
         Ok(_) => {
             let aliases = match db::get_aliases(pool) {
                 Ok(aliases) => aliases,
-                Err(_) => vec![],
+                Err(e) => {
+                    eprintln!("Error getting aliases: {:?}", e);
+                    vec![]
+                },
             };
             let content_template = AliasListTemplate { title: "Aliases", aliases };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+            
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Aliases".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
-        Err(_) => Html("Error creating alias".to_string()),
+        Err(e) => {
+            eprintln!("Error creating alias: {:?}", e);
+            Html(format!("Error creating alias: {:?}", e))
+        },
     }
 }
 
 pub async fn update(
     State(state): State<AppState>,
     Path(id): Path<i32>,
+    headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
     let pool = &state.pool;
@@ -116,29 +167,52 @@ pub async fn update(
                 Err(_) => return Html("Alias not found".to_string()),
             };
             let content_template = AliasShowTemplate { title: "Show Alias", alias };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+            
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Show Alias".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
         Err(_) => Html("Error updating alias".to_string()),
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     
     match db::delete_alias(pool, id) {
         Ok(_) => {
             let aliases = match db::get_aliases(pool) {
                 Ok(aliases) => aliases,
-                Err(_) => vec![],
+                Err(e) => {
+                    eprintln!("Error getting aliases: {:?}", e);
+                    vec![]
+                },
             };
             let content_template = AliasListTemplate { title: "Aliases", aliases };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+            
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Aliases".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
         Err(_) => Html("Error deleting alias".to_string()),
     }
 }
 
-pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     
     match db::toggle_alias_active(pool, id) {
@@ -149,32 +223,49 @@ pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -
             };
             let content_template = AliasShowTemplate { title: "Show Alias", alias };
             let content = content_template.render().unwrap();
-            let template = BaseTemplate { 
-                title: "Show Alias".to_string(), 
-                content 
-            };
-            Html(template.render().unwrap())
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Show Alias".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
         Err(_) => Html("Error toggling alias status".to_string()),
     }
 }
 
-pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     match db::toggle_alias_active(pool, id) {
         Ok(_) => {
             let aliases = match db::get_aliases(pool) {
                 Ok(aliases) => aliases,
-                Err(_) => vec![],
+                Err(e) => {
+                    eprintln!("Error getting aliases: {:?}", e);
+                    vec![]
+                },
             };
             let content_template = AliasListTemplate { title: "Aliases", aliases };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+            
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Aliases".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
         Err(_) => Html("Error toggling alias status".to_string()),
     }
 }
 
-pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     match db::toggle_alias_active(pool, id) {
         Ok(_) => {
@@ -183,7 +274,17 @@ pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i3
                 Err(_) => return Html("Alias not found".to_string()),
             };
             let content_template = AliasShowTemplate { title: "Show Alias", alias };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+            
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate { 
+                    title: "Show Alias".to_string(), 
+                    content 
+                };
+                Html(template.render().unwrap())
+            }
         }
         Err(_) => Html("Error toggling alias status".to_string()),
     }

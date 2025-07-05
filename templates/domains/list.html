@@ -40,7 +40,7 @@
                                     </a>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                    {{ domain.description }}
+                                    {% if domain.description.is_some() %}{{ domain.description.as_ref().unwrap() }}{% else %}-{% endif %}
                                 </td>
 
 

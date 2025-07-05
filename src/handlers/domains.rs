@@ -74,11 +74,11 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     
     let form = DomainForm {
         domain: domain.domain.clone(),
-        description: domain.description.clone(),
+        description: domain.description.clone().unwrap_or_default(),
         aliases: domain.aliases,
         maxquota: domain.maxquota,
         quota: domain.quota,
-        transport: domain.transport.clone(),
+        transport: domain.transport.clone().unwrap_or_default(),
         backupmx: domain.backupmx,
         active: domain.active,
     };
@@ -99,11 +99,11 @@ pub async fn create(
     
     let new_domain = NewDomain {
         domain: form.domain,
-        description: form.description,
+        description: Some(form.description),
         aliases: form.aliases,
         maxquota: form.maxquota,
         quota: form.quota,
-        transport: form.transport,
+        transport: Some(form.transport),
         backupmx: form.backupmx,
         active: form.active,
     };
