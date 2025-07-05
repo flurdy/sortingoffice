@@ -1,6 +1,6 @@
 # Sorting Office
 
-A modern web-based admin tool for managing mail server data based on [flurdy's "How to set up a mail server on a GNU / Linux system"](http://flurdy.com/docs/postfix/).
+A modern web-based admin tool for managing mail server data based on [flurdy's "How to set up a mail server on a GNU / Linux system"](https://flurdy.com/docs/postfix/).
 
 ## Versions
 
@@ -395,6 +395,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Based on [flurdy's Postfix mail server guide](http://flurdy.com/docs/postfix/)
+- Based on [flurdy's Postfix mail server guide](https://flurdy.com/docs/postfix/)
 - Built with modern Rust web development tools
 - UI inspired by modern admin dashboard designs
