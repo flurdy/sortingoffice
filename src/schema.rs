@@ -18,7 +18,6 @@ diesel::table! {
         domain -> Varchar,
         description -> Varchar,
         aliases -> Integer,
-        mailboxes -> Integer,
         maxquota -> Bigint,
         quota -> Bigint,
         transport -> Varchar,
@@ -29,20 +28,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    mailboxes (id) {
-        id -> Integer,
-        username -> Varchar,
-        password -> Varchar,
-        name -> Varchar,
-        maildir -> Varchar,
-        quota -> Bigint,
-        domain -> Varchar,
-        active -> Bool,
-        created -> Datetime,
-        modified -> Datetime,
-    }
-}
+
 
 diesel::table! {
     users (id) {
@@ -66,6 +52,5 @@ diesel::table! {
 diesel::allow_tables_to_appear_in_same_query!(
     aliases,
     domains,
-    mailboxes,
     users,
 ); 

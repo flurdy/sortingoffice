@@ -49,7 +49,6 @@ pub fn update_domain(pool: &DbPool, domain_id: i32, domain_data: DomainForm) -> 
             domains::domain.eq(domain_data.domain),
             domains::description.eq(domain_data.description),
             domains::aliases.eq(domain_data.aliases),
-            domains::mailboxes.eq(domain_data.mailboxes),
             domains::maxquota.eq(domain_data.maxquota),
             domains::quota.eq(domain_data.quota),
             domains::transport.eq(domain_data.transport),
@@ -218,90 +217,7 @@ pub fn delete_alias(pool: &DbPool, alias_id: i32) -> Result<usize, Error> {
         .execute(&mut conn)
 }
 
-pub fn get_mailboxes(pool: &DbPool) -> Result<Vec<Mailbox>, Error> {
-    let mut conn = pool.get().unwrap();
-    mailboxes::table
-        .select(Mailbox::as_select())
-        .order(mailboxes::username.asc())
-        .load::<Mailbox>(&mut conn)
-}
 
-pub fn get_mailbox(pool: &DbPool, mailbox_id: i32) -> Result<Mailbox, Error> {
-    let mut conn = pool.get().unwrap();
-    mailboxes::table
-        .find(mailbox_id)
-        .select(Mailbox::as_select())
-        .first::<Mailbox>(&mut conn)
-}
-
-pub fn create_mailbox(pool: &DbPool, mailbox_data: MailboxForm) -> Result<Mailbox, Error> {
-    let mut conn = pool.get().unwrap();
-    
-    // Hash the password
-    let hashed_password = bcrypt::hash(mailbox_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-        .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
-    
-    let maildir = format!("{}/", mailbox_data.username);
-    
-    let new_mailbox = NewMailbox {
-        username: mailbox_data.username,
-        password: hashed_password,
-        name: mailbox_data.name,
-        maildir,
-        quota: mailbox_data.quota,
-        domain: mailbox_data.domain,
-        active: mailbox_data.active,
-    };
-    
-    diesel::insert_into(mailboxes::table)
-        .values(&new_mailbox)
-        .execute(&mut conn)?;
-    
-    mailboxes::table
-        .order(mailboxes::id.desc())
-        .select(Mailbox::as_select())
-        .first::<Mailbox>(&mut conn)
-}
-
-pub fn update_mailbox(pool: &DbPool, mailbox_id: i32, mailbox_data: MailboxForm) -> Result<Mailbox, Error> {
-    let mut conn = pool.get().unwrap();
-    
-    if !mailbox_data.password.is_empty() {
-        let hashed_password = bcrypt::hash(mailbox_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-            .map_err(|e| Error::DatabaseError(diesel::result::DatabaseErrorKind::Unknown, Box::new(e.to_string())))?;
-
-        diesel::update(mailboxes::table.find(mailbox_id))
-            .set((
-                mailboxes::username.eq(mailbox_data.username),
-                mailboxes::name.eq(mailbox_data.name),
-                mailboxes::domain.eq(mailbox_data.domain),
-                mailboxes::quota.eq(mailbox_data.quota),
-                mailboxes::active.eq(mailbox_data.active),
-                mailboxes::modified.eq(Utc::now().naive_utc()),
-                mailboxes::password.eq(hashed_password),
-            ))
-            .execute(&mut conn)?;
-    } else {
-        diesel::update(mailboxes::table.find(mailbox_id))
-            .set((
-                mailboxes::username.eq(mailbox_data.username),
-                mailboxes::name.eq(mailbox_data.name),
-                mailboxes::domain.eq(mailbox_data.domain),
-                mailboxes::quota.eq(mailbox_data.quota),
-                mailboxes::active.eq(mailbox_data.active),
-                mailboxes::modified.eq(Utc::now().naive_utc()),
-            ))
-            .execute(&mut conn)?;
-    }
-    
-    get_mailbox(pool, mailbox_id)
-}
-
-pub fn delete_mailbox(pool: &DbPool, mailbox_id: i32) -> Result<usize, Error> {
-    let mut conn = pool.get().unwrap();
-    diesel::delete(mailboxes::table.find(mailbox_id))
-        .execute(&mut conn)
-}
 
 // Toggle functions for enable/disable functionality
 pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
@@ -355,22 +271,7 @@ pub fn toggle_alias_active(pool: &DbPool, alias_id: i32) -> Result<Alias, Error>
     get_alias(pool, alias_id)
 }
 
-pub fn toggle_mailbox_active(pool: &DbPool, mailbox_id: i32) -> Result<Mailbox, Error> {
-    let mut conn = pool.get().unwrap();
-    
-    // First get the current mailbox to check its active status
-    let current_mailbox = get_mailbox(pool, mailbox_id)?;
-    let new_active_status = !current_mailbox.active;
-    
-    diesel::update(mailboxes::table.find(mailbox_id))
-        .set((
-            mailboxes::active.eq(new_active_status),
-            mailboxes::modified.eq(Utc::now().naive_utc()),
-        ))
-        .execute(&mut conn)?;
-    
-    get_mailbox(pool, mailbox_id)
-}
+
 
 // Statistics functions
 pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
@@ -379,7 +280,6 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
-    let total_mailboxes: i64 = mailboxes::table.count().get_result(&mut conn)?;
     
     let total_quota: i64 = users::table
         .select(diesel::dsl::sum(users::quota))
@@ -391,7 +291,6 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         total_domains,
         total_users,
         total_aliases,
-        total_mailboxes,
         total_quota,
         used_quota: 0, // This would need to be calculated from actual disk usage
     })
@@ -415,11 +314,6 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             .count()
             .get_result(&mut conn)?;
             
-        let mailbox_count: i64 = mailboxes::table
-            .filter(mailboxes::domain.eq(&domain.domain))
-            .count()
-            .get_result(&mut conn)?;
-            
         let total_quota: i64 = users::table
             .filter(users::domain.eq(&domain.domain))
             .select(diesel::dsl::sum(users::quota))
@@ -431,7 +325,6 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             domain: domain.domain,
             user_count,
             alias_count,
-            mailbox_count,
             total_quota,
             used_quota: 0, // This would need to be calculated from actual disk usage
         });

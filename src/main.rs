@@ -74,14 +74,7 @@ async fn main() {
         .route("/aliases/:id/toggle-list", post(handlers::aliases::toggle_active_list))
         .route("/aliases/:id/toggle-show", post(handlers::aliases::toggle_active_show))
         .route("/aliases/:id/toggle", post(handlers::aliases::toggle_active))
-        // Mailboxes
-        .route("/mailboxes", get(handlers::mailboxes::list).post(handlers::mailboxes::create))
-        .route("/mailboxes/new", get(handlers::mailboxes::new))
-        .route("/mailboxes/:id", get(handlers::mailboxes::show).put(handlers::mailboxes::update).delete(handlers::mailboxes::delete))
-        .route("/mailboxes/:id/edit", get(handlers::mailboxes::edit))
-        .route("/mailboxes/:id/toggle-list", post(handlers::mailboxes::toggle_active_list))
-        .route("/mailboxes/:id/toggle-show", post(handlers::mailboxes::toggle_active_show))
-        .route("/mailboxes/:id/toggle", post(handlers::mailboxes::toggle_active))
+
         // Stats
         .route("/stats", get(handlers::stats::index))
         // Theme

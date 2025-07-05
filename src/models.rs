@@ -18,7 +18,6 @@ pub struct Domain {
     pub domain: String,
     pub description: String,
     pub aliases: i32,
-    pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
     pub transport: String,
@@ -34,7 +33,6 @@ pub struct NewDomain {
     pub domain: String,
     pub description: String,
     pub aliases: i32,
-    pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
     pub transport: String,
@@ -92,33 +90,7 @@ pub struct NewAlias {
     pub active: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
-#[diesel(table_name = crate::schema::mailboxes)]
-#[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub struct Mailbox {
-    pub id: i32,
-    pub username: String,
-    pub password: String,
-    pub name: String,
-    pub maildir: String,
-    pub quota: i64,
-    pub domain: String,
-    pub created: NaiveDateTime,
-    pub modified: NaiveDateTime,
-    pub active: bool,
-}
 
-#[derive(Debug, Serialize, Deserialize, Insertable)]
-#[diesel(table_name = crate::schema::mailboxes)]
-pub struct NewMailbox {
-    pub username: String,
-    pub password: String,
-    pub name: String,
-    pub maildir: String,
-    pub quota: i64,
-    pub domain: String,
-    pub active: bool,
-}
 
 // Form data structures for HTMX
 #[derive(Deserialize, Debug)]
@@ -127,7 +99,6 @@ pub struct DomainForm {
     #[serde(default)]
     pub description: String,
     pub aliases: i32,
-    pub mailboxes: i32,
     pub maxquota: i64,
     pub quota: i64,
     pub transport: String,
@@ -161,17 +132,7 @@ pub struct AliasForm {
     pub active: bool,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct MailboxForm {
-    pub username: String,
-    pub password: String,
-    pub name: String,
-    pub domain: String,
-    pub quota: i64,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_checkbox")]
-    pub active: bool,
-}
+
 
 // Statistics models
 #[derive(Debug, Serialize)]
@@ -179,7 +140,6 @@ pub struct DomainStats {
     pub domain: String,
     pub user_count: i64,
     pub alias_count: i64,
-    pub mailbox_count: i64,
     pub total_quota: i64,
     pub used_quota: i64,
 }
@@ -189,7 +149,6 @@ pub struct SystemStats {
     pub total_domains: i64,
     pub total_users: i64,
     pub total_aliases: i64,
-    pub total_mailboxes: i64,
     pub total_quota: i64,
     pub used_quota: i64,
 } 
