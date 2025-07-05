@@ -152,8 +152,8 @@ async fn test_alias_creation_workflow() -> Result<()> {
         let mail_input = wait_for_element(&client, Locator::Css("input[name='mail']"), 5000).await?;
         mail_input.send_keys("testalias@testdomain.com").await?;
         
-        let goto_input = wait_for_element(&client, Locator::Css("input[name='goto']"), 5000).await?;
-        goto_input.send_keys("testuser@testdomain.com").await?;
+        let destination_input = wait_for_element(&client, Locator::Css("input[name='destination']"), 5000).await?;
+        destination_input.send_keys("testuser@testdomain.com").await?;
         
         // Submit the form
         let submit_button = wait_for_element(&client, Locator::Css("button[type='submit'], input[type='submit']"), 5000).await?;

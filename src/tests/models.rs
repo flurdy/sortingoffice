@@ -85,7 +85,7 @@ mod tests {
         let alias = Alias {
             id: 1,
             mail: "test@example.com".to_string(),
-            goto: "user@example.com".to_string(),
+            destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
             created: chrono::Utc::now().naive_utc(),
             modified: chrono::Utc::now().naive_utc(),
@@ -97,7 +97,7 @@ mod tests {
 
         assert_eq!(alias.id, deserialized.id);
         assert_eq!(alias.mail, deserialized.mail);
-        assert_eq!(alias.goto, deserialized.goto);
+        assert_eq!(alias.destination, deserialized.destination);
         assert_eq!(alias.domain, deserialized.domain);
         assert_eq!(alias.active, deserialized.active);
     }
@@ -147,11 +147,11 @@ mod tests {
 
     #[test]
     fn test_alias_form_deserialization() {
-        let form_data = "mail=test%40example.com&goto=user%40example.com&domain=example.com&active=on";
+        let form_data = "mail=test%40example.com&destination=user%40example.com&domain=example.com&active=on";
         let form: AliasForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.mail, "test@example.com");
-        assert_eq!(form.goto, "user@example.com");
+        assert_eq!(form.destination, "user@example.com");
         assert_eq!(form.domain, "example.com");
         assert_eq!(form.active, true);
     }

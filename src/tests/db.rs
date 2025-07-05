@@ -176,14 +176,14 @@ mod tests {
         // Test create alias
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
-            goto: "user@test.com".to_string(),
+            destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
             active: true,
         };
 
         let created_alias = db::create_alias(&pool, alias_form).unwrap();
         assert_eq!(created_alias.mail, "test@test.com");
-        assert_eq!(created_alias.goto, "user@test.com");
+        assert_eq!(created_alias.destination, "user@test.com");
         assert_eq!(created_alias.domain, domain.domain);
         assert_eq!(created_alias.active, true);
 
@@ -195,14 +195,14 @@ mod tests {
         // Test update alias
         let update_form = AliasForm {
             mail: "updated@test.com".to_string(),
-            goto: "updated@test.com".to_string(),
+            destination: "updated@test.com".to_string(),
             domain: domain.domain.clone(),
             active: false,
         };
 
         let updated_alias = db::update_alias(&pool, created_alias.id, update_form).unwrap();
         assert_eq!(updated_alias.mail, "updated@test.com");
-        assert_eq!(updated_alias.goto, "updated@test.com");
+        assert_eq!(updated_alias.destination, "updated@test.com");
         assert_eq!(updated_alias.active, false);
 
         // Test get all aliases
@@ -250,7 +250,7 @@ mod tests {
 
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
-            goto: "user@test.com".to_string(),
+            destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
             active: true,
         };
@@ -309,7 +309,7 @@ mod tests {
 
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
-            goto: "user@test.com".to_string(),
+            destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
             active: true,
         };

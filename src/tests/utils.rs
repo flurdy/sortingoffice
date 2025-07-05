@@ -62,16 +62,16 @@ mod tests {
         // Test valid alias form
         let valid_alias_form = AliasForm {
             mail: "test@example.com".to_string(),
-            goto: "user@example.com".to_string(),
+            destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
             active: true,
         };
 
         assert!(!valid_alias_form.mail.is_empty());
-        assert!(!valid_alias_form.goto.is_empty());
+        assert!(!valid_alias_form.destination.is_empty());
         assert!(!valid_alias_form.domain.is_empty());
         assert!(valid_alias_form.mail.contains('@'));
-        assert!(valid_alias_form.goto.contains('@'));
+        assert!(valid_alias_form.destination.contains('@'));
     }
 
     #[test]
@@ -125,7 +125,7 @@ mod tests {
         let alias = Alias {
             id: 1,
             mail: "test@example.com".to_string(),
-            goto: "user@example.com".to_string(),
+            destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
             created: now,
             modified: now,
@@ -134,7 +134,7 @@ mod tests {
 
         assert_eq!(alias.id, 1);
         assert_eq!(alias.mail, "test@example.com");
-        assert_eq!(alias.goto, "user@example.com");
+        assert_eq!(alias.destination, "user@example.com");
         assert_eq!(alias.domain, "example.com");
         assert_eq!(alias.active, true);
     }
@@ -184,13 +184,13 @@ mod tests {
         // Test NewAlias creation
         let new_alias = NewAlias {
             mail: "test@example.com".to_string(),
-            goto: "user@example.com".to_string(),
+            destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
             active: true,
         };
 
         assert_eq!(new_alias.mail, "test@example.com");
-        assert_eq!(new_alias.goto, "user@example.com");
+        assert_eq!(new_alias.destination, "user@example.com");
         assert_eq!(new_alias.domain, "example.com");
         assert_eq!(new_alias.active, true);
     }

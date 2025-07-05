@@ -74,7 +74,7 @@ pub struct NewUser {
 pub struct Alias {
     pub id: i32,
     pub mail: String,
-    pub goto: String,
+    pub destination: String,
     pub domain: String,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
@@ -85,7 +85,7 @@ pub struct Alias {
 #[diesel(table_name = crate::schema::aliases)]
 pub struct NewAlias {
     pub mail: String,
-    pub goto: String,
+    pub destination: String,
     pub domain: String,
     pub active: bool,
 }
@@ -125,7 +125,7 @@ pub struct UserForm {
 #[derive(Debug, Deserialize)]
 pub struct AliasForm {
     pub mail: String,
-    pub goto: String,
+    pub destination: String,
     pub domain: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]

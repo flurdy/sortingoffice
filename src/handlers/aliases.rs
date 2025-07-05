@@ -38,7 +38,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
 pub async fn new(headers: HeaderMap) -> Html<String> {
     let form = AliasForm {
         mail: "".to_string(),
-        goto: "".to_string(),
+        destination: "".to_string(),
         domain: "example.com".to_string(),
         active: true,
     };
@@ -93,7 +93,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     
     let form = AliasForm {
         mail: alias.mail.clone(),
-        goto: alias.goto.clone(),
+        destination: alias.destination.clone(),
         domain: alias.domain.clone(),
         active: alias.active,
     };

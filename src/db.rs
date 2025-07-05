@@ -209,7 +209,7 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
     diesel::insert_into(aliases::table)
         .values((
             aliases::mail.eq(alias_data.mail),
-            aliases::goto.eq(alias_data.goto),
+            aliases::destination.eq(alias_data.destination),
             aliases::domain.eq(alias_data.domain),
             aliases::active.eq(alias_data.active),
             aliases::created.eq(now),
@@ -228,7 +228,7 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
     diesel::update(aliases::table.find(alias_id))
         .set((
             aliases::mail.eq(alias_data.mail),
-            aliases::goto.eq(alias_data.goto),
+            aliases::destination.eq(alias_data.destination),
             aliases::domain.eq(alias_data.domain),
             aliases::active.eq(alias_data.active),
             aliases::modified.eq(Utc::now().naive_utc()),

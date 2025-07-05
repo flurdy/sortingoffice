@@ -292,7 +292,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create an alias via HTTP POST
-        let alias_form_data = "mail=test%40integration-alias-test.com&goto=user%40integration-alias-test.com&domain=integration-alias-test.com&active=on";
+        let alias_form_data = "mail=test%40integration-alias-test.com&destination=user%40integration-alias-test.com&domain=integration-alias-test.com&active=on";
         
         let create_response = app
             .clone()
@@ -327,7 +327,7 @@ mod tests {
         let alias = aliases.iter().find(|a| a.mail == "test@integration-alias-test.com").unwrap();
 
         // Step 5: Update the alias
-        let update_form_data = "mail=updated%40integration-alias-test.com&goto=updated%40integration-alias-test.com&domain=integration-alias-test.com&active=off";
+        let update_form_data = "mail=updated%40integration-alias-test.com&destination=updated%40integration-alias-test.com&domain=integration-alias-test.com&active=off";
         
         let update_response = app
             .clone()
@@ -347,7 +347,7 @@ mod tests {
         // Step 6: Verify the update
         let updated_alias = crate::db::get_alias(&state.pool, alias.id).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
-        assert_eq!(updated_alias.goto, "updated@integration-alias-test.com");
+        assert_eq!(updated_alias.destination, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.active, false);
 
         // Step 7: Toggle alias active status
@@ -410,7 +410,7 @@ mod tests {
             .await
             .unwrap();
 
-        let alias_form_data = "mail=stats%40integration-stats-test.com&goto=user%40integration-stats-test.com&domain=integration-stats-test.com&active=on";
+        let alias_form_data = "mail=stats%40integration-stats-test.com&destination=user%40integration-stats-test.com&domain=integration-stats-test.com&active=on";
         
         let _alias_response = app
             .clone()
