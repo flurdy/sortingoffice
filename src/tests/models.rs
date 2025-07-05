@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
     use crate::models::*;
     use serde_json;
 
@@ -158,30 +158,35 @@ mod tests {
 
     #[test]
     fn test_checkbox_deserialization() {
-        // Test "on" value
-        let data = serde_json::json!({"value": "on"});
-        let result: bool = serde_json::from_value(data).unwrap();
-        assert_eq!(result, true);
+        // Test form data deserialization with "on" value
+        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&active=on";
+        let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+        assert_eq!(form.backupmx, true);
+        assert_eq!(form.active, true);
 
-        // Test "true" value
-        let data = serde_json::json!({"value": "true"});
-        let result: bool = serde_json::from_value(data).unwrap();
-        assert_eq!(result, true);
+        // Test form data deserialization with "true" value
+        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&active=true";
+        let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+        assert_eq!(form.backupmx, true);
+        assert_eq!(form.active, true);
 
-        // Test "1" value
-        let data = serde_json::json!({"value": "1"});
-        let result: bool = serde_json::from_value(data).unwrap();
-        assert_eq!(result, true);
+        // Test form data deserialization with "1" value
+        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&active=1";
+        let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+        assert_eq!(form.backupmx, true);
+        assert_eq!(form.active, true);
 
-        // Test None value
-        let data = serde_json::json!({"value": null});
-        let result: bool = serde_json::from_value(data).unwrap();
-        assert_eq!(result, false);
+        // Test form data deserialization with missing values
+        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost";
+        let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+        assert_eq!(form.backupmx, false);
+        assert_eq!(form.active, false);
 
-        // Test other values
-        let data = serde_json::json!({"value": "off"});
-        let result: bool = serde_json::from_value(data).unwrap();
-        assert_eq!(result, false);
+        // Test form data deserialization with "off" value
+        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&active=off";
+        let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+        assert_eq!(form.backupmx, false);
+        assert_eq!(form.active, false);
     }
 
     #[test]

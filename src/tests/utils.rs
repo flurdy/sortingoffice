@@ -1,31 +1,26 @@
 #[cfg(test)]
 mod tests {
     use crate::models::*;
-    use chrono::{Utc, NaiveDateTime};
+    use chrono::Utc;
 
     #[test]
     fn test_checkbox_deserialization_utility() {
-        // Test various checkbox values
+        // Test various checkbox values in form data
         let test_cases = vec![
-            ("on", true),
-            ("true", true),
-            ("1", true),
-            ("off", false),
-            ("false", false),
-            ("0", false),
-            ("", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&active=on", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&active=true", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&active=1", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&active=off", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=false&active=false", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=0&active=0", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost", false),
         ];
 
-        for (input, expected) in test_cases {
-            let json = serde_json::json!({"value": input});
-            let result: bool = serde_json::from_value(json).unwrap();
-            assert_eq!(result, expected, "Failed for input: {}", input);
+        for (form_data, expected) in test_cases {
+            let form: crate::models::DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+            assert_eq!(form.backupmx, expected, "Failed for input: {}", form_data);
+            assert_eq!(form.active, expected, "Failed for input: {}", form_data);
         }
-
-        // Test None value
-        let json = serde_json::json!({"value": null});
-        let result: bool = serde_json::from_value(json).unwrap();
-        assert_eq!(result, false);
     }
 
     #[test]

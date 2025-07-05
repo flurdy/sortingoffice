@@ -6,7 +6,7 @@ mod tests {
         Router,
     };
     use tower::ServiceExt;
-    use crate::models::*;
+    
     use crate::handlers;
     use crate::AppState;
     use crate::tests::common::{setup_test_db, cleanup_test_db};
@@ -46,9 +46,12 @@ mod tests {
     #[tokio::test]
     async fn test_full_domain_workflow() {
         let (app, state) = create_test_app().await;
+        
+        // Clean up before test
+        cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain via HTTP POST
-        let form_data = "domain=integration.com&description=Integration+Test+Domain&aliases=15&maxquota=2000000&quota=1000000&transport=smtp%3Aintegration&backupmx=on&active=on";
+        let form_data = "domain=integration-domain.com&description=Integration+Test+Domain&aliases=15&maxquota=2000000&quota=1000000&transport=smtp%3Aintegration&backupmx=on&active=on";
         
         let create_response = app
             .clone()
@@ -76,11 +79,11 @@ mod tests {
         
         let body = axum::body::to_bytes(list_response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
-        assert!(body_str.contains("integration.com"));
+        assert!(body_str.contains("integration-domain.com"));
 
         // Step 3: Get the domain ID from the database
         let domains = crate::db::get_domains(&state.pool).unwrap();
-        let domain = domains.iter().find(|d| d.domain == "integration.com").unwrap();
+        let domain = domains.iter().find(|d| d.domain == "integration-domain.com").unwrap();
 
         // Step 4: View the domain details
         let show_response = app
@@ -164,9 +167,12 @@ mod tests {
     #[tokio::test]
     async fn test_full_user_workflow() {
         let (app, state) = create_test_app().await;
+        
+        // Clean up before test
+        cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for users)
-        let domain_form_data = "domain=user-test.com&description=User+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-user-test.com&description=User+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
         
         let _domain_response = app
             .clone()
@@ -182,7 +188,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create a user via HTTP POST
-        let user_form_data = "username=integrationuser&password=securepass123&name=Integration+User&domain=user-test.com&quota=100000&active=on";
+        let user_form_data = "username=integrationuser&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&active=on";
         
         let create_response = app
             .clone()
@@ -217,7 +223,7 @@ mod tests {
         let user = users.iter().find(|u| u.username == "integrationuser").unwrap();
 
         // Step 5: Update the user
-        let update_form_data = "username=updateduser&password=newpass456&name=Updated+User&domain=user-test.com&quota=200000&active=off";
+        let update_form_data = "username=updateduser&password=newpass456&name=Updated+User&domain=integration-user-test.com&quota=200000&active=off";
         
         let update_response = app
             .clone()
@@ -265,9 +271,12 @@ mod tests {
     #[tokio::test]
     async fn test_full_alias_workflow() {
         let (app, state) = create_test_app().await;
+        
+        // Clean up before test
+        cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for aliases)
-        let domain_form_data = "domain=alias-test.com&description=Alias+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-alias-test.com&description=Alias+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
         
         let _domain_response = app
             .clone()
@@ -283,7 +292,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create an alias via HTTP POST
-        let alias_form_data = "mail=test%40alias-test.com&goto=user%40alias-test.com&domain=alias-test.com&active=on";
+        let alias_form_data = "mail=test%40integration-alias-test.com&goto=user%40integration-alias-test.com&domain=integration-alias-test.com&active=on";
         
         let create_response = app
             .clone()
@@ -311,14 +320,14 @@ mod tests {
         
         let body = axum::body::to_bytes(list_response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
-        assert!(body_str.contains("test@alias-test.com"));
+        assert!(body_str.contains("test@integration-alias-test.com"));
 
         // Step 4: Get the alias ID from the database
         let aliases = crate::db::get_aliases(&state.pool).unwrap();
-        let alias = aliases.iter().find(|a| a.mail == "test@alias-test.com").unwrap();
+        let alias = aliases.iter().find(|a| a.mail == "test@integration-alias-test.com").unwrap();
 
         // Step 5: Update the alias
-        let update_form_data = "mail=updated%40alias-test.com&goto=updated%40alias-test.com&domain=alias-test.com&active=off";
+        let update_form_data = "mail=updated%40integration-alias-test.com&goto=updated%40integration-alias-test.com&domain=integration-alias-test.com&active=off";
         
         let update_response = app
             .clone()
@@ -337,8 +346,8 @@ mod tests {
 
         // Step 6: Verify the update
         let updated_alias = crate::db::get_alias(&state.pool, alias.id).unwrap();
-        assert_eq!(updated_alias.mail, "updated@alias-test.com");
-        assert_eq!(updated_alias.goto, "updated@alias-test.com");
+        assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
+        assert_eq!(updated_alias.goto, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.active, false);
 
         // Step 7: Toggle alias active status
@@ -366,9 +375,12 @@ mod tests {
     #[tokio::test]
     async fn test_stats_integration() {
         let (app, state) = create_test_app().await;
+        
+        // Clean up before test
+        cleanup_test_db(&state.pool);
 
         // Step 1: Create test data
-        let domain_form_data = "domain=stats-test.com&description=Stats+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-stats-test.com&description=Stats+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
         
         let _domain_response = app
             .clone()
@@ -383,7 +395,7 @@ mod tests {
             .await
             .unwrap();
 
-        let user_form_data = "username=statsuser&password=password123&name=Stats+User&domain=stats-test.com&quota=100000&active=on";
+        let user_form_data = "username=statsuser&password=password123&name=Stats+User&domain=integration-stats-test.com&quota=100000&active=on";
         
         let _user_response = app
             .clone()
@@ -398,7 +410,7 @@ mod tests {
             .await
             .unwrap();
 
-        let alias_form_data = "mail=stats%40stats-test.com&goto=user%40stats-test.com&domain=stats-test.com&active=on";
+        let alias_form_data = "mail=stats%40integration-stats-test.com&goto=user%40integration-stats-test.com&domain=integration-stats-test.com&active=on";
         
         let _alias_response = app
             .clone()
