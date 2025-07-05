@@ -135,7 +135,7 @@ pub struct AliasForm {
 
 
 // Statistics models
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DomainStats {
     pub domain: String,
     pub user_count: i64,
@@ -144,7 +144,7 @@ pub struct DomainStats {
     pub used_quota: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SystemStats {
     pub total_domains: i64,
     pub total_users: i64,

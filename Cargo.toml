@@ -61,6 +61,8 @@ r2d2 = "0.8.10"
 
 [dev-dependencies]
 tokio-test = "0.4"
+serde_urlencoded = "0.7"
+hyper = "1.0"
 
 [workspace]
 members = []

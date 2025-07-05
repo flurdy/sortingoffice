@@ -15,6 +15,9 @@ pub mod models;
 pub mod schema;
 pub mod templates;
 
+#[cfg(test)]
+pub mod tests;
+
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
