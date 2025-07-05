@@ -86,13 +86,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         form,
         error: None
     };
-    let content = content_template.render().unwrap();
-    
-    let template = BaseTemplate { 
-        title: "Edit User".to_string(), 
-        content 
-    };
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn create(
@@ -169,11 +163,11 @@ pub async fn update(
     
     match db::update_user(pool, id, form) {
         Ok(_) => {
-            let users = match db::get_users(pool) {
-                Ok(users) => users,
-                Err(_) => vec![],
+            let user = match db::get_user(pool, id) {
+                Ok(user) => user,
+                Err(_) => return Html("User not found".to_string()),
             };
-            let content_template = UserListTemplate { title: "Users", users };
+            let content_template = UserShowTemplate { title: "Show User", user };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error updating user".to_string()),
@@ -193,5 +187,61 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error deleting user".to_string()),
+    }
+}
+
+pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    match db::toggle_user_active(pool, id) {
+        Ok(_) => {
+            // Redirect back to the show page
+            let user = match db::get_user(pool, id) {
+                Ok(user) => user,
+                Err(_) => return Html("User not found".to_string()),
+            };
+            
+            let content_template = UserShowTemplate { title: "Show User", user };
+            let content = content_template.render().unwrap();
+            
+            let template = BaseTemplate { 
+                title: "Show User".to_string(), 
+                content 
+            };
+            Html(template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling user status".to_string()),
+    }
+}
+
+// Toggle from list: returns updated list
+pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_user_active(pool, id) {
+        Ok(_) => {
+            let users = match db::get_users(pool) {
+                Ok(users) => users,
+                Err(_) => vec![],
+            };
+            let content_template = UserListTemplate { title: "Users", users };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling user status".to_string()),
+    }
+}
+
+// Toggle from show: returns updated show
+pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_user_active(pool, id) {
+        Ok(_) => {
+            let user = match db::get_user(pool, id) {
+                Ok(user) => user,
+                Err(_) => return Html("User not found".to_string()),
+            };
+            let content_template = UserShowTemplate { title: "Show User", user };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling user status".to_string()),
     }
 } 

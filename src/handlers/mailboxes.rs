@@ -86,13 +86,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         form,
         error: None
     };
-    let content = content_template.render().unwrap();
-    
-    let template = BaseTemplate { 
-        title: "Edit Mailbox".to_string(), 
-        content 
-    };
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn create(
@@ -169,11 +163,11 @@ pub async fn update(
     
     match db::update_mailbox(pool, id, form) {
         Ok(_) => {
-            let mailboxes = match db::get_mailboxes(pool) {
-                Ok(mailboxes) => mailboxes,
-                Err(_) => vec![],
+            let mailbox = match db::get_mailbox(pool, id) {
+                Ok(mailbox) => mailbox,
+                Err(_) => return Html("Mailbox not found".to_string()),
             };
-            let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            let content_template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error updating mailbox".to_string()),
@@ -193,5 +187,59 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error deleting mailbox".to_string()),
+    }
+}
+
+pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    match db::toggle_mailbox_active(pool, id) {
+        Ok(_) => {
+            // Redirect back to the show page
+            let mailbox = match db::get_mailbox(pool, id) {
+                Ok(mailbox) => mailbox,
+                Err(_) => return Html("Mailbox not found".to_string()),
+            };
+            let content_template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
+            let content = content_template.render().unwrap();
+            let template = BaseTemplate { 
+                title: "Show Mailbox".to_string(), 
+                content 
+            };
+            Html(template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling mailbox status".to_string()),
+    }
+}
+
+// Toggle from list: returns updated list
+pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_mailbox_active(pool, id) {
+        Ok(_) => {
+            let mailboxes = match db::get_mailboxes(pool) {
+                Ok(mailboxes) => mailboxes,
+                Err(_) => vec![],
+            };
+            let content_template = MailboxListTemplate { title: "Mailboxes", mailboxes };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling mailbox status".to_string()),
+    }
+}
+
+// Toggle from show: returns updated show
+pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_mailbox_active(pool, id) {
+        Ok(_) => {
+            let mailbox = match db::get_mailbox(pool, id) {
+                Ok(mailbox) => mailbox,
+                Err(_) => return Html("Mailbox not found".to_string()),
+            };
+            let content_template = MailboxShowTemplate { title: "Show Mailbox", mailbox };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling mailbox status".to_string()),
     }
 } 

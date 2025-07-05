@@ -303,6 +303,75 @@ pub fn delete_mailbox(pool: &DbPool, mailbox_id: i32) -> Result<usize, Error> {
         .execute(&mut conn)
 }
 
+// Toggle functions for enable/disable functionality
+pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // First get the current domain to check its active status
+    let current_domain = get_domain(pool, domain_id)?;
+    let new_active_status = !current_domain.active;
+    
+    diesel::update(domains::table.find(domain_id))
+        .set((
+            domains::active.eq(new_active_status),
+            domains::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+    
+    get_domain(pool, domain_id)
+}
+
+pub fn toggle_user_active(pool: &DbPool, user_id: i32) -> Result<User, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // First get the current user to check its active status
+    let current_user = get_user(pool, user_id)?;
+    let new_active_status = !current_user.active;
+    
+    diesel::update(users::table.find(user_id))
+        .set((
+            users::active.eq(new_active_status),
+            users::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+    
+    get_user(pool, user_id)
+}
+
+pub fn toggle_alias_active(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // First get the current alias to check its active status
+    let current_alias = get_alias(pool, alias_id)?;
+    let new_active_status = !current_alias.active;
+    
+    diesel::update(aliases::table.find(alias_id))
+        .set((
+            aliases::active.eq(new_active_status),
+            aliases::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+    
+    get_alias(pool, alias_id)
+}
+
+pub fn toggle_mailbox_active(pool: &DbPool, mailbox_id: i32) -> Result<Mailbox, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // First get the current mailbox to check its active status
+    let current_mailbox = get_mailbox(pool, mailbox_id)?;
+    let new_active_status = !current_mailbox.active;
+    
+    diesel::update(mailboxes::table.find(mailbox_id))
+        .set((
+            mailboxes::active.eq(new_active_status),
+            mailboxes::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+    
+    get_mailbox(pool, mailbox_id)
+}
+
 // Statistics functions
 pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let mut conn = pool.get().unwrap();

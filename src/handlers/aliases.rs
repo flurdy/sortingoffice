@@ -80,13 +80,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         alias: Some(alias), 
         form 
     };
-    let content = content_template.render().unwrap();
-    
-    let template = BaseTemplate { 
-        title: "Edit Alias".to_string(), 
-        content 
-    };
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn create(
@@ -117,11 +111,11 @@ pub async fn update(
     
     match db::update_alias(pool, id, form) {
         Ok(_) => {
-            let aliases = match db::get_aliases(pool) {
-                Ok(aliases) => aliases,
-                Err(_) => vec![],
+            let alias = match db::get_alias(pool, id) {
+                Ok(alias) => alias,
+                Err(_) => return Html("Alias not found".to_string()),
             };
-            let content_template = AliasListTemplate { title: "Aliases", aliases };
+            let content_template = AliasShowTemplate { title: "Show Alias", alias };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error updating alias".to_string()),
@@ -141,5 +135,56 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error deleting alias".to_string()),
+    }
+}
+
+pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    
+    match db::toggle_alias_active(pool, id) {
+        Ok(_) => {
+            let alias = match db::get_alias(pool, id) {
+                Ok(alias) => alias,
+                Err(_) => return Html("Alias not found".to_string()),
+            };
+            let content_template = AliasShowTemplate { title: "Show Alias", alias };
+            let content = content_template.render().unwrap();
+            let template = BaseTemplate { 
+                title: "Show Alias".to_string(), 
+                content 
+            };
+            Html(template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling alias status".to_string()),
+    }
+}
+
+pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_alias_active(pool, id) {
+        Ok(_) => {
+            let aliases = match db::get_aliases(pool) {
+                Ok(aliases) => aliases,
+                Err(_) => vec![],
+            };
+            let content_template = AliasListTemplate { title: "Aliases", aliases };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling alias status".to_string()),
+    }
+}
+
+pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+    let pool = &state.pool;
+    match db::toggle_alias_active(pool, id) {
+        Ok(_) => {
+            let alias = match db::get_alias(pool, id) {
+                Ok(alias) => alias,
+                Err(_) => return Html("Alias not found".to_string()),
+            };
+            let content_template = AliasShowTemplate { title: "Show Alias", alias };
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Error toggling alias status".to_string()),
     }
 } 
