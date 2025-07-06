@@ -6,7 +6,7 @@
 # Default target
 help:
 	@echo "🚀 Sorting Office - Available Commands"
-	@echo "======================================"
+	@echo "======================================="
 	@echo ""
 	@echo "Docker Commands:"
 	@echo "  make build      - Build Docker images"
@@ -40,6 +40,13 @@ help:
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
 	@echo "  make test-ui-cleanup - Clean up UI test environment"
 	@echo "  make run        - Run locally with cargo"
+	@echo "Database Inspection:"
+	@echo "  make list-domains   - List all domains in the database"
+	@echo "  make count-domains  - Count all domains in the database"
+	@echo "  make list-aliases   - List all aliases in the database"
+	@echo "  make count-aliases  - Count all aliases in the database"
+	@echo "  make list-users     - List all users in the database"
+	@echo "  make count-users    - Count all users in the database"
 
 # Docker commands
 build:
@@ -163,3 +170,28 @@ info:
 
 test-ui-failfast:
 	./tests/run_tests.sh ui --fail-fast 
+
+MYSQL ?= mysql
+MYSQL_USER ?= root
+MYSQL_PASSWORD ?= password
+MYSQL_DATABASE ?= sortingoffice
+MYSQL_HOST ?= 127.0.0.1
+MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
+
+list-domains:
+	@$(MYSQL_CMD) "SELECT * FROM domains;"
+
+count-domains:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"
+
+list-aliases:
+	@$(MYSQL_CMD) "SELECT * FROM aliases;"
+
+count-aliases:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM aliases;"
+
+list-users:
+	@$(MYSQL_CMD) "SELECT * FROM users;"
+
+count-users:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM users;"

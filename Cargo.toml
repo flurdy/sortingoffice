@@ -7,7 +7,7 @@ edition = "2021"
 # Web framework
 axum = "0.7.5"
 tower = "0.4"
-tower-http = { version = "0.5.2", features = ["trace", "cors"] }
+tower-http = { version = "0.5.2", features = ["trace", "cors", "fs"] }
 tokio = { version = "1", features = ["full"] }
 
 # Database

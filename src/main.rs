@@ -8,6 +8,7 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tower_http::fs::ServeDir;
 
 pub mod db;
 pub mod handlers;
@@ -158,6 +159,8 @@ async fn main() {
         .route("/stats", get(handlers::stats::index))
         // Theme
         .route("/theme/toggle", post(handlers::theme::toggle_theme))
+        // Serve static files at /static from the ./static directory
+        .nest_service("/static", tower_http::services::ServeDir::new("./static"))
         .with_state(app_state)
         .layer(TraceLayer::new_for_http());
 
