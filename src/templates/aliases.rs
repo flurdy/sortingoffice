@@ -21,4 +21,5 @@ pub struct AliasFormTemplate<'a> {
     pub title: &'a str,
     pub alias: Option<Alias>,
     pub form: AliasForm,
+    pub error: Option<String>,
 }

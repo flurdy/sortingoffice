@@ -21,4 +21,5 @@ pub struct BackupFormTemplate {
     pub title: &'static str,
     pub backup: Option<Backup>,
     pub form: BackupForm,
+    pub error: Option<String>,
 } 

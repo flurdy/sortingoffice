@@ -21,4 +21,5 @@ pub struct DomainFormTemplate<'a> {
     pub title: &'a str,
     pub domain: Option<Domain>,
     pub form: DomainForm,
+    pub error: Option<String>,
 }

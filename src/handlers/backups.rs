@@ -57,6 +57,7 @@ pub async fn new() -> Html<String> {
         title: "New Backup",
         backup: None,
         form,
+        error: None,
     };
     Html(content_template.render().unwrap())
 }
@@ -100,6 +101,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         title: "Edit Backup",
         backup: Some(backup),
         form,
+        error: None,
     };
     Html(content_template.render().unwrap())
 }
@@ -107,8 +109,19 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
 pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>) -> Html<String> {
     let pool = &state.pool;
 
+    // Validate form data
+    if form.domain.trim().is_empty() {
+        let content_template = BackupFormTemplate {
+            title: "New Backup",
+            backup: None,
+            form,
+            error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
+        };
+        return Html(content_template.render().unwrap());
+    }
+
     let new_backup = NewBackup {
-        domain: form.domain,
+        domain: form.domain.trim().to_string(),
         transport: Some(form.transport.clone()),
         enabled: form.enabled,
     };
@@ -125,7 +138,27 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>)
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error creating backup".to_string()),
+        Err(e) => {
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("A backup server for domain '{}' already exists.", form.domain),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The backup data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while creating the backup. Please try again.".to_string(),
+            };
+
+            let content_template = BackupFormTemplate {
+                title: "New Backup",
+                backup: None,
+                form,
+                error: Some(error_message),
+            };
+            Html(content_template.render().unwrap())
+        }
     }
 }
 
@@ -136,7 +169,18 @@ pub async fn update(
 ) -> Html<String> {
     let pool = &state.pool;
 
-    match db::update_backup(pool, id, form) {
+    // Validate form data
+    if form.domain.trim().is_empty() {
+        let content_template = BackupFormTemplate {
+            title: "Edit Backup",
+            backup: None,
+            form,
+            error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
+        };
+        return Html(content_template.render().unwrap());
+    }
+
+    match db::update_backup(pool, id, form.clone()) {
         Ok(_) => {
             let backup = match db::get_backup(pool, id) {
                 Ok(backup) => backup,
@@ -148,7 +192,27 @@ pub async fn update(
             };
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error updating backup".to_string()),
+        Err(e) => {
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("A backup server for domain '{}' already exists.", form.domain),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The backup data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while updating the backup. Please try again.".to_string(),
+            };
+
+            let content_template = BackupFormTemplate {
+                title: "Edit Backup",
+                backup: None,
+                form,
+                error: Some(error_message),
+            };
+            Html(content_template.render().unwrap())
+        }
     }
 }
 

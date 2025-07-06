@@ -50,6 +50,7 @@ pub async fn new(headers: HeaderMap) -> Html<String> {
         title: "New Alias",
         alias: None,
         form,
+        error: None,
     };
     let content = content_template.render().unwrap();
 
@@ -116,6 +117,7 @@ pub async fn edit(
         title: "Edit Alias",
         alias: Some(alias),
         form,
+        error: None,
     };
     let content = content_template.render().unwrap();
 
@@ -137,7 +139,7 @@ pub async fn create(
 ) -> Html<String> {
     let pool = &state.pool;
 
-    match db::create_alias(pool, form) {
+    match db::create_alias(pool, form.clone()) {
         Ok(_) => {
             let aliases = match db::get_aliases(pool) {
                 Ok(aliases) => aliases,
@@ -164,7 +166,42 @@ pub async fn create(
         }
         Err(e) => {
             eprintln!("Error creating alias: {:?}", e);
-            Html(format!("Error creating alias: {:?}", e))
+            
+            // Handle specific database errors with user-friendly messages
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                    _,
+                ) => format!("The domain '{}' does not exist. Please create the domain first before adding aliases.", form.domain),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("An alias with the email '{}' already exists.", form.mail),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The alias data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while creating the alias. Please try again.".to_string(),
+            };
+
+            // Return to form with error message
+            let form_template = AliasFormTemplate {
+                title: "New Alias",
+                alias: None,
+                form: form.clone(),
+                error: Some(error_message),
+            };
+            let content = form_template.render().unwrap();
+
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate {
+                    title: "New Alias".to_string(),
+                    content,
+                };
+                Html(template.render().unwrap())
+            }
         }
     }
 }
@@ -177,7 +214,7 @@ pub async fn update(
 ) -> Html<String> {
     let pool = &state.pool;
 
-    match db::update_alias(pool, id, form) {
+    match db::update_alias(pool, id, form.clone()) {
         Ok(_) => {
             let alias = match db::get_alias(pool, id) {
                 Ok(alias) => alias,
@@ -199,7 +236,51 @@ pub async fn update(
                 Html(template.render().unwrap())
             }
         }
-        Err(_) => Html("Error updating alias".to_string()),
+        Err(e) => {
+            eprintln!("Error updating alias: {:?}", e);
+            
+            // Handle specific database errors with user-friendly messages
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+                    _,
+                ) => format!("The domain '{}' does not exist. Please create the domain first before updating the alias.", form.domain),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("An alias with the email '{}' already exists.", form.mail),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The alias data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while updating the alias. Please try again.".to_string(),
+            };
+
+            // Get the original alias for the form
+            let original_alias = match db::get_alias(pool, id) {
+                Ok(alias) => Some(alias),
+                Err(_) => None,
+            };
+
+            // Return to form with error message
+            let form_template = AliasFormTemplate {
+                title: "Edit Alias",
+                alias: original_alias,
+                form: form.clone(),
+                error: Some(error_message),
+            };
+            let content = form_template.render().unwrap();
+
+            if is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let template = BaseTemplate {
+                    title: "Edit Alias".to_string(),
+                    content,
+                };
+                Html(template.render().unwrap())
+            }
+        }
     }
 }
 

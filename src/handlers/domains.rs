@@ -57,6 +57,7 @@ pub async fn new() -> Html<String> {
         title: "New Domain",
         domain: None,
         form,
+        error: None,
     };
     Html(content_template.render().unwrap())
 }
@@ -100,6 +101,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         title: "Edit Domain",
         domain: Some(domain),
         form,
+        error: None,
     };
     Html(content_template.render().unwrap())
 }
@@ -107,8 +109,19 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
 pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>) -> Html<String> {
     let pool = &state.pool;
 
+    // Validate form data
+    if form.domain.trim().is_empty() {
+        let content_template = DomainFormTemplate {
+            title: "New Domain",
+            domain: None,
+            form,
+            error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
+        };
+        return Html(content_template.render().unwrap());
+    }
+
     let new_domain = NewDomain {
-        domain: form.domain,
+        domain: form.domain.trim().to_string(),
         transport: Some(form.transport.clone()),
         enabled: form.enabled,
     };
@@ -125,7 +138,27 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>)
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error creating domain".to_string()),
+        Err(e) => {
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("A domain with the name '{}' already exists.", form.domain),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The domain data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while creating the domain. Please try again.".to_string(),
+            };
+
+            let content_template = DomainFormTemplate {
+                title: "New Domain",
+                domain: None,
+                form,
+                error: Some(error_message),
+            };
+            Html(content_template.render().unwrap())
+        }
     }
 }
 
@@ -136,6 +169,18 @@ pub async fn update(
 ) -> Html<String> {
     let pool = &state.pool;
 
+    // Validate form data
+    if form.domain.trim().is_empty() {
+        let content_template = DomainFormTemplate {
+            title: "Edit Domain",
+            domain: None,
+            form,
+            error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
+        };
+        return Html(content_template.render().unwrap());
+    }
+
+    let domain_name = form.domain.clone();
     match db::update_domain(pool, id, form) {
         Ok(_) => {
             let domain = match db::get_domain(pool, id) {
@@ -148,7 +193,34 @@ pub async fn update(
             };
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error updating domain".to_string()),
+        Err(e) => {
+            let error_message = match e {
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _,
+                ) => format!("A domain with the name '{}' already exists.", domain_name),
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::CheckViolation,
+                    _,
+                ) => "The domain data does not meet the required constraints. Please check your input.".to_string(),
+                _ => "An unexpected error occurred while updating the domain. Please try again.".to_string(),
+            };
+
+            // Recreate the form for error display
+            let error_form = DomainForm {
+                domain: domain_name,
+                transport: "virtual".to_string(),
+                enabled: true,
+            };
+
+            let content_template = DomainFormTemplate {
+                title: "Edit Domain",
+                domain: None,
+                form: error_form,
+                error: Some(error_message),
+            };
+            Html(content_template.render().unwrap())
+        }
     }
 }
 
