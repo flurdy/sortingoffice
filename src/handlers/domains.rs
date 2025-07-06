@@ -38,7 +38,7 @@ pub async fn new() -> Html<String> {
         quota: 0,
         transport: "virtual".to_string(),
         backupmx: false,
-        active: true,
+        enabled: true,
     };
 
     let content_template = DomainFormTemplate {
@@ -86,7 +86,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         quota: domain.quota,
         transport: domain.transport.clone().unwrap_or_default(),
         backupmx: domain.backupmx,
-        active: domain.active,
+        enabled: domain.enabled,
     };
 
     let content_template = DomainFormTemplate {
@@ -108,7 +108,7 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>)
         quota: form.quota,
         transport: Some(form.transport),
         backupmx: form.backupmx,
-        active: form.active,
+        enabled: form.enabled,
     };
 
     match db::create_domain(pool, new_domain) {

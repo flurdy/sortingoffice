@@ -17,13 +17,13 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
 
         let created_domain = db::create_domain(&pool, new_domain).unwrap();
         assert_eq!(created_domain.domain, "test.com");
         assert_eq!(created_domain.aliases, 10);
-        assert_eq!(created_domain.active, true);
+        assert_eq!(created_domain.enabled, true);
 
         // Test get domain
         let retrieved_domain = db::get_domain(&pool, created_domain.pkid).unwrap();
@@ -43,13 +43,13 @@ mod tests {
             quota: 1000000,
             transport: "smtp:updated".to_string(),
             backupmx: true,
-            active: false,
+            enabled: false,
         };
 
         let updated_domain = db::update_domain(&pool, created_domain.pkid, form_data).unwrap();
         assert_eq!(updated_domain.domain, "updated.com");
         assert_eq!(updated_domain.aliases, 20);
-        assert_eq!(updated_domain.active, false);
+        assert_eq!(updated_domain.enabled, false);
 
         // Test get all domains
         let all_domains = db::get_domains(&pool).unwrap();
@@ -80,7 +80,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
@@ -170,7 +170,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
@@ -235,7 +235,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
@@ -259,10 +259,10 @@ mod tests {
 
         // Test toggle domain active
         let toggled_domain = db::toggle_domain_active(&pool, domain.pkid).unwrap();
-        assert_eq!(toggled_domain.active, false);
+        assert_eq!(toggled_domain.enabled, false);
 
         let toggled_domain_again = db::toggle_domain_active(&pool, domain.pkid).unwrap();
-        assert_eq!(toggled_domain_again.active, true);
+        assert_eq!(toggled_domain_again.enabled, true);
 
         // Test toggle user active
         let toggled_user = db::toggle_user_active(&pool, user.pkid).unwrap();
@@ -294,7 +294,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
@@ -364,7 +364,7 @@ mod tests {
             quota: 500000,
             transport: "smtp:localhost".to_string(),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let update_result = db::update_domain(&pool, 999, form_data);
         assert!(update_result.is_err());

@@ -29,7 +29,7 @@ pub struct Domain {
     pub backupmx: bool,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -42,7 +42,7 @@ pub struct NewDomain {
     pub quota: i64,
     pub transport: Option<String>,
     pub backupmx: bool,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -59,7 +59,7 @@ pub struct User {
     pub domain: String,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -71,7 +71,7 @@ pub struct NewUser {
     pub maildir: String,
     pub quota: i64,
     pub domain: String,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -85,7 +85,7 @@ pub struct Alias {
     pub domain: String,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -94,7 +94,7 @@ pub struct NewAlias {
     pub mail: String,
     pub destination: String,
     pub domain: String,
-    pub active: bool,
+    pub enabled: bool,
 }
 
 // Form data structures for HTMX
@@ -112,7 +112,7 @@ pub struct DomainForm {
     pub backupmx: bool,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -124,7 +124,7 @@ pub struct UserForm {
     pub quota: i64,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
-    pub active: bool,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -134,7 +134,7 @@ pub struct AliasForm {
     pub domain: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
-    pub active: bool,
+    pub enabled: bool,
 }
 
 // Statistics models

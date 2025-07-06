@@ -87,7 +87,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -121,7 +121,7 @@ mod tests {
         // Clean up before test
         cleanup_test_db(&state.pool);
 
-        let form_data = "domain=create-test.com&description=Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=on&active=on";
+        let form_data = "domain=create-test.com&description=Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
 
         let response = app
             .oneshot(
@@ -161,7 +161,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -204,7 +204,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -248,11 +248,11 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "domain=updated-update.com&description=Updated+Domain&aliases=20&maxquota=2000000&quota=1000000&transport=smtp%3Aupdated&backupmx=on&active=off";
+        let form_data = "domain=updated-update.com&description=Updated+Domain&aliases=20&maxquota=2000000&quota=1000000&transport=smtp%3Aupdated&backupmx=on&enabled=off";
 
         let response = app
             .oneshot(
@@ -272,7 +272,7 @@ mod tests {
         let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-update.com");
         assert_eq!(updated_domain.aliases, 20);
-        assert_eq!(updated_domain.active, false);
+        assert_eq!(updated_domain.enabled, false);
 
         cleanup_test_db(&state.pool);
     }
@@ -293,7 +293,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -312,7 +312,7 @@ mod tests {
 
         // Verify domain was toggled
         let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
-        assert_eq!(toggled_domain.active, false);
+        assert_eq!(toggled_domain.enabled, false);
 
         cleanup_test_db(&state.pool);
     }
@@ -333,7 +333,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -343,7 +343,7 @@ mod tests {
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
@@ -386,11 +386,11 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "username=testuser&password=password123&name=Test+User&domain=users-create-test.com&quota=100000&active=on";
+        let form_data = "username=testuser&password=password123&name=Test+User&domain=users-create-test.com&quota=100000&enabled=on";
 
         let response = app
             .oneshot(
@@ -430,7 +430,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -438,7 +438,7 @@ mod tests {
             mail: "test@aliases-list-test.com".to_string(),
             destination: "user@aliases-list-test.com".to_string(),
             domain: domain.domain.clone(),
-            active: true,
+            enabled: true,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
 
@@ -481,11 +481,11 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&domain=aliases-create-test.com&active=on";
+        let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&domain=aliases-create-test.com&enabled=on";
 
         let response = app
             .oneshot(
@@ -527,7 +527,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
@@ -537,7 +537,7 @@ mod tests {
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
@@ -545,7 +545,7 @@ mod tests {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
-            active: true,
+            enabled: true,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
 

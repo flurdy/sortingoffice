@@ -36,7 +36,7 @@ pub async fn new() -> Html<String> {
         name: "".to_string(),
         domain: "example.com".to_string(),
         quota: 1073741824, // 1GB
-        active: true,
+        enabled: true,
     };
 
     let content_template = UserFormTemplate {
@@ -83,7 +83,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         name: user.name.clone(),
         domain: user.domain.clone(),
         quota: user.quota,
-        active: user.active,
+        enabled: user.enabled,
     };
 
     let content_template = UserFormTemplate {

@@ -43,7 +43,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
             domains::quota.eq(new_domain.quota),
             domains::transport.eq(new_domain.transport),
             domains::backupmx.eq(new_domain.backupmx),
-            domains::active.eq(new_domain.active),
+            domains::enabled.eq(new_domain.enabled),
             domains::created.eq(now),
             domains::modified.eq(now),
         ))
@@ -70,7 +70,7 @@ pub fn update_domain(
             domains::quota.eq(domain_data.quota),
             domains::transport.eq(domain_data.transport),
             domains::backupmx.eq(domain_data.backupmx),
-            domains::active.eq(domain_data.active),
+            domains::enabled.eq(domain_data.enabled),
             domains::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
@@ -128,7 +128,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         maildir,
         quota: user_data.quota,
         domain: user_data.domain,
-        active: user_data.active,
+        enabled: user_data.enabled,
     };
 
     let now = Utc::now().naive_utc();
@@ -141,7 +141,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
             users::maildir.eq(new_user.maildir),
             users::quota.eq(new_user.quota),
             users::domain.eq(new_user.domain),
-            users::active.eq(new_user.active),
+            users::enabled.eq(new_user.enabled),
             users::created.eq(now),
             users::modified.eq(now),
         ))
@@ -171,7 +171,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
                 users::quota.eq(user_data.quota),
-                users::active.eq(user_data.active),
+                users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
                 users::password.eq(hashed_password),
             ))
@@ -183,7 +183,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
                 users::quota.eq(user_data.quota),
-                users::active.eq(user_data.active),
+                users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
             ))
             .execute(&mut conn)?;
@@ -223,7 +223,7 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
             aliases::mail.eq(alias_data.mail),
             aliases::destination.eq(alias_data.destination),
             aliases::domain.eq(alias_data.domain),
-            aliases::active.eq(alias_data.active),
+            aliases::enabled.eq(alias_data.enabled),
             aliases::created.eq(now),
             aliases::modified.eq(now),
         ))
@@ -242,7 +242,7 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
             aliases::mail.eq(alias_data.mail),
             aliases::destination.eq(alias_data.destination),
             aliases::domain.eq(alias_data.domain),
-            aliases::active.eq(alias_data.active),
+            aliases::enabled.eq(alias_data.enabled),
             aliases::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
@@ -259,13 +259,13 @@ pub fn delete_alias(pool: &DbPool, alias_id: i32) -> Result<usize, Error> {
 pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
     let mut conn = pool.get().unwrap();
 
-    // First get the current domain to check its active status
+    // First get the current domain to check its enabled status
     let current_domain = get_domain(pool, domain_id)?;
-    let new_active_status = !current_domain.active;
+    let new_enabled_status = !current_domain.enabled;
 
     diesel::update(domains::table.find(domain_id))
         .set((
-            domains::active.eq(new_active_status),
+            domains::enabled.eq(new_enabled_status),
             domains::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
@@ -276,13 +276,13 @@ pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Err
 pub fn toggle_user_active(pool: &DbPool, user_id: i32) -> Result<User, Error> {
     let mut conn = pool.get().unwrap();
 
-    // First get the current user to check its active status
+    // First get the current user to check its enabled status
     let current_user = get_user(pool, user_id)?;
-    let new_active_status = !current_user.active;
+    let new_enabled_status = !current_user.enabled;
 
     diesel::update(users::table.find(user_id))
         .set((
-            users::active.eq(new_active_status),
+            users::enabled.eq(new_enabled_status),
             users::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
@@ -293,13 +293,13 @@ pub fn toggle_user_active(pool: &DbPool, user_id: i32) -> Result<User, Error> {
 pub fn toggle_alias_active(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
     let mut conn = pool.get().unwrap();
 
-    // First get the current alias to check its active status
+    // First get the current alias to check its enabled status
     let current_alias = get_alias(pool, alias_id)?;
-    let new_active_status = !current_alias.active;
+    let new_enabled_status = !current_alias.enabled;
 
     diesel::update(aliases::table.find(alias_id))
         .set((
-            aliases::active.eq(new_active_status),
+            aliases::enabled.eq(new_enabled_status),
             aliases::modified.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;

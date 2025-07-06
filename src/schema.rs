@@ -11,7 +11,7 @@ diesel::table! {
         domain -> Varchar,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
+        enabled -> Bool,
     }
 }
 
@@ -30,7 +30,7 @@ diesel::table! {
         backupmx -> Bool,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
+        enabled -> Bool,
     }
 }
 
@@ -50,8 +50,12 @@ diesel::table! {
         domain -> Varchar,
         created -> Datetime,
         modified -> Datetime,
-        active -> Bool,
+        enabled -> Bool,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(aliases, domains, users,);
+diesel::allow_tables_to_appear_in_same_query!(
+    aliases,
+    domains,
+    users,
+);

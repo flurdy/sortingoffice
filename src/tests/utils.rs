@@ -7,19 +7,19 @@ mod tests {
     fn test_checkbox_deserialization_utility() {
         // Test various checkbox values in form data
         let test_cases = vec![
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&active=on", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&active=true", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&active=1", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&active=off", false),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=false&active=false", false),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=0&active=0", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&enabled=on", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&enabled=true", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&enabled=1", true),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&enabled=off", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=false&enabled=false", false),
+            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=0&enabled=0", false),
             ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost", false),
         ];
 
         for (form_data, expected) in test_cases {
             let form: crate::models::DomainForm = serde_urlencoded::from_str(form_data).unwrap();
             assert_eq!(form.backupmx, expected, "Failed for input: {}", form_data);
-            assert_eq!(form.active, expected, "Failed for input: {}", form_data);
+            assert_eq!(form.enabled, expected, "Failed for input: {}", form_data);
         }
     }
 
@@ -34,7 +34,7 @@ mod tests {
             quota: 500000,
             transport: "smtp:localhost".to_string(),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
 
         assert!(!valid_domain_form.domain.is_empty());
@@ -50,7 +50,7 @@ mod tests {
             name: "Test User".to_string(),
             domain: "example.com".to_string(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
 
         assert!(!valid_user_form.username.is_empty());
@@ -64,7 +64,7 @@ mod tests {
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
-            active: true,
+            enabled: true,
         };
 
         assert!(!valid_alias_form.mail.is_empty());
@@ -89,13 +89,13 @@ mod tests {
             backupmx: false,
             created: now,
             modified: now,
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(domain.pkid, 1);
         assert_eq!(domain.domain, "example.com");
         assert_eq!(domain.aliases, 10);
-        assert_eq!(domain.active, true);
+        assert_eq!(domain.enabled, true);
         assert_eq!(domain.created, now);
         assert_eq!(domain.modified, now);
 
@@ -110,7 +110,7 @@ mod tests {
             domain: "example.com".to_string(),
             created: now,
             modified: now,
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(user.pkid, 1);
@@ -119,7 +119,7 @@ mod tests {
         assert_eq!(user.maildir, "testuser/");
         assert_eq!(user.quota, 100000);
         assert_eq!(user.domain, "example.com");
-        assert_eq!(user.active, true);
+        assert_eq!(user.enabled, true);
 
         // Test Alias model creation
         let alias = Alias {
@@ -129,14 +129,14 @@ mod tests {
             domain: "example.com".to_string(),
             created: now,
             modified: now,
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(alias.pkid, 1);
         assert_eq!(alias.mail, "test@example.com");
         assert_eq!(alias.destination, "user@example.com");
         assert_eq!(alias.domain, "example.com");
-        assert_eq!(alias.active, true);
+        assert_eq!(alias.enabled, true);
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
             quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(new_domain.domain, "example.com");
@@ -160,7 +160,7 @@ mod tests {
         assert_eq!(new_domain.quota, 500000);
         assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
         assert_eq!(new_domain.backupmx, false);
-        assert_eq!(new_domain.active, true);
+        assert_eq!(new_domain.enabled, true);
 
         // Test NewUser creation
         let new_user = NewUser {
@@ -170,7 +170,7 @@ mod tests {
             maildir: "testuser/".to_string(),
             quota: 100000,
             domain: "example.com".to_string(),
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(new_user.username, "testuser");
@@ -179,20 +179,20 @@ mod tests {
         assert_eq!(new_user.maildir, "testuser/");
         assert_eq!(new_user.quota, 100000);
         assert_eq!(new_user.domain, "example.com");
-        assert_eq!(new_user.active, true);
+        assert_eq!(new_user.enabled, true);
 
         // Test NewAlias creation
         let new_alias = NewAlias {
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
-            active: true,
+            enabled: true,
         };
 
         assert_eq!(new_alias.mail, "test@example.com");
         assert_eq!(new_alias.destination, "user@example.com");
         assert_eq!(new_alias.domain, "example.com");
-        assert_eq!(new_alias.active, true);
+        assert_eq!(new_alias.enabled, true);
     }
 
     #[test]

@@ -49,7 +49,7 @@
                                     {{ user.quota }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    {% if user.active %}
+                                    {% if user.enabled %}
                                     <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">Active</span>
                                     {% else %}
                                     <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">Inactive</span>
@@ -62,7 +62,7 @@
                                             hx-post="/users/{{ user.pkid }}/toggle-list" 
                                             hx-target="#main-content" 
                                             class="inline-flex items-center justify-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-16">
-                                            {% if user.active %}Disable{% else %}Enable{% endif %}
+                                            {% if user.enabled %}Disable{% else %}Enable{% endif %}
                                         </button>
                                     </div>
                                 </td>

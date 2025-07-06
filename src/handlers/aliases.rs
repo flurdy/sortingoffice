@@ -43,7 +43,7 @@ pub async fn new(headers: HeaderMap) -> Html<String> {
         mail: "".to_string(),
         destination: "".to_string(),
         domain: "example.com".to_string(),
-        active: true,
+        enabled: true,
     };
 
     let content_template = AliasFormTemplate {
@@ -109,7 +109,7 @@ pub async fn edit(
         mail: alias.mail.clone(),
         destination: alias.destination.clone(),
         domain: alias.domain.clone(),
-        active: alias.active,
+        enabled: alias.enabled,
     };
 
     let content_template = AliasFormTemplate {
