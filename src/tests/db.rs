@@ -26,13 +26,13 @@ mod tests {
         assert_eq!(created_domain.active, true);
 
         // Test get domain
-        let retrieved_domain = db::get_domain(&pool, created_domain.id).unwrap();
-        assert_eq!(retrieved_domain.id, created_domain.id);
+        let retrieved_domain = db::get_domain(&pool, created_domain.pkid).unwrap();
+        assert_eq!(retrieved_domain.pkid, created_domain.pkid);
         assert_eq!(retrieved_domain.domain, "test.com");
 
         // Test get domain by name
         let domain_by_name = db::get_domain_by_name(&pool, "test.com").unwrap();
-        assert_eq!(domain_by_name.id, created_domain.id);
+        assert_eq!(domain_by_name.pkid, created_domain.pkid);
 
         // Test update domain
         let form_data = DomainForm {
@@ -46,7 +46,7 @@ mod tests {
             active: false,
         };
 
-        let updated_domain = db::update_domain(&pool, created_domain.id, form_data).unwrap();
+        let updated_domain = db::update_domain(&pool, created_domain.pkid, form_data).unwrap();
         assert_eq!(updated_domain.domain, "updated.com");
         assert_eq!(updated_domain.aliases, 20);
         assert_eq!(updated_domain.active, false);
@@ -54,14 +54,14 @@ mod tests {
         // Test get all domains
         let all_domains = db::get_domains(&pool).unwrap();
         assert!(!all_domains.is_empty());
-        assert!(all_domains.iter().any(|d| d.id == created_domain.id));
+        assert!(all_domains.iter().any(|d| d.pkid == created_domain.pkid));
 
         // Test delete domain
-        let deleted_count = db::delete_domain(&pool, created_domain.id).unwrap();
+        let deleted_count = db::delete_domain(&pool, created_domain.pkid).unwrap();
         assert_eq!(deleted_count, 1);
 
         // Verify domain is deleted
-        let deleted_domain = db::get_domain(&pool, created_domain.id);
+        let deleted_domain = db::get_domain(&pool, created_domain.pkid);
         assert!(deleted_domain.is_err());
 
         cleanup_test_db(&pool);
@@ -102,13 +102,13 @@ mod tests {
         assert!(created_user.password.starts_with("$2b$")); // bcrypt hash
 
         // Test get user
-        let retrieved_user = db::get_user(&pool, created_user.id).unwrap();
-        assert_eq!(retrieved_user.id, created_user.id);
+        let retrieved_user = db::get_user(&pool, created_user.pkid).unwrap();
+        assert_eq!(retrieved_user.pkid, created_user.pkid);
         assert_eq!(retrieved_user.username, "testuser");
 
         // Test get user by username
         let user_by_username = db::get_user_by_username(&pool, "testuser").unwrap();
-        assert_eq!(user_by_username.id, created_user.id);
+        assert_eq!(user_by_username.pkid, created_user.pkid);
 
         // Test update user with new password
         let update_form = UserForm {
@@ -120,7 +120,7 @@ mod tests {
             active: false,
         };
 
-        let updated_user = db::update_user(&pool, created_user.id, update_form).unwrap();
+        let updated_user = db::update_user(&pool, created_user.pkid, update_form).unwrap();
         assert_eq!(updated_user.username, "updateduser");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.active, false);
@@ -135,7 +135,7 @@ mod tests {
             active: true,
         };
 
-        let final_user = db::update_user(&pool, created_user.id, update_form_no_password).unwrap();
+        let final_user = db::update_user(&pool, created_user.pkid, update_form_no_password).unwrap();
         assert_eq!(final_user.username, "finaluser");
         assert_eq!(final_user.name, "Final User");
         assert_eq!(final_user.active, true);
@@ -143,14 +143,14 @@ mod tests {
         // Test get all users
         let all_users = db::get_users(&pool).unwrap();
         assert!(!all_users.is_empty());
-        assert!(all_users.iter().any(|u| u.id == created_user.id));
+        assert!(all_users.iter().any(|u| u.pkid == created_user.pkid));
 
         // Test delete user
-        let deleted_count = db::delete_user(&pool, created_user.id).unwrap();
+        let deleted_count = db::delete_user(&pool, created_user.pkid).unwrap();
         assert_eq!(deleted_count, 1);
 
         // Verify user is deleted
-        let deleted_user = db::get_user(&pool, created_user.id);
+        let deleted_user = db::get_user(&pool, created_user.pkid);
         assert!(deleted_user.is_err());
 
         cleanup_test_db(&pool);
@@ -188,8 +188,8 @@ mod tests {
         assert_eq!(created_alias.active, true);
 
         // Test get alias
-        let retrieved_alias = db::get_alias(&pool, created_alias.id).unwrap();
-        assert_eq!(retrieved_alias.id, created_alias.id);
+        let retrieved_alias = db::get_alias(&pool, created_alias.pkid).unwrap();
+        assert_eq!(retrieved_alias.pkid, created_alias.pkid);
         assert_eq!(retrieved_alias.mail, "test@test.com");
 
         // Test update alias
@@ -200,7 +200,7 @@ mod tests {
             active: false,
         };
 
-        let updated_alias = db::update_alias(&pool, created_alias.id, update_form).unwrap();
+        let updated_alias = db::update_alias(&pool, created_alias.pkid, update_form).unwrap();
         assert_eq!(updated_alias.mail, "updated@test.com");
         assert_eq!(updated_alias.destination, "updated@test.com");
         assert_eq!(updated_alias.active, false);
@@ -208,14 +208,14 @@ mod tests {
         // Test get all aliases
         let all_aliases = db::get_aliases(&pool).unwrap();
         assert!(!all_aliases.is_empty());
-        assert!(all_aliases.iter().any(|a| a.id == created_alias.id));
+        assert!(all_aliases.iter().any(|a| a.pkid == created_alias.pkid));
 
         // Test delete alias
-        let deleted_count = db::delete_alias(&pool, created_alias.id).unwrap();
+        let deleted_count = db::delete_alias(&pool, created_alias.pkid).unwrap();
         assert_eq!(deleted_count, 1);
 
         // Verify alias is deleted
-        let deleted_alias = db::get_alias(&pool, created_alias.id);
+        let deleted_alias = db::get_alias(&pool, created_alias.pkid);
         assert!(deleted_alias.is_err());
 
         cleanup_test_db(&pool);
@@ -257,24 +257,24 @@ mod tests {
         let alias = db::create_alias(&pool, alias_form).unwrap();
 
         // Test toggle domain active
-        let toggled_domain = db::toggle_domain_active(&pool, domain.id).unwrap();
+        let toggled_domain = db::toggle_domain_active(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.active, false);
 
-        let toggled_domain_again = db::toggle_domain_active(&pool, domain.id).unwrap();
+        let toggled_domain_again = db::toggle_domain_active(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain_again.active, true);
 
         // Test toggle user active
-        let toggled_user = db::toggle_user_active(&pool, user.id).unwrap();
+        let toggled_user = db::toggle_user_active(&pool, user.pkid).unwrap();
         assert_eq!(toggled_user.active, false);
 
-        let toggled_user_again = db::toggle_user_active(&pool, user.id).unwrap();
+        let toggled_user_again = db::toggle_user_active(&pool, user.pkid).unwrap();
         assert_eq!(toggled_user_again.active, true);
 
         // Test toggle alias active
-        let toggled_alias = db::toggle_alias_active(&pool, alias.id).unwrap();
+        let toggled_alias = db::toggle_alias_active(&pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias.active, false);
 
-        let toggled_alias_again = db::toggle_alias_active(&pool, alias.id).unwrap();
+        let toggled_alias_again = db::toggle_alias_active(&pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias_again.active, true);
 
         cleanup_test_db(&pool);

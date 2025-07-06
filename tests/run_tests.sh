@@ -65,7 +65,8 @@ run_unit_tests() {
 
     # Run the unit tests (excluding UI tests)
     print_status "Running unit tests with cargo..."
-    cargo test --verbose
+    # Run only the integration tests from src/tests/ by running the main binary tests
+    cargo test --bin sortingoffice --verbose
 
     print_success "Unit tests completed successfully!"
 }

@@ -134,7 +134,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/domains/{}", domain.id))
+                    .uri(format!("/domains/{}", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -175,7 +175,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/domains/{}/edit", domain.id))
+                    .uri(format!("/domains/{}/edit", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -220,7 +220,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/domains/{}", domain.id))
+                    .uri(format!("/domains/{}", domain.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(form_data))
                     .unwrap()
@@ -231,7 +231,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         
         // Verify domain was updated
-        let updated_domain = crate::db::get_domain(&state.pool, domain.id).unwrap();
+        let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-update.com");
         assert_eq!(updated_domain.aliases, 20);
         assert_eq!(updated_domain.active, false);
@@ -263,7 +263,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/domains/{}/toggle", domain.id))
+                    .uri(format!("/domains/{}/toggle", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -273,7 +273,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         
         // Verify domain was toggled
-        let toggled_domain = crate::db::get_domain(&state.pool, domain.id).unwrap();
+        let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.active, false);
 
         cleanup_test_db(&state.pool);

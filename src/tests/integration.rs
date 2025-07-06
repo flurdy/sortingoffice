@@ -90,7 +90,7 @@ mod tests {
             .clone()
             .oneshot(
                 Request::builder()
-                    .uri(format!("/domains/{}", domain.id))
+                    .uri(format!("/domains/{}", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -107,7 +107,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/domains/{}", domain.id))
+                    .uri(format!("/domains/{}", domain.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(update_form_data))
                     .unwrap()
@@ -118,7 +118,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_domain = crate::db::get_domain(&state.pool, domain.id).unwrap();
+        let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
         assert_eq!(updated_domain.aliases, 25);
         assert_eq!(updated_domain.active, false);
@@ -129,7 +129,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/domains/{}/toggle", domain.id))
+                    .uri(format!("/domains/{}/toggle", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_domain = crate::db::get_domain(&state.pool, domain.id).unwrap();
+        let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.active, true);
 
         // Step 9: Delete the domain
@@ -148,7 +148,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("DELETE")
-                    .uri(format!("/domains/{}", domain.id))
+                    .uri(format!("/domains/{}", domain.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -158,7 +158,7 @@ mod tests {
         assert_eq!(delete_response.status(), StatusCode::OK);
 
         // Step 10: Verify deletion
-        let deleted_domain = crate::db::get_domain(&state.pool, domain.id);
+        let deleted_domain = crate::db::get_domain(&state.pool, domain.pkid);
         assert!(deleted_domain.is_err());
 
         cleanup_test_db(&state.pool);
@@ -230,7 +230,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/users/{}", user.id))
+                    .uri(format!("/users/{}", user.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(update_form_data))
                     .unwrap()
@@ -241,7 +241,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_user = crate::db::get_user(&state.pool, user.id).unwrap();
+        let updated_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
         assert_eq!(updated_user.username, "updateduser");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.active, false);
@@ -252,7 +252,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/users/{}/toggle", user.id))
+                    .uri(format!("/users/{}/toggle", user.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_user = crate::db::get_user(&state.pool, user.id).unwrap();
+        let toggled_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
         assert_eq!(toggled_user.active, true);
 
         cleanup_test_db(&state.pool);
@@ -334,7 +334,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/aliases/{}", alias.id))
+                    .uri(format!("/aliases/{}", alias.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(update_form_data))
                     .unwrap()
@@ -345,7 +345,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_alias = crate::db::get_alias(&state.pool, alias.id).unwrap();
+        let updated_alias = crate::db::get_alias(&state.pool, alias.pkid).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.destination, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.active, false);
@@ -356,7 +356,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/aliases/{}/toggle-list", alias.id))
+                    .uri(format!("/aliases/{}/toggle-list", alias.pkid))
                     .body(Body::empty())
                     .unwrap()
             )
@@ -366,7 +366,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_alias = crate::db::get_alias(&state.pool, alias.id).unwrap();
+        let toggled_alias = crate::db::get_alias(&state.pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias.active, true);
 
         cleanup_test_db(&state.pool);

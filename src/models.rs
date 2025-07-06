@@ -1,6 +1,7 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize, Deserializer};
 use chrono::NaiveDateTime;
+use crate::schema::*;
 
 fn deserialize_checkbox<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
@@ -11,10 +12,11 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
-#[diesel(table_name = crate::schema::domains)]
+#[diesel(table_name = domains)]
+#[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Domain {
-    pub id: i32,
+    pub pkid: i32,
     pub domain: String,
     pub description: Option<String>,
     pub aliases: i32,
@@ -28,7 +30,7 @@ pub struct Domain {
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
-#[diesel(table_name = crate::schema::domains)]
+#[diesel(table_name = domains)]
 pub struct NewDomain {
     pub domain: String,
     pub description: Option<String>,
@@ -41,10 +43,11 @@ pub struct NewDomain {
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
-#[diesel(table_name = crate::schema::users)]
+#[diesel(table_name = users)]
+#[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
-    pub id: i32,
+    pub pkid: i32,
     pub username: String,
     pub password: String,
     pub name: String,
@@ -57,7 +60,7 @@ pub struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
-#[diesel(table_name = crate::schema::users)]
+#[diesel(table_name = users)]
 pub struct NewUser {
     pub username: String,
     pub password: String,
@@ -69,10 +72,11 @@ pub struct NewUser {
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
-#[diesel(table_name = crate::schema::aliases)]
+#[diesel(table_name = aliases)]
+#[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Alias {
-    pub id: i32,
+    pub pkid: i32,
     pub mail: String,
     pub destination: String,
     pub domain: String,
@@ -82,7 +86,7 @@ pub struct Alias {
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
-#[diesel(table_name = crate::schema::aliases)]
+#[diesel(table_name = aliases)]
 pub struct NewAlias {
     pub mail: String,
     pub destination: String,

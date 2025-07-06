@@ -50,7 +50,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
         .execute(&mut conn)?;
     
     domains::table
-        .order(domains::id.desc())
+        .order(domains::pkid.desc())
         .select(Domain::as_select())
         .first::<Domain>(&mut conn)
 }
@@ -140,7 +140,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         .execute(&mut conn)?;
     
     users::table
-        .order(users::id.desc())
+        .order(users::pkid.desc())
         .select(User::as_select())
         .first::<User>(&mut conn)
 }
@@ -218,7 +218,7 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
         .execute(&mut conn)?;
     
     aliases::table
-        .order(aliases::id.desc())
+        .order(aliases::pkid.desc())
         .select(Alias::as_select())
         .first::<Alias>(&mut conn)
 }

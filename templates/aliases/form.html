@@ -1,7 +1,7 @@
 <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{% if alias.is_some() %}Edit Alias{% else %}New Alias{% endif %}</h1>
 
-    <form {% if alias.is_some() %}hx-put="/aliases/{{ alias.as_ref().unwrap().id }}"{% else %}hx-post="/aliases"{% endif %} hx-target="#main-content" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form {% if alias.is_some() %}hx-put="/aliases/{{ alias.as_ref().unwrap().pkid }}"{% else %}hx-post="/aliases"{% endif %} hx-target="#main-content" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="mail">
                 Mail
@@ -32,7 +32,7 @@
                     Save
                 </button>
                 {% if alias.is_some() %}
-                <a href="/aliases/{{ alias.as_ref().unwrap().id }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                <a href="/aliases/{{ alias.as_ref().unwrap().pkid }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                     Cancel
                 </a>
                 {% else %}

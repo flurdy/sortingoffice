@@ -7,7 +7,7 @@ mod tests {
     #[test]
     fn test_domain_serialization() {
         let domain = Domain {
-            id: 1,
+            pkid: 1,
             domain: "example.com".to_string(),
             description: Some("Test domain".to_string()),
             aliases: 10,
@@ -23,7 +23,7 @@ mod tests {
         let json = serde_json::to_string(&domain).unwrap();
         let deserialized: Domain = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(domain.id, deserialized.id);
+        assert_eq!(domain.pkid, deserialized.pkid);
         assert_eq!(domain.domain, deserialized.domain);
         assert_eq!(domain.description, deserialized.description);
         assert_eq!(domain.aliases, deserialized.aliases);
@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_user_serialization() {
         let user = User {
-            id: 1,
+            pkid: 1,
             username: "testuser".to_string(),
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
@@ -71,7 +71,7 @@ mod tests {
         let json = serde_json::to_string(&user).unwrap();
         let deserialized: User = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(user.id, deserialized.id);
+        assert_eq!(user.pkid, deserialized.pkid);
         assert_eq!(user.username, deserialized.username);
         assert_eq!(user.name, deserialized.name);
         assert_eq!(user.maildir, deserialized.maildir);
@@ -83,7 +83,7 @@ mod tests {
     #[test]
     fn test_alias_serialization() {
         let alias = Alias {
-            id: 1,
+            pkid: 1,
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
@@ -95,7 +95,7 @@ mod tests {
         let json = serde_json::to_string(&alias).unwrap();
         let deserialized: Alias = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(alias.id, deserialized.id);
+        assert_eq!(alias.pkid, deserialized.pkid);
         assert_eq!(alias.mail, deserialized.mail);
         assert_eq!(alias.destination, deserialized.destination);
         assert_eq!(alias.domain, deserialized.domain);

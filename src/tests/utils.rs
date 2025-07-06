@@ -79,7 +79,7 @@ mod tests {
         // Test Domain model creation
         let now = Utc::now().naive_utc();
         let domain = Domain {
-            id: 1,
+            pkid: 1,
             domain: "example.com".to_string(),
             description: Some("Test domain".to_string()),
             aliases: 10,
@@ -92,7 +92,7 @@ mod tests {
             active: true,
         };
 
-        assert_eq!(domain.id, 1);
+        assert_eq!(domain.pkid, 1);
         assert_eq!(domain.domain, "example.com");
         assert_eq!(domain.aliases, 10);
         assert_eq!(domain.active, true);
@@ -101,7 +101,7 @@ mod tests {
 
         // Test User model creation
         let user = User {
-            id: 1,
+            pkid: 1,
             username: "testuser".to_string(),
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
@@ -113,7 +113,7 @@ mod tests {
             active: true,
         };
 
-        assert_eq!(user.id, 1);
+        assert_eq!(user.pkid, 1);
         assert_eq!(user.username, "testuser");
         assert_eq!(user.name, "Test User");
         assert_eq!(user.maildir, "testuser/");
@@ -123,7 +123,7 @@ mod tests {
 
         // Test Alias model creation
         let alias = Alias {
-            id: 1,
+            pkid: 1,
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
             domain: "example.com".to_string(),
@@ -132,7 +132,7 @@ mod tests {
             active: true,
         };
 
-        assert_eq!(alias.id, 1);
+        assert_eq!(alias.pkid, 1);
         assert_eq!(alias.mail, "test@example.com");
         assert_eq!(alias.destination, "user@example.com");
         assert_eq!(alias.domain, "example.com");

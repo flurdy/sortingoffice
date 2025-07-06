@@ -1,8 +1,8 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    aliases (id) {
-        id -> Integer,
+    aliases (pkid) {
+        pkid -> Integer,
         #[max_length = 255]
         mail -> Varchar,
         #[max_length = 255]
@@ -16,8 +16,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    domains (id) {
-        id -> Integer,
+    domains (pkid) {
+        pkid -> Integer,
         #[max_length = 255]
         domain -> Varchar,
         #[max_length = 255]
@@ -35,8 +35,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    users (id) {
-        id -> Integer,
+    users (pkid) {
+        pkid -> Integer,
         #[max_length = 255]
         username -> Varchar,
         #[max_length = 255]
