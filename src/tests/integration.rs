@@ -17,50 +17,50 @@ mod tests {
         let app = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
             .route("/domains", axum::routing::post(handlers::domains::create))
-            .route("/domains/:id", axum::routing::get(handlers::domains::show))
+            .route("/domains/{id}", axum::routing::get(handlers::domains::show))
             .route(
-                "/domains/:id/edit",
+                "/domains/{id}/edit",
                 axum::routing::get(handlers::domains::edit),
             )
             .route(
-                "/domains/:id",
+                "/domains/{id}",
                 axum::routing::put(handlers::domains::update),
             )
             .route(
-                "/domains/:id",
+                "/domains/{id}",
                 axum::routing::delete(handlers::domains::delete),
             )
             .route(
-                "/domains/:id/toggle",
+                "/domains/{id}/toggle",
                 axum::routing::post(handlers::domains::toggle_enabled),
             )
             .route("/users", axum::routing::get(handlers::users::list))
             .route("/users", axum::routing::post(handlers::users::create))
-            .route("/users/:id", axum::routing::get(handlers::users::show))
-            .route("/users/:id/edit", axum::routing::get(handlers::users::edit))
-            .route("/users/:id", axum::routing::put(handlers::users::update))
-            .route("/users/:id", axum::routing::delete(handlers::users::delete))
+            .route("/users/{id}", axum::routing::get(handlers::users::show))
+            .route("/users/{id}/edit", axum::routing::get(handlers::users::edit))
+            .route("/users/{id}", axum::routing::put(handlers::users::update))
+            .route("/users/{id}", axum::routing::delete(handlers::users::delete))
             .route(
-                "/users/:id/toggle",
+                "/users/{id}/toggle",
                 axum::routing::post(handlers::users::toggle_enabled),
             )
             .route("/aliases", axum::routing::get(handlers::aliases::list))
             .route("/aliases", axum::routing::post(handlers::aliases::create))
-            .route("/aliases/:id", axum::routing::get(handlers::aliases::show))
+            .route("/aliases/{id}", axum::routing::get(handlers::aliases::show))
             .route(
-                "/aliases/:id/edit",
+                "/aliases/{id}/edit",
                 axum::routing::get(handlers::aliases::edit),
             )
             .route(
-                "/aliases/:id",
+                "/aliases/{id}",
                 axum::routing::put(handlers::aliases::update),
             )
             .route(
-                "/aliases/:id",
+                "/aliases/{id}",
                 axum::routing::delete(handlers::aliases::delete),
             )
             .route(
-                "/aliases/:id/toggle-list",
+                "/aliases/{id}/toggle-list",
                 axum::routing::post(handlers::aliases::toggle_enabled),
             )
             .route("/stats", axum::routing::get(handlers::stats::index))

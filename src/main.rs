@@ -8,7 +8,6 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tower_http::fs::ServeDir;
 
 pub mod db;
 pub mod handlers;
@@ -65,22 +64,22 @@ async fn main() {
         )
         .route("/domains/new", get(handlers::domains::new))
         .route(
-            "/domains/:id",
+            "/domains/{id}",
             get(handlers::domains::show)
                 .put(handlers::domains::update)
                 .delete(handlers::domains::delete),
         )
-        .route("/domains/:id/edit", get(handlers::domains::edit))
+        .route("/domains/{id}/edit", get(handlers::domains::edit))
         .route(
-            "/domains/:id/toggle-list",
+            "/domains/{id}/toggle-list",
             post(handlers::domains::toggle_enabled_list),
         )
         .route(
-            "/domains/:id/toggle-show",
+            "/domains/{id}/toggle-show",
             post(handlers::domains::toggle_enabled_show),
         )
         .route(
-            "/domains/:id/toggle",
+            "/domains/{id}/toggle",
             post(handlers::domains::toggle_enabled),
         )
         // Users
@@ -90,21 +89,21 @@ async fn main() {
         )
         .route("/users/new", get(handlers::users::new))
         .route(
-            "/users/:id",
+            "/users/{id}",
             get(handlers::users::show)
                 .put(handlers::users::update)
                 .delete(handlers::users::delete),
         )
-        .route("/users/:id/edit", get(handlers::users::edit))
+        .route("/users/{id}/edit", get(handlers::users::edit))
         .route(
-            "/users/:id/toggle-list",
+            "/users/{id}/toggle-list",
             post(handlers::users::toggle_enabled_list),
         )
         .route(
-            "/users/:id/toggle-show",
+            "/users/{id}/toggle-show",
             post(handlers::users::toggle_enabled_show),
         )
-        .route("/users/:id/toggle", post(handlers::users::toggle_enabled))
+        .route("/users/{id}/toggle", post(handlers::users::toggle_enabled))
         // Aliases
         .route(
             "/aliases",
@@ -112,22 +111,22 @@ async fn main() {
         )
         .route("/aliases/new", get(handlers::aliases::new))
         .route(
-            "/aliases/:id",
+            "/aliases/{id}",
             get(handlers::aliases::show)
                 .put(handlers::aliases::update)
                 .delete(handlers::aliases::delete),
         )
-        .route("/aliases/:id/edit", get(handlers::aliases::edit))
+        .route("/aliases/{id}/edit", get(handlers::aliases::edit))
         .route(
-            "/aliases/:id/toggle-list",
+            "/aliases/{id}/toggle-list",
             post(handlers::aliases::toggle_enabled_list),
         )
         .route(
-            "/aliases/:id/toggle-show",
+            "/aliases/{id}/toggle-show",
             post(handlers::aliases::toggle_enabled_show),
         )
         .route(
-            "/aliases/:id/toggle",
+            "/aliases/{id}/toggle",
             post(handlers::aliases::toggle_enabled),
         )
         // Backups
@@ -137,22 +136,22 @@ async fn main() {
         )
         .route("/backups/new", get(handlers::backups::new))
         .route(
-            "/backups/:id",
+            "/backups/{id}",
             get(handlers::backups::show)
                 .put(handlers::backups::update)
                 .delete(handlers::backups::delete),
         )
-        .route("/backups/:id/edit", get(handlers::backups::edit))
+        .route("/backups/{id}/edit", get(handlers::backups::edit))
         .route(
-            "/backups/:id/toggle-list",
+            "/backups/{id}/toggle-list",
             post(handlers::backups::toggle_enabled_list),
         )
         .route(
-            "/backups/:id/toggle-show",
+            "/backups/{id}/toggle-show",
             post(handlers::backups::toggle_enabled_show),
         )
         .route(
-            "/backups/:id/toggle",
+            "/backups/{id}/toggle",
             post(handlers::backups::toggle_enabled),
         )
         // Stats
