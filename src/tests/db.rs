@@ -11,10 +11,6 @@ mod tests {
         // Test create domain
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -22,7 +18,6 @@ mod tests {
 
         let created_domain = db::create_domain(&pool, new_domain).unwrap();
         assert_eq!(created_domain.domain, "test.com");
-        assert_eq!(created_domain.aliases, 10);
         assert_eq!(created_domain.enabled, true);
 
         // Test get domain
@@ -37,10 +32,6 @@ mod tests {
         // Test update domain
         let form_data = DomainForm {
             domain: "updated.com".to_string(),
-            description: "Updated description".to_string(),
-            aliases: 20,
-            maxquota: 2000000,
-            quota: 1000000,
             transport: "smtp:updated".to_string(),
             backupmx: true,
             enabled: false,
@@ -48,7 +39,6 @@ mod tests {
 
         let updated_domain = db::update_domain(&pool, created_domain.pkid, form_data).unwrap();
         assert_eq!(updated_domain.domain, "updated.com");
-        assert_eq!(updated_domain.aliases, 20);
         assert_eq!(updated_domain.enabled, false);
 
         // Test get all domains
@@ -74,10 +64,6 @@ mod tests {
         // Create a domain first
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -161,10 +147,6 @@ mod tests {
         // Create a domain first
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -226,10 +208,6 @@ mod tests {
         // Create test data
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -284,10 +262,6 @@ mod tests {
         // Create test data
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -349,10 +323,6 @@ mod tests {
         // Test updating non-existent domain
         let form_data = DomainForm {
             domain: "test.com".to_string(),
-            description: "Test".to_string(),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: "smtp:localhost".to_string(),
             backupmx: false,
             enabled: true,

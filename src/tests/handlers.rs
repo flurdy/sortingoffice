@@ -81,10 +81,6 @@ mod tests {
         // Create test domain with unique name
         let new_domain = crate::models::NewDomain {
             domain: "list-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -109,7 +105,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains("list-test.com"));
-        assert!(body_str.contains("Test domain"));
 
         cleanup_test_db(&state.pool);
     }
@@ -121,7 +116,7 @@ mod tests {
         // Clean up before test
         cleanup_test_db(&state.pool);
 
-        let form_data = "domain=create-test.com&description=Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
+        let form_data = "domain=create-test.com&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
 
         let response = app
             .oneshot(
@@ -155,10 +150,6 @@ mod tests {
         // Create test domain
         let new_domain = crate::models::NewDomain {
             domain: "show-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -183,7 +174,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains("show-test.com"));
-        assert!(body_str.contains("Test domain"));
 
         cleanup_test_db(&state.pool);
     }
@@ -198,10 +188,6 @@ mod tests {
         // Create test domain
         let new_domain = crate::models::NewDomain {
             domain: "edit-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -226,7 +212,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains("edit-test.com"));
-        assert!(body_str.contains("Test domain"));
         assert!(body_str.contains("form")); // Should contain edit form
 
         cleanup_test_db(&state.pool);
@@ -242,17 +227,13 @@ mod tests {
         // Create test domain
         let new_domain = crate::models::NewDomain {
             domain: "update-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "domain=updated-update.com&description=Updated+Domain&aliases=20&maxquota=2000000&quota=1000000&transport=smtp%3Aupdated&backupmx=on&enabled=off";
+        let form_data = "domain=updated-update.com&transport=smtp%3Aupdated&backupmx=on&enabled=off";
 
         let response = app
             .oneshot(
@@ -271,7 +252,6 @@ mod tests {
         // Verify domain was updated
         let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-update.com");
-        assert_eq!(updated_domain.aliases, 20);
         assert_eq!(updated_domain.enabled, false);
 
         cleanup_test_db(&state.pool);
@@ -287,10 +267,6 @@ mod tests {
         // Create test domain
         let new_domain = crate::models::NewDomain {
             domain: "toggle-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -327,10 +303,6 @@ mod tests {
         // Create test domain and user
         let new_domain = crate::models::NewDomain {
             domain: "users-list-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -379,10 +351,6 @@ mod tests {
         // Create test domain first
         let new_domain = crate::models::NewDomain {
             domain: "users-create-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -423,10 +391,6 @@ mod tests {
         // Create test domain and alias
         let new_domain = crate::models::NewDomain {
             domain: "aliases-list-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -474,10 +438,6 @@ mod tests {
         // Create test domain first
         let new_domain = crate::models::NewDomain {
             domain: "aliases-create-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
@@ -520,10 +480,6 @@ mod tests {
         // Create test data
         let new_domain = crate::models::NewDomain {
             domain: "stats-test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,

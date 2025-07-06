@@ -9,10 +9,6 @@ mod tests {
         let domain = Domain {
             pkid: 1,
             domain: "example.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             created: chrono::Utc::now().naive_utc(),
@@ -25,12 +21,10 @@ mod tests {
 
         assert_eq!(domain.pkid, deserialized.pkid);
         assert_eq!(domain.domain, deserialized.domain);
-        assert_eq!(domain.description, deserialized.description);
-        assert_eq!(domain.aliases, deserialized.aliases);
-        assert_eq!(domain.maxquota, deserialized.maxquota);
-        assert_eq!(domain.quota, deserialized.quota);
         assert_eq!(domain.transport, deserialized.transport);
         assert_eq!(domain.backupmx, deserialized.backupmx);
+        assert_eq!(domain.created, deserialized.created);
+        assert_eq!(domain.modified, deserialized.modified);
         assert_eq!(domain.enabled, deserialized.enabled);
     }
 
@@ -38,17 +32,13 @@ mod tests {
     fn test_new_domain_creation() {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 5,
-            maxquota: 500000,
-            quota: 250000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: true,
             enabled: true,
         };
 
         assert_eq!(new_domain.domain, "test.com");
-        assert_eq!(new_domain.aliases, 5);
+        assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
         assert_eq!(new_domain.backupmx, true);
         assert_eq!(new_domain.enabled, true);
     }
@@ -106,14 +96,10 @@ mod tests {
 
     #[test]
     fn test_domain_form_deserialization() {
-        let form_data = "domain=test.com&description=Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
+        let form_data = "domain=test.com&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.domain, "test.com");
-        assert_eq!(form.description, "Test Domain");
-        assert_eq!(form.aliases, 10);
-        assert_eq!(form.maxquota, 1000000);
-        assert_eq!(form.quota, 500000);
         assert_eq!(form.transport, "smtp:localhost");
         assert_eq!(form.backupmx, true);
         assert_eq!(form.enabled, true);
@@ -121,14 +107,10 @@ mod tests {
 
     #[test]
     fn test_domain_form_deserialization_without_checkboxes() {
-        let form_data = "domain=test.com&description=Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost";
+        let form_data = "domain=test.com&transport=smtp%3Alocalhost";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.domain, "test.com");
-        assert_eq!(form.description, "Test Domain");
-        assert_eq!(form.aliases, 10);
-        assert_eq!(form.maxquota, 1000000);
-        assert_eq!(form.quota, 500000);
         assert_eq!(form.transport, "smtp:localhost");
         assert_eq!(form.backupmx, false); // Default value
         assert_eq!(form.enabled, false); // Default value
@@ -136,7 +118,7 @@ mod tests {
 
     #[test]
     fn test_user_form_deserialization() {
-        let form_data = "id=testuser@example.com&password=secret123&name=Test+User&domain=example.com&quota=100000&enabled=on";
+        let form_data = "id=testuser@example.com&password=secret123&name=Test+User&domain=example.com&enabled=on";
         let form: UserForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.id, "testuser@example.com");
@@ -161,31 +143,31 @@ mod tests {
     #[test]
     fn test_checkbox_deserialization() {
         // Test form data deserialization with "on" value
-        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&enabled=on";
+        let form_data = "domain=test.com&transport=smtp:localhost&backupmx=on&enabled=on";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
         assert_eq!(form.backupmx, true);
         assert_eq!(form.enabled, true);
 
         // Test form data deserialization with "true" value
-        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&enabled=true";
+        let form_data = "domain=test.com&transport=smtp:localhost&backupmx=true&enabled=true";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
         assert_eq!(form.backupmx, true);
         assert_eq!(form.enabled, true);
 
         // Test form data deserialization with "1" value
-        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&enabled=1";
+        let form_data = "domain=test.com&transport=smtp:localhost&backupmx=1&enabled=1";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
         assert_eq!(form.backupmx, true);
         assert_eq!(form.enabled, true);
 
         // Test form data deserialization with missing values
-        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost";
+        let form_data = "domain=test.com&transport=smtp:localhost";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
         assert_eq!(form.backupmx, false);
         assert_eq!(form.enabled, false);
 
         // Test form data deserialization with "off" value
-        let form_data = "domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&enabled=off";
+        let form_data = "domain=test.com&transport=smtp:localhost&backupmx=off&enabled=off";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
         assert_eq!(form.backupmx, false);
         assert_eq!(form.enabled, false);

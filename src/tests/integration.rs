@@ -157,7 +157,6 @@ mod tests {
         // Step 6: Verify the update
         let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
-        assert_eq!(updated_domain.aliases, 25);
         assert_eq!(updated_domain.enabled, false);
 
         // Step 7: Toggle the domain active status

@@ -21,10 +21,6 @@ where
 pub struct Domain {
     pub pkid: i32,
     pub domain: String,
-    pub description: Option<String>,
-    pub aliases: i32,
-    pub maxquota: i64,
-    pub quota: i64,
     pub transport: Option<String>,
     pub backupmx: bool,
     pub created: NaiveDateTime,
@@ -36,10 +32,6 @@ pub struct Domain {
 #[diesel(table_name = domains)]
 pub struct NewDomain {
     pub domain: String,
-    pub description: Option<String>,
-    pub aliases: i32,
-    pub maxquota: i64,
-    pub quota: i64,
     pub transport: Option<String>,
     pub backupmx: bool,
     pub enabled: bool,
@@ -118,11 +110,6 @@ pub struct NewAlias {
 #[derive(Deserialize, Debug)]
 pub struct DomainForm {
     pub domain: String,
-    #[serde(default)]
-    pub description: String,
-    pub aliases: i32,
-    pub maxquota: i64,
-    pub quota: i64,
     pub transport: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]

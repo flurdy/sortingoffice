@@ -32,10 +32,6 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
 pub async fn new() -> Html<String> {
     let form = DomainForm {
         domain: "".to_string(),
-        description: "".to_string(),
-        aliases: 10,
-        maxquota: 0,
-        quota: 0,
         transport: "virtual".to_string(),
         backupmx: false,
         enabled: true,
@@ -80,10 +76,6 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
 
     let form = DomainForm {
         domain: domain.domain.clone(),
-        description: domain.description.clone().unwrap_or_default(),
-        aliases: domain.aliases,
-        maxquota: domain.maxquota,
-        quota: domain.quota,
         transport: domain.transport.clone().unwrap_or_default(),
         backupmx: domain.backupmx,
         enabled: domain.enabled,
@@ -102,11 +94,7 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>)
 
     let new_domain = NewDomain {
         domain: form.domain,
-        description: Some(form.description),
-        aliases: form.aliases,
-        maxquota: form.maxquota,
-        quota: form.quota,
-        transport: Some(form.transport),
+        transport: Some(form.transport.clone()),
         backupmx: form.backupmx,
         enabled: form.enabled,
     };

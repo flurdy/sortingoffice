@@ -21,11 +21,6 @@ diesel::table! {
         #[max_length = 255]
         domain -> Varchar,
         #[max_length = 255]
-        description -> Nullable<Varchar>,
-        aliases -> Integer,
-        maxquota -> Bigint,
-        quota -> Bigint,
-        #[max_length = 255]
         transport -> Nullable<Varchar>,
         backupmx -> Bool,
         created -> Datetime,

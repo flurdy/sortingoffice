@@ -28,20 +28,13 @@ mod tests {
         // Test valid domain form
         let valid_domain_form = DomainForm {
             domain: "example.com".to_string(),
-            description: "Test domain".to_string(),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: "smtp:localhost".to_string(),
             backupmx: false,
             enabled: true,
         };
 
         assert!(!valid_domain_form.domain.is_empty());
-        assert!(valid_domain_form.aliases >= 0);
-        assert!(valid_domain_form.maxquota > 0);
-        assert!(valid_domain_form.quota >= 0);
-        assert!(valid_domain_form.quota <= valid_domain_form.maxquota);
+        assert!(valid_domain_form.enabled, "Failed for input: {}", valid_domain_form.domain);
 
         // Test valid user form
         let valid_user_form = UserForm {
@@ -79,10 +72,6 @@ mod tests {
         let domain = Domain {
             pkid: 1,
             domain: "example.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             created: now,
@@ -92,7 +81,6 @@ mod tests {
 
         assert_eq!(domain.pkid, 1);
         assert_eq!(domain.domain, "example.com");
-        assert_eq!(domain.aliases, 10);
         assert_eq!(domain.enabled, true);
         assert_eq!(domain.created, now);
         assert_eq!(domain.modified, now);
@@ -143,22 +131,14 @@ mod tests {
     #[test]
     fn test_new_model_creation() {
         // Test NewDomain creation
+        let now = Utc::now().naive_utc();
         let new_domain = NewDomain {
             domain: "example.com".to_string(),
-            description: Some("Test domain".to_string()),
-            aliases: 10,
-            maxquota: 1000000,
-            quota: 500000,
             transport: Some("smtp:localhost".to_string()),
             backupmx: false,
             enabled: true,
         };
-
         assert_eq!(new_domain.domain, "example.com");
-        assert_eq!(new_domain.description, Some("Test domain".to_string()));
-        assert_eq!(new_domain.aliases, 10);
-        assert_eq!(new_domain.maxquota, 1000000);
-        assert_eq!(new_domain.quota, 500000);
         assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
         assert_eq!(new_domain.backupmx, false);
         assert_eq!(new_domain.enabled, true);

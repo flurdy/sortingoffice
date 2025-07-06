@@ -1,9 +1,9 @@
 -- Seed data migration: Insert initial test data
 
 -- Insert seed data for domains
-INSERT INTO domains (domain, description, aliases, maxquota, quota, transport, backupmx, enabled) VALUES
-('example.com', 'Example domain for testing', 10, 0, 0, 'virtual', FALSE, 1),
-('example.org', 'Another example domain', 5, 0, 0, 'virtual', FALSE, 1);
+INSERT INTO domains (domain, transport, backupmx, enabled) VALUES
+('example.com', 'virtual', FALSE, 1),
+('example.org', 'virtual', FALSE, 1);
 
 -- Insert seed data for users
 INSERT INTO users (id, crypt, name, maildir, domain, enabled) VALUES

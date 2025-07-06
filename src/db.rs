@@ -1,7 +1,6 @@
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
-use bigdecimal::{BigDecimal, ToPrimitive};
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::result::Error;
@@ -37,11 +36,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
     diesel::insert_into(domains::table)
         .values((
             domains::domain.eq(new_domain.domain),
-            domains::description.eq(new_domain.description),
-            domains::aliases.eq(new_domain.aliases),
-            domains::maxquota.eq(new_domain.maxquota),
-            domains::quota.eq(new_domain.quota),
-            domains::transport.eq(new_domain.transport),
+            domains::transport.eq(new_domain.transport.clone()),
             domains::backupmx.eq(new_domain.backupmx),
             domains::enabled.eq(new_domain.enabled),
             domains::created.eq(now),
@@ -64,11 +59,7 @@ pub fn update_domain(
     diesel::update(domains::table.find(domain_id))
         .set((
             domains::domain.eq(domain_data.domain),
-            domains::description.eq(domain_data.description),
-            domains::aliases.eq(domain_data.aliases),
-            domains::maxquota.eq(domain_data.maxquota),
-            domains::quota.eq(domain_data.quota),
-            domains::transport.eq(domain_data.transport),
+            domains::transport.eq(domain_data.transport.clone()),
             domains::backupmx.eq(domain_data.backupmx),
             domains::enabled.eq(domain_data.enabled),
             domains::modified.eq(Utc::now().naive_utc()),
