@@ -45,7 +45,10 @@ diesel::table! {
         name -> Varchar,
         #[max_length = 255]
         maildir -> Varchar,
-        quota -> Bigint,
+        #[max_length = 255]
+        home -> Varchar,
+        uid -> Unsigned<Smallint>,
+        gid -> Unsigned<Smallint>,
         #[max_length = 255]
         domain -> Varchar,
         created -> Datetime,

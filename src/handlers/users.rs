@@ -35,7 +35,7 @@ pub async fn new() -> Html<String> {
         password: "".to_string(),
         name: "".to_string(),
         domain: "example.com".to_string(),
-        quota: 1073741824, // 1GB
+
         enabled: true,
     };
 
@@ -82,7 +82,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
         domain: user.domain.clone(),
-        quota: user.quota,
+
         enabled: user.enabled,
     };
 

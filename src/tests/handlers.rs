@@ -342,7 +342,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
-            quota: 100000,
             enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -390,7 +389,7 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "id=testuser@users-create-test.com&password=password123&name=Test+User&domain=users-create-test.com&quota=100000&enabled=on";
+        let form_data = "id=testuser@users-create-test.com&password=password123&name=Test+User&domain=users-create-test.com&enabled=on";
 
         let response = app
             .oneshot(
@@ -536,7 +535,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
-            quota: 100000,
             enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();

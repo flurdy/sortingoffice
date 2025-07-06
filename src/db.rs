@@ -126,7 +126,9 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         crypt: hashed_password,
         name: user_data.name,
         maildir,
-        quota: user_data.quota,
+        home: "/var/spool/mail/virtual".to_string(),
+        uid: 5000,
+        gid: 5000,
         domain: user_data.domain,
         enabled: user_data.enabled,
         change_password: false,
@@ -140,7 +142,9 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
             users::crypt.eq(new_user.crypt),
             users::name.eq(new_user.name),
             users::maildir.eq(new_user.maildir),
-            users::quota.eq(new_user.quota),
+            users::home.eq(new_user.home),
+            users::uid.eq(new_user.uid),
+            users::gid.eq(new_user.gid),
             users::domain.eq(new_user.domain),
             users::enabled.eq(new_user.enabled),
             users::created.eq(now),
@@ -171,7 +175,6 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
-                users::quota.eq(user_data.quota),
                 users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
                 users::crypt.eq(hashed_password),
@@ -183,7 +186,6 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
-                users::quota.eq(user_data.quota),
                 users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
             ))
@@ -316,11 +318,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
 
-    let total_quota: i64 = users::table
-        .select(diesel::dsl::sum(users::quota))
-        .get_result::<Option<BigDecimal>>(&mut conn)?
-        .and_then(|d| d.to_i64())
-        .unwrap_or(0);
+    let total_quota: i64 = 0; // Quota field removed from users table
 
     Ok(SystemStats {
         total_domains,
@@ -349,12 +347,7 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             .count()
             .get_result(&mut conn)?;
 
-        let total_quota: i64 = users::table
-            .filter(users::domain.eq(&domain.domain))
-            .select(diesel::dsl::sum(users::quota))
-            .get_result::<Option<BigDecimal>>(&mut conn)?
-            .and_then(|d| d.to_i64())
-            .unwrap_or(0);
+        let total_quota: i64 = 0; // Quota field removed from users table
 
         stats.push(DomainStats {
             domain: domain.domain,

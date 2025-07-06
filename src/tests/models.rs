@@ -61,7 +61,9 @@ mod tests {
             crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
-            quota: 100000,
+            home: "/var/spool/mail/virtual".to_string(),
+            uid: 5000,
+            gid: 5000,
             domain: "example.com".to_string(),
             created: chrono::Utc::now().naive_utc(),
             modified: chrono::Utc::now().naive_utc(),
@@ -76,7 +78,6 @@ mod tests {
         assert_eq!(user.id, deserialized.id);
         assert_eq!(user.name, deserialized.name);
         assert_eq!(user.maildir, deserialized.maildir);
-        assert_eq!(user.quota, deserialized.quota);
         assert_eq!(user.domain, deserialized.domain);
         assert_eq!(user.enabled, deserialized.enabled);
     }
@@ -142,7 +143,6 @@ mod tests {
         assert_eq!(form.password, "secret123");
         assert_eq!(form.name, "Test User");
         assert_eq!(form.domain, "example.com");
-        assert_eq!(form.quota, 100000);
         assert_eq!(form.enabled, true);
     }
 

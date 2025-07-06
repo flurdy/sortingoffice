@@ -90,7 +90,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
-            quota: 100000,
             enabled: true,
         };
 
@@ -116,7 +115,6 @@ mod tests {
             password: "newpassword123".to_string(),
             name: "Updated User".to_string(),
             domain: domain.domain.clone(),
-            quota: 200000,
             enabled: false,
         };
 
@@ -131,7 +129,6 @@ mod tests {
             password: "".to_string(), // Empty password
             name: "Final User".to_string(),
             domain: domain.domain.clone(),
-            quota: 300000,
             enabled: true,
         };
 
@@ -244,7 +241,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
-            quota: 100000,
             enabled: true,
         };
         let user = db::create_user(&pool, user_form).unwrap();
@@ -303,7 +299,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
-            quota: 100000,
             enabled: true,
         };
         let _user = db::create_user(&pool, user_form).unwrap();
@@ -321,8 +316,6 @@ mod tests {
         assert_eq!(system_stats.total_domains, 1);
         assert_eq!(system_stats.total_users, 1);
         assert_eq!(system_stats.total_aliases, 1);
-        assert!(system_stats.total_quota > 0);
-        assert!(system_stats.used_quota >= 0);
 
         // Test domain stats
         let domain_stats = db::get_domain_stats(&pool).unwrap();
@@ -333,8 +326,6 @@ mod tests {
             .unwrap();
         assert_eq!(test_domain_stats.user_count, 1);
         assert_eq!(test_domain_stats.alias_count, 1);
-        assert!(test_domain_stats.total_quota > 0);
-        assert!(test_domain_stats.used_quota >= 0);
 
         cleanup_test_db(&pool);
     }

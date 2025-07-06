@@ -49,7 +49,6 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: "example.com".to_string(),
-            quota: 100000,
             enabled: true,
         };
 
@@ -57,7 +56,6 @@ mod tests {
         assert!(!valid_user_form.password.is_empty());
         assert!(!valid_user_form.name.is_empty());
         assert!(!valid_user_form.domain.is_empty());
-        assert!(valid_user_form.quota >= 0);
 
         // Test valid alias form
         let valid_alias_form = AliasForm {
@@ -106,7 +104,9 @@ mod tests {
             crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
-            quota: 100000,
+            home: "/var/spool/mail/virtual".to_string(),
+            uid: 5000,
+            gid: 5000,
             domain: "example.com".to_string(),
             created: now,
             modified: now,
@@ -118,7 +118,6 @@ mod tests {
         assert_eq!(user.id, "testuser@example.com");
         assert_eq!(user.name, "Test User");
         assert_eq!(user.maildir, "testuser/");
-        assert_eq!(user.quota, 100000);
         assert_eq!(user.domain, "example.com");
         assert_eq!(user.enabled, true);
         assert_eq!(user.change_password, false);
@@ -170,7 +169,9 @@ mod tests {
             crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
-            quota: 100000,
+            home: "/var/spool/mail/virtual".to_string(),
+            uid: 5000,
+            gid: 5000,
             domain: "example.com".to_string(),
             enabled: true,
             change_password: false,
@@ -180,7 +181,6 @@ mod tests {
         assert_eq!(new_user.crypt, "hashed_password");
         assert_eq!(new_user.name, "Test User");
         assert_eq!(new_user.maildir, "testuser/");
-        assert_eq!(new_user.quota, 100000);
         assert_eq!(new_user.domain, "example.com");
         assert_eq!(new_user.enabled, true);
         assert_eq!(new_user.change_password, false);
