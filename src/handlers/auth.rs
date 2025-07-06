@@ -29,7 +29,7 @@ pub async fn login(
 ) -> Result<Redirect, Html<String>> {
     let pool = &state.pool;
     if let Ok(user) = db::get_user_by_id(pool, &request.id) {
-        if bcrypt::verify(&request.password, &user.password).unwrap_or(false) {
+        if bcrypt::verify(&request.password, &user.crypt).unwrap_or(false) {
             // TODO: Set session
             return Ok(Redirect::to("/"));
         }

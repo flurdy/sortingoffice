@@ -58,7 +58,7 @@ mod tests {
         let user = User {
             pkid: 1,
             id: "testuser@example.com".to_string(),
-            password: "hashed_password".to_string(),
+            crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
             quota: 100000,
@@ -66,6 +66,7 @@ mod tests {
             created: chrono::Utc::now().naive_utc(),
             modified: chrono::Utc::now().naive_utc(),
             enabled: true,
+            change_password: false,
         };
 
         let json = serde_json::to_string(&user).unwrap();

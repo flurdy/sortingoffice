@@ -99,7 +99,7 @@ mod tests {
         assert_eq!(created_user.name, "Test User");
         assert_eq!(created_user.domain, domain.domain);
         assert_eq!(created_user.enabled, true);
-        assert!(created_user.password.starts_with("$2b$")); // bcrypt hash
+        assert!(created_user.crypt.starts_with("$2b$")); // bcrypt hash
 
         // Test get user
         let retrieved_user = db::get_user(&pool, created_user.pkid).unwrap();

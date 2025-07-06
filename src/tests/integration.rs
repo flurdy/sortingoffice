@@ -225,7 +225,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create a user via HTTP POST
-        let user_form_data = "id=integrationuser@integration-user-test.com&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&active=on";
+        let user_form_data = "id=integrationuser@integration-user-test.com&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&active=on&change_password=false";
 
         let create_response = app
             .clone()
@@ -270,7 +270,7 @@ mod tests {
             .unwrap();
 
         // Step 5: Update the user
-        let update_form_data = "id=updateduser@integration-user-test.com&password=newpass456&name=Updated+User&domain=integration-user-test.com&quota=200000&active=off";
+        let update_form_data = "id=updateduser@integration-user-test.com&password=newpass456&name=Updated+User&domain=integration-user-test.com&quota=200000&active=off&change_password=false";
 
         let update_response = app
             .clone()
@@ -292,6 +292,7 @@ mod tests {
         assert_eq!(updated_user.id, "updateduser@integration-user-test.com");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, false);
+        assert_eq!(updated_user.change_password, false);
 
         // Step 7: Toggle user active status
         let toggle_response = app
@@ -311,6 +312,7 @@ mod tests {
         // Step 8: Verify the toggle
         let toggled_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
         assert_eq!(toggled_user.enabled, true);
+        assert_eq!(toggled_user.change_password, false);
 
         cleanup_test_db(&state.pool);
     }
@@ -455,7 +457,7 @@ mod tests {
             .await
             .unwrap();
 
-        let user_form_data = "id=statsuser@integration-stats-test.com&password=password123&name=Stats+User&domain=integration-stats-test.com&quota=100000&active=on";
+        let user_form_data = "id=statsuser@integration-stats-test.com&password=password123&name=Stats+User&domain=integration-stats-test.com&quota=100000&active=on&change_password=false";
 
         let _user_response = app
             .clone()

@@ -123,12 +123,13 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
 
     let new_user = NewUser {
         id: user_data.id,
-        password: hashed_password,
+        crypt: hashed_password,
         name: user_data.name,
         maildir,
         quota: user_data.quota,
         domain: user_data.domain,
         enabled: user_data.enabled,
+        change_password: false,
     };
 
     let now = Utc::now().naive_utc();
@@ -136,7 +137,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
     diesel::insert_into(users::table)
         .values((
             users::id.eq(new_user.id),
-            users::password.eq(new_user.password),
+            users::crypt.eq(new_user.crypt),
             users::name.eq(new_user.name),
             users::maildir.eq(new_user.maildir),
             users::quota.eq(new_user.quota),
@@ -173,7 +174,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::quota.eq(user_data.quota),
                 users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
-                users::password.eq(hashed_password),
+                users::crypt.eq(hashed_password),
             ))
             .execute(&mut conn)?;
     } else {

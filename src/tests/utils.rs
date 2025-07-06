@@ -103,7 +103,7 @@ mod tests {
         let user = User {
             pkid: 1,
             id: "testuser@example.com".to_string(),
-            password: "hashed_password".to_string(),
+            crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
             quota: 100000,
@@ -111,6 +111,7 @@ mod tests {
             created: now,
             modified: now,
             enabled: true,
+            change_password: false,
         };
 
         assert_eq!(user.pkid, 1);
@@ -120,6 +121,7 @@ mod tests {
         assert_eq!(user.quota, 100000);
         assert_eq!(user.domain, "example.com");
         assert_eq!(user.enabled, true);
+        assert_eq!(user.change_password, false);
 
         // Test Alias model creation
         let alias = Alias {
@@ -165,21 +167,23 @@ mod tests {
         // Test NewUser creation
         let new_user = NewUser {
             id: "testuser@example.com".to_string(),
-            password: "hashed_password".to_string(),
+            crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
             quota: 100000,
             domain: "example.com".to_string(),
             enabled: true,
+            change_password: false,
         };
 
         assert_eq!(new_user.id, "testuser@example.com");
-        assert_eq!(new_user.password, "hashed_password");
+        assert_eq!(new_user.crypt, "hashed_password");
         assert_eq!(new_user.name, "Test User");
         assert_eq!(new_user.maildir, "testuser/");
         assert_eq!(new_user.quota, 100000);
         assert_eq!(new_user.domain, "example.com");
         assert_eq!(new_user.enabled, true);
+        assert_eq!(new_user.change_password, false);
 
         // Test NewAlias creation
         let new_alias = NewAlias {

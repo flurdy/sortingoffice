@@ -52,7 +52,7 @@ pub struct NewDomain {
 pub struct User {
     pub pkid: i32,
     pub id: String,
-    pub password: String,
+    pub crypt: String,
     pub name: String,
     pub maildir: String,
     pub quota: i64,
@@ -60,18 +60,20 @@ pub struct User {
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
     pub enabled: bool,
+    pub change_password: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
 #[diesel(table_name = users)]
 pub struct NewUser {
     pub id: String,
-    pub password: String,
+    pub crypt: String,
     pub name: String,
     pub maildir: String,
     pub quota: i64,
     pub domain: String,
     pub enabled: bool,
+    pub change_password: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
