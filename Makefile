@@ -1,7 +1,7 @@
 # Sorting Office Makefile
 # Provides convenient shortcuts for common tasks
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-ui-setup test-ui-compose test-ui-cleanup
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-ui-setup test-ui-compose test-ui-cleanup test-ui-failfast
 
 # Default target
 help:
@@ -160,3 +160,6 @@ info:
 #   tests/ui_advanced.rs - Advanced UI tests (Selenium)
 #   tests/README.md      - Test documentation
 #   tests/run_tests.sh   - Unified test runner 
+
+test-ui-failfast:
+	./tests/run_tests.sh ui --fail-fast 

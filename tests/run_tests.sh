@@ -109,11 +109,35 @@ run_ui_tests() {
     export RUST_TEST_THREADS=1
     export RUST_LOG=info
 
-    # Run the UI tests
-    print_status "Running UI tests..."
-    echo ""
+    # Check for --fail-fast flag
+    FAIL_FAST=0
+    for arg in "$@"; do
+        if [[ "$arg" == "--fail-fast" ]]; then
+            FAIL_FAST=1
+        fi
+    done
 
-    # Run basic UI tests
+    if [[ $FAIL_FAST -eq 1 ]]; then
+        print_status "Running UI tests in fail-fast mode..."
+        # Run both ui and ui_advanced test binaries in fail-fast mode
+        for BIN in ui ui_advanced; do
+            print_status "Listing tests for $BIN..."
+            TESTS=$(cargo test --test $BIN -- --list | grep '^test' | awk '{print $1}')
+            for TEST in $TESTS; do
+                print_status "Running test: $TEST ($BIN)"
+                cargo test --test $BIN -- --exact "$TEST" --nocapture --test-threads=1
+                STATUS=$?
+                if [[ $STATUS -ne 0 ]]; then
+                    print_error "[FAIL-FAST] Test $TEST in $BIN failed. Stopping."
+                    exit $STATUS
+                fi
+            done
+        done
+        print_success "All UI tests passed in fail-fast mode."
+        exit 0
+    fi
+
+    # Run the UI tests (normal mode)
     print_status "Running basic UI tests..."
     if cargo test --test ui -- --nocapture --test-threads=1; then
         print_success "Basic UI tests passed!"
@@ -124,7 +148,6 @@ run_ui_tests() {
 
     echo ""
 
-    # Run advanced UI tests
     print_status "Running advanced UI tests..."
     if cargo test --test ui_advanced -- --nocapture --test-threads=1; then
         print_success "Advanced UI tests passed!"

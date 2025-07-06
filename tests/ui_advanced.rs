@@ -109,9 +109,9 @@ async fn test_domain_creation_workflow() -> Result<()> {
                 wait_for_element(&client, Locator::Css("input[name='domain']"), 5000).await?;
             domain_input.send_keys("testdomain.com").await?;
 
-            let quota_input =
-                wait_for_element(&client, Locator::Css("input[name='quota']"), 5000).await?;
-            quota_input.send_keys("1000").await?;
+            let transport_input =
+                wait_for_element(&client, Locator::Css("input[name='transport']"), 5000).await?;
+            transport_input.send_keys("virtual").await?;
 
             // Submit the form
             let submit_button = wait_for_element(
