@@ -57,6 +57,8 @@ async fn main() {
         .route("/logout", post(handlers::auth::logout))
         // Dashboard
         .route("/", get(handlers::dashboard::index))
+        // About
+        .route("/about", get(handlers::about::index))
         // Domains
         .route(
             "/domains",

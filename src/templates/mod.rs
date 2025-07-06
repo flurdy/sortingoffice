@@ -1,3 +1,4 @@
+pub mod about;
 pub mod aliases;
 pub mod auth;
 pub mod dashboard;

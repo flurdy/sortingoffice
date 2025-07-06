@@ -76,6 +76,7 @@ mod tests {
             )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
+            .route("/about", axum::routing::get(handlers::about::index))
             .with_state(state.clone());
 
         (app, state)
@@ -757,6 +758,31 @@ mod tests {
         assert!(body_str.contains("Dashboard") || body_str.contains("dashboard"));
 
         cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_about_handler() {
+        let (app, _state) = create_test_app().await;
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/about")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        assert!(body_str.contains("About Sorting Office"));
+        assert!(body_str.contains("comprehensive mail server administration tool"));
     }
 
     #[tokio::test]
