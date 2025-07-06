@@ -242,8 +242,16 @@ mod tests {
             assert!(email.contains('@'), "Email should contain @: {}", email);
             let parts: Vec<&str> = email.split('@').collect();
             assert_eq!(parts.len(), 2, "Email should have exactly one @: {}", email);
-            assert!(!parts[0].is_empty(), "Local part should not be empty: {}", email);
-            assert!(!parts[1].is_empty(), "Domain part should not be empty: {}", email);
+            assert!(
+                !parts[0].is_empty(),
+                "Local part should not be empty: {}",
+                email
+            );
+            assert!(
+                !parts[1].is_empty(),
+                "Domain part should not be empty: {}",
+                email
+            );
         }
 
         // Test invalid email addresses
@@ -280,18 +288,25 @@ mod tests {
 
         for domain in valid_domains {
             assert!(!domain.is_empty(), "Domain should not be empty: {}", domain);
-            assert!(!domain.starts_with('.'), "Domain should not start with dot: {}", domain);
-            assert!(!domain.ends_with('.'), "Domain should not end with dot: {}", domain);
-            assert!(domain.contains('.'), "Domain should contain at least one dot: {}", domain);
+            assert!(
+                !domain.starts_with('.'),
+                "Domain should not start with dot: {}",
+                domain
+            );
+            assert!(
+                !domain.ends_with('.'),
+                "Domain should not end with dot: {}",
+                domain
+            );
+            assert!(
+                domain.contains('.'),
+                "Domain should contain at least one dot: {}",
+                domain
+            );
         }
 
         // Test invalid domains
-        let invalid_domains = vec![
-            "",
-            ".example.com",
-            "example.com.",
-            "example",
-        ];
+        let invalid_domains = vec!["", ".example.com", "example.com.", "example"];
 
         for domain in invalid_domains {
             if domain.is_empty() {
@@ -317,24 +332,29 @@ mod tests {
         // Test quota relationships
         let max_quota = 1000000;
         let used_quota = 500000;
-        assert!(used_quota <= max_quota, "Used quota should not exceed max quota");
+        assert!(
+            used_quota <= max_quota,
+            "Used quota should not exceed max quota"
+        );
         assert!(max_quota > 0, "Max quota should be positive");
     }
 
     #[test]
     fn test_username_validation() {
         // Test valid usernames
-        let valid_usernames = vec![
-            "user",
-            "user123",
-            "user-name",
-            "user_name",
-            "user.name",
-        ];
+        let valid_usernames = vec!["user", "user123", "user-name", "user_name", "user.name"];
 
         for username in valid_usernames {
-            assert!(!username.is_empty(), "Username should not be empty: {}", username);
-            assert!(username.len() <= 64, "Username should not be too long: {}", username);
+            assert!(
+                !username.is_empty(),
+                "Username should not be empty: {}",
+                username
+            );
+            assert!(
+                username.len() <= 64,
+                "Username should not be too long: {}",
+                username
+            );
             // Add more specific validation rules as needed
         }
 
@@ -356,4 +376,4 @@ mod tests {
             // This might indicate a test case issue
         }
     }
-} 
+}

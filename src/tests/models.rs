@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    
+
     use crate::models::*;
     use serde_json;
 
@@ -147,7 +147,8 @@ mod tests {
 
     #[test]
     fn test_alias_form_deserialization() {
-        let form_data = "mail=test%40example.com&destination=user%40example.com&domain=example.com&active=on";
+        let form_data =
+            "mail=test%40example.com&destination=user%40example.com&domain=example.com&active=on";
         let form: AliasForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.mail, "test@example.com");
@@ -228,4 +229,4 @@ mod tests {
         assert_eq!(stats.total_quota, deserialized.total_quota);
         assert_eq!(stats.used_quota, deserialized.used_quota);
     }
-} 
+}

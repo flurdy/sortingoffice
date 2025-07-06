@@ -1,14 +1,17 @@
-use diesel::prelude::*;
-use serde::{Deserialize, Serialize, Deserializer};
-use chrono::NaiveDateTime;
 use crate::schema::*;
+use chrono::NaiveDateTime;
+use diesel::prelude::*;
+use serde::{Deserialize, Deserializer, Serialize};
 
 fn deserialize_checkbox<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
     let opt = Option::<String>::deserialize(deserializer)?;
-    Ok(matches!(opt.as_deref(), Some("on") | Some("true") | Some("1")))
+    Ok(matches!(
+        opt.as_deref(),
+        Some("on") | Some("true") | Some("1")
+    ))
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -94,8 +97,6 @@ pub struct NewAlias {
     pub active: bool,
 }
 
-
-
 // Form data structures for HTMX
 #[derive(Deserialize, Debug)]
 pub struct DomainForm {
@@ -136,8 +137,6 @@ pub struct AliasForm {
     pub active: bool,
 }
 
-
-
 // Statistics models
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DomainStats {
@@ -155,4 +154,4 @@ pub struct SystemStats {
     pub total_aliases: i64,
     pub total_quota: i64,
     pub used_quota: i64,
-} 
+}

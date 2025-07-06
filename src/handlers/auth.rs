@@ -1,13 +1,13 @@
+use crate::templates::auth::LoginTemplate;
+use crate::{db, AppState};
+use askama::Template;
 use axum::{
     extract::State,
     response::{Html, Redirect},
     Form,
 };
-use serde::Deserialize;
-use crate::{db, AppState};
-use crate::templates::auth::LoginTemplate;
-use askama::Template;
 use bcrypt;
+use serde::Deserialize;
 
 pub async fn login_form() -> Html<String> {
     let template = LoginTemplate {
@@ -44,4 +44,4 @@ pub async fn login(
 
 pub async fn logout() -> Redirect {
     Redirect::to("/login")
-} 
+}

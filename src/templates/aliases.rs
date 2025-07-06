@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::models::{Alias, AliasForm};
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "aliases/list.html", escape = "html")]
@@ -21,4 +21,4 @@ pub struct AliasFormTemplate<'a> {
     pub title: &'a str,
     pub alias: Option<Alias>,
     pub form: AliasForm,
-} 
+}

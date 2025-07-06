@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use crate::models::*;
     use crate::db;
-    use crate::tests::common::{setup_test_db, cleanup_test_db};
+    use crate::models::*;
+    use crate::tests::common::{cleanup_test_db, setup_test_db};
 
     #[tokio::test]
     async fn test_domain_crud_operations() {
         let pool = setup_test_db();
-        
+
         // Test create domain
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
@@ -135,7 +135,8 @@ mod tests {
             active: true,
         };
 
-        let final_user = db::update_user(&pool, created_user.pkid, update_form_no_password).unwrap();
+        let final_user =
+            db::update_user(&pool, created_user.pkid, update_form_no_password).unwrap();
         assert_eq!(final_user.username, "finaluser");
         assert_eq!(final_user.name, "Final User");
         assert_eq!(final_user.active, true);
@@ -326,7 +327,10 @@ mod tests {
         // Test domain stats
         let domain_stats = db::get_domain_stats(&pool).unwrap();
         assert!(!domain_stats.is_empty());
-        let test_domain_stats = domain_stats.iter().find(|s| s.domain == "test.com").unwrap();
+        let test_domain_stats = domain_stats
+            .iter()
+            .find(|s| s.domain == "test.com")
+            .unwrap();
         assert_eq!(test_domain_stats.user_count, 1);
         assert_eq!(test_domain_stats.alias_count, 1);
         assert!(test_domain_stats.total_quota > 0);
@@ -367,4 +371,4 @@ mod tests {
 
         cleanup_test_db(&pool);
     }
-} 
+}

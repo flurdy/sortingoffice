@@ -1,27 +1,30 @@
+use crate::templates::domains::*;
+use crate::templates::layout::BaseTemplate;
+use crate::{db, models::*, AppState};
+use askama::Template;
 use axum::{
     extract::{Path, State},
     response::Html,
     Form,
 };
-use crate::{AppState, db, models::*};
-use crate::templates::domains::*;
-use crate::templates::layout::BaseTemplate;
-use askama::Template;
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
-    
+
     let domains = match db::get_domains(pool) {
         Ok(domains) => domains,
         Err(_) => vec![],
     };
-    
-    let content_template = DomainListTemplate { title: "Domains", domains };
+
+    let content_template = DomainListTemplate {
+        title: "Domains",
+        domains,
+    };
     let content = content_template.render().unwrap();
-    
-    let template = BaseTemplate { 
-        title: "Domains".to_string(), 
-        content 
+
+    let template = BaseTemplate {
+        title: "Domains".to_string(),
+        content,
     };
     Html(template.render().unwrap())
 }
@@ -37,41 +40,44 @@ pub async fn new() -> Html<String> {
         backupmx: false,
         active: true,
     };
-    
-    let content_template = DomainFormTemplate { 
-        title: "New Domain", 
-        domain: None, 
-        form 
+
+    let content_template = DomainFormTemplate {
+        title: "New Domain",
+        domain: None,
+        form,
     };
     Html(content_template.render().unwrap())
 }
 
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
-    
+
     let domain = match db::get_domain(pool, id) {
         Ok(domain) => domain,
         Err(_) => return Html("Domain not found".to_string()),
     };
-    
-    let content_template = DomainShowTemplate { title: "Show Domain", domain };
+
+    let content_template = DomainShowTemplate {
+        title: "Show Domain",
+        domain,
+    };
     let content = content_template.render().unwrap();
-    
-    let template = BaseTemplate { 
-        title: "Show Domain".to_string(), 
-        content 
+
+    let template = BaseTemplate {
+        title: "Show Domain".to_string(),
+        content,
     };
     Html(template.render().unwrap())
 }
 
 pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
-    
+
     let domain = match db::get_domain(pool, id) {
         Ok(domain) => domain,
         Err(_) => return Html("Domain not found".to_string()),
     };
-    
+
     let form = DomainForm {
         domain: domain.domain.clone(),
         description: domain.description.clone().unwrap_or_default(),
@@ -82,21 +88,18 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
         backupmx: domain.backupmx,
         active: domain.active,
     };
-    
-    let content_template = DomainFormTemplate { 
-        title: "Edit Domain", 
-        domain: Some(domain), 
-        form 
+
+    let content_template = DomainFormTemplate {
+        title: "Edit Domain",
+        domain: Some(domain),
+        form,
     };
     Html(content_template.render().unwrap())
 }
 
-pub async fn create(
-    State(state): State<AppState>,
-    Form(form): Form<DomainForm>,
-) -> Html<String> {
+pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>) -> Html<String> {
     let pool = &state.pool;
-    
+
     let new_domain = NewDomain {
         domain: form.domain,
         description: Some(form.description),
@@ -107,14 +110,17 @@ pub async fn create(
         backupmx: form.backupmx,
         active: form.active,
     };
-    
+
     match db::create_domain(pool, new_domain) {
         Ok(_) => {
             let domains = match db::get_domains(pool) {
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { title: "Domains", domains };
+            let template = DomainListTemplate {
+                title: "Domains",
+                domains,
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error creating domain".to_string()),
@@ -127,14 +133,17 @@ pub async fn update(
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
     let pool = &state.pool;
-    
+
     match db::update_domain(pool, id, form) {
         Ok(_) => {
             let domain = match db::get_domain(pool, id) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
-            let content_template = DomainShowTemplate { title: "Show Domain", domain };
+            let content_template = DomainShowTemplate {
+                title: "Show Domain",
+                domain,
+            };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error updating domain".to_string()),
@@ -143,14 +152,17 @@ pub async fn update(
 
 pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
-    
+
     match db::delete_domain(pool, id) {
         Ok(_) => {
             let domains = match db::get_domains(pool) {
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { title: "Domains", domains };
+            let template = DomainListTemplate {
+                title: "Domains",
+                domains,
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting domain".to_string()),
@@ -159,20 +171,23 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
 
 pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
-    
+
     match db::toggle_domain_active(pool, id) {
         Ok(_) => {
             let domain = match db::get_domain(pool, id) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
-            
-            let content_template = DomainShowTemplate { title: "Show Domain", domain };
+
+            let content_template = DomainShowTemplate {
+                title: "Show Domain",
+                domain,
+            };
             let content = content_template.render().unwrap();
-            
-            let template = BaseTemplate { 
-                title: "Show Domain".to_string(), 
-                content 
+
+            let template = BaseTemplate {
+                title: "Show Domain".to_string(),
+                content,
             };
             Html(template.render().unwrap())
         }
@@ -180,7 +195,10 @@ pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -
     }
 }
 
-pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_active_list(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Html<String> {
     let pool = &state.pool;
     match db::toggle_domain_active(pool, id) {
         Ok(_) => {
@@ -188,14 +206,20 @@ pub async fn toggle_active_list(State(state): State<AppState>, Path(id): Path<i3
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
-            let template = DomainListTemplate { title: "Domains", domains };
+            let template = DomainListTemplate {
+                title: "Domains",
+                domains,
+            };
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error toggling domain status".to_string()),
     }
 }
 
-pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_active_show(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Html<String> {
     let pool = &state.pool;
     match db::toggle_domain_active(pool, id) {
         Ok(_) => {
@@ -203,9 +227,12 @@ pub async fn toggle_active_show(State(state): State<AppState>, Path(id): Path<i3
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
-            let content_template = DomainShowTemplate { title: "Show Domain", domain };
+            let content_template = DomainShowTemplate {
+                title: "Show Domain",
+                domain,
+            };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error toggling domain status".to_string()),
     }
-} 
+}

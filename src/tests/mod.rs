@@ -1,16 +1,16 @@
-pub mod models;
 pub mod db;
 pub mod handlers;
-pub mod utils;
 pub mod integration;
+pub mod models;
+pub mod utils;
 
 #[cfg(test)]
 mod common {
     use crate::DbPool;
     use diesel::mysql::MysqlConnection;
     use diesel::r2d2::{ConnectionManager, Pool};
-    use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
     use diesel::RunQueryDsl;
+    use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
     use std::sync::Once;
 
     pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -26,9 +26,10 @@ mod common {
                     tracing_subscriber::fmt::init();
                 });
 
-                let database_url = std::env::var("DATABASE_URL")
-                    .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string());
-                
+                let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+                    "mysql://root:password@localhost/sortingoffice_test".to_string()
+                });
+
                 let manager = ConnectionManager::<MysqlConnection>::new(database_url);
                 let pool = Pool::builder()
                     .max_size(5) // Limit pool size for tests
@@ -43,7 +44,7 @@ mod common {
 
                 TEST_POOL = Some(pool);
             }
-            
+
             TEST_POOL.as_ref().unwrap().clone()
         }
     }
@@ -64,5 +65,3 @@ mod common {
         }
     }
 }
-
- 

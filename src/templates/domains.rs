@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::models::{Domain, DomainForm};
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "domains/list.html", escape = "html")]
@@ -21,4 +21,4 @@ pub struct DomainFormTemplate<'a> {
     pub title: &'a str,
     pub domain: Option<Domain>,
     pub form: DomainForm,
-} 
+}

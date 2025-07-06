@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::models::{User, UserForm};
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "users/list.html", escape = "html")]
@@ -22,4 +22,4 @@ pub struct UserFormTemplate<'a> {
     pub user: Option<User>,
     pub form: UserForm,
     pub error: Option<String>,
-} 
+}
