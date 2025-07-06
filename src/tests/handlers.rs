@@ -33,7 +33,7 @@ mod tests {
             )
             .route(
                 "/domains/:id/toggle",
-                axum::routing::post(handlers::domains::toggle_active),
+                axum::routing::post(handlers::domains::toggle_enabled),
             )
             .route("/users", axum::routing::get(handlers::users::list))
             .route("/users", axum::routing::post(handlers::users::create))
@@ -43,7 +43,7 @@ mod tests {
             .route("/users/:id", axum::routing::delete(handlers::users::delete))
             .route(
                 "/users/:id/toggle",
-                axum::routing::post(handlers::users::toggle_active),
+                axum::routing::post(handlers::users::toggle_enabled),
             )
             .route("/aliases", axum::routing::get(handlers::aliases::list))
             .route("/aliases", axum::routing::post(handlers::aliases::create))
@@ -62,7 +62,7 @@ mod tests {
             )
             .route(
                 "/aliases/:id/toggle-list",
-                axum::routing::post(handlers::aliases::toggle_active),
+                axum::routing::post(handlers::aliases::toggle_enabled),
             )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
@@ -278,7 +278,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_domains_toggle_active_handler() {
+    async fn test_domains_toggle_enabled_handler() {
         let (app, state) = create_test_app().await;
 
         // Clean up before test

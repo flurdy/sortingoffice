@@ -32,7 +32,7 @@ mod tests {
             )
             .route(
                 "/domains/:id/toggle",
-                axum::routing::post(handlers::domains::toggle_active),
+                axum::routing::post(handlers::domains::toggle_enabled),
             )
             .route("/users", axum::routing::get(handlers::users::list))
             .route("/users", axum::routing::post(handlers::users::create))
@@ -42,7 +42,7 @@ mod tests {
             .route("/users/:id", axum::routing::delete(handlers::users::delete))
             .route(
                 "/users/:id/toggle",
-                axum::routing::post(handlers::users::toggle_active),
+                axum::routing::post(handlers::users::toggle_enabled),
             )
             .route("/aliases", axum::routing::get(handlers::aliases::list))
             .route("/aliases", axum::routing::post(handlers::aliases::create))
@@ -61,7 +61,7 @@ mod tests {
             )
             .route(
                 "/aliases/:id/toggle-list",
-                axum::routing::post(handlers::aliases::toggle_active),
+                axum::routing::post(handlers::aliases::toggle_enabled),
             )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
@@ -158,7 +158,7 @@ mod tests {
         let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
         assert_eq!(updated_domain.aliases, 25);
-        assert_eq!(updated_domain.active, false);
+        assert_eq!(updated_domain.enabled, false);
 
         // Step 7: Toggle the domain active status
         let toggle_response = app
@@ -177,7 +177,7 @@ mod tests {
 
         // Step 8: Verify the toggle
         let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
-        assert_eq!(toggled_domain.active, true);
+        assert_eq!(toggled_domain.enabled, true);
 
         // Step 9: Delete the domain
         let delete_response = app
@@ -291,7 +291,7 @@ mod tests {
         let updated_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
         assert_eq!(updated_user.username, "updateduser");
         assert_eq!(updated_user.name, "Updated User");
-        assert_eq!(updated_user.active, false);
+        assert_eq!(updated_user.enabled, false);
 
         // Step 7: Toggle user active status
         let toggle_response = app
@@ -310,7 +310,7 @@ mod tests {
 
         // Step 8: Verify the toggle
         let toggled_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
-        assert_eq!(toggled_user.active, true);
+        assert_eq!(toggled_user.enabled, true);
 
         cleanup_test_db(&state.pool);
     }
@@ -408,7 +408,7 @@ mod tests {
             updated_alias.destination,
             "updated@integration-alias-test.com"
         );
-        assert_eq!(updated_alias.active, false);
+        assert_eq!(updated_alias.enabled, false);
 
         // Step 7: Toggle alias active status
         let toggle_response = app
@@ -427,7 +427,7 @@ mod tests {
 
         // Step 8: Verify the toggle
         let toggled_alias = crate::db::get_alias(&state.pool, alias.pkid).unwrap();
-        assert_eq!(toggled_alias.active, true);
+        assert_eq!(toggled_alias.enabled, true);
 
         cleanup_test_db(&state.pool);
     }

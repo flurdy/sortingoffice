@@ -239,14 +239,14 @@ pub async fn delete(
     }
 }
 
-pub async fn toggle_active(
+pub async fn toggle_enabled(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
 
-    match db::toggle_alias_active(pool, id) {
+    match db::toggle_alias_enabled(pool, id) {
         Ok(_) => {
             let alias = match db::get_alias(pool, id) {
                 Ok(alias) => alias,
@@ -271,13 +271,13 @@ pub async fn toggle_active(
     }
 }
 
-pub async fn toggle_active_list(
+pub async fn toggle_enabled_list(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    match db::toggle_alias_active(pool, id) {
+    match db::toggle_alias_enabled(pool, id) {
         Ok(_) => {
             let aliases = match db::get_aliases(pool) {
                 Ok(aliases) => aliases,
@@ -306,13 +306,13 @@ pub async fn toggle_active_list(
     }
 }
 
-pub async fn toggle_active_show(
+pub async fn toggle_enabled_show(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    match db::toggle_alias_active(pool, id) {
+    match db::toggle_alias_enabled(pool, id) {
         Ok(_) => {
             let alias = match db::get_alias(pool, id) {
                 Ok(alias) => alias,

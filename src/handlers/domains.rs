@@ -169,10 +169,10 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
     }
 }
 
-pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
 
-    match db::toggle_domain_active(pool, id) {
+    match db::toggle_domain_enabled(pool, id) {
         Ok(_) => {
             let domain = match db::get_domain(pool, id) {
                 Ok(domain) => domain,
@@ -195,12 +195,12 @@ pub async fn toggle_active(State(state): State<AppState>, Path(id): Path<i32>) -
     }
 }
 
-pub async fn toggle_active_list(
+pub async fn toggle_enabled_list(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Html<String> {
     let pool = &state.pool;
-    match db::toggle_domain_active(pool, id) {
+    match db::toggle_domain_enabled(pool, id) {
         Ok(_) => {
             let domains = match db::get_domains(pool) {
                 Ok(domains) => domains,
@@ -216,12 +216,12 @@ pub async fn toggle_active_list(
     }
 }
 
-pub async fn toggle_active_show(
+pub async fn toggle_enabled_show(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Html<String> {
     let pool = &state.pool;
-    match db::toggle_domain_active(pool, id) {
+    match db::toggle_domain_enabled(pool, id) {
         Ok(_) => {
             let domain = match db::get_domain(pool, id) {
                 Ok(domain) => domain,

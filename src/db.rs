@@ -256,7 +256,7 @@ pub fn delete_alias(pool: &DbPool, alias_id: i32) -> Result<usize, Error> {
 }
 
 // Toggle functions for enable/disable functionality
-pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
+pub fn toggle_domain_enabled(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
     let mut conn = pool.get().unwrap();
 
     // First get the current domain to check its enabled status
@@ -273,7 +273,7 @@ pub fn toggle_domain_active(pool: &DbPool, domain_id: i32) -> Result<Domain, Err
     get_domain(pool, domain_id)
 }
 
-pub fn toggle_user_active(pool: &DbPool, user_id: i32) -> Result<User, Error> {
+pub fn toggle_user_enabled(pool: &DbPool, user_id: i32) -> Result<User, Error> {
     let mut conn = pool.get().unwrap();
 
     // First get the current user to check its enabled status
@@ -290,7 +290,7 @@ pub fn toggle_user_active(pool: &DbPool, user_id: i32) -> Result<User, Error> {
     get_user(pool, user_id)
 }
 
-pub fn toggle_alias_active(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
+pub fn toggle_alias_enabled(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
     let mut conn = pool.get().unwrap();
 
     // First get the current alias to check its enabled status

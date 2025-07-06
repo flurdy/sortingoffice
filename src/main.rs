@@ -72,15 +72,15 @@ async fn main() {
         .route("/domains/:id/edit", get(handlers::domains::edit))
         .route(
             "/domains/:id/toggle-list",
-            post(handlers::domains::toggle_active_list),
+            post(handlers::domains::toggle_enabled_list),
         )
         .route(
             "/domains/:id/toggle-show",
-            post(handlers::domains::toggle_active_show),
+            post(handlers::domains::toggle_enabled_show),
         )
         .route(
             "/domains/:id/toggle",
-            post(handlers::domains::toggle_active),
+            post(handlers::domains::toggle_enabled),
         )
         // Users
         .route(
@@ -97,13 +97,13 @@ async fn main() {
         .route("/users/:id/edit", get(handlers::users::edit))
         .route(
             "/users/:id/toggle-list",
-            post(handlers::users::toggle_active_list),
+            post(handlers::users::toggle_enabled_list),
         )
         .route(
             "/users/:id/toggle-show",
-            post(handlers::users::toggle_active_show),
+            post(handlers::users::toggle_enabled_show),
         )
-        .route("/users/:id/toggle", post(handlers::users::toggle_active))
+        .route("/users/:id/toggle", post(handlers::users::toggle_enabled))
         // Aliases
         .route(
             "/aliases",
@@ -119,15 +119,15 @@ async fn main() {
         .route("/aliases/:id/edit", get(handlers::aliases::edit))
         .route(
             "/aliases/:id/toggle-list",
-            post(handlers::aliases::toggle_active_list),
+            post(handlers::aliases::toggle_enabled_list),
         )
         .route(
             "/aliases/:id/toggle-show",
-            post(handlers::aliases::toggle_active_show),
+            post(handlers::aliases::toggle_enabled_show),
         )
         .route(
             "/aliases/:id/toggle",
-            post(handlers::aliases::toggle_active),
+            post(handlers::aliases::toggle_enabled),
         )
         // Stats
         .route("/stats", get(handlers::stats::index))

@@ -91,14 +91,14 @@ mod tests {
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
 
         let created_user = db::create_user(&pool, user_form).unwrap();
         assert_eq!(created_user.username, "testuser");
         assert_eq!(created_user.name, "Test User");
         assert_eq!(created_user.domain, domain.domain);
-        assert_eq!(created_user.active, true);
+        assert_eq!(created_user.enabled, true);
         assert!(created_user.password.starts_with("$2b$")); // bcrypt hash
 
         // Test get user
@@ -117,13 +117,13 @@ mod tests {
             name: "Updated User".to_string(),
             domain: domain.domain.clone(),
             quota: 200000,
-            active: false,
+            enabled: false,
         };
 
         let updated_user = db::update_user(&pool, created_user.pkid, update_form).unwrap();
         assert_eq!(updated_user.username, "updateduser");
         assert_eq!(updated_user.name, "Updated User");
-        assert_eq!(updated_user.active, false);
+        assert_eq!(updated_user.enabled, false);
 
         // Test update user without password
         let update_form_no_password = UserForm {
@@ -132,14 +132,14 @@ mod tests {
             name: "Final User".to_string(),
             domain: domain.domain.clone(),
             quota: 300000,
-            active: true,
+            enabled: true,
         };
 
         let final_user =
             db::update_user(&pool, created_user.pkid, update_form_no_password).unwrap();
         assert_eq!(final_user.username, "finaluser");
         assert_eq!(final_user.name, "Final User");
-        assert_eq!(final_user.active, true);
+        assert_eq!(final_user.enabled, true);
 
         // Test get all users
         let all_users = db::get_users(&pool).unwrap();
@@ -179,14 +179,14 @@ mod tests {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
-            active: true,
+            enabled: true,
         };
 
         let created_alias = db::create_alias(&pool, alias_form).unwrap();
         assert_eq!(created_alias.mail, "test@test.com");
         assert_eq!(created_alias.destination, "user@test.com");
         assert_eq!(created_alias.domain, domain.domain);
-        assert_eq!(created_alias.active, true);
+        assert_eq!(created_alias.enabled, true);
 
         // Test get alias
         let retrieved_alias = db::get_alias(&pool, created_alias.pkid).unwrap();
@@ -198,13 +198,13 @@ mod tests {
             mail: "updated@test.com".to_string(),
             destination: "updated@test.com".to_string(),
             domain: domain.domain.clone(),
-            active: false,
+            enabled: false,
         };
 
         let updated_alias = db::update_alias(&pool, created_alias.pkid, update_form).unwrap();
         assert_eq!(updated_alias.mail, "updated@test.com");
         assert_eq!(updated_alias.destination, "updated@test.com");
-        assert_eq!(updated_alias.active, false);
+        assert_eq!(updated_alias.enabled, false);
 
         // Test get all aliases
         let all_aliases = db::get_aliases(&pool).unwrap();
@@ -245,7 +245,7 @@ mod tests {
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
         let user = db::create_user(&pool, user_form).unwrap();
 
@@ -253,30 +253,30 @@ mod tests {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
-            active: true,
+            enabled: true,
         };
         let alias = db::create_alias(&pool, alias_form).unwrap();
 
         // Test toggle domain active
-        let toggled_domain = db::toggle_domain_active(&pool, domain.pkid).unwrap();
+        let toggled_domain = db::toggle_domain_enabled(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
 
-        let toggled_domain_again = db::toggle_domain_active(&pool, domain.pkid).unwrap();
+        let toggled_domain_again = db::toggle_domain_enabled(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain_again.enabled, true);
 
-        // Test toggle user active
-        let toggled_user = db::toggle_user_active(&pool, user.pkid).unwrap();
-        assert_eq!(toggled_user.active, false);
+        // Test toggle user enabled
+        let toggled_user = db::toggle_user_enabled(&pool, user.pkid).unwrap();
+        assert_eq!(toggled_user.enabled, false);
 
-        let toggled_user_again = db::toggle_user_active(&pool, user.pkid).unwrap();
-        assert_eq!(toggled_user_again.active, true);
+        let toggled_user_again = db::toggle_user_enabled(&pool, user.pkid).unwrap();
+        assert_eq!(toggled_user_again.enabled, true);
 
-        // Test toggle alias active
-        let toggled_alias = db::toggle_alias_active(&pool, alias.pkid).unwrap();
-        assert_eq!(toggled_alias.active, false);
+        // Test toggle alias enabled
+        let toggled_alias = db::toggle_alias_enabled(&pool, alias.pkid).unwrap();
+        assert_eq!(toggled_alias.enabled, false);
 
-        let toggled_alias_again = db::toggle_alias_active(&pool, alias.pkid).unwrap();
-        assert_eq!(toggled_alias_again.active, true);
+        let toggled_alias_again = db::toggle_alias_enabled(&pool, alias.pkid).unwrap();
+        assert_eq!(toggled_alias_again.enabled, true);
 
         cleanup_test_db(&pool);
     }
@@ -304,7 +304,7 @@ mod tests {
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
             quota: 100000,
-            active: true,
+            enabled: true,
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
@@ -312,7 +312,7 @@ mod tests {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
             domain: domain.domain.clone(),
-            active: true,
+            enabled: true,
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
