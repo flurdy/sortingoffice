@@ -1,5 +1,5 @@
 <div class="container mx-auto">
-    <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{% if backup.is_some() %}Edit Backup MX{% else %}New Backup MX{% endif %}</h1>
+    <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{% if backup.is_some() %}Edit Backup{% else %}New Backup{% endif %}</h1>
 
     <form {% if backup.is_some() %}hx-put="/backups/{{ backup.as_ref().unwrap().pkid }}"{% else %}hx-post="/backups"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
@@ -13,7 +13,7 @@
                 Transport
             </label>
             <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="transport" name="transport" type="text" placeholder="smtp:[]" value="{{ form.transport }}">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Transport configuration for the backup MX server (e.g., smtp:[] for local delivery)</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Transport configuration for the backup server (e.g., smtp:[] for local delivery)</p>
         </div>
 
         <div class="mb-4">
@@ -25,7 +25,7 @@
 
         <div class="flex items-center justify-between">
             <button class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                {% if backup.is_some() %}Update{% else %}Create{% endif %} Backup MX
+                {% if backup.is_some() %}Update{% else %}Create{% endif %} Backup
             </button>
             <a href="/backups" class="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300">Cancel</a>
         </div>

@@ -198,6 +198,55 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_backup_crud_operations() {
+        let pool = setup_test_db();
+
+        // Test create backup
+        let new_backup = NewBackup {
+            domain: "backup.test.com".to_string(),
+            transport: Some("smtp:relay.test.com".to_string()),
+            enabled: true,
+        };
+
+        let created_backup = db::create_backup(&pool, new_backup).unwrap();
+        assert_eq!(created_backup.domain, "backup.test.com");
+        assert_eq!(created_backup.transport, Some("smtp:relay.test.com".to_string()));
+        assert_eq!(created_backup.enabled, true);
+
+        // Test get backup
+        let retrieved_backup = db::get_backup(&pool, created_backup.pkid).unwrap();
+        assert_eq!(retrieved_backup.pkid, created_backup.pkid);
+        assert_eq!(retrieved_backup.domain, "backup.test.com");
+
+        // Test update backup
+        let update_form = BackupForm {
+            domain: "updated-backup.test.com".to_string(),
+            transport: "smtp:updated-relay.test.com".to_string(),
+            enabled: false,
+        };
+
+        let updated_backup = db::update_backup(&pool, created_backup.pkid, update_form).unwrap();
+        assert_eq!(updated_backup.domain, "updated-backup.test.com");
+        assert_eq!(updated_backup.transport, Some("smtp:updated-relay.test.com".to_string()));
+        assert_eq!(updated_backup.enabled, false);
+
+        // Test get all backups
+        let all_backups = db::get_backups(&pool).unwrap();
+        assert!(!all_backups.is_empty());
+        assert!(all_backups.iter().any(|b| b.pkid == created_backup.pkid));
+
+        // Test delete backup
+        let deleted_count = db::delete_backup(&pool, created_backup.pkid).unwrap();
+        assert_eq!(deleted_count, 1);
+
+        // Verify backup is deleted
+        let deleted_backup = db::get_backup(&pool, created_backup.pkid);
+        assert!(deleted_backup.is_err());
+
+        cleanup_test_db(&pool);
+    }
+
+    #[tokio::test]
     async fn test_toggle_operations() {
         let pool = setup_test_db();
 
@@ -226,6 +275,13 @@ mod tests {
         };
         let alias = db::create_alias(&pool, alias_form).unwrap();
 
+        let new_backup = NewBackup {
+            domain: "backup.test.com".to_string(),
+            transport: Some("smtp:relay.test.com".to_string()),
+            enabled: true,
+        };
+        let backup = db::create_backup(&pool, new_backup).unwrap();
+
         // Test toggle domain active
         let toggled_domain = db::toggle_domain_enabled(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
@@ -246,6 +302,13 @@ mod tests {
 
         let toggled_alias_again = db::toggle_alias_enabled(&pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias_again.enabled, true);
+
+        // Test toggle backup enabled
+        let toggled_backup = db::toggle_backup_enabled(&pool, backup.pkid).unwrap();
+        assert_eq!(toggled_backup.enabled, false);
+
+        let toggled_backup_again = db::toggle_backup_enabled(&pool, backup.pkid).unwrap();
+        assert_eq!(toggled_backup_again.enabled, true);
 
         cleanup_test_db(&pool);
     }
@@ -279,11 +342,19 @@ mod tests {
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
+        let new_backup = NewBackup {
+            domain: "backup.test.com".to_string(),
+            transport: Some("smtp:relay.test.com".to_string()),
+            enabled: true,
+        };
+        let _backup = db::create_backup(&pool, new_backup).unwrap();
+
         // Test system stats
         let system_stats = db::get_system_stats(&pool).unwrap();
         assert_eq!(system_stats.total_domains, 1);
         assert_eq!(system_stats.total_users, 1);
         assert_eq!(system_stats.total_aliases, 1);
+        assert_eq!(system_stats.total_backups, 1);
 
         // Test domain stats
         let domain_stats = db::get_domain_stats(&pool).unwrap();
@@ -314,6 +385,10 @@ mod tests {
         let non_existent_alias = db::get_alias(&pool, 999);
         assert!(non_existent_alias.is_err());
 
+        // Test getting non-existent backup
+        let non_existent_backup = db::get_backup(&pool, 999);
+        assert!(non_existent_backup.is_err());
+
         // Test updating non-existent domain
         let form_data = DomainForm {
             domain: "test.com".to_string(),
@@ -322,6 +397,15 @@ mod tests {
         };
         let update_result = db::update_domain(&pool, 999, form_data);
         assert!(update_result.is_err());
+
+        // Test updating non-existent backup
+        let backup_form_data = BackupForm {
+            domain: "backup.test.com".to_string(),
+            transport: "smtp:relay.test.com".to_string(),
+            enabled: true,
+        };
+        let backup_update_result = db::update_backup(&pool, 999, backup_form_data);
+        assert!(backup_update_result.is_err());
 
         cleanup_test_db(&pool);
     }

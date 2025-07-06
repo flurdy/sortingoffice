@@ -382,12 +382,36 @@ async fn test_aliases_list_page() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Navigate to aliases page
             client.goto(&format!("{}/aliases", get_app_url())).await?;
 
-            // Check for aliases page content
+            // Check for aliases page elements
             let body = client.find(fantoccini::Locator::Css("body")).await?;
             let body_text = body.text().await?;
             assert!(body_text.contains("Aliases") || body_text.contains("aliases"));
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_backups_list_page() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            // Navigate to backups page
+            client.goto(&format!("{}/backups", get_app_url())).await?;
+
+            // Check for backups page elements
+            let body = client.find(fantoccini::Locator::Css("body")).await?;
+            let body_text = body.text().await?;
+            assert!(body_text.contains("Backups") || body_text.contains("backups"));
 
             client.close().await?;
             Ok(())
@@ -404,16 +428,13 @@ async fn test_stats_page() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Navigate to stats page
             client.goto(&format!("{}/stats", get_app_url())).await?;
 
-            // Check for stats page content
+            // Check for stats page elements
             let body = client.find(fantoccini::Locator::Css("body")).await?;
             let body_text = body.text().await?;
-            assert!(
-                body_text.contains("Statistics")
-                    || body_text.contains("stats")
-                    || body_text.contains("Statistics")
-            );
+            assert!(body_text.contains("Statistics") || body_text.contains("stats"));
 
             client.close().await?;
             Ok(())

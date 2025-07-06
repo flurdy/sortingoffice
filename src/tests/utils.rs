@@ -122,7 +122,6 @@ mod tests {
     #[test]
     fn test_new_model_creation() {
         // Test NewDomain creation
-        let now = Utc::now().naive_utc();
         let new_domain = NewDomain {
             domain: "example.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
@@ -175,6 +174,7 @@ mod tests {
             total_domains: 5,
             total_users: 25,
             total_aliases: 50,
+            total_backups: 3,
             total_quota: 10000000,
             used_quota: 5000000,
         };
@@ -182,6 +182,7 @@ mod tests {
         assert_eq!(system_stats.total_domains, 5);
         assert_eq!(system_stats.total_users, 25);
         assert_eq!(system_stats.total_aliases, 50);
+        assert_eq!(system_stats.total_backups, 3);
         assert_eq!(system_stats.total_quota, 10000000);
         assert_eq!(system_stats.used_quota, 5000000);
 

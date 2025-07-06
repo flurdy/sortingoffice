@@ -25,7 +25,7 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
 
     tracing::debug!("Rendering template with {} backups", backups.len());
     let content_template = BackupListTemplate {
-        title: "Backup MX",
+        title: "Backups",
         backups,
     };
     let content = match content_template.render() {
@@ -40,7 +40,7 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
     };
 
     let template = BaseTemplate {
-        title: "Backup MX".to_string(),
+        title: "Backups".to_string(),
         content,
     };
     Html(template.render().unwrap())
@@ -54,7 +54,7 @@ pub async fn new() -> Html<String> {
     };
 
     let content_template = BackupFormTemplate {
-        title: "New Backup MX",
+        title: "New Backup",
         backup: None,
         form,
     };
@@ -66,17 +66,17 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
 
     let backup = match db::get_backup(pool, id) {
         Ok(backup) => backup,
-        Err(_) => return Html("Backup MX not found".to_string()),
+        Err(_) => return Html("Backup not found".to_string()),
     };
 
     let content_template = BackupShowTemplate {
-        title: "Show Backup MX",
+        title: "Show Backup",
         backup,
     };
     let content = content_template.render().unwrap();
 
     let template = BaseTemplate {
-        title: "Show Backup MX".to_string(),
+        title: "Show Backup".to_string(),
         content,
     };
     Html(template.render().unwrap())
@@ -87,7 +87,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
 
     let backup = match db::get_backup(pool, id) {
         Ok(backup) => backup,
-        Err(_) => return Html("Backup MX not found".to_string()),
+        Err(_) => return Html("Backup not found".to_string()),
     };
 
     let form = BackupForm {
@@ -97,7 +97,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     };
 
     let content_template = BackupFormTemplate {
-        title: "Edit Backup MX",
+        title: "Edit Backup",
         backup: Some(backup),
         form,
     };
@@ -120,12 +120,12 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>)
                 Err(_) => vec![],
             };
             let template = BackupListTemplate {
-                title: "Backup MX",
+                title: "Backups",
                 backups,
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error creating backup MX".to_string()),
+        Err(_) => Html("Error creating backup".to_string()),
     }
 }
 
@@ -140,15 +140,15 @@ pub async fn update(
         Ok(_) => {
             let backup = match db::get_backup(pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return Html("Backup MX not found".to_string()),
+                Err(_) => return Html("Backup not found".to_string()),
             };
             let content_template = BackupShowTemplate {
-                title: "Show Backup MX",
+                title: "Show Backup",
                 backup,
             };
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error updating backup MX".to_string()),
+        Err(_) => Html("Error updating backup".to_string()),
     }
 }
 
@@ -162,12 +162,12 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Err(_) => vec![],
             };
             let template = BackupListTemplate {
-                title: "Backup MX",
+                title: "Backups",
                 backups,
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error deleting backup MX".to_string()),
+        Err(_) => Html("Error deleting backup".to_string()),
     }
 }
 
@@ -178,22 +178,22 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) 
         Ok(_) => {
             let backup = match db::get_backup(pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return Html("Backup MX not found".to_string()),
+                Err(_) => return Html("Backup not found".to_string()),
             };
 
             let content_template = BackupShowTemplate {
-                title: "Show Backup MX",
+                title: "Show Backup",
                 backup,
             };
             let content = content_template.render().unwrap();
 
             let template = BaseTemplate {
-                title: "Show Backup MX".to_string(),
+                title: "Show Backup".to_string(),
                 content,
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error toggling backup MX status".to_string()),
+        Err(_) => Html("Error toggling backup status".to_string()),
     }
 }
 
@@ -209,12 +209,12 @@ pub async fn toggle_enabled_list(
                 Err(_) => vec![],
             };
             let template = BackupListTemplate {
-                title: "Backup MX",
+                title: "Backups",
                 backups,
             };
             Html(template.render().unwrap())
         }
-        Err(_) => Html("Error toggling backup MX status".to_string()),
+        Err(_) => Html("Error toggling backup status".to_string()),
     }
 }
 
@@ -227,14 +227,14 @@ pub async fn toggle_enabled_show(
         Ok(_) => {
             let backup = match db::get_backup(pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return Html("Backup MX not found".to_string()),
+                Err(_) => return Html("Backup not found".to_string()),
             };
             let content_template = BackupShowTemplate {
-                title: "Show Backup MX",
+                title: "Show Backup",
                 backup,
             };
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error toggling backup MX status".to_string()),
+        Err(_) => Html("Error toggling backup status".to_string()),
     }
 } 

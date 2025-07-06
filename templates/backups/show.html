@@ -1,14 +1,14 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Backup MX: {{ backup.domain }}</h1>
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Backup: {{ backup.domain }}</h1>
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                View and edit backup MX server settings.
+                View and edit backup server settings.
             </p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="/backups" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-                Back to Backup MX
+                Back to Backups
             </a>
         </div>
     </div>
@@ -16,8 +16,8 @@
     <!-- Backup MX Details -->
     <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Backup MX Information</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Backup MX server details and configuration.</p>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Backup Information</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Backup server details and configuration.</p>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-700">
             <dl>
@@ -61,20 +61,20 @@
             hx-get="/backups/{{ backup.pkid }}/edit" 
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            Edit Backup MX
+            Edit Backup
         </button>
         <button 
             hx-post="/backups/{{ backup.pkid }}/toggle-show" 
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            {% if backup.enabled %}Disable{% else %}Enable{% endif %} Backup MX
+            {% if backup.enabled %}Disable{% else %}Enable{% endif %} Backup
         </button>
         <button 
             hx-delete="/backups/{{ backup.pkid }}" 
             hx-target="#main-content" 
-            hx-confirm="Are you sure you want to delete this backup MX?"
+            hx-confirm="Are you sure you want to delete this backup?"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-            Delete Backup MX
+            Delete Backup
         </button>
     </div>
 </div> 

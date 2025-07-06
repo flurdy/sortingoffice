@@ -59,9 +59,21 @@ mod common {
             diesel::delete(crate::schema::users::table)
                 .execute(&mut conn)
                 .ok();
+            diesel::delete(crate::schema::backups::table)
+                .execute(&mut conn)
+                .ok();
             diesel::delete(crate::schema::domains::table)
                 .execute(&mut conn)
                 .ok();
         }
+    }
+
+    pub fn unique_test_id() -> String {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        format!("test-{}", timestamp)
     }
 }

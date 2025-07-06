@@ -170,6 +170,7 @@ mod tests {
             total_domains: 5,
             total_users: 25,
             total_aliases: 50,
+            total_backups: 3,
             total_quota: 10000000,
             used_quota: 5000000,
         };
@@ -180,6 +181,7 @@ mod tests {
         assert_eq!(stats.total_domains, deserialized.total_domains);
         assert_eq!(stats.total_users, deserialized.total_users);
         assert_eq!(stats.total_aliases, deserialized.total_aliases);
+        assert_eq!(stats.total_backups, deserialized.total_backups);
         assert_eq!(stats.total_quota, deserialized.total_quota);
         assert_eq!(stats.used_quota, deserialized.used_quota);
     }
@@ -202,5 +204,58 @@ mod tests {
         assert_eq!(stats.alias_count, deserialized.alias_count);
         assert_eq!(stats.total_quota, deserialized.total_quota);
         assert_eq!(stats.used_quota, deserialized.used_quota);
+    }
+
+    #[test]
+    fn test_backup_serialization() {
+        let backup = Backup {
+            pkid: 1,
+            domain: "backup.example.com".to_string(),
+            transport: Some("smtp:[]".to_string()),
+            created: chrono::Utc::now().naive_utc(),
+            modified: chrono::Utc::now().naive_utc(),
+            enabled: true,
+        };
+
+        let json = serde_json::to_string(&backup).unwrap();
+        let deserialized: Backup = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(backup.pkid, deserialized.pkid);
+        assert_eq!(backup.domain, deserialized.domain);
+        assert_eq!(backup.transport, deserialized.transport);
+        assert_eq!(backup.enabled, deserialized.enabled);
+    }
+
+    #[test]
+    fn test_new_backup_creation() {
+        let new_backup = NewBackup {
+            domain: "backup.test.com".to_string(),
+            transport: Some("smtp:relay.test.com".to_string()),
+            enabled: true,
+        };
+
+        assert_eq!(new_backup.domain, "backup.test.com");
+        assert_eq!(new_backup.transport, Some("smtp:relay.test.com".to_string()));
+        assert_eq!(new_backup.enabled, true);
+    }
+
+    #[test]
+    fn test_backup_form_deserialization() {
+        let form_data = "domain=backup.test.com&transport=smtp%3Arelay.test.com&enabled=on";
+        let form: BackupForm = serde_urlencoded::from_str(form_data).unwrap();
+
+        assert_eq!(form.domain, "backup.test.com");
+        assert_eq!(form.transport, "smtp:relay.test.com");
+        assert_eq!(form.enabled, true);
+    }
+
+    #[test]
+    fn test_backup_form_deserialization_without_checkboxes() {
+        let form_data = "domain=backup.test.com&transport=smtp%3Arelay.test.com";
+        let form: BackupForm = serde_urlencoded::from_str(form_data).unwrap();
+
+        assert_eq!(form.domain, "backup.test.com");
+        assert_eq!(form.transport, "smtp:relay.test.com");
+        assert_eq!(form.enabled, false); // Default value
     }
 }
