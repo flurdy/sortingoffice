@@ -7,18 +7,11 @@ mod tests {
     fn test_checkbox_deserialization_utility() {
         // Test various checkbox values in form data
         let test_cases = vec![
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=on&enabled=on", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=true&enabled=true", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=1&enabled=1", true),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=off&enabled=off", false),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=false&enabled=false", false),
-            ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost&backupmx=0&enabled=0", false),
             ("domain=test.com&description=Test&aliases=10&maxquota=1000000&quota=500000&transport=smtp:localhost", false),
         ];
 
         for (form_data, expected) in test_cases {
             let form: crate::models::DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-            assert_eq!(form.backupmx, expected, "Failed for input: {}", form_data);
             assert_eq!(form.enabled, expected, "Failed for input: {}", form_data);
         }
     }
@@ -29,7 +22,6 @@ mod tests {
         let valid_domain_form = DomainForm {
             domain: "example.com".to_string(),
             transport: "smtp:localhost".to_string(),
-            backupmx: false,
             enabled: true,
         };
 
@@ -73,7 +65,6 @@ mod tests {
             pkid: 1,
             domain: "example.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             created: now,
             modified: now,
             enabled: true,
@@ -135,12 +126,10 @@ mod tests {
         let new_domain = NewDomain {
             domain: "example.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         assert_eq!(new_domain.domain, "example.com");
         assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
-        assert_eq!(new_domain.backupmx, false);
         assert_eq!(new_domain.enabled, true);
 
         // Test NewUser creation

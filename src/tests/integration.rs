@@ -78,7 +78,7 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain via HTTP POST
-        let form_data = "domain=integration-domain.com&description=Integration+Test+Domain&aliases=15&maxquota=2000000&quota=1000000&transport=smtp%3Aintegration&backupmx=on&active=on";
+        let form_data = "domain=integration-domain.com&transport=smtp%3Aintegration&enabled=on";
 
         let create_response = app
             .clone()
@@ -137,7 +137,7 @@ mod tests {
         assert_eq!(show_response.status(), StatusCode::OK);
 
         // Step 5: Update the domain
-        let update_form_data = "domain=updated-integration.com&description=Updated+Integration+Domain&aliases=25&maxquota=3000000&quota=1500000&transport=smtp%3Aupdated&backupmx=off&active=off";
+        let update_form_data = "domain=updated-integration.com&transport=smtp%3Aupdated&enabled=off";
 
         let update_response = app
             .clone()
@@ -208,7 +208,7 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for users)
-        let domain_form_data = "domain=integration-user-test.com&description=User+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-user-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()
@@ -324,7 +324,7 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for aliases)
-        let domain_form_data = "domain=integration-alias-test.com&description=Alias+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-alias-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()
@@ -441,7 +441,7 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create test data
-        let domain_form_data = "domain=integration-stats-test.com&description=Stats+Test+Domain&aliases=10&maxquota=1000000&quota=500000&transport=smtp%3Alocalhost&backupmx=off&active=on";
+        let domain_form_data = "domain=integration-stats-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()

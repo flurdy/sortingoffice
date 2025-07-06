@@ -22,7 +22,6 @@ pub struct Domain {
     pub pkid: i32,
     pub domain: String,
     pub transport: Option<String>,
-    pub backupmx: bool,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
     pub enabled: bool,
@@ -33,7 +32,6 @@ pub struct Domain {
 pub struct NewDomain {
     pub domain: String,
     pub transport: Option<String>,
-    pub backupmx: bool,
     pub enabled: bool,
 }
 
@@ -113,9 +111,6 @@ pub struct DomainForm {
     pub transport: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
-    pub backupmx: bool,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
 }
 
@@ -144,6 +139,37 @@ pub struct SystemStats {
     pub total_domains: i64,
     pub total_users: i64,
     pub total_aliases: i64,
+    pub total_backups: i64,
     pub total_quota: i64,
     pub used_quota: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = backups)]
+#[diesel(primary_key(pkid))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct Backup {
+    pub pkid: i32,
+    pub domain: String,
+    pub transport: Option<String>,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = backups)]
+pub struct NewBackup {
+    pub domain: String,
+    pub transport: Option<String>,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BackupForm {
+    pub domain: String,
+    pub transport: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
 }

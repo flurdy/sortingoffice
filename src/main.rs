@@ -129,6 +129,31 @@ async fn main() {
             "/aliases/:id/toggle",
             post(handlers::aliases::toggle_enabled),
         )
+        // Backups
+        .route(
+            "/backups",
+            get(handlers::backups::list).post(handlers::backups::create),
+        )
+        .route("/backups/new", get(handlers::backups::new))
+        .route(
+            "/backups/:id",
+            get(handlers::backups::show)
+                .put(handlers::backups::update)
+                .delete(handlers::backups::delete),
+        )
+        .route("/backups/:id/edit", get(handlers::backups::edit))
+        .route(
+            "/backups/:id/toggle-list",
+            post(handlers::backups::toggle_enabled_list),
+        )
+        .route(
+            "/backups/:id/toggle-show",
+            post(handlers::backups::toggle_enabled_show),
+        )
+        .route(
+            "/backups/:id/toggle",
+            post(handlers::backups::toggle_enabled),
+        )
         // Stats
         .route("/stats", get(handlers::stats::index))
         // Theme

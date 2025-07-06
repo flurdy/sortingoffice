@@ -6,11 +6,26 @@ use diesel::prelude::*;
 use diesel::result::Error;
 
 pub fn get_domains(pool: &DbPool) -> Result<Vec<Domain>, Error> {
-    let mut conn = pool.get().unwrap();
-    domains::table
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!("Failed to get connection from pool: {:?}", e);
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
+    
+    tracing::debug!("Executing get_domains query");
+    let result = domains::table
         .select(Domain::as_select())
         .order(domains::domain.asc())
-        .load::<Domain>(&mut conn)
+        .load::<Domain>(&mut conn);
+    
+    match &result {
+        Ok(domains) => tracing::debug!("Retrieved {} domains", domains.len()),
+        Err(e) => tracing::error!("Error retrieving domains: {:?}", e),
+    }
+    
+    result
 }
 
 pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
@@ -37,7 +52,6 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
         .values((
             domains::domain.eq(new_domain.domain),
             domains::transport.eq(new_domain.transport.clone()),
-            domains::backupmx.eq(new_domain.backupmx),
             domains::enabled.eq(new_domain.enabled),
             domains::created.eq(now),
             domains::modified.eq(now),
@@ -60,7 +74,6 @@ pub fn update_domain(
         .set((
             domains::domain.eq(domain_data.domain),
             domains::transport.eq(domain_data.transport.clone()),
-            domains::backupmx.eq(domain_data.backupmx),
             domains::enabled.eq(domain_data.enabled),
             domains::modified.eq(Utc::now().naive_utc()),
         ))
@@ -308,6 +321,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
+    let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
 
     let total_quota: i64 = 0; // Quota field removed from users table
 
@@ -315,6 +329,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         total_domains,
         total_users,
         total_aliases,
+        total_backups,
         total_quota,
         used_quota: 0, // This would need to be calculated from actual disk usage
     })
@@ -350,4 +365,89 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
     }
 
     Ok(stats)
+}
+
+// Backup functions
+pub fn get_backups(pool: &DbPool) -> Result<Vec<Backup>, Error> {
+    let mut conn = pool.get().unwrap();
+    backups::table
+        .select(Backup::as_select())
+        .order(backups::domain.asc())
+        .load::<Backup>(&mut conn)
+}
+
+pub fn get_backup(pool: &DbPool, backup_id: i32) -> Result<Backup, Error> {
+    let mut conn = pool.get().unwrap();
+    backups::table
+        .find(backup_id)
+        .select(Backup::as_select())
+        .first::<Backup>(&mut conn)
+}
+
+pub fn get_backup_by_name(pool: &DbPool, backup_name: &str) -> Result<Backup, Error> {
+    let mut conn = pool.get().unwrap();
+    backups::table
+        .filter(backups::domain.eq(backup_name))
+        .select(Backup::as_select())
+        .first::<Backup>(&mut conn)
+}
+
+pub fn create_backup(pool: &DbPool, new_backup: NewBackup) -> Result<Backup, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+
+    diesel::insert_into(backups::table)
+        .values((
+            backups::domain.eq(new_backup.domain),
+            backups::transport.eq(new_backup.transport.clone()),
+            backups::enabled.eq(new_backup.enabled),
+            backups::created.eq(now),
+            backups::modified.eq(now),
+        ))
+        .execute(&mut conn)?;
+
+    backups::table
+        .order(backups::pkid.desc())
+        .select(Backup::as_select())
+        .first::<Backup>(&mut conn)
+}
+
+pub fn update_backup(
+    pool: &DbPool,
+    backup_id: i32,
+    backup_data: BackupForm,
+) -> Result<Backup, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::update(backups::table.find(backup_id))
+        .set((
+            backups::domain.eq(backup_data.domain),
+            backups::transport.eq(backup_data.transport.clone()),
+            backups::enabled.eq(backup_data.enabled),
+            backups::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_backup(pool, backup_id)
+}
+
+pub fn delete_backup(pool: &DbPool, backup_id: i32) -> Result<usize, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::delete(backups::table.find(backup_id)).execute(&mut conn)
+}
+
+pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Error> {
+    let mut conn = pool.get().unwrap();
+
+    // First get the current backup to check its enabled status
+    let current_backup = get_backup(pool, backup_id)?;
+    let new_enabled_status = !current_backup.enabled;
+
+    diesel::update(backups::table.find(backup_id))
+        .set((
+            backups::enabled.eq(new_enabled_status),
+            backups::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_backup(pool, backup_id)
 }

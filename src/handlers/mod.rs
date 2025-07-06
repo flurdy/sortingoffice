@@ -5,3 +5,4 @@ pub mod domains;
 pub mod stats;
 pub mod theme;
 pub mod users;
+pub mod backups;

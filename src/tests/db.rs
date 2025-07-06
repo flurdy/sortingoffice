@@ -12,7 +12,6 @@ mod tests {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
 
@@ -33,7 +32,6 @@ mod tests {
         let form_data = DomainForm {
             domain: "updated.com".to_string(),
             transport: "smtp:updated".to_string(),
-            backupmx: true,
             enabled: false,
         };
 
@@ -65,7 +63,6 @@ mod tests {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
@@ -148,7 +145,6 @@ mod tests {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
@@ -209,7 +205,6 @@ mod tests {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
@@ -263,7 +258,6 @@ mod tests {
         let new_domain = NewDomain {
             domain: "test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = db::create_domain(&pool, new_domain).unwrap();
@@ -324,7 +318,6 @@ mod tests {
         let form_data = DomainForm {
             domain: "test.com".to_string(),
             transport: "smtp:localhost".to_string(),
-            backupmx: false,
             enabled: true,
         };
         let update_result = db::update_domain(&pool, 999, form_data);

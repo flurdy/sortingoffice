@@ -82,7 +82,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "list-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -116,7 +115,7 @@ mod tests {
         // Clean up before test
         cleanup_test_db(&state.pool);
 
-        let form_data = "domain=create-test.com&transport=smtp%3Alocalhost&backupmx=on&enabled=on";
+        let form_data = "domain=create-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let response = app
             .oneshot(
@@ -151,7 +150,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "show-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -189,7 +187,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "edit-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -228,12 +225,11 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "update-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "domain=updated-update.com&transport=smtp%3Aupdated&backupmx=on&enabled=off";
+        let form_data = "domain=updated-update.com&transport=smtp%3Aupdated&enabled=off";
 
         let response = app
             .oneshot(
@@ -268,7 +264,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "toggle-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -304,7 +299,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "users-list-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -352,7 +346,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "users-create-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -392,7 +385,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "aliases-list-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -439,7 +431,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "aliases-create-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
@@ -481,7 +472,6 @@ mod tests {
         let new_domain = crate::models::NewDomain {
             domain: "stats-test.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            backupmx: false,
             enabled: true,
         };
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();

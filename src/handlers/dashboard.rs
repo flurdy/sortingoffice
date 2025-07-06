@@ -13,6 +13,7 @@ pub async fn index(State(state): State<AppState>) -> Html<String> {
             total_domains: 0,
             total_users: 0,
             total_aliases: 0,
+            total_backups: 0,
             total_quota: 0,
             used_quota: 0,
         },

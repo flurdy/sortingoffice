@@ -16,13 +16,25 @@ diesel::table! {
 }
 
 diesel::table! {
+    backups (pkid) {
+        pkid -> Integer,
+        #[max_length = 255]
+        domain -> Varchar,
+        #[max_length = 255]
+        transport -> Nullable<Varchar>,
+        created -> Datetime,
+        modified -> Datetime,
+        enabled -> Bool,
+    }
+}
+
+diesel::table! {
     domains (pkid) {
         pkid -> Integer,
         #[max_length = 255]
         domain -> Varchar,
         #[max_length = 255]
         transport -> Nullable<Varchar>,
-        backupmx -> Bool,
         created -> Datetime,
         modified -> Datetime,
         enabled -> Bool,
@@ -55,6 +67,7 @@ diesel::table! {
 
 diesel::allow_tables_to_appear_in_same_query!(
     aliases,
+    backups,
     domains,
     users,
 );

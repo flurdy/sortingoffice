@@ -11,16 +11,33 @@ use axum::{
 pub async fn list(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
 
+    tracing::debug!("Handling domains list request");
     let domains = match db::get_domains(pool) {
-        Ok(domains) => domains,
-        Err(_) => vec![],
+        Ok(domains) => {
+            tracing::info!("Successfully retrieved {} domains", domains.len());
+            domains
+        },
+        Err(e) => {
+            tracing::error!("Failed to retrieve domains: {:?}", e);
+            vec![]
+        },
     };
 
+    tracing::debug!("Rendering template with {} domains", domains.len());
     let content_template = DomainListTemplate {
         title: "Domains",
         domains,
     };
-    let content = content_template.render().unwrap();
+    let content = match content_template.render() {
+        Ok(content) => {
+            tracing::debug!("Template rendered successfully, content length: {}", content.len());
+            content
+        },
+        Err(e) => {
+            tracing::error!("Failed to render template: {:?}", e);
+            return Html("Error rendering template".to_string());
+        }
+    };
 
     let template = BaseTemplate {
         title: "Domains".to_string(),
@@ -33,7 +50,6 @@ pub async fn new() -> Html<String> {
     let form = DomainForm {
         domain: "".to_string(),
         transport: "virtual".to_string(),
-        backupmx: false,
         enabled: true,
     };
 
@@ -77,7 +93,6 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     let form = DomainForm {
         domain: domain.domain.clone(),
         transport: domain.transport.clone().unwrap_or_default(),
-        backupmx: domain.backupmx,
         enabled: domain.enabled,
     };
 
@@ -95,7 +110,6 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<DomainForm>)
     let new_domain = NewDomain {
         domain: form.domain,
         transport: Some(form.transport.clone()),
-        backupmx: form.backupmx,
         enabled: form.enabled,
     };
 
