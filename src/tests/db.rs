@@ -86,7 +86,7 @@ mod tests {
 
         // Test create user
         let user_form = UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
@@ -95,7 +95,7 @@ mod tests {
         };
 
         let created_user = db::create_user(&pool, user_form).unwrap();
-        assert_eq!(created_user.username, "testuser");
+        assert_eq!(created_user.id, "testuser@test.com");
         assert_eq!(created_user.name, "Test User");
         assert_eq!(created_user.domain, domain.domain);
         assert_eq!(created_user.enabled, true);
@@ -104,15 +104,15 @@ mod tests {
         // Test get user
         let retrieved_user = db::get_user(&pool, created_user.pkid).unwrap();
         assert_eq!(retrieved_user.pkid, created_user.pkid);
-        assert_eq!(retrieved_user.username, "testuser");
+        assert_eq!(retrieved_user.id, "testuser@test.com");
 
-        // Test get user by username
-        let user_by_username = db::get_user_by_username(&pool, "testuser").unwrap();
-        assert_eq!(user_by_username.pkid, created_user.pkid);
+        // Test get user by id
+        let user_by_id = db::get_user_by_id(&pool, "testuser@test.com").unwrap();
+        assert_eq!(user_by_id.pkid, created_user.pkid);
 
         // Test update user with new password
         let update_form = UserForm {
-            username: "updateduser".to_string(),
+            id: "updateduser@test.com".to_string(),
             password: "newpassword123".to_string(),
             name: "Updated User".to_string(),
             domain: domain.domain.clone(),
@@ -121,13 +121,13 @@ mod tests {
         };
 
         let updated_user = db::update_user(&pool, created_user.pkid, update_form).unwrap();
-        assert_eq!(updated_user.username, "updateduser");
+        assert_eq!(updated_user.id, "updateduser@test.com");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, false);
 
         // Test update user without password
         let update_form_no_password = UserForm {
-            username: "finaluser".to_string(),
+            id: "finaluser@test.com".to_string(),
             password: "".to_string(), // Empty password
             name: "Final User".to_string(),
             domain: domain.domain.clone(),
@@ -137,7 +137,7 @@ mod tests {
 
         let final_user =
             db::update_user(&pool, created_user.pkid, update_form_no_password).unwrap();
-        assert_eq!(final_user.username, "finaluser");
+        assert_eq!(final_user.id, "finaluser@test.com");
         assert_eq!(final_user.name, "Final User");
         assert_eq!(final_user.enabled, true);
 
@@ -240,7 +240,7 @@ mod tests {
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
         let user_form = UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
@@ -299,7 +299,7 @@ mod tests {
         let domain = db::create_domain(&pool, new_domain).unwrap();
 
         let user_form = UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),

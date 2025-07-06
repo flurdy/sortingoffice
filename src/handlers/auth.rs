@@ -19,7 +19,7 @@ pub async fn login_form() -> Html<String> {
 
 #[derive(Deserialize)]
 pub struct LoginRequest {
-    pub username: String,
+    pub id: String,
     pub password: String,
 }
 
@@ -28,7 +28,7 @@ pub async fn login(
     Form(request): Form<LoginRequest>,
 ) -> Result<Redirect, Html<String>> {
     let pool = &state.pool;
-    if let Ok(user) = db::get_user_by_username(pool, &request.username) {
+    if let Ok(user) = db::get_user_by_id(pool, &request.id) {
         if bcrypt::verify(&request.password, &user.password).unwrap_or(false) {
             // TODO: Set session
             return Ok(Redirect::to("/"));
@@ -37,7 +37,7 @@ pub async fn login(
 
     let template = LoginTemplate {
         title: "Login",
-        error: "Invalid username or password",
+        error: "Invalid id or password",
     };
     Err(Html(template.render().unwrap()))
 }

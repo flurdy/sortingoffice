@@ -338,7 +338,7 @@ mod tests {
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let user_form = crate::models::UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@users-list-test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),
@@ -364,7 +364,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains("testuser"));
+        assert!(body_str.contains("testuser@users-list-test.com"));
         assert!(body_str.contains("Test User"));
 
         cleanup_test_db(&state.pool);
@@ -390,7 +390,7 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "username=testuser&password=password123&name=Test+User&domain=users-create-test.com&quota=100000&enabled=on";
+        let form_data = "id=testuser@users-create-test.com&password=password123&name=Test+User&domain=users-create-test.com&quota=100000&enabled=on";
 
         let response = app
             .oneshot(
@@ -409,7 +409,7 @@ mod tests {
         // Verify user was created
         let users = crate::db::get_users(&state.pool).unwrap();
         assert!(!users.is_empty());
-        assert!(users.iter().any(|u| u.username == "testuser"));
+        assert!(users.iter().any(|u| u.id == "testuser@users-create-test.com"));
 
         cleanup_test_db(&state.pool);
     }
@@ -532,7 +532,7 @@ mod tests {
         let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let user_form = crate::models::UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@stats-test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: domain.domain.clone(),

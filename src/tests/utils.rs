@@ -45,7 +45,7 @@ mod tests {
 
         // Test valid user form
         let valid_user_form = UserForm {
-            username: "testuser".to_string(),
+            id: "testuser@example.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             domain: "example.com".to_string(),
@@ -53,7 +53,7 @@ mod tests {
             enabled: true,
         };
 
-        assert!(!valid_user_form.username.is_empty());
+        assert!(!valid_user_form.id.is_empty());
         assert!(!valid_user_form.password.is_empty());
         assert!(!valid_user_form.name.is_empty());
         assert!(!valid_user_form.domain.is_empty());
@@ -102,7 +102,7 @@ mod tests {
         // Test User model creation
         let user = User {
             pkid: 1,
-            username: "testuser".to_string(),
+            id: "testuser@example.com".to_string(),
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
@@ -114,7 +114,7 @@ mod tests {
         };
 
         assert_eq!(user.pkid, 1);
-        assert_eq!(user.username, "testuser");
+        assert_eq!(user.id, "testuser@example.com");
         assert_eq!(user.name, "Test User");
         assert_eq!(user.maildir, "testuser/");
         assert_eq!(user.quota, 100000);
@@ -164,7 +164,7 @@ mod tests {
 
         // Test NewUser creation
         let new_user = NewUser {
-            username: "testuser".to_string(),
+            id: "testuser@example.com".to_string(),
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
@@ -173,7 +173,7 @@ mod tests {
             enabled: true,
         };
 
-        assert_eq!(new_user.username, "testuser");
+        assert_eq!(new_user.id, "testuser@example.com");
         assert_eq!(new_user.password, "hashed_password");
         assert_eq!(new_user.name, "Test User");
         assert_eq!(new_user.maildir, "testuser/");
@@ -340,39 +340,39 @@ mod tests {
     }
 
     #[test]
-    fn test_username_validation() {
-        // Test valid usernames
-        let valid_usernames = vec!["user", "user123", "user-name", "user_name", "user.name"];
+    fn test_id_validation() {
+        // Test valid ids
+        let valid_ids = vec!["user", "user123", "user-name", "user_name", "user.name"];
 
-        for username in valid_usernames {
+        for id in valid_ids {
             assert!(
-                !username.is_empty(),
-                "Username should not be empty: {}",
-                username
+                !id.is_empty(),
+                "Id should not be empty: {}",
+                id
             );
             assert!(
-                username.len() <= 64,
-                "Username should not be too long: {}",
-                username
+                id.len() <= 64,
+                "Id should not be too long: {}",
+                id
             );
             // Add more specific validation rules as needed
         }
 
-        // Test invalid usernames
-        let long_username = "a".repeat(65);
-        let invalid_usernames = vec![
+        // Test invalid ids
+        let long_id = "a".repeat(65);
+        let invalid_ids = vec![
             "",
-            &long_username, // Too long
+            &long_id, // Too long
         ];
 
-        for username in invalid_usernames {
-            if username.is_empty() {
+        for id in invalid_ids {
+            if id.is_empty() {
                 continue; // Expected to be invalid
             }
-            if username.len() > 64 {
+            if id.len() > 64 {
                 continue; // Expected to be invalid
             }
-            // If we get here, the username format is valid but we know it's supposed to be invalid
+            // If we get here, the id format is valid but we know it's supposed to be invalid
             // This might indicate a test case issue
         }
     }

@@ -51,7 +51,7 @@ pub struct NewDomain {
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
     pub pkid: i32,
-    pub username: String,
+    pub id: String,
     pub password: String,
     pub name: String,
     pub maildir: String,
@@ -65,12 +65,24 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize, Insertable)]
 #[diesel(table_name = users)]
 pub struct NewUser {
-    pub username: String,
+    pub id: String,
     pub password: String,
     pub name: String,
     pub maildir: String,
     pub quota: i64,
     pub domain: String,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserForm {
+    pub id: String,
+    pub password: String,
+    pub name: String,
+    pub domain: String,
+    pub quota: i64,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
 }
 
@@ -116,18 +128,6 @@ pub struct DomainForm {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct UserForm {
-    pub username: String,
-    pub password: String,
-    pub name: String,
-    pub domain: String,
-    pub quota: i64,
-    #[serde(default)]
-    #[serde(deserialize_with = "deserialize_checkbox")]
-    pub enabled: bool,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct AliasForm {
     pub mail: String,
     pub destination: String,

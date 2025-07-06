@@ -225,7 +225,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create a user via HTTP POST
-        let user_form_data = "username=integrationuser&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&active=on";
+        let user_form_data = "id=integrationuser@integration-user-test.com&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&active=on";
 
         let create_response = app
             .clone()
@@ -260,17 +260,17 @@ mod tests {
             .await
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
-        assert!(body_str.contains("integrationuser"));
+        assert!(body_str.contains("integrationuser@integration-user-test.com"));
 
         // Step 4: Get the user ID from the database
         let users = crate::db::get_users(&state.pool).unwrap();
         let user = users
             .iter()
-            .find(|u| u.username == "integrationuser")
+            .find(|u| u.id == "integrationuser@integration-user-test.com")
             .unwrap();
 
         // Step 5: Update the user
-        let update_form_data = "username=updateduser&password=newpass456&name=Updated+User&domain=integration-user-test.com&quota=200000&active=off";
+        let update_form_data = "id=updateduser@integration-user-test.com&password=newpass456&name=Updated+User&domain=integration-user-test.com&quota=200000&active=off";
 
         let update_response = app
             .clone()
@@ -289,7 +289,7 @@ mod tests {
 
         // Step 6: Verify the update
         let updated_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
-        assert_eq!(updated_user.username, "updateduser");
+        assert_eq!(updated_user.id, "updateduser@integration-user-test.com");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, false);
 
@@ -455,7 +455,7 @@ mod tests {
             .await
             .unwrap();
 
-        let user_form_data = "username=statsuser&password=password123&name=Stats+User&domain=integration-stats-test.com&quota=100000&active=on";
+        let user_form_data = "id=statsuser@integration-stats-test.com&password=password123&name=Stats+User&domain=integration-stats-test.com&quota=100000&active=on";
 
         let _user_response = app
             .clone()

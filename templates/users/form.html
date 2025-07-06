@@ -9,10 +9,10 @@
 
     <form {% if user.is_some() %}hx-put="/users/{{ user.as_ref().unwrap().pkid }}"{% else %}hx-post="/users"{% endif %} hx-target="#main-content" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
-            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="username">
-                Username
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="id">
+                User ID
             </label>
-            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" name="username" type="text" placeholder="user@example.com" value="{{ form.username }}">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="id" name="id" type="text" placeholder="user@example.com" value="{{ form.id }}">
         </div>
         <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="password">

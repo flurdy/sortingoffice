@@ -87,7 +87,7 @@ pub fn get_users(pool: &DbPool) -> Result<Vec<User>, Error> {
     let mut conn = pool.get().unwrap();
     users::table
         .select(User::as_select())
-        .order(users::username.asc())
+        .order(users::id.asc())
         .load::<User>(&mut conn)
 }
 
@@ -99,10 +99,10 @@ pub fn get_user(pool: &DbPool, user_id: i32) -> Result<User, Error> {
         .first::<User>(&mut conn)
 }
 
-pub fn get_user_by_username(pool: &DbPool, uname: &str) -> Result<User, Error> {
+pub fn get_user_by_id(pool: &DbPool, user_id: &str) -> Result<User, Error> {
     let mut conn = pool.get().unwrap();
     users::table
-        .filter(users::username.eq(uname))
+        .filter(users::id.eq(user_id))
         .select(User::as_select())
         .first::<User>(&mut conn)
 }
@@ -119,10 +119,10 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
             )
         })?;
 
-    let maildir = format!("{}/", user_data.username);
+    let maildir = format!("{}/", user_data.id);
 
     let new_user = NewUser {
-        username: user_data.username,
+        id: user_data.id,
         password: hashed_password,
         name: user_data.name,
         maildir,
@@ -135,7 +135,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
 
     diesel::insert_into(users::table)
         .values((
-            users::username.eq(new_user.username),
+            users::id.eq(new_user.id),
             users::password.eq(new_user.password),
             users::name.eq(new_user.name),
             users::maildir.eq(new_user.maildir),
@@ -167,7 +167,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
 
         diesel::update(users::table.find(user_id))
             .set((
-                users::username.eq(user_data.username),
+                users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
                 users::quota.eq(user_data.quota),
@@ -179,7 +179,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
     } else {
         diesel::update(users::table.find(user_id))
             .set((
-                users::username.eq(user_data.username),
+                users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::domain.eq(user_data.domain),
                 users::quota.eq(user_data.quota),

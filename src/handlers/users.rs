@@ -31,7 +31,7 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
 
 pub async fn new() -> Html<String> {
     let form = UserForm {
-        username: "".to_string(),
+        id: "".to_string(),
         password: "".to_string(),
         name: "".to_string(),
         domain: "example.com".to_string(),
@@ -78,7 +78,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     };
 
     let form = UserForm {
-        username: user.username.clone(),
+        id: user.id.clone(),
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
         domain: user.domain.clone(),
@@ -120,7 +120,7 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<UserForm>) -
                         diesel::result::Error::DatabaseError(
                             diesel::result::DatabaseErrorKind::UniqueViolation,
                             _,
-                        ) => "A user with this username already exists.",
+                        ) => "A user with this id already exists.",
                         diesel::result::Error::DatabaseError(
                             diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                             _,

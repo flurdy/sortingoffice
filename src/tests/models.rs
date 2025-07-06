@@ -57,7 +57,7 @@ mod tests {
     fn test_user_serialization() {
         let user = User {
             pkid: 1,
-            username: "testuser".to_string(),
+            id: "testuser@example.com".to_string(),
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
             maildir: "testuser/".to_string(),
@@ -72,7 +72,7 @@ mod tests {
         let deserialized: User = serde_json::from_str(&json).unwrap();
 
         assert_eq!(user.pkid, deserialized.pkid);
-        assert_eq!(user.username, deserialized.username);
+        assert_eq!(user.id, deserialized.id);
         assert_eq!(user.name, deserialized.name);
         assert_eq!(user.maildir, deserialized.maildir);
         assert_eq!(user.quota, deserialized.quota);
@@ -134,10 +134,10 @@ mod tests {
 
     #[test]
     fn test_user_form_deserialization() {
-        let form_data = "username=testuser&password=secret123&name=Test+User&domain=example.com&quota=100000&enabled=on";
+        let form_data = "id=testuser@example.com&password=secret123&name=Test+User&domain=example.com&quota=100000&enabled=on";
         let form: UserForm = serde_urlencoded::from_str(form_data).unwrap();
 
-        assert_eq!(form.username, "testuser");
+        assert_eq!(form.id, "testuser@example.com");
         assert_eq!(form.password, "secret123");
         assert_eq!(form.name, "Test User");
         assert_eq!(form.domain, "example.com");

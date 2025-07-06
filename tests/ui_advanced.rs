@@ -150,9 +150,9 @@ async fn test_user_creation_workflow() -> Result<()> {
                 .await?;
 
             // Fill out the form
-            let username_input =
-                wait_for_element(&client, Locator::Css("input[name='username']"), 5000).await?;
-            username_input.send_keys("testuser").await?;
+            let id_input =
+                wait_for_element(&client, Locator::Css("input[name='id']"), 5000).await?;
+            id_input.send_keys("testuser@testdomain.com").await?;
 
             let name_input =
                 wait_for_element(&client, Locator::Css("input[name='name']"), 5000).await?;

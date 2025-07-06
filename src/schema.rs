@@ -38,7 +38,7 @@ diesel::table! {
     users (pkid) {
         pkid -> Integer,
         #[max_length = 255]
-        username -> Varchar,
+        id -> Varchar,
         #[max_length = 255]
         password -> Varchar,
         #[max_length = 255]
