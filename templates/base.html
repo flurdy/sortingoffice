@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
-    <link rel="icon" type="image/png" href="/static/trays-small.png">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -30,6 +30,22 @@
             }
         }
     </script>
+    <style>
+        /* Sidebar state management */
+        #sidebar[data-sidebar-open="false"] {
+            transform: translateX(-100%) !important;
+        }
+        #sidebar[data-sidebar-open="true"] {
+            transform: translateX(0) !important;
+        }
+        
+        /* Ensure sidebar is always visible on large screens by default */
+        @media (min-width: 1024px) {
+            #sidebar {
+                transform: translateX(0) !important;
+            }
+        }
+    </style>
     <script>
         // Theme management
         function getTheme() {
@@ -86,138 +102,237 @@
                 dropdown.classList.add('hidden');
             }
         });
+
+        // Sidebar toggle function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const isOpen = sidebar.getAttribute('data-sidebar-open') === 'true';
+            sidebar.setAttribute('data-sidebar-open', !isOpen);
+        }
+        
+        // Handle window resize to ensure proper sidebar state
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const isLargeScreen = window.innerWidth >= 1024;
+            
+            if (isLargeScreen) {
+                // On large screens, ensure sidebar is visible
+                sidebar.setAttribute('data-sidebar-open', 'true');
+            } else {
+                // On small screens, keep current state or default to closed
+                if (sidebar.getAttribute('data-sidebar-open') === null) {
+                    sidebar.setAttribute('data-sidebar-open', 'false');
+                }
+            }
+        });
+        
+        // Initialize sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const isLargeScreen = window.innerWidth >= 1024;
+            
+            if (isLargeScreen) {
+                sidebar.setAttribute('data-sidebar-open', 'true');
+            } else {
+                sidebar.setAttribute('data-sidebar-open', 'false');
+            }
+        });
     </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    <div class="min-h-screen">
-        <!-- Navigation -->
-        <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center">
-                            <!-- Sorting Office trays logo -->
-                            <img src="/static/trays-logo.png" alt="Sorting Office logo" class="h-8 w-8 mr-3" style="object-fit:contain; filter: drop-shadow(0 0 1px #222);" />
-                            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
-                        </div>
-                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <a href="/" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 h-full">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform -translate-x-full lg:static lg:inset-0 transition-transform duration-300 ease-in-out" data-sidebar-open="true">
+            <div class="flex items-center justify-end h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Sidebar Navigation -->
+            <nav class="mt-8 px-4">
+                <div class="space-y-2">
+                    <!-- Main Navigation -->
+                    <div class="mb-6">
+                        <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Main</h3>
+                        <div class="space-y-1">
+                            <a href="/" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                                </svg>
                                 {{ nav_dashboard }}
                             </a>
-                            <a href="/domains" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/domains" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-5 0-9-4-9-9s4-9 9-9"></path>
+                                </svg>
                                 {{ nav_domains }}
                             </a>
-                            <a href="/aliases" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/aliases" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                </svg>
                                 {{ nav_aliases }}
                             </a>
-                            <a href="/users" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/users" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
                                 {{ nav_users }}
                             </a>
-                            <a href="/stats" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        </div>
+                    </div>
+                    
+                    <!-- Secondary Navigation -->
+                    <div class="mb-6">
+                        <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Tools</h3>
+                        <div class="space-y-1">
+                            <a href="/stats" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
                                 {{ nav_statistics }}
                             </a>
-                            <a href="/reports" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/reports" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
                                 {{ nav_reports }}
                             </a>
-                            <a href="/config" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/config" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
                                 {{ nav_config }}
                             </a>
-                            <a href="/about" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <a href="/about" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
                                 {{ nav_about }}
                             </a>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <!-- Language Selector -->
-                        <div class="relative inline-block text-left">
-                            <button type="button" onclick="toggleLanguageDropdown()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200 flex items-center" title="{{ language_selector }}">
-                                <!-- Globe icon -->
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9"></path>
-                                </svg>
-                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Navigation Bar -->
+            <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between h-16">
+                        <div class="flex items-center">
+                            <!-- Mobile menu button -->
+                            <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                                 </svg>
                             </button>
-                            <div id="language-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                                <div class="py-1">
-                                    <form method="post" action="/language/set">
-                                        <input type="hidden" name="language" value="en-US">
-                                        <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                            <span class="flag-icon flag-icon-us mr-2"></span>
-                                            {{ language_english }}
-                                            {% if current_locale == "en-US" %}
-                                            <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                    <form method="post" action="/language/set">
-                                        <input type="hidden" name="language" value="es-ES">
-                                        <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                            <span class="flag-icon flag-icon-es mr-2"></span>
-                                            {{ language_spanish }}
-                                            {% if current_locale == "es-ES" %}
-                                            <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                </div>
+                            <!-- Logo and Title -->
+                            <div class="flex items-center lg:ml-0 ml-4">
+                                <img src="/static/trays-logo.png" alt="Sorting Office logo" class="h-8 w-8 mr-3" style="object-fit:contain; filter: drop-shadow(0 0 1px #222);" />
+                                <h1 class="text-lg font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
                             </div>
                         </div>
                         
-                        <!-- Theme Toggle Button -->
-                        <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="{{ theme_toggle }}">
-                            <!-- Sun icon for dark mode -->
-                            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                            </svg>
-                            <!-- Moon icon for light mode -->
-                            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                            </svg>
-                        </button>
-                        <form method="post" action="/logout">
-                            <button type="submit" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">
-                                {{ nav_logout }}
+                        <div class="flex items-center space-x-4">
+                            <!-- Language Selector -->
+                            <div class="relative inline-block text-left">
+                                <button type="button" onclick="toggleLanguageDropdown()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200 flex items-center" title="{{ language_selector }}">
+                                    <!-- Globe icon -->
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9"></path>
+                                    </svg>
+                                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                <div id="language-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                    <div class="py-1">
+                                        <form method="post" action="/language/set">
+                                            <input type="hidden" name="language" value="en-US">
+                                            <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                                                <span class="flag-icon flag-icon-us mr-2"></span>
+                                                {{ language_english }}
+                                                {% if current_locale == "en-US" %}
+                                                <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="/language/set">
+                                            <input type="hidden" name="language" value="es-ES">
+                                            <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                                                <span class="flag-icon flag-icon-es mr-2"></span>
+                                                {{ language_spanish }}
+                                                {% if current_locale == "es-ES" %}
+                                                <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Theme Toggle Button -->
+                            <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="{{ theme_toggle }}">
+                                <!-- Sun icon for dark mode -->
+                                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <!-- Moon icon for light mode -->
+                                <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
                             </button>
-                        </form>
+                            <form method="post" action="/logout">
+                                <button type="submit" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">
+                                    {{ nav_logout }}
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
 
-        <!-- Main content -->
-        <main id="main-content" class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            {{ content }}
-        </main>
-        
-        <!-- Footer -->
-        <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ app_subtitle }}
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="https://flurdy.com/docs/postfix/" target="_blank" rel="noopener noreferrer">
-                            <!-- Black logo for light mode -->
-                            <img src="/static/flurdy-logo-black.png" alt="flurdy logo" class="h-5 block dark:hidden" style="height:1.15rem; max-width:120px; object-fit:contain;" />
-                            <!-- Regular logo for dark mode -->
-                            <img src="/static/flurdy-logo-gray.png" alt="flurdy logo" class="h-5 hidden dark:block" style="height:1.15rem; max-width:120px; object-fit:contain;" />
-                        </a>
-                        <a href="https://github.com/flurdy/sortingoffice" target="_blank" rel="noopener noreferrer" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
-                            </svg>
-                        </a>
+            <!-- Main content -->
+            <main id="main-content" class="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+                {{ content }}
+            </main>
+            
+            <!-- Footer -->
+            <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ app_subtitle }}
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <a href="https://flurdy.com/docs/postfix/" target="_blank" rel="noopener noreferrer">
+                                <!-- Black logo for light mode -->
+                                <img src="/static/flurdy-logo-black.png" alt="flurdy logo" class="h-5 block dark:hidden" style="height:1.15rem; max-width:120px; object-fit:contain;" />
+                                <!-- Regular logo for dark mode -->
+                                <img src="/static/flurdy-logo-gray.png" alt="flurdy logo" class="h-5 hidden dark:block" style="height:1.15rem; max-width:120px; object-fit:contain;" />
+                            </a>
+                            <a href="https://github.com/flurdy/sortingoffice" target="_blank" rel="noopener noreferrer" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </footer>
+            </footer>
+        </div>
     </div>
 </body>
 </html> 
