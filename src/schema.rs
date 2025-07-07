@@ -54,8 +54,6 @@ diesel::table! {
         home -> Varchar,
         uid -> Unsigned<Smallint>,
         gid -> Unsigned<Smallint>,
-        #[max_length = 255]
-        domain -> Varchar,
         created -> Datetime,
         modified -> Datetime,
         enabled -> Bool,

@@ -46,7 +46,7 @@ mysql -u root -p sortingoffice < seed_data/backups.sql
 The seed data files respect foreign key constraints:
 
 1. **domains.sql** - Must be loaded first (no dependencies)
-2. **users.sql** - Depends on domains (foreign key to domains.domain)
+2. **users.sql** - No foreign key constraints (domain field removed)
 3. **aliases.sql** - No foreign key constraints (domain derived from mail field)
 4. **backups.sql** - No foreign key constraints
 

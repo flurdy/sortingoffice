@@ -9,7 +9,7 @@ pub struct UserListTemplate {
     pub add_user: String,
     pub table_header_user_id: String,
     pub table_header_name: String,
-    pub table_header_domain: String,
+
     pub table_header_status: String,
     pub table_header_actions: String,
     pub status_active: String,
@@ -32,7 +32,7 @@ pub struct UserShowTemplate {
     pub user_details: String,
     pub user_id: String,
     pub full_name: String,
-    pub domain: String,
+
     pub status: String,
     pub created: String,
     pub modified: String,
@@ -53,15 +53,15 @@ pub struct UserFormTemplate {
     pub form_user_id: String,
     pub form_password: String,
     pub form_name: String,
-    pub form_domain: String,
+
     pub form_active: String,
     pub placeholder_user_email: String,
     pub placeholder_name: String,
-    pub placeholder_domain: String,
+
     pub tooltip_user_id: String,
     pub tooltip_password: String,
     pub tooltip_name: String,
-    pub tooltip_domain: String,
+
     pub tooltip_active: String,
     pub cancel: String,
     pub create_user: String,

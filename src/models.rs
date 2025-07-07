@@ -54,7 +54,6 @@ pub struct User {
     pub home: String,
     pub uid: u16,
     pub gid: u16,
-    pub domain: String,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
     pub enabled: bool,
@@ -71,7 +70,6 @@ pub struct NewUser {
     pub home: String,
     pub uid: u16,
     pub gid: u16,
-    pub domain: String,
     pub enabled: bool,
     pub change_password: bool,
 }
@@ -81,7 +79,6 @@ pub struct UserForm {
     pub id: String,
     pub password: String,
     pub name: String,
-    pub domain: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,

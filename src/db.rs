@@ -133,7 +133,6 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         home: "/var/spool/mail/virtual".to_string(),
         uid: 5000,
         gid: 5000,
-        domain: user_data.domain,
         enabled: user_data.enabled,
         change_password: false,
     };
@@ -149,7 +148,6 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
             users::home.eq(new_user.home),
             users::uid.eq(new_user.uid),
             users::gid.eq(new_user.gid),
-            users::domain.eq(new_user.domain),
             users::enabled.eq(new_user.enabled),
             users::created.eq(now),
             users::modified.eq(now),
@@ -178,7 +176,6 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
             .set((
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
-                users::domain.eq(user_data.domain),
                 users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
                 users::crypt.eq(hashed_password),
@@ -189,7 +186,6 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
             .set((
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
-                users::domain.eq(user_data.domain),
                 users::enabled.eq(user_data.enabled),
                 users::modified.eq(Utc::now().naive_utc()),
             ))
@@ -341,11 +337,6 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
     let mut stats = Vec::new();
 
     for domain in domains {
-        let user_count: i64 = users::table
-            .filter(users::domain.eq(&domain.domain))
-            .count()
-            .get_result(&mut conn)?;
-
         // Count aliases for this domain by checking the domain part of the mail field
         let alias_count: i64 = aliases::table
             .filter(aliases::mail.like(format!("%@{}", domain.domain)))
@@ -356,7 +347,7 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
 
         stats.push(DomainStats {
             domain: domain.domain,
-            user_count,
+            user_count: 0, // Users no longer have domain field
             alias_count,
             total_quota,
             used_quota: 0, // This would need to be calculated from actual disk usage

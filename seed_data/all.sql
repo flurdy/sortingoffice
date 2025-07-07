@@ -8,11 +8,11 @@ INSERT INTO domains (domain, transport, enabled) VALUES
 ('example.org', 'virtual', 1),
 ('test.com', 'smtp:localhost', 1);
 
--- Seed data for users (depends on domains)
-INSERT INTO users (id, crypt, name, maildir, domain, enabled) VALUES
-('admin@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Administrator', '/var/mail/example.com/admin', 'example.com', 1),
-('user1@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Test User 1', '/var/mail/example.com/user1', 'example.com', 1),
-('user2@example.org', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Test User 2', '/var/mail/example.org/user2', 'example.org', 1);
+-- Seed data for users (no longer depends on domains)
+INSERT INTO users (id, crypt, name, maildir, enabled) VALUES
+('admin@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Administrator', '/var/mail/example.com/admin', 1),
+('user1@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Test User 1', '/var/mail/example.com/user1', 1),
+('user2@example.org', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iQeO', 'Test User 2', '/var/mail/example.org/user2', 1);
 
 -- Seed data for aliases (no foreign key constraints)
 INSERT INTO aliases (mail, destination, enabled) VALUES

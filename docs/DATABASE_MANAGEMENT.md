@@ -179,8 +179,8 @@ Seed data is initial data that gets loaded into the database when you first set 
        ('test.com', 'smtp:localhost', 1);
    
    -- seed_data/users.sql
-   INSERT INTO users (id, crypt, name, maildir, domain, enabled) VALUES 
-       ('admin@example.com', '$2b$12$...', 'Admin User', '/var/mail/example.com/admin', 'example.com', 1);
+   INSERT INTO users (id, crypt, name, maildir, enabled) VALUES 
+       ('admin@example.com', '$2b$12$...', 'Admin User', '/var/mail/example.com/admin', 1);
    
    -- seed_data/aliases.sql
    INSERT INTO aliases (mail, destination, enabled) VALUES 

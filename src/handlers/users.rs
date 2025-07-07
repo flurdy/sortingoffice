@@ -20,7 +20,7 @@ async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<Use
         add_user: get_translation(state, locale, "users-add").await,
         table_header_user_id: get_translation(state, locale, "users-table-header-user-id").await,
         table_header_name: get_translation(state, locale, "users-table-header-name").await,
-        table_header_domain: get_translation(state, locale, "users-table-header-domain").await,
+
         table_header_status: get_translation(state, locale, "users-table-header-status").await,
         table_header_actions: get_translation(state, locale, "users-table-header-actions").await,
         status_active: get_translation(state, locale, "status-active").await,
@@ -43,7 +43,7 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         user_details: get_translation(state, locale, "users-user-details").await,
         user_id: get_translation(state, locale, "users-user-id").await,
         full_name: get_translation(state, locale, "users-full-name").await,
-        domain: get_translation(state, locale, "users-domain").await,
+
         status: get_translation(state, locale, "users-status").await,
         created: get_translation(state, locale, "users-created").await,
         modified: get_translation(state, locale, "users-modified").await,
@@ -70,15 +70,15 @@ async fn build_user_form_template(state: &AppState, locale: &str, user: Option<U
         form_user_id: get_translation(state, locale, "users-form-user-id").await,
         form_password: get_translation(state, locale, "users-form-password").await,
         form_name: get_translation(state, locale, "users-form-name").await,
-        form_domain: get_translation(state, locale, "users-form-domain").await,
+
         form_active: get_translation(state, locale, "users-form-active").await,
         placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email").await,
         placeholder_name: get_translation(state, locale, "users-placeholder-name").await,
-        placeholder_domain: get_translation(state, locale, "users-placeholder-domain").await,
+
         tooltip_user_id: get_translation(state, locale, "users-tooltip-user-id").await,
         tooltip_password: get_translation(state, locale, "users-tooltip-password").await,
         tooltip_name: get_translation(state, locale, "users-tooltip-name").await,
-        tooltip_domain: get_translation(state, locale, "users-tooltip-domain").await,
+
         tooltip_active: get_translation(state, locale, "users-tooltip-active").await,
         cancel: get_translation(state, locale, "users-cancel").await,
         create_user: get_translation(state, locale, "users-create-user").await,
@@ -123,7 +123,6 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         id: "".to_string(),
         password: "".to_string(),
         name: "".to_string(),
-        domain: "example.com".to_string(),
         enabled: true,
     };
 
@@ -189,7 +188,6 @@ pub async fn edit(
         id: user.id.clone(),
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
-        domain: user.domain.clone(),
         enabled: user.enabled,
     };
 
@@ -235,60 +233,38 @@ pub async fn create(
             Html(template.render().unwrap())
         }
     } else {
-        // First check if the domain exists
-        match db::get_domain_by_name(pool, &form.domain) {
+        // Create user directly (no domain validation needed)
+        match db::create_user(pool, form.clone()) {
             Ok(_) => {
-                // Domain exists, proceed with user creation
-                match db::create_user(pool, form.clone()) {
-                    Ok(_) => {
-                        let users = match db::get_users(pool) {
-                            Ok(users) => users,
-                            Err(e) => {
-                                eprintln!("Error getting users: {:?}", e);
-                                vec![]
-                            }
-                        };
-                        let content_template = build_user_list_template(&state, &locale, users).await;
-                        let content = content_template.render().unwrap();
-
-                        if is_htmx_request(&headers) {
-                            Html(content)
-                        } else {
-                            let template = BaseTemplate::with_i18n(
-                                get_translation(&state, &locale, "users-title").await,
-                                content,
-                                &state,
-                                &locale,
-                            ).await.unwrap();
-                            Html(template.render().unwrap())
-                        }
-                    }
+                let users = match db::get_users(pool) {
+                    Ok(users) => users,
                     Err(e) => {
-                        let error_msg = if e.to_string().contains("Duplicate entry") {
-                            get_translation(&state, &locale, "error-duplicate-user").await
-                        } else {
-                            get_translation(&state, &locale, "error-unexpected").await
-                        };
-                        
-                        let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
-                        let content = form_template.render().unwrap();
-
-                        if is_htmx_request(&headers) {
-                            Html(content)
-                        } else {
-                            let template = BaseTemplate::with_i18n(
-                                get_translation(&state, &locale, "users-add-title").await,
-                                content,
-                                &state,
-                                &locale,
-                            ).await.unwrap();
-                            Html(template.render().unwrap())
-                        }
+                        eprintln!("Error getting users: {:?}", e);
+                        vec![]
                     }
+                };
+                let content_template = build_user_list_template(&state, &locale, users).await;
+                let content = content_template.render().unwrap();
+
+                if is_htmx_request(&headers) {
+                    Html(content)
+                } else {
+                    let template = BaseTemplate::with_i18n(
+                        get_translation(&state, &locale, "users-title").await,
+                        content,
+                        &state,
+                        &locale,
+                    ).await.unwrap();
+                    Html(template.render().unwrap())
                 }
             }
-            Err(_) => {
-                let error_msg = "Domain does not exist. Please create the domain first.".to_string();
+            Err(e) => {
+                let error_msg = if e.to_string().contains("Duplicate entry") {
+                    get_translation(&state, &locale, "error-duplicate-user").await
+                } else {
+                    get_translation(&state, &locale, "error-unexpected").await
+                };
+                
                 let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
                 let content = form_template.render().unwrap();
 

@@ -9,6 +9,8 @@ use axum::{
     Form,
 };
 
+
+
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -25,7 +27,19 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         },
     };
 
-    tracing::debug!("Rendering template with {} domains", domains.len());
+    // Get backups data
+    let backups = match db::get_backups(pool) {
+        Ok(backups) => {
+            tracing::info!("Successfully retrieved {} backups", backups.len());
+            backups
+        },
+        Err(e) => {
+            tracing::error!("Failed to retrieve backups: {:?}", e);
+            vec![]
+        },
+    };
+
+    tracing::debug!("Rendering template with {} domains and {} backups", domains.len(), backups.len());
     
     // Get all translations
     let title = get_translation(&state, &locale, "domains-title").await;
@@ -43,6 +57,20 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
     let empty_description = get_translation(&state, &locale, "domains-empty-description").await;
     
+    // Backup translations
+    let backups_title = get_translation(&state, &locale, "backups-title").await;
+    let backups_description = get_translation(&state, &locale, "backups-description").await;
+    let add_backup = get_translation(&state, &locale, "backups-add").await;
+    let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
+    let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
+    let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+    let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
+    let backups_view = get_translation(&state, &locale, "backups-view").await;
+    let backups_disable = get_translation(&state, &locale, "backups-disable").await;
+    let backups_enable = get_translation(&state, &locale, "backups-enable").await;
+    let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
+    let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
+    
     let content_template = DomainListTemplate {
         title: &title,
         description: &description,
@@ -59,6 +87,19 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         empty_title: &empty_title,
         empty_description: &empty_description,
         domains,
+        backups_title: &backups_title,
+        backups_description: &backups_description,
+        add_backup: &add_backup,
+        backups_table_header_domain: &backups_table_header_domain,
+        backups_table_header_transport: &backups_table_header_transport,
+        backups_table_header_status: &backups_table_header_status,
+        backups_table_header_actions: &backups_table_header_actions,
+        backups,
+        backups_view: &backups_view,
+        backups_disable: &backups_disable,
+        backups_enable: &backups_enable,
+        backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
+        backups_empty_get_started: &backups_empty_get_started,
     };
     let content = match content_template.render() {
         Ok(content) => {
@@ -354,6 +395,29 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
             let empty_description = get_translation(&state, &locale, "domains-empty-description").await;
             
+            // Get backups data
+            let backups = match db::get_backups(pool) {
+                Ok(backups) => backups,
+                Err(e) => {
+                    tracing::error!("Failed to retrieve backups: {:?}", e);
+                    vec![]
+                },
+            };
+            
+            // Backup translations
+            let backups_title = get_translation(&state, &locale, "backups-title").await;
+            let backups_description = get_translation(&state, &locale, "backups-description").await;
+            let add_backup = get_translation(&state, &locale, "backups-add").await;
+            let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
+            let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
+            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
+            let backups_view = get_translation(&state, &locale, "backups-view").await;
+            let backups_disable = get_translation(&state, &locale, "backups-disable").await;
+            let backups_enable = get_translation(&state, &locale, "backups-enable").await;
+            let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
+            let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
+            
             let template = DomainListTemplate {
                 title: &title,
                 description: &description,
@@ -370,6 +434,19 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 empty_title: &empty_title,
                 empty_description: &empty_description,
                 domains,
+                backups_title: &backups_title,
+                backups_description: &backups_description,
+                add_backup: &add_backup,
+                backups_table_header_domain: &backups_table_header_domain,
+                backups_table_header_transport: &backups_table_header_transport,
+                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_actions: &backups_table_header_actions,
+                backups,
+                backups_view: &backups_view,
+                backups_disable: &backups_disable,
+                backups_enable: &backups_enable,
+                backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
+                backups_empty_get_started: &backups_empty_get_started,
             };
             Html(template.render().unwrap())
         }
@@ -613,6 +690,29 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
             let empty_description = get_translation(&state, &locale, "domains-empty-description").await;
             
+            // Get backups data
+            let backups = match db::get_backups(pool) {
+                Ok(backups) => backups,
+                Err(e) => {
+                    tracing::error!("Failed to retrieve backups: {:?}", e);
+                    vec![]
+                },
+            };
+            
+            // Backup translations
+            let backups_title = get_translation(&state, &locale, "backups-title").await;
+            let backups_description = get_translation(&state, &locale, "backups-description").await;
+            let add_backup = get_translation(&state, &locale, "backups-add").await;
+            let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
+            let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
+            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
+            let backups_view = get_translation(&state, &locale, "backups-view").await;
+            let backups_disable = get_translation(&state, &locale, "backups-disable").await;
+            let backups_enable = get_translation(&state, &locale, "backups-enable").await;
+            let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
+            let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
+            
             let template = DomainListTemplate {
                 title: &title,
                 description: &description,
@@ -629,6 +729,19 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 empty_title: &empty_title,
                 empty_description: &empty_description,
                 domains,
+                backups_title: &backups_title,
+                backups_description: &backups_description,
+                add_backup: &add_backup,
+                backups_table_header_domain: &backups_table_header_domain,
+                backups_table_header_transport: &backups_table_header_transport,
+                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_actions: &backups_table_header_actions,
+                backups,
+                backups_view: &backups_view,
+                backups_disable: &backups_disable,
+                backups_enable: &backups_enable,
+                backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
+                backups_empty_get_started: &backups_empty_get_started,
             };
             Html(template.render().unwrap())
         }
@@ -742,6 +855,29 @@ pub async fn toggle_enabled_list(
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
             let empty_description = get_translation(&state, &locale, "domains-empty-description").await;
             
+            // Get backups data
+            let backups = match db::get_backups(pool) {
+                Ok(backups) => backups,
+                Err(e) => {
+                    tracing::error!("Failed to retrieve backups: {:?}", e);
+                    vec![]
+                },
+            };
+            
+            // Backup translations
+            let backups_title = get_translation(&state, &locale, "backups-title").await;
+            let backups_description = get_translation(&state, &locale, "backups-description").await;
+            let add_backup = get_translation(&state, &locale, "backups-add").await;
+            let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
+            let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
+            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
+            let backups_view = get_translation(&state, &locale, "backups-view").await;
+            let backups_disable = get_translation(&state, &locale, "backups-disable").await;
+            let backups_enable = get_translation(&state, &locale, "backups-enable").await;
+            let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
+            let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
+            
             let template = DomainListTemplate {
                 title: &title,
                 description: &description,
@@ -758,6 +894,19 @@ pub async fn toggle_enabled_list(
                 empty_title: &empty_title,
                 empty_description: &empty_description,
                 domains,
+                backups_title: &backups_title,
+                backups_description: &backups_description,
+                add_backup: &add_backup,
+                backups_table_header_domain: &backups_table_header_domain,
+                backups_table_header_transport: &backups_table_header_transport,
+                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_actions: &backups_table_header_actions,
+                backups,
+                backups_view: &backups_view,
+                backups_disable: &backups_disable,
+                backups_enable: &backups_enable,
+                backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
+                backups_empty_get_started: &backups_empty_get_started,
             };
             Html(template.render().unwrap())
         }

@@ -168,7 +168,6 @@ async fn main() {
         .route("/stats", get(handlers::stats::index))
         // Reports
         .route("/reports", get(handlers::reports::reports_list))
-        .route("/reports/catch-all", get(handlers::reports::catch_all_report))
         .route("/reports/matrix", get(handlers::reports::matrix_report))
         // Configuration
         .route("/config", get(handlers::config::view_config))

@@ -1,4 +1,4 @@
-use crate::models::{Domain, DomainForm};
+use crate::models::{Domain, DomainForm, Backup};
 use askama::Template;
 
 #[derive(Template)]
@@ -19,6 +19,19 @@ pub struct DomainListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub domains: Vec<Domain>,
+    pub backups_title: &'a str,
+    pub backups_description: &'a str,
+    pub add_backup: &'a str,
+    pub backups_table_header_domain: &'a str,
+    pub backups_table_header_transport: &'a str,
+    pub backups_table_header_status: &'a str,
+    pub backups_table_header_actions: &'a str,
+    pub backups: Vec<Backup>,
+    pub backups_view: &'a str,
+    pub backups_disable: &'a str,
+    pub backups_enable: &'a str,
+    pub backups_empty_no_backup_servers: &'a str,
+    pub backups_empty_get_started: &'a str,
 }
 
 #[derive(Template)]
