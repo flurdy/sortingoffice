@@ -1,6 +1,6 @@
 use crate::templates::backups::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState};
+use crate::{db, models::*, AppState, i18n::get_translation};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -10,6 +10,7 @@ use axum::{
 
 pub async fn list(State(state): State<AppState>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     tracing::debug!("Handling backups list request");
     let backups = match db::get_backups(pool) {
@@ -25,7 +26,7 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
 
     tracing::debug!("Rendering template with {} backups", backups.len());
     let content_template = BackupListTemplate {
-        title: "Backups",
+        title: "Backups", // Use static string for now to avoid borrowing issues
         backups,
     };
     let content = match content_template.render() {
@@ -39,14 +40,18 @@ pub async fn list(State(state): State<AppState>) -> Html<String> {
         }
     };
 
-    let template = BaseTemplate {
-        title: "Backups".to_string(),
+    let template = BaseTemplate::with_i18n(
+        get_translation(&state, locale, "backups-title").await,
         content,
-    };
+        &state,
+        locale,
+    ).await.unwrap();
+    
     Html(template.render().unwrap())
 }
 
-pub async fn new() -> Html<String> {
+pub async fn new(State(state): State<AppState>) -> Html<String> {
+    let locale = "en-US"; // For now, use default locale
     let form = BackupForm {
         domain: "".to_string(),
         transport: "smtp:[]".to_string(),
@@ -54,16 +59,26 @@ pub async fn new() -> Html<String> {
     };
 
     let content_template = BackupFormTemplate {
-        title: "New Backup",
+        title: "New Backup", // Use static string for now to avoid borrowing issues
         backup: None,
         form,
         error: None,
     };
-    Html(content_template.render().unwrap())
+    let content = content_template.render().unwrap();
+
+    let template = BaseTemplate::with_i18n(
+        get_translation(&state, locale, "backups-title").await,
+        content,
+        &state,
+        locale,
+    ).await.unwrap();
+    
+    Html(template.render().unwrap())
 }
 
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     let backup = match db::get_backup(pool, id) {
         Ok(backup) => backup,
@@ -71,20 +86,24 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     };
 
     let content_template = BackupShowTemplate {
-        title: "Show Backup",
+        title: "Show Backup", // Use static string for now to avoid borrowing issues
         backup,
     };
     let content = content_template.render().unwrap();
 
-    let template = BaseTemplate {
-        title: "Show Backup".to_string(),
+    let template = BaseTemplate::with_i18n(
+        get_translation(&state, locale, "backups-title").await,
         content,
-    };
+        &state,
+        locale,
+    ).await.unwrap();
+    
     Html(template.render().unwrap())
 }
 
 pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     let backup = match db::get_backup(pool, id) {
         Ok(backup) => backup,
@@ -98,26 +117,45 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>) -> Html<St
     };
 
     let content_template = BackupFormTemplate {
-        title: "Edit Backup",
+        title: "Edit Backup", // Use static string for now to avoid borrowing issues
         backup: Some(backup),
         form,
         error: None,
     };
-    Html(content_template.render().unwrap())
+    let content = content_template.render().unwrap();
+
+    let template = BaseTemplate::with_i18n(
+        get_translation(&state, locale, "backups-title").await,
+        content,
+        &state,
+        locale,
+    ).await.unwrap();
+    
+    Html(template.render().unwrap())
 }
 
 pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     // Validate form data
     if form.domain.trim().is_empty() {
         let content_template = BackupFormTemplate {
-            title: "New Backup",
+            title: "New Backup", // Use static string for now to avoid borrowing issues
             backup: None,
             form,
             error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
         };
-        return Html(content_template.render().unwrap());
+        let content = content_template.render().unwrap();
+
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "backups-title").await,
+            content,
+            &state,
+            locale,
+        ).await.unwrap();
+        
+        return Html(template.render().unwrap());
     }
 
     let new_backup = NewBackup {
@@ -132,10 +170,19 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>)
                 Ok(backups) => backups,
                 Err(_) => vec![],
             };
-            let template = BackupListTemplate {
-                title: "Backups",
+            let content_template = BackupListTemplate {
+                title: "Backups", // Use static string for now to avoid borrowing issues
                 backups,
             };
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
             Html(template.render().unwrap())
         }
         Err(e) => {
@@ -152,12 +199,21 @@ pub async fn create(State(state): State<AppState>, Form(form): Form<BackupForm>)
             };
 
             let content_template = BackupFormTemplate {
-                title: "New Backup",
+                title: "New Backup", // Use static string for now to avoid borrowing issues
                 backup: None,
                 form,
                 error: Some(error_message),
             };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
+            Html(template.render().unwrap())
         }
     }
 }
@@ -168,16 +224,26 @@ pub async fn update(
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     // Validate form data
     if form.domain.trim().is_empty() {
         let content_template = BackupFormTemplate {
-            title: "Edit Backup",
+            title: "Edit Backup", // Use static string for now to avoid borrowing issues
             backup: None,
             form,
             error: Some("Domain name is required. Please enter a valid domain name.".to_string()),
         };
-        return Html(content_template.render().unwrap());
+        let content = content_template.render().unwrap();
+
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "backups-title").await,
+            content,
+            &state,
+            locale,
+        ).await.unwrap();
+        
+        return Html(template.render().unwrap());
     }
 
     match db::update_backup(pool, id, form.clone()) {
@@ -187,10 +253,19 @@ pub async fn update(
                 Err(_) => return Html("Backup not found".to_string()),
             };
             let content_template = BackupShowTemplate {
-                title: "Show Backup",
+                title: "Show Backup", // Use static string for now to avoid borrowing issues
                 backup,
             };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
+            Html(template.render().unwrap())
         }
         Err(e) => {
             let error_message = match e {
@@ -206,18 +281,28 @@ pub async fn update(
             };
 
             let content_template = BackupFormTemplate {
-                title: "Edit Backup",
+                title: "Edit Backup", // Use static string for now to avoid borrowing issues
                 backup: None,
                 form,
                 error: Some(error_message),
             };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
+            Html(template.render().unwrap())
         }
     }
 }
 
 pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     match db::delete_backup(pool, id) {
         Ok(_) => {
@@ -225,10 +310,19 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(backups) => backups,
                 Err(_) => vec![],
             };
-            let template = BackupListTemplate {
-                title: "Backups",
+            let content_template = BackupListTemplate {
+                title: "Backups", // Use static string for now to avoid borrowing issues
                 backups,
             };
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error deleting backup".to_string()),
@@ -237,6 +331,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
 
 pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     match db::toggle_backup_enabled(pool, id) {
         Ok(_) => {
@@ -246,15 +341,18 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) 
             };
 
             let content_template = BackupShowTemplate {
-                title: "Show Backup",
+                title: "Show Backup", // Use static string for now to avoid borrowing issues
                 backup,
             };
             let content = content_template.render().unwrap();
 
-            let template = BaseTemplate {
-                title: "Show Backup".to_string(),
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
                 content,
-            };
+                &state,
+                locale,
+            ).await.unwrap();
+            
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error toggling backup status".to_string()),
@@ -266,16 +364,26 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
     match db::toggle_backup_enabled(pool, id) {
         Ok(_) => {
             let backups = match db::get_backups(pool) {
                 Ok(backups) => backups,
                 Err(_) => vec![],
             };
-            let template = BackupListTemplate {
-                title: "Backups",
+            let content_template = BackupListTemplate {
+                title: "Backups", // Use static string for now to avoid borrowing issues
                 backups,
             };
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error toggling backup status".to_string()),
@@ -287,6 +395,7 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
     match db::toggle_backup_enabled(pool, id) {
         Ok(_) => {
             let backup = match db::get_backup(pool, id) {
@@ -294,10 +403,19 @@ pub async fn toggle_enabled_show(
                 Err(_) => return Html("Backup not found".to_string()),
             };
             let content_template = BackupShowTemplate {
-                title: "Show Backup",
+                title: "Show Backup", // Use static string for now to avoid borrowing issues
                 backup,
             };
-            Html(content_template.render().unwrap())
+            let content = content_template.render().unwrap();
+
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "backups-title").await,
+                content,
+                &state,
+                locale,
+            ).await.unwrap();
+            
+            Html(template.render().unwrap())
         }
         Err(_) => Html("Error toggling backup status".to_string()),
     }

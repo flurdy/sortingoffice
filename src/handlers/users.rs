@@ -1,6 +1,6 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::users::*;
-use crate::{db, models::*, AppState};
+use crate::{db, models::*, AppState, i18n::get_translation};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -15,14 +15,16 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     let users = match db::get_users(pool) {
         Ok(users) => users,
         Err(_) => vec![],
     };
 
+    let title = get_translation(&state, locale, "users-title").await;
     let content_template = UserListTemplate {
-        title: "Users",
+        title: &title,
         users,
     };
     let content = content_template.render().unwrap();
@@ -30,15 +32,19 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Users".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "users-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
+        
         Html(template.render().unwrap())
     }
 }
 
-pub async fn new(headers: HeaderMap) -> Html<String> {
+pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let form = UserForm {
         id: "".to_string(),
         password: "".to_string(),
@@ -58,10 +64,13 @@ pub async fn new(headers: HeaderMap) -> Html<String> {
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "New User".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "users-add-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -87,10 +96,13 @@ pub async fn show(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Show User".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "users-show-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -126,10 +138,13 @@ pub async fn edit(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Edit User".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "users-edit-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -154,10 +169,13 @@ pub async fn create(
         if is_htmx_request(&headers) {
             Html(content)
         } else {
-            let template = BaseTemplate {
-                title: "New User".to_string(),
+            let locale = "en-US"; // For now, use default locale
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "users-add-title").await,
                 content,
-            };
+                &state,
+                locale,
+            ).await.unwrap();
             Html(template.render().unwrap())
         }
     } else {
@@ -183,10 +201,13 @@ pub async fn create(
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
-                            let template = BaseTemplate {
-                                title: "Users".to_string(),
+                            let locale = "en-US"; // For now, use default locale
+                            let template = BaseTemplate::with_i18n(
+                                get_translation(&state, locale, "users-title").await,
                                 content,
-                            };
+                                &state,
+                                locale,
+                            ).await.unwrap();
                             Html(template.render().unwrap())
                         }
                     }
@@ -222,10 +243,13 @@ pub async fn create(
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
-                            let template = BaseTemplate {
-                                title: "New User".to_string(),
+                            let locale = "en-US"; // For now, use default locale
+                            let template = BaseTemplate::with_i18n(
+                                get_translation(&state, locale, "users-add-title").await,
                                 content,
-                            };
+                                &state,
+                                locale,
+                            ).await.unwrap();
                             Html(template.render().unwrap())
                         }
                     }
@@ -246,10 +270,13 @@ pub async fn create(
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let template = BaseTemplate {
-                        title: "New User".to_string(),
+                    let locale = "en-US"; // For now, use default locale
+                    let template = BaseTemplate::with_i18n(
+                        get_translation(&state, locale, "users-add-title").await,
                         content,
-                    };
+                        &state,
+                        locale,
+                    ).await.unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -278,10 +305,13 @@ pub async fn update(
         if is_htmx_request(&headers) {
             Html(content)
         } else {
-            let template = BaseTemplate {
-                title: "Edit User".to_string(),
+            let locale = "en-US"; // For now, use default locale
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "users-edit-title").await,
                 content,
-            };
+                &state,
+                locale,
+            ).await.unwrap();
             Html(template.render().unwrap())
         }
     } else {
@@ -300,10 +330,13 @@ pub async fn update(
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let template = BaseTemplate {
-                        title: "Show User".to_string(),
+                    let locale = "en-US"; // For now, use default locale
+                    let template = BaseTemplate::with_i18n(
+                        get_translation(&state, locale, "users-show-title").await,
                         content,
-                    };
+                        &state,
+                        locale,
+                    ).await.unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -339,10 +372,13 @@ pub async fn update(
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let template = BaseTemplate {
-                        title: "Edit User".to_string(),
+                    let locale = "en-US"; // For now, use default locale
+                    let template = BaseTemplate::with_i18n(
+                        get_translation(&state, locale, "users-edit-title").await,
                         content,
-                    };
+                        &state,
+                        locale,
+                    ).await.unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -386,10 +422,13 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) 
             };
             let content = content_template.render().unwrap();
 
-            let template = BaseTemplate {
-                title: "Show User".to_string(),
+            let locale = "en-US"; // For now, use default locale
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, locale, "users-show-title").await,
                 content,
-            };
+                &state,
+                locale,
+            ).await.unwrap();
             Html(template.render().unwrap())
         }
         Err(_) => Html("Error toggling user status".to_string()),

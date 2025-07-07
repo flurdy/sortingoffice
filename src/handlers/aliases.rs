@@ -1,6 +1,6 @@
 use crate::templates::aliases::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState};
+use crate::{db, models::*, AppState, i18n::get_translation};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -30,15 +30,19 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Aliases".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "aliases-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
+        
         Html(template.render().unwrap())
     }
 }
 
-pub async fn new(headers: HeaderMap) -> Html<String> {
+pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let form = AliasForm {
         mail: "".to_string(),
         destination: "".to_string(),
@@ -57,10 +61,14 @@ pub async fn new(headers: HeaderMap) -> Html<String> {
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "New Alias".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "aliases-add-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
+        
         Html(template.render().unwrap())
     }
 }
@@ -78,7 +86,7 @@ pub async fn show(
     };
 
     let content_template = AliasShowTemplate {
-        title: "Show Alias",
+        title: "Show Alias", // Use static string for now to avoid borrowing issues
         alias,
     };
     let content = content_template.render().unwrap();
@@ -86,10 +94,14 @@ pub async fn show(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Show Alias".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "aliases-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
+        
         Html(template.render().unwrap())
     }
 }
@@ -124,10 +136,14 @@ pub async fn edit(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate {
-            title: "Edit Alias".to_string(),
+        let locale = "en-US"; // For now, use default locale
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, locale, "aliases-title").await,
             content,
-        };
+            &state,
+            locale,
+        ).await.unwrap();
+        
         Html(template.render().unwrap())
     }
 }
@@ -157,10 +173,13 @@ pub async fn create(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Aliases".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -196,10 +215,13 @@ pub async fn create(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "New Alias".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-add-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -229,10 +251,13 @@ pub async fn update(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Show Alias".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-show-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -274,10 +299,13 @@ pub async fn update(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Edit Alias".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-edit-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -309,10 +337,13 @@ pub async fn delete(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Aliases".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -341,10 +372,13 @@ pub async fn toggle_enabled(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Show Alias".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-show-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -376,10 +410,13 @@ pub async fn toggle_enabled_list(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Aliases".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -408,10 +445,13 @@ pub async fn toggle_enabled_show(
             if is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let template = BaseTemplate {
-                    title: "Show Alias".to_string(),
+                let locale = "en-US"; // For now, use default locale
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, locale, "aliases-show-title").await,
                     content,
-                };
+                    &state,
+                    locale,
+                ).await.unwrap();
                 Html(template.render().unwrap())
             }
         }

@@ -11,6 +11,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub mod db;
 pub mod handlers;
+pub mod i18n;
 pub mod models;
 pub mod schema;
 pub mod templates;
@@ -24,6 +25,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 #[derive(Clone)]
 pub struct AppState {
     pool: DbPool,
+    i18n: i18n::I18n,
 }
 
 #[tokio::main]
@@ -46,7 +48,10 @@ async fn main() {
     conn.run_pending_migrations(MIGRATIONS)
         .expect("Failed to run db migrations");
 
-    let app_state = AppState { pool };
+    // Initialize i18n
+    let i18n = i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+    
+    let app_state = AppState { pool, i18n };
 
     let app = Router::new()
         // Auth

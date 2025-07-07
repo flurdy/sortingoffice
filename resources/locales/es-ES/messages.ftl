@@ -1,0 +1,250 @@
+# Application title and branding
+app-title = Oficina de Clasificación
+app-subtitle = Herramienta de Administración del Servidor de Correo
+
+# Navigation
+nav-dashboard = Panel de Control
+nav-domains = Dominios
+nav-backups = Copias de Seguridad
+nav-aliases = Alias
+nav-users = Usuarios
+nav-statistics = Estadísticas
+nav-about = Acerca de
+nav-logout = Cerrar Sesión
+
+# Common actions
+action-add = Agregar
+action-edit = Editar
+action-delete = Eliminar
+action-view = Ver
+action-save = Guardar
+action-cancel = Cancelar
+action-back = Volver
+action-enable = Habilitar
+action-disable = Deshabilitar
+action-toggle = Alternar
+
+# Status indicators
+status-active = Activo
+status-inactive = Inactivo
+status-enabled = Habilitado
+status-disabled = Deshabilitado
+
+# Dashboard
+dashboard-title = Panel de Control
+dashboard-description = Resumen de las estadísticas de su servidor de correo y acciones rápidas.
+dashboard-total-domains = Total de Dominios
+dashboard-total-backups = Copias de Seguridad
+dashboard-total-aliases = Total de Alias
+dashboard-total-users = Total de Usuarios
+dashboard-quick-actions = Acciones Rápidas
+dashboard-help-resources = Ayuda y Recursos
+
+# Quick action cards
+quick-action-manage-domains = Gestionar Dominios
+quick-action-manage-domains-desc = Agregar, editar o eliminar dominios
+quick-action-manage-backups = Gestionar Copias de Seguridad
+quick-action-manage-backups-desc = Agregar, editar o eliminar copias de seguridad
+quick-action-manage-aliases = Gestionar Alias
+quick-action-manage-aliases-desc = Agregar, editar o eliminar alias de correo
+quick-action-manage-users = Gestionar Usuarios
+quick-action-manage-users-desc = Agregar, editar o eliminar usuarios
+
+# Help section
+help-title = ¿Necesita ayuda para configurar su servidor de correo?
+help-description = Esta herramienta de administración se basa en la guía completa de flurdy para configurar un servidor de correo completo con Postfix, Dovecot y más.
+help-read-guide = Lea la guía completa de configuración →
+
+# Domains
+domains-title = Dominios
+domains-description = Gestionar los dominios de su servidor de correo y sus configuraciones.
+domains-add = Agregar Dominio
+domains-table-header-domain = Dominio
+domains-table-header-status = Estado
+domains-table-header-actions = Acciones
+domains-empty-title = Sin dominios
+domains-empty-description = Comience creando un nuevo dominio.
+domains-add-title = Agregar Dominio
+domains-edit-title = Editar Dominio
+domains-show-title = Dominio
+domains-new-domain = Nuevo Dominio
+domains-edit-domain = Editar Dominio
+domains-view-edit-settings = Ver y editar configuraciones del dominio.
+domains-back-to-domains = Volver a Dominios
+domains-domain-information = Información del Dominio
+domains-domain-details = Detalles y configuración del dominio.
+domains-domain-name = Nombre del dominio
+domains-transport = Transporte
+domains-status = Estado
+domains-created = Creado
+domains-modified = Modificado
+domains-edit-domain-button = Editar Dominio
+domains-enable-disable-domain = Habilitar/Deshabilitar Dominio
+domains-enable-domain = Habilitar Dominio
+domains-disable-domain = Deshabilitar Dominio
+domains-delete-domain = Eliminar Dominio
+domains-delete-confirm = ¿Está seguro de que desea eliminar este dominio?
+domains-not-found = Dominio no encontrado
+
+# Backups
+backups-title = Copias de Seguridad
+backups-description = Gestionar sus servidores de correo de respaldo y sus configuraciones.
+backups-add = Agregar Copia de Seguridad
+backups-table-header-domain = Dominio
+backups-table-header-transport = Transporte
+backups-table-header-status = Estado
+backups-table-header-actions = Acciones
+backups-empty-title = Sin copias de seguridad
+backups-empty-description = Comience creando un nuevo servidor de respaldo.
+
+# Aliases
+aliases-title = Alias
+aliases-description = Gestionar sus alias de correo y reglas de reenvío.
+aliases-add = Agregar Alias
+aliases-table-header-source = Origen
+aliases-table-header-destination = Destino
+aliases-table-header-domain = Dominio
+aliases-table-header-status = Estado
+aliases-table-header-actions = Acciones
+aliases-empty-title = Sin alias
+aliases-empty-description = Comience creando un nuevo alias.
+
+# Users
+users-title = Usuarios
+users-description = Gestionar los usuarios de su servidor de correo y sus cuentas.
+users-add = Agregar Usuario
+users-table-header-username = Nombre de Usuario
+users-table-header-domain = Dominio
+users-table-header-quota = Cuota
+users-table-header-status = Estado
+users-table-header-actions = Acciones
+users-empty-title = Sin usuarios
+users-empty-description = Comience creando un nuevo usuario.
+
+# Statistics
+stats-title = Estadísticas
+stats-description = Ver estadísticas detalladas sobre su servidor de correo.
+stats-system-overview = Resumen del Sistema
+stats-system-description = Estadísticas del sistema y por dominio para su servidor de correo.
+stats-total-domains = Total de Dominios
+stats-total-backups = Total de Copias de Seguridad
+stats-total-aliases = Total de Alias
+stats-total-users = Total de Usuarios
+stats-domain-statistics = Estadísticas por Dominio
+stats-table-header-domain = Dominio
+stats-table-header-users = Usuarios
+stats-table-header-aliases = Alias
+stats-table-header-total-quota = Cuota Total
+stats-table-header-used-quota = Cuota Utilizada
+
+# Forms
+form-domain = Dominio
+form-transport = Transporte
+form-enabled = Habilitado
+form-username = Nombre de Usuario
+form-password = Contraseña
+form-quota = Cuota
+form-source = Origen
+form-destination = Destino
+
+# Form validation
+validation-domain-required = El nombre del dominio es requerido. Por favor ingrese un nombre de dominio válido.
+validation-username-required = El nombre de usuario es requerido.
+validation-password-required = La contraseña es requerida.
+validation-quota-required = La cuota es requerida.
+validation-source-required = El correo de origen es requerido.
+validation-destination-required = El correo de destino es requerido.
+
+# Error messages
+error-unexpected = Ocurrió un error inesperado. Por favor intente nuevamente.
+error-not-found = No encontrado
+error-duplicate-domain = Ya existe un dominio con este nombre.
+error-duplicate-backup = Ya existe un servidor de respaldo para el dominio '{ $domain }'.
+error-duplicate-alias = Ya existe un alias con este origen.
+error-duplicate-user = Ya existe un usuario con este nombre de usuario.
+error-constraint-violation = Los datos no cumplen con las restricciones requeridas. Por favor verifique su entrada.
+
+# Success messages
+success-created = Creado exitosamente.
+success-updated = Actualizado exitosamente.
+success-deleted = Eliminado exitosamente.
+success-enabled = Habilitado exitosamente.
+success-disabled = Deshabilitado exitosamente.
+
+# Theme
+theme-toggle = Alternar tema
+
+# Login
+login-title = Iniciar sesión en Sorting Office
+login-user-id = ID de Usuario
+login-password = Contraseña
+login-sign-in = Iniciar sesión
+login-error = Error
+
+# About
+about-title = Acerca de Sorting Office
+about-description = Una herramienta integral de administración de servidores de correo para gestionar dominios, usuarios, alias y copias de seguridad.
+about-what-is-title = ¿Qué es Sorting Office?
+about-what-is-description-1 = Sorting Office es una interfaz de administración basada en web para gestionar una configuración completa de servidor de correo. Proporciona una forma intuitiva de gestionar dominios, usuarios, alias de correo electrónico y configuraciones de copia de seguridad para un entorno de servidor de correo Postfix y Dovecot.
+about-what-is-description-2 = Construido con Rust y tecnologías web modernas, Sorting Office ofrece una forma segura, rápida y confiable de administrar tu servidor de correo sin necesidad de editar manualmente archivos de configuración.
+about-features-title = Características Principales
+about-feature-domain-management = Gestión de Dominios
+about-feature-domain-management-desc = Agregar, editar y gestionar dominios de correo con facilidad
+about-feature-user-management = Gestión de Usuarios
+about-feature-user-management-desc = Crear y gestionar usuarios y cuentas de correo electrónico
+about-feature-alias-management = Gestión de Alias
+about-feature-alias-management-desc = Configurar alias de correo electrónico y reglas de reenvío
+about-feature-backup-configuration = Configuración de Copias de Seguridad
+about-feature-backup-configuration-desc = Configurar y gestionar servidores MX de respaldo
+about-feature-statistics-dashboard = Panel de Estadísticas
+about-feature-statistics-dashboard-desc = Monitorear el uso y las estadísticas de tu servidor de correo
+about-feature-dark-mode = Soporte de Modo Oscuro
+about-feature-dark-mode-desc = Interfaz moderna con modo oscuro para uso cómodo
+about-tech-stack-title = Stack Tecnológico
+about-tech-backend = Backend
+about-tech-backend-desc = Rust con framework web Axum
+about-tech-database = Base de Datos
+about-tech-database-desc = MySQL con ORM Diesel
+about-tech-frontend = Frontend
+about-tech-frontend-desc = Plantillas HTML con Tailwind CSS
+about-tech-templating = Plantillas
+about-tech-templating-desc = Motor de plantillas Askama
+about-tech-mail-server = Servidor de Correo
+about-tech-mail-server-desc = Postfix & Dovecot
+about-tech-deployment = Despliegue
+about-tech-deployment-desc = Contenedorización Docker
+about-flurdy-guide-title = Basado en la Guía Completa de Servidor de Correo de flurdy
+about-flurdy-guide-description = Esta herramienta de administración está diseñada para funcionar con la guía integral de configuración de servidor de correo creada por flurdy, que cubre Postfix, Dovecot, SpamAssassin y más.
+about-flurdy-guide-link = Leer la guía completa de configuración →
+about-github-title = Proyecto GitHub
+about-github-open-source = Código Abierto
+about-github-open-source-desc = Sorting Office es un proyecto de código abierto alojado en GitHub bajo la licencia MIT.
+about-github-view-repo = Ver Repositorio
+about-github-view-repo-desc = Navegar código fuente y documentación
+about-github-report-issues = Reportar Problemas
+about-github-report-issues-desc = Reportes de errores y solicitudes de características
+about-github-pull-requests = Pull Requests
+about-github-pull-requests-desc = Contribuir al proyecto
+about-github-readme = README
+about-github-readme-desc = Documentación y configuración del proyecto
+about-version-title = Información de Versión
+about-version-project-details = Detalles del Proyecto
+about-version-version = Versión
+about-version-license = Licencia
+about-version-maintainer = Mantenedor
+
+# Forms
+form-error = Error
+form-cancel = Cancelar
+form-create = Crear
+form-update = Actualizar
+form-edit = Editar
+form-new = Nuevo
+form-active = Activo
+form-placeholder-domain = ejemplo.com
+form-placeholder-transport = virtual
+form-tooltip-domain = El nombre del dominio (ej., ejemplo.com)
+form-tooltip-transport = Configuración de transporte (ej., virtual para dominios virtuales)
+form-tooltip-enable = Habilitar este dominio
+form-create-domain = Crear Dominio
+form-update-domain = Actualizar Dominio

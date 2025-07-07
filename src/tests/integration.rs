@@ -13,7 +13,8 @@ mod tests {
 
     async fn create_test_app() -> (Router, AppState) {
         let pool = setup_test_db();
-        let state = AppState { pool };
+        let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        let state = AppState { pool, i18n };
         let app = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
             .route("/domains", axum::routing::post(handlers::domains::create))

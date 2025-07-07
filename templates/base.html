@@ -79,35 +79,35 @@
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
-                            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Sorting Office</h1>
+                            <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
                         </div>
                         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                             <a href="/" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Dashboard
+                                {{ nav_dashboard }}
                             </a>
                             <a href="/domains" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Domains
+                                {{ nav_domains }}
                             </a>
                             <a href="/backups" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Backups
+                                {{ nav_backups }}
                             </a>
                             <a href="/aliases" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Aliases
+                                {{ nav_aliases }}
                             </a>
                             <a href="/users" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Users
+                                {{ nav_users }}
                             </a>
                             <a href="/stats" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Statistics
+                                {{ nav_statistics }}
                             </a>
                             <a href="/about" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                About
+                                {{ nav_about }}
                             </a>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
                         <!-- Theme Toggle Button -->
-                        <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="Toggle theme">
+                        <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="{{ theme_toggle }}">
                             <!-- Sun icon for dark mode -->
                             <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -119,7 +119,7 @@
                         </button>
                         <form method="post" action="/logout">
                             <button type="submit" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">
-                                Logout
+                                {{ nav_logout }}
                             </button>
                         </form>
                     </div>
@@ -137,7 +137,7 @@
             <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center">
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Sorting Office - Mail Server Administration Tool
+                        {{ app_subtitle }}
                     </div>
                     <div class="flex items-center space-x-4">
                         <a href="https://flurdy.com/docs/postfix/" target="_blank" rel="noopener noreferrer">
