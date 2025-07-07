@@ -1,0 +1,9 @@
+---
+description: any database interaction
+globs: 
+alwaysApply: false
+---
+
+The database is in docker compose
+
+if needed it can be stopped and recreated using makefile aliases.

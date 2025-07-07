@@ -399,29 +399,6 @@ async fn test_aliases_list_page() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_backups_list_page() -> Result<()> {
-    let test_timeout = Duration::from_secs(30);
-    run_test_with_timeout(
-        async {
-            let client = setup_client().await?;
-
-            // Navigate to backups page
-            client.goto(&format!("{}/backups", get_app_url())).await?;
-
-            // Check for backups page elements
-            let body = client.find(fantoccini::Locator::Css("body")).await?;
-            let body_text = body.text().await?;
-            assert!(body_text.contains("Backups") || body_text.contains("backups"));
-
-            client.close().await?;
-            Ok(())
-        },
-        test_timeout,
-    )
-    .await
-}
-
-#[tokio::test]
 async fn test_stats_page() -> Result<()> {
     let test_timeout = Duration::from_secs(30);
     run_test_with_timeout(
@@ -435,6 +412,143 @@ async fn test_stats_page() -> Result<()> {
             let body = client.find(fantoccini::Locator::Css("body")).await?;
             let body_text = body.text().await?;
             assert!(body_text.contains("Statistics") || body_text.contains("stats"));
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_sidebar_functionality() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            client.goto(&format!("{}/domains", get_app_url())).await?;
+
+            // Check for sidebar elements
+            let sidebar = client.find(fantoccini::Locator::Css(".sidebar")).await?;
+            let sidebar_text = sidebar.text().await?;
+            
+            // Should contain navigation items
+            assert!(sidebar_text.contains("Domains") || sidebar_text.contains("domains"));
+            assert!(sidebar_text.contains("Users") || sidebar_text.contains("users"));
+            assert!(sidebar_text.contains("Aliases") || sidebar_text.contains("aliases"));
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_responsive_sidebar_behavior() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            client.goto(&format!("{}/domains", get_app_url())).await?;
+
+            // Test mobile viewport
+            client.set_window_size(375, 667).await?;
+            
+            // Check if hamburger button is visible on mobile
+            let hamburger = client.find(fantoccini::Locator::Css(".hamburger")).await?;
+            assert!(hamburger.is_displayed().await?);
+
+            // Test desktop viewport
+            client.set_window_size(1920, 1080).await?;
+            
+            // Check if sidebar is visible by default on desktop
+            let sidebar = client.find(fantoccini::Locator::Css(".sidebar")).await?;
+            assert!(sidebar.is_displayed().await?);
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_domains_page_includes_backups() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            client.goto(&format!("{}/domains", get_app_url())).await?;
+
+            // Check for both domains and backups sections
+            let body = client.find(fantoccini::Locator::Css("body")).await?;
+            let body_text = body.text().await?;
+            
+            // Should contain both domains and backups content
+            assert!(body_text.contains("Domains") || body_text.contains("domains"));
+            assert!(body_text.contains("Backups") || body_text.contains("backups"));
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_backup_creation_flow() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            // Navigate to domains page
+            client.goto(&format!("{}/domains", get_app_url())).await?;
+
+            // Look for "Add Backup" button
+            let add_backup_buttons = client.find_all(fantoccini::Locator::Css("a[href*='backups/new']")).await?;
+            assert!(!add_backup_buttons.is_empty(), "Should have Add Backup button");
+
+            // Navigate to backup creation form
+            client.goto(&format!("{}/backups/new", get_app_url())).await?;
+
+            // Check for backup form elements
+            let forms = client.find_all(fantoccini::Locator::Css("form")).await?;
+            assert!(!forms.is_empty(), "Should have backup creation form");
+
+            client.close().await?;
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_htmx_compatibility() -> Result<()> {
+    let test_timeout = Duration::from_secs(30);
+    run_test_with_timeout(
+        async {
+            let client = setup_client().await?;
+
+            // Test that forms have HTMX attributes
+            client.goto(&format!("{}/domains/new", get_app_url())).await?;
+
+            let forms = client.find_all(fantoccini::Locator::Css("form")).await?;
+            if !forms.is_empty() {
+                // Check for HTMX attributes
+                let form = &forms[0];
+                let form_html = form.attr("hx-post").await?;
+                assert!(form_html.is_some(), "Form should have HTMX attributes");
+            }
 
             client.close().await?;
             Ok(())

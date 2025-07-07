@@ -52,7 +52,6 @@ mod tests {
             home: "/var/spool/mail/virtual".to_string(),
             uid: 5000,
             gid: 5000,
-            domain: "example.com".to_string(),
             created: chrono::Utc::now().naive_utc(),
             modified: chrono::Utc::now().naive_utc(),
             enabled: true,
@@ -66,7 +65,6 @@ mod tests {
         assert_eq!(user.id, deserialized.id);
         assert_eq!(user.name, deserialized.name);
         assert_eq!(user.maildir, deserialized.maildir);
-        assert_eq!(user.domain, deserialized.domain);
         assert_eq!(user.enabled, deserialized.enabled);
     }
 
@@ -112,13 +110,12 @@ mod tests {
 
     #[test]
     fn test_user_form_deserialization() {
-        let form_data = "id=testuser@example.com&password=secret123&name=Test+User&domain=example.com&enabled=on";
+        let form_data = "id=testuser@example.com&password=secret123&name=Test+User&enabled=on";
         let form: UserForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.id, "testuser@example.com");
         assert_eq!(form.password, "secret123");
         assert_eq!(form.name, "Test User");
-        assert_eq!(form.domain, "example.com");
         assert_eq!(form.enabled, true);
     }
 

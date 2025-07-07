@@ -1,0 +1,11 @@
+---
+description: if wanting to run the application
+globs: 
+alwaysApply: false
+---
+
+If intending to use `cargo run`, check if already running, or `cargo watch -x run`, or if `make run` is running, if `cargo run` is running `pkill` it 
+
+To pkill remember that we use fish shell so need to specify process name.
+
+if `cargo watch`  or `make run` is running it should restart itself.

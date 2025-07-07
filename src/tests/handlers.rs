@@ -36,14 +36,13 @@ mod tests {
                 "/domains/{id}/toggle",
                 axum::routing::post(handlers::domains::toggle_enabled),
             )
-            .route("/backups", axum::routing::get(handlers::backups::list))
             .route("/backups", axum::routing::post(handlers::backups::create))
             .route("/backups/{id}", axum::routing::get(handlers::backups::show))
             .route("/backups/{id}/edit", axum::routing::get(handlers::backups::edit))
             .route("/backups/{id}", axum::routing::put(handlers::backups::update))
             .route("/backups/{id}", axum::routing::delete(handlers::backups::delete))
             .route(
-                "/backups/{id}/toggle-list",
+                "/backups/{id}/toggle",
                 axum::routing::post(handlers::backups::toggle_enabled),
             )
             .route("/users", axum::routing::get(handlers::users::list))
@@ -329,7 +328,6 @@ mod tests {
             id: format!("testuser@list-test-{}.com", unique_id),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -372,7 +370,7 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = format!("id=testuser@create-test-{}.com&password=password123&name=Test+User&domain=create-test-{}.com&enabled=on", unique_id, unique_id);
+        let form_data = format!("id=testuser@create-test-{}.com&password=password123&name=Test+User&enabled=on", unique_id);
 
         let response = app
             .oneshot(
@@ -417,7 +415,6 @@ mod tests {
             id: format!("testuser@show-test-{}.com", unique_id),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -465,7 +462,6 @@ mod tests {
             id: format!("testuser@edit-test-{}.com", unique_id),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -514,12 +510,11 @@ mod tests {
             id: format!("testuser@update-test-{}.com", unique_id),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let user = crate::db::create_user(&state.pool, user_form).unwrap();
 
-        let form_data = format!("id=updateduser@update-test-{}.com&password=password123&name=Updated+User&domain=update-test-{}.com&enabled=on", unique_id, unique_id);
+        let form_data = format!("id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on", unique_id);
 
         let response = app
             .oneshot(
@@ -565,7 +560,6 @@ mod tests {
             id: format!("testuser@toggle-test-{}.com", unique_id),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -697,7 +691,6 @@ mod tests {
             id: "testuser@stats-test.com".to_string(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
@@ -799,43 +792,6 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
-
-        cleanup_test_db(&state.pool);
-    }
-
-    #[tokio::test]
-    async fn test_backups_list_handler() {
-        let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        cleanup_test_db(&state.pool);
-
-        // Create test backup with unique name
-        let new_backup = crate::models::NewBackup {
-            domain: "backup-list-test.com".to_string(),
-            transport: Some("smtp:localhost".to_string()),
-            enabled: true,
-        };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
-
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/backups")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        let body_str = String::from_utf8(body.to_vec()).unwrap();
-
-        assert!(body_str.contains("backup-list-test.com"));
 
         cleanup_test_db(&state.pool);
     }
@@ -1006,7 +962,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/backups/{}/toggle-list", backup.pkid))
+                    .uri(format!("/backups/{}/toggle", backup.pkid))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1018,6 +974,171 @@ mod tests {
         // Verify backup was toggled
         let toggled_backup = crate::db::get_backup(&state.pool, backup.pkid).unwrap();
         assert_eq!(toggled_backup.enabled, false);
+
+        cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_backups_create_redirects_to_domains() {
+        let (app, state) = create_test_app().await;
+
+        // Clean up before test
+        cleanup_test_db(&state.pool);
+
+        let form_data = "domain=backup-redirect-test.com&transport=smtp%3Alocalhost&enabled=on";
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/backups")
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(Body::from(form_data))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain redirect script to domains page
+        assert!(body_str.contains("window.location.href='/domains'"));
+
+        cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_backups_update_returns_content_only() {
+        let (app, state) = create_test_app().await;
+
+        // Clean up before test
+        cleanup_test_db(&state.pool);
+
+        // Create test backup
+        let new_backup = crate::models::NewBackup {
+            domain: "backup-update-content-test.com".to_string(),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+
+        let form_data = "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("PUT")
+                    .uri(format!("/backups/{}", backup.pkid))
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(Body::from(form_data))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should not contain full template elements (indicating content-only response)
+        assert!(!body_str.contains("<html>"));
+        assert!(!body_str.contains("<head>"));
+        assert!(!body_str.contains("<body>"));
+
+        cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_backups_delete_redirects_to_domains() {
+        let (app, state) = create_test_app().await;
+
+        // Clean up before test
+        cleanup_test_db(&state.pool);
+
+        // Create test backup
+        let new_backup = crate::models::NewBackup {
+            domain: "backup-delete-test.com".to_string(),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("DELETE")
+                    .uri(format!("/backups/{}", backup.pkid))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain redirect script to domains page
+        assert!(body_str.contains("window.location.href='/domains'"));
+
+        cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_domains_list_includes_backups() {
+        let (app, state) = create_test_app().await;
+
+        // Clean up before test
+        cleanup_test_db(&state.pool);
+
+        // Create test domain
+        let unique_id = crate::tests::common::unique_test_id();
+        let new_domain = crate::models::NewDomain {
+            domain: format!("domain-backup-test-{}.com", unique_id),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+
+        // Create test backup
+        let new_backup = crate::models::NewBackup {
+            domain: format!("backup-domain-test-{}.com", unique_id),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/domains")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain both domain and backup
+        assert!(body_str.contains(&format!("domain-backup-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("backup-domain-test-{}", unique_id)));
 
         cleanup_test_db(&state.pool);
     }

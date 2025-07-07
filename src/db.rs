@@ -343,11 +343,17 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             .count()
             .get_result(&mut conn)?;
 
+        // Count users for this domain by checking the domain part of the id field
+        let user_count: i64 = users::table
+            .filter(users::id.like(format!("%@{}", domain.domain)))
+            .count()
+            .get_result(&mut conn)?;
+
         let total_quota: i64 = 0; // Quota field removed from users table
 
         stats.push(DomainStats {
             domain: domain.domain,
-            user_count: 0, // Users no longer have domain field
+            user_count,
             alias_count,
             total_quota,
             used_quota: 0, // This would need to be calculated from actual disk usage

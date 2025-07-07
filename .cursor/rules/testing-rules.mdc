@@ -1,0 +1,25 @@
+---
+description: any testing tasks
+globs: 
+alwaysApply: false
+---
+
+Do not use `cargo test` on its own to run all the unit tests as that also includes UI selenium tests which often fail.
+
+Do use `cargo test` if testing a specific test.
+
+Do not use `cargo test -lib` as this project does not have a library target.
+
+To run all unit test use `make test-unit`.
+
+Selenium is running in docker compose.
+
+For UI test use `make test-ui`.
+
+If UI tests hang, selenium needs restarting.
+
+You can stop selenium with `make test-ui-cleanup`
+
+You can start selenium with `make test-ui-setup`
+
+Try to include timeouts so tests do not hang forever.

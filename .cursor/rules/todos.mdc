@@ -1,0 +1,9 @@
+---
+description: when finishing or starting a new todo
+globs: 
+alwaysApply: false
+---
+
+Update the todo file with tick when finished a task.
+
+Before starting a new todo ask for confirmation.

@@ -6,7 +6,7 @@
 # Database configuration
 MYSQL ?= mysql
 MYSQL_USER ?= root
-MYSQL_PASSWORD ?= password
+MYSQL_PASSWORD ?= rootpassword
 MYSQL_DATABASE ?= sortingoffice
 MYSQL_HOST ?= 127.0.0.1
 MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
@@ -86,13 +86,15 @@ create-seed-data:
 test-db-setup:
 	@echo "🧪 Setting up test database..."
 	@echo "Creating test database if it doesn't exist..."
-	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice_test;"
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice_test;"
+	@echo "Granting permissions to sortingoffice user..."
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "GRANT ALL PRIVILEGES ON sortingoffice_test.* TO 'sortingoffice'@'%';"
 	@echo "Running migrations on test database..."
-	@DATABASE_URL=mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@$(MYSQL_HOST)/sortingoffice_test diesel migration run
+	@DATABASE_URL=mysql://sortingoffice:sortingoffice@$(MYSQL_HOST)/sortingoffice_test diesel migration run
 
 test-db-clean:
 	@echo "🧹 Cleaning test database..."
-	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) sortingoffice_test -e "DROP DATABASE IF EXISTS sortingoffice_test;"
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "DROP DATABASE IF EXISTS sortingoffice_test;"
 
 test-db-reset: test-db-clean test-db-setup
 	@echo "🔄 Test database reset complete"
