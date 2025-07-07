@@ -1,14 +1,14 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Backup: {{ backup.domain }}</h1>
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ title }}: {{ backup.domain }}</h1>
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                View and edit backup server settings.
+                {{ view_edit_settings }}
             </p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="/backups" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-                Back to Backups
+                {{ back_to_backups }}
             </a>
         </div>
     </div>
@@ -16,39 +16,39 @@
     <!-- Backup MX Details -->
     <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Backup Information</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Backup server details and configuration.</p>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ backup_information }}</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ backup_details }}</p>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-700">
             <dl>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Domain</dt>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ domain }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ backup.domain }}</dd>
                 </div>
                 <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Transport</dt>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ transport }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{% if backup.transport.is_some() %}{{ backup.transport.as_ref().unwrap() }}{% else %}-{% endif %}</dd>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ status }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                         {% if backup.enabled %}
                         <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-                            Active
+                            {{ status_active }}
                         </span>
                         {% else %}
                         <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-200">
-                            Inactive
+                            {{ status_inactive }}
                         </span>
                         {% endif %}
                     </dd>
                 </div>
                 <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ created }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ backup.created.format("%Y-%m-%d %H:%M:%S") }}</dd>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Modified</dt>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ modified }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ backup.modified.format("%Y-%m-%d %H:%M:%S") }}</dd>
                 </div>
             </dl>
@@ -61,20 +61,20 @@
             hx-get="/backups/{{ backup.pkid }}/edit" 
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            Edit Backup
+            {{ edit_backup }}
         </button>
         <button 
             hx-post="/backups/{{ backup.pkid }}/toggle-show" 
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            {% if backup.enabled %}Disable{% else %}Enable{% endif %} Backup
+            {% if backup.enabled %}{{ disable_backup }}{% else %}{{ enable_backup }}{% endif %}
         </button>
         <button 
             hx-delete="/backups/{{ backup.pkid }}" 
             hx-target="#main-content" 
-            hx-confirm="Are you sure you want to delete this backup?"
+            hx-confirm="{{ delete_confirm }}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-            Delete Backup
+            {{ delete_backup }}
         </button>
     </div>
 </div> 

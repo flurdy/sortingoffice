@@ -13,6 +13,84 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
     headers.get("HX-Request").map_or(false, |v| v == "true")
 }
 
+async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<User>) -> UserListTemplate {
+    UserListTemplate {
+        title: get_translation(state, locale, "users-title").await,
+        description: get_translation(state, locale, "users-description").await,
+        add_user: get_translation(state, locale, "users-add").await,
+        table_header_user_id: get_translation(state, locale, "users-table-header-user-id").await,
+        table_header_name: get_translation(state, locale, "users-table-header-name").await,
+        table_header_domain: get_translation(state, locale, "users-table-header-domain").await,
+        table_header_status: get_translation(state, locale, "users-table-header-status").await,
+        table_header_actions: get_translation(state, locale, "users-table-header-actions").await,
+        status_active: get_translation(state, locale, "status-active").await,
+        status_inactive: get_translation(state, locale, "status-inactive").await,
+        view: get_translation(state, locale, "users-view").await,
+        enable: get_translation(state, locale, "users-enable").await,
+        disable: get_translation(state, locale, "users-disable").await,
+        empty_no_users: get_translation(state, locale, "users-empty-no-users").await,
+        empty_get_started: get_translation(state, locale, "users-empty-get-started").await,
+        users,
+    }
+}
+
+async fn build_user_show_template(state: &AppState, locale: &str, user: User) -> UserShowTemplate {
+    UserShowTemplate {
+        title: get_translation(state, locale, "users-show-user-title").await,
+        view_edit_settings: get_translation(state, locale, "users-view-edit-settings").await,
+        back_to_users: get_translation(state, locale, "users-back-to-users").await,
+        user_information: get_translation(state, locale, "users-user-information").await,
+        user_details: get_translation(state, locale, "users-user-details").await,
+        user_id: get_translation(state, locale, "users-user-id").await,
+        full_name: get_translation(state, locale, "users-full-name").await,
+        domain: get_translation(state, locale, "users-domain").await,
+        status: get_translation(state, locale, "users-status").await,
+        created: get_translation(state, locale, "users-created").await,
+        modified: get_translation(state, locale, "users-modified").await,
+        status_active: get_translation(state, locale, "status-active").await,
+        status_inactive: get_translation(state, locale, "status-inactive").await,
+        edit_user: get_translation(state, locale, "users-edit-user").await,
+        enable_user: get_translation(state, locale, "users-enable-user").await,
+        disable_user: get_translation(state, locale, "users-disable-user").await,
+        delete_user: get_translation(state, locale, "users-delete-user").await,
+        delete_confirm: get_translation(state, locale, "users-delete-confirm").await,
+        user,
+    }
+}
+
+async fn build_user_form_template(state: &AppState, locale: &str, user: Option<User>, form: UserForm, error: Option<String>) -> UserFormTemplate {
+    let title = if user.is_some() {
+        get_translation(state, locale, "users-edit-user-title").await
+    } else {
+        get_translation(state, locale, "users-new-user").await
+    };
+
+    UserFormTemplate {
+        title,
+        form_user_id: get_translation(state, locale, "users-form-user-id").await,
+        form_password: get_translation(state, locale, "users-form-password").await,
+        form_name: get_translation(state, locale, "users-form-name").await,
+        form_domain: get_translation(state, locale, "users-form-domain").await,
+        form_active: get_translation(state, locale, "users-form-active").await,
+        placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email").await,
+        placeholder_name: get_translation(state, locale, "users-placeholder-name").await,
+        placeholder_domain: get_translation(state, locale, "users-placeholder-domain").await,
+        tooltip_user_id: get_translation(state, locale, "users-tooltip-user-id").await,
+        tooltip_password: get_translation(state, locale, "users-tooltip-password").await,
+        tooltip_name: get_translation(state, locale, "users-tooltip-name").await,
+        tooltip_domain: get_translation(state, locale, "users-tooltip-domain").await,
+        tooltip_active: get_translation(state, locale, "users-tooltip-active").await,
+        cancel: get_translation(state, locale, "users-cancel").await,
+        create_user: get_translation(state, locale, "users-create-user").await,
+        update_user: get_translation(state, locale, "users-update-user").await,
+        new_user: get_translation(state, locale, "users-new-user").await,
+        edit_user_title: get_translation(state, locale, "users-edit-user-title").await,
+        user,
+        form,
+        error,
+    }
+}
+
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
     let locale = "en-US"; // For now, use default locale
@@ -22,17 +100,12 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         Err(_) => vec![],
     };
 
-    let title = get_translation(&state, locale, "users-title").await;
-    let content_template = UserListTemplate {
-        title: &title,
-        users,
-    };
+    let content_template = build_user_list_template(&state, locale, users).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let locale = "en-US"; // For now, use default locale
         let template = BaseTemplate::with_i18n(
             get_translation(&state, locale, "users-title").await,
             content,
@@ -45,6 +118,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+    let locale = "en-US"; // For now, use default locale
     let form = UserForm {
         id: "".to_string(),
         password: "".to_string(),
@@ -53,18 +127,12 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         enabled: true,
     };
 
-    let content_template = UserFormTemplate {
-        title: "New User",
-        user: None,
-        form,
-        error: None,
-    };
+    let content_template = build_user_form_template(&state, locale, None, form, None).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let locale = "en-US"; // For now, use default locale
         let template = BaseTemplate::with_i18n(
             get_translation(&state, locale, "users-add-title").await,
             content,
@@ -81,22 +149,19 @@ pub async fn show(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     let user = match db::get_user(pool, id) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
 
-    let content_template = UserShowTemplate {
-        title: "Show User",
-        user,
-    };
+    let content_template = build_user_show_template(&state, locale, user).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let locale = "en-US"; // For now, use default locale
         let template = BaseTemplate::with_i18n(
             get_translation(&state, locale, "users-show-title").await,
             content,
@@ -113,6 +178,7 @@ pub async fn edit(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     let user = match db::get_user(pool, id) {
         Ok(user) => user,
@@ -127,18 +193,12 @@ pub async fn edit(
         enabled: user.enabled,
     };
 
-    let content_template = UserFormTemplate {
-        title: "Edit User",
-        user: Some(user),
-        form,
-        error: None,
-    };
+    let content_template = build_user_form_template(&state, locale, Some(user), form, None).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let locale = "en-US"; // For now, use default locale
         let template = BaseTemplate::with_i18n(
             get_translation(&state, locale, "users-edit-title").await,
             content,
@@ -155,21 +215,17 @@ pub async fn create(
     Form(form): Form<UserForm>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let form_template = UserFormTemplate {
-            title: "New User",
-            user: None,
-            form: form.clone(),
-            error: Some("User ID is required.".to_string()),
-        };
+        let error_msg = get_translation(&state, locale, "validation-username-required").await;
+        let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
             Html(content)
         } else {
-            let locale = "en-US"; // For now, use default locale
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, locale, "users-add-title").await,
                 content,
@@ -192,16 +248,12 @@ pub async fn create(
                                 vec![]
                             }
                         };
-                        let content_template = UserListTemplate {
-                            title: "Users",
-                            users,
-                        };
+                        let content_template = build_user_list_template(&state, locale, users).await;
                         let content = content_template.render().unwrap();
 
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
-                            let locale = "en-US"; // For now, use default locale
                             let template = BaseTemplate::with_i18n(
                                 get_translation(&state, locale, "users-title").await,
                                 content,
@@ -212,38 +264,18 @@ pub async fn create(
                         }
                     }
                     Err(e) => {
-                        eprintln!("Error creating user: {:?}", e);
+                        let error_msg = if e.to_string().contains("Duplicate entry") {
+                            get_translation(&state, locale, "error-duplicate-user").await
+                        } else {
+                            get_translation(&state, locale, "error-unexpected").await
+                        };
                         
-                        // Handle specific database errors with user-friendly messages
-                        let error_message = match e {
-                            diesel::result::Error::DatabaseError(
-                                diesel::result::DatabaseErrorKind::UniqueViolation,
-                                _,
-                            ) => format!("A user with the email '{}' already exists.", form.id),
-                            diesel::result::Error::DatabaseError(
-                                diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                                _,
-                            ) => format!("The domain '{}' does not exist. Please create the domain first before adding users.", form.domain),
-                            diesel::result::Error::DatabaseError(
-                                diesel::result::DatabaseErrorKind::CheckViolation,
-                                _,
-                            ) => "The user data does not meet the required constraints. Please check your input.".to_string(),
-                            _ => "An unexpected error occurred while creating the user. Please try again.".to_string(),
-                        };
-
-                        // Return to form with error message
-                        let form_template = UserFormTemplate {
-                            title: "New User",
-                            user: None,
-                            form: form.clone(),
-                            error: Some(error_message),
-                        };
+                        let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
                         let content = form_template.render().unwrap();
 
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
-                            let locale = "en-US"; // For now, use default locale
                             let template = BaseTemplate::with_i18n(
                                 get_translation(&state, locale, "users-add-title").await,
                                 content,
@@ -256,21 +288,13 @@ pub async fn create(
                 }
             }
             Err(_) => {
-                // Domain doesn't exist
-                let form_template = UserFormTemplate {
-                    title: "New User",
-                    user: None,
-                    form: form.clone(),
-                    error: Some(
-                        format!("The domain '{}' does not exist. Please create the domain first before adding users.", form.domain)
-                    ),
-                };
+                let error_msg = "Domain does not exist. Please create the domain first.".to_string();
+                let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let locale = "en-US"; // For now, use default locale
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, locale, "users-add-title").await,
                         content,
@@ -291,21 +315,23 @@ pub async fn update(
     Form(form): Form<UserForm>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
+
+    // First get the existing user
+    let existing_user = match db::get_user(pool, id) {
+        Ok(user) => user,
+        Err(_) => return Html("User not found".to_string()),
+    };
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let form_template = UserFormTemplate {
-            title: "Edit User",
-            user: None,
-            form: form.clone(),
-            error: Some("User ID is required.".to_string()),
-        };
+        let error_msg = get_translation(&state, locale, "validation-username-required").await;
+        let form_template = build_user_form_template(&state, locale, Some(existing_user), form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
             Html(content)
         } else {
-            let locale = "en-US"; // For now, use default locale
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, locale, "users-edit-title").await,
                 content,
@@ -321,16 +347,13 @@ pub async fn update(
                     Ok(user) => user,
                     Err(_) => return Html("User not found".to_string()),
                 };
-                let content_template = UserShowTemplate {
-                    title: "Show User",
-                    user,
-                };
+
+                let content_template = build_user_show_template(&state, locale, user).await;
                 let content = content_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let locale = "en-US"; // For now, use default locale
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, locale, "users-show-title").await,
                         content,
@@ -341,38 +364,18 @@ pub async fn update(
                 }
             }
             Err(e) => {
-                eprintln!("Error updating user: {:?}", e);
-                
-                // Handle specific database errors with user-friendly messages
-                let error_message = match e {
-                    diesel::result::Error::DatabaseError(
-                        diesel::result::DatabaseErrorKind::UniqueViolation,
-                        _,
-                    ) => format!("A user with the email '{}' already exists.", form.id),
-                    diesel::result::Error::DatabaseError(
-                        diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                        _,
-                    ) => format!("The domain '{}' does not exist. Please create the domain first before updating the user.", form.domain),
-                    diesel::result::Error::DatabaseError(
-                        diesel::result::DatabaseErrorKind::CheckViolation,
-                        _,
-                    ) => "The user data does not meet the required constraints. Please check your input.".to_string(),
-                    _ => "An unexpected error occurred while updating the user. Please try again.".to_string(),
+                let error_msg = if e.to_string().contains("Duplicate entry") {
+                    get_translation(&state, locale, "error-duplicate-user").await
+                } else {
+                    get_translation(&state, locale, "error-unexpected").await
                 };
 
-                // Return to form with error message
-                let form_template = UserFormTemplate {
-                    title: "Edit User",
-                    user: None,
-                    form: form.clone(),
-                    error: Some(error_message),
-                };
+                let form_template = build_user_form_template(&state, locale, Some(existing_user), form.clone(), Some(error_msg)).await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let locale = "en-US"; // For now, use default locale
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, locale, "users-edit-title").await,
                         content,
@@ -388,6 +391,7 @@ pub async fn update(
 
 pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
     match db::delete_user(pool, id) {
         Ok(_) => {
@@ -395,86 +399,70 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Ok(users) => users,
                 Err(_) => vec![],
             };
-            let content_template = UserListTemplate {
-                title: "Users",
-                users,
-            };
+
+            let content_template = build_user_list_template(&state, locale, users).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error deleting user".to_string()),
+        Err(_) => Html("Failed to delete user".to_string()),
     }
 }
 
 pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
 
-    match db::toggle_user_enabled(pool, id) {
-        Ok(_) => {
-            // Redirect back to the show page
-            let user = match db::get_user(pool, id) {
-                Ok(user) => user,
-                Err(_) => return Html("User not found".to_string()),
-            };
-
-            let content_template = UserShowTemplate {
-                title: "Show User",
-                user,
-            };
-            let content = content_template.render().unwrap();
-
-            let locale = "en-US"; // For now, use default locale
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, locale, "users-show-title").await,
-                content,
-                &state,
-                locale,
-            ).await.unwrap();
-            Html(template.render().unwrap())
-        }
-        Err(_) => Html("Error toggling user status".to_string()),
-    }
-}
-
-// Toggle from list: returns updated list
-pub async fn toggle_enabled_list(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-) -> Html<String> {
-    let pool = &state.pool;
     match db::toggle_user_enabled(pool, id) {
         Ok(_) => {
             let users = match db::get_users(pool) {
                 Ok(users) => users,
                 Err(_) => vec![],
             };
-            let content_template = UserListTemplate {
-                title: "Users",
-                users,
-            };
+
+            let content_template = build_user_list_template(&state, locale, users).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error toggling user status".to_string()),
+        Err(_) => Html("Failed to toggle user status".to_string()),
     }
 }
 
-// Toggle from show: returns updated show
+pub async fn toggle_enabled_list(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Html<String> {
+    let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
+
+    match db::toggle_user_enabled(pool, id) {
+        Ok(_) => {
+            let users = match db::get_users(pool) {
+                Ok(users) => users,
+                Err(_) => vec![],
+            };
+
+            let content_template = build_user_list_template(&state, locale, users).await;
+            Html(content_template.render().unwrap())
+        }
+        Err(_) => Html("Failed to toggle user status".to_string()),
+    }
+}
+
 pub async fn toggle_enabled_show(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Html<String> {
     let pool = &state.pool;
+    let locale = "en-US"; // For now, use default locale
+
     match db::toggle_user_enabled(pool, id) {
         Ok(_) => {
             let user = match db::get_user(pool, id) {
                 Ok(user) => user,
                 Err(_) => return Html("User not found".to_string()),
             };
-            let content_template = UserShowTemplate {
-                title: "Show User",
-                user,
-            };
+
+            let content_template = build_user_show_template(&state, locale, user).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error toggling user status".to_string()),
+        Err(_) => Html("Failed to toggle user status".to_string()),
     }
 }
