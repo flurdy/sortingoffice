@@ -7,8 +7,6 @@ diesel::table! {
         mail -> Varchar,
         #[max_length = 255]
         destination -> Varchar,
-        #[max_length = 255]
-        domain -> Varchar,
         created -> Datetime,
         modified -> Datetime,
         enabled -> Bool,

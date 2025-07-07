@@ -1,9 +1,9 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
+pub mod backups;
 pub mod dashboard;
 pub mod domains;
 pub mod layout;
 pub mod stats;
 pub mod users;
-pub mod backups;

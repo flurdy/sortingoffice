@@ -34,6 +34,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
     let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
     let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
+    let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
     let action_view = get_translation(&state, &locale, "action-view").await;
@@ -47,6 +48,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         description: &description,
         add_domain: &add_domain,
         table_header_domain: &table_header_domain,
+        table_header_transport: &table_header_transport,
         table_header_status: &table_header_status,
         table_header_actions: &table_header_actions,
         status_active: &status_active,
@@ -304,6 +306,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
             let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
+            let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let action_view = get_translation(&state, &locale, "action-view").await;
@@ -317,6 +320,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 description: &description,
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
+                table_header_transport: &table_header_transport,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
@@ -547,6 +551,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
             let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
+            let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let action_view = get_translation(&state, &locale, "action-view").await;
@@ -560,6 +565,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 description: &description,
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
+                table_header_transport: &table_header_transport,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
@@ -660,6 +666,7 @@ pub async fn toggle_enabled_list(
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
             let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
+            let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let action_view = get_translation(&state, &locale, "action-view").await;
@@ -673,6 +680,7 @@ pub async fn toggle_enabled_list(
                 description: &description,
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
+                table_header_transport: &table_header_transport,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,

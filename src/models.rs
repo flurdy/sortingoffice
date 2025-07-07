@@ -27,6 +27,12 @@ pub struct Domain {
     pub enabled: bool,
 }
 
+impl Domain {
+    pub fn transport_display(&self) -> String {
+        self.transport.clone().unwrap_or_else(|| "-".to_string())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Insertable)]
 #[diesel(table_name = domains)]
 pub struct NewDomain {
@@ -89,10 +95,15 @@ pub struct Alias {
     pub pkid: i32,
     pub mail: String,
     pub destination: String,
-    pub domain: String,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
     pub enabled: bool,
+}
+
+impl Alias {
+    pub fn domain(&self) -> String {
+        self.mail.split('@').nth(1).unwrap_or("").to_string()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -100,7 +111,6 @@ pub struct Alias {
 pub struct NewAlias {
     pub mail: String,
     pub destination: String,
-    pub domain: String,
     pub enabled: bool,
 }
 
@@ -118,7 +128,6 @@ pub struct DomainForm {
 pub struct AliasForm {
     pub mail: String,
     pub destination: String,
-    pub domain: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,

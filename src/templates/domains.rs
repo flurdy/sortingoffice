@@ -8,6 +8,7 @@ pub struct DomainListTemplate<'a> {
     pub description: &'a str,
     pub add_domain: &'a str,
     pub table_header_domain: &'a str,
+    pub table_header_transport: &'a str,
     pub table_header_status: &'a str,
     pub table_header_actions: &'a str,
     pub status_active: &'a str,

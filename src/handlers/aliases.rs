@@ -27,7 +27,6 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let add_alias = get_translation(&state, &locale, "aliases-add").await;
     let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
     let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-    let table_header_domain = get_translation(&state, &locale, "aliases-table-header-domain").await;
     let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
     let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
@@ -45,7 +44,6 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         add_alias: &add_alias,
         table_header_mail: &table_header_mail,
         table_header_destination: &table_header_destination,
-        table_header_domain: &table_header_domain,
         table_header_status: &table_header_status,
         table_header_actions: &table_header_actions,
         status_active: &status_active,
@@ -77,7 +75,6 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     let form = AliasForm {
         mail: "".to_string(),
         destination: "".to_string(),
-        domain: "example.com".to_string(),
         enabled: true,
     };
 
@@ -88,13 +85,10 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     let form_error = get_translation(&state, &locale, "aliases-form-error").await;
     let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
     let destination = get_translation(&state, &locale, "aliases-destination").await;
-    let domain = get_translation(&state, &locale, "aliases-domain").await;
     let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
     let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
-    let placeholder_domain = get_translation(&state, &locale, "aliases-placeholder-domain").await;
     let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
     let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
-    let tooltip_domain = get_translation(&state, &locale, "aliases-tooltip-domain").await;
     let active = get_translation(&state, &locale, "aliases-active").await;
     let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
     let cancel = get_translation(&state, &locale, "aliases-cancel").await;
@@ -111,13 +105,10 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_error: &form_error,
         mail_address: &mail_address,
         destination: &destination,
-        domain: &domain,
         placeholder_mail: &placeholder_mail,
         placeholder_destination: &placeholder_destination,
-        placeholder_domain: &placeholder_domain,
         tooltip_mail: &tooltip_mail,
         tooltip_destination: &tooltip_destination,
-        tooltip_domain: &tooltip_domain,
         active: &active,
         tooltip_active: &tooltip_active,
         cancel: &cancel,
@@ -161,7 +152,6 @@ pub async fn show(
     let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
     let mail = get_translation(&state, &locale, "aliases-mail").await;
     let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
-    let domain = get_translation(&state, &locale, "aliases-domain").await;
     let status = get_translation(&state, &locale, "aliases-status").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -182,7 +172,6 @@ pub async fn show(
         alias_details: &alias_details,
         mail: &mail,
         forward_to: &forward_to,
-        domain: &domain,
         status: &status,
         status_active: &status_active,
         status_inactive: &status_inactive,
@@ -226,7 +215,6 @@ pub async fn edit(
     let form = AliasForm {
         mail: alias.mail.clone(),
         destination: alias.destination.clone(),
-        domain: alias.domain.clone(),
         enabled: alias.enabled,
     };
 
@@ -237,13 +225,10 @@ pub async fn edit(
     let form_error = get_translation(&state, &locale, "aliases-form-error").await;
     let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
     let destination = get_translation(&state, &locale, "aliases-destination").await;
-    let domain = get_translation(&state, &locale, "aliases-domain").await;
     let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
     let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
-    let placeholder_domain = get_translation(&state, &locale, "aliases-placeholder-domain").await;
     let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
     let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
-    let tooltip_domain = get_translation(&state, &locale, "aliases-tooltip-domain").await;
     let active = get_translation(&state, &locale, "aliases-active").await;
     let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
     let cancel = get_translation(&state, &locale, "aliases-cancel").await;
@@ -260,13 +245,10 @@ pub async fn edit(
         form_error: &form_error,
         mail_address: &mail_address,
         destination: &destination,
-        domain: &domain,
         placeholder_mail: &placeholder_mail,
         placeholder_destination: &placeholder_destination,
-        placeholder_domain: &placeholder_domain,
         tooltip_mail: &tooltip_mail,
         tooltip_destination: &tooltip_destination,
-        tooltip_domain: &tooltip_domain,
         active: &active,
         tooltip_active: &tooltip_active,
         cancel: &cancel,
@@ -312,7 +294,7 @@ pub async fn create(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_domain = get_translation(&state, &locale, "aliases-table-header-domain").await;
+
             let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -329,7 +311,6 @@ pub async fn create(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_domain: &table_header_domain,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
@@ -361,10 +342,6 @@ pub async fn create(
             // Handle specific database errors with user-friendly messages
             let error_message = match e {
                 diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                    _,
-                ) => format!("The domain '{}' does not exist. Please create the domain first before adding aliases.", form.domain),
-                diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::UniqueViolation,
                     _,
                 ) => format!("An alias with the email '{}' already exists.", form.mail),
@@ -383,20 +360,17 @@ pub async fn create(
             let form_error = get_translation(&state, &locale, "aliases-form-error").await;
             let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
             let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
             let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
             let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
-            let placeholder_domain = get_translation(&state, &locale, "aliases-placeholder-domain").await;
             let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
             let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
-            let tooltip_domain = get_translation(&state, &locale, "aliases-tooltip-domain").await;
-            let active = get_translation(&state, &locale, "aliases-active").await;
             let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
             let cancel = get_translation(&state, &locale, "aliases-cancel").await;
             let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
             let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
             
-            let form_template = AliasFormTemplate {
+            let active = get_translation(&state, &locale, "aliases-active").await;
+            let content_template = AliasFormTemplate {
                 title: &title,
                 alias: None,
                 form: form.clone(),
@@ -406,20 +380,17 @@ pub async fn create(
                 form_error: &form_error,
                 mail_address: &mail_address,
                 destination: &destination,
-                domain: &domain,
                 placeholder_mail: &placeholder_mail,
                 placeholder_destination: &placeholder_destination,
-                placeholder_domain: &placeholder_domain,
                 tooltip_mail: &tooltip_mail,
                 tooltip_destination: &tooltip_destination,
-                tooltip_domain: &tooltip_domain,
                 active: &active,
                 tooltip_active: &tooltip_active,
                 cancel: &cancel,
                 update_alias: &update_alias,
                 create_alias: &create_alias,
             };
-            let content = form_template.render().unwrap();
+            let content = content_template.render().unwrap();
 
             if is_htmx_request(&headers) {
                 Html(content)
@@ -460,7 +431,6 @@ pub async fn update(
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
             let status = get_translation(&state, &locale, "aliases-status").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -481,7 +451,6 @@ pub async fn update(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
-                domain: &domain,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -516,7 +485,7 @@ pub async fn update(
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::ForeignKeyViolation,
                     _,
-                ) => format!("The domain '{}' does not exist. Please create the domain first before updating the alias.", form.domain),
+                ) => "The domain does not exist. Please create the domain first before adding aliases.".to_string(),
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::UniqueViolation,
                     _,
@@ -542,20 +511,17 @@ pub async fn update(
             let form_error = get_translation(&state, &locale, "aliases-form-error").await;
             let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
             let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
             let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
             let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
-            let placeholder_domain = get_translation(&state, &locale, "aliases-placeholder-domain").await;
             let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
             let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
-            let tooltip_domain = get_translation(&state, &locale, "aliases-tooltip-domain").await;
-            let active = get_translation(&state, &locale, "aliases-active").await;
             let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
             let cancel = get_translation(&state, &locale, "aliases-cancel").await;
             let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
             let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
             
-            let form_template = AliasFormTemplate {
+            let active = get_translation(&state, &locale, "aliases-active").await;
+            let content_template = AliasFormTemplate {
                 title: &title,
                 alias: original_alias,
                 form: form.clone(),
@@ -565,20 +531,17 @@ pub async fn update(
                 form_error: &form_error,
                 mail_address: &mail_address,
                 destination: &destination,
-                domain: &domain,
                 placeholder_mail: &placeholder_mail,
                 placeholder_destination: &placeholder_destination,
-                placeholder_domain: &placeholder_domain,
                 tooltip_mail: &tooltip_mail,
                 tooltip_destination: &tooltip_destination,
-                tooltip_domain: &tooltip_domain,
                 active: &active,
                 tooltip_active: &tooltip_active,
                 cancel: &cancel,
                 update_alias: &update_alias,
                 create_alias: &create_alias,
             };
-            let content = form_template.render().unwrap();
+            let content = content_template.render().unwrap();
 
             if is_htmx_request(&headers) {
                 Html(content)
@@ -618,7 +581,6 @@ pub async fn delete(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_domain = get_translation(&state, &locale, "aliases-table-header-domain").await;
             let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -635,7 +597,6 @@ pub async fn delete(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_domain: &table_header_domain,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
@@ -687,7 +648,6 @@ pub async fn toggle_enabled(
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
             let status = get_translation(&state, &locale, "aliases-status").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -708,7 +668,6 @@ pub async fn toggle_enabled(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
-                domain: &domain,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -759,7 +718,6 @@ pub async fn toggle_enabled_list(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_domain = get_translation(&state, &locale, "aliases-table-header-domain").await;
             let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -776,7 +734,6 @@ pub async fn toggle_enabled_list(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_domain: &table_header_domain,
                 table_header_status: &table_header_status,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
@@ -827,7 +784,6 @@ pub async fn toggle_enabled_show(
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
             let status = get_translation(&state, &locale, "aliases-status").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -848,7 +804,6 @@ pub async fn toggle_enabled_show(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
-                domain: &domain,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,

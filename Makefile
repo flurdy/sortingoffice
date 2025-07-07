@@ -39,7 +39,7 @@ help:
 	@echo "  make test-ui-setup - Setup Selenium for UI tests"
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
 	@echo "  make test-ui-cleanup - Clean up UI test environment"
-	@echo "  make run        - Run locally with cargo"
+	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
 	@echo "Database Inspection:"
 	@echo "  make list-domains   - List all domains in the database"
 	@echo "  make count-domains  - Count all domains in the database"
@@ -117,7 +117,7 @@ test-ui-cleanup:
 	docker compose --profile test down selenium
 
 run:
-	cargo run
+	cargo watch -N -d 5 -x run
 
 # Database operations
 migrate:

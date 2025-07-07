@@ -229,7 +229,6 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
         .values((
             aliases::mail.eq(alias_data.mail),
             aliases::destination.eq(alias_data.destination),
-            aliases::domain.eq(alias_data.domain),
             aliases::enabled.eq(alias_data.enabled),
             aliases::created.eq(now),
             aliases::modified.eq(now),
@@ -248,7 +247,6 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
         .set((
             aliases::mail.eq(alias_data.mail),
             aliases::destination.eq(alias_data.destination),
-            aliases::domain.eq(alias_data.domain),
             aliases::enabled.eq(alias_data.enabled),
             aliases::modified.eq(Utc::now().naive_utc()),
         ))
