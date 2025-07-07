@@ -42,6 +42,20 @@ pub struct DomainShowTemplate<'a> {
     pub disable_domain: &'a str,
     pub delete_domain: &'a str,
     pub delete_confirm: &'a str,
+    pub alias_report: Option<&'a crate::models::DomainAliasReport>,
+    pub catch_all_header: &'a str,
+    pub destination_header: &'a str,
+    pub required_aliases_header: &'a str,
+    pub missing_aliases_header: &'a str,
+    pub missing_required_aliases_header: &'a str,
+    pub missing_common_aliases_header: &'a str,
+    pub mail_header: &'a str,
+    pub status_header: &'a str,
+    pub no_required_aliases: &'a str,
+    pub no_missing_aliases: &'a str,
+    pub alias_report_title: &'a str,
+    pub alias_report_description: &'a str,
+    pub existing_aliases_header: &'a str,
 }
 
 #[derive(Template)]

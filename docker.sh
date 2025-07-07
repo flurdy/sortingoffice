@@ -142,7 +142,7 @@ clean_up() {
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         print_status "Cleaning up Docker resources..."
         docker compose down -v --remove-orphans
-        docker system prune -f
+        # docker system prune -f
         print_success "Cleanup completed!"
     else
         print_status "Cleanup cancelled."

@@ -385,3 +385,55 @@ pub struct AliasReport {
     pub domains_with_catch_all: Vec<DomainAliasReport>,
     pub domains_without_catch_all: Vec<DomainAliasReport>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainAliasMatrixReport {
+    pub domains: Vec<DomainAliasMatrixRow>,
+    pub required_aliases_list: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainAliasMatrixRow {
+    pub domain: String,
+    pub catch_all_status: AliasStatus,
+    pub required_aliases: Vec<RequiredAliasMatrixItem>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RequiredAliasMatrixItem {
+    pub alias: String,
+    pub status: AliasStatus,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum AliasStatus {
+    Present,
+    Missing,
+    Disabled,
+}
+
+impl AliasStatus {
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            AliasStatus::Present => "✅",
+            AliasStatus::Missing => "❌",
+            AliasStatus::Disabled => "⚠️",
+        }
+    }
+    
+    pub fn css_class(&self) -> &'static str {
+        match self {
+            AliasStatus::Present => "text-green-600 dark:text-green-400",
+            AliasStatus::Missing => "text-red-600 dark:text-red-400",
+            AliasStatus::Disabled => "text-yellow-600 dark:text-yellow-400",
+        }
+    }
+    
+    pub fn tooltip(&self) -> &'static str {
+        match self {
+            AliasStatus::Present => "Present and enabled",
+            AliasStatus::Missing => "Missing",
+            AliasStatus::Disabled => "Present but disabled",
+        }
+    }
+}

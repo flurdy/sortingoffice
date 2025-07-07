@@ -146,6 +146,15 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         }
     };
 
+    // Get alias report for this domain
+    let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+        Ok(report) => Some(report),
+        Err(e) => {
+            tracing::warn!("Failed to get alias report for domain {}: {:?}", domain.domain, e);
+            None
+        }
+    };
+
     let title = get_translation(&state, &locale, "domains-title").await;
     let view_edit_settings = get_translation(&state, &locale, "domains-view-edit-settings").await;
     let back_to_domains = get_translation(&state, &locale, "domains-back-to-domains").await;
@@ -163,6 +172,22 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     let disable_domain = get_translation(&state, &locale, "domains-disable-domain").await;
     let delete_domain = get_translation(&state, &locale, "domains-delete-domain").await;
     let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
+    
+    // Alias report translations
+    let alias_report_title = get_translation(&state, &locale, "domains-alias-report-title").await;
+    let alias_report_description = get_translation(&state, &locale, "domains-alias-report-description").await;
+    let existing_aliases_header = get_translation(&state, &locale, "domains-existing-aliases-header").await;
+    let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
+    let destination_header = get_translation(&state, &locale, "reports-destination-header").await;
+    let required_aliases_header = get_translation(&state, &locale, "reports-required-aliases-header").await;
+    let missing_aliases_header = get_translation(&state, &locale, "reports-missing-aliases-header").await;
+    let missing_required_aliases_header = get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
+    let missing_common_aliases_header = get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
+    let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
+    let status_header = get_translation(&state, &locale, "reports-status-header").await;
+    let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
+    let no_missing_aliases = get_translation(&state, &locale, "reports-no-missing-aliases").await;
+    
     let content_template = DomainShowTemplate {
         title: &title,
         domain,
@@ -182,6 +207,20 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         disable_domain: &disable_domain,
         delete_domain: &delete_domain,
         delete_confirm: &delete_confirm,
+        alias_report: alias_report.as_ref(),
+        catch_all_header: &catch_all_header,
+        destination_header: &destination_header,
+        required_aliases_header: &required_aliases_header,
+        missing_aliases_header: &missing_aliases_header,
+        missing_required_aliases_header: &missing_required_aliases_header,
+        missing_common_aliases_header: &missing_common_aliases_header,
+        mail_header: &mail_header,
+        status_header: &status_header,
+        no_required_aliases: &no_required_aliases,
+        no_missing_aliases: &no_missing_aliases,
+        alias_report_title: &alias_report_title,
+        alias_report_description: &alias_report_description,
+        existing_aliases_header: &existing_aliases_header,
     };
     let content = content_template.render().unwrap();
 
@@ -474,6 +513,20 @@ pub async fn update(
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
+                alias_report: None,
+                catch_all_header: "",
+                destination_header: "",
+                required_aliases_header: "",
+                missing_aliases_header: "",
+                missing_required_aliases_header: "",
+                missing_common_aliases_header: "",
+                mail_header: "",
+                status_header: "",
+                no_required_aliases: "",
+                no_missing_aliases: "",
+                alias_report_title: "",
+                alias_report_description: "",
+                existing_aliases_header: "",
             };
             Html(content_template.render().unwrap())
         }
@@ -630,6 +683,20 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
+                alias_report: None,
+                catch_all_header: "",
+                destination_header: "",
+                required_aliases_header: "",
+                missing_aliases_header: "",
+                missing_required_aliases_header: "",
+                missing_common_aliases_header: "",
+                mail_header: "",
+                status_header: "",
+                no_required_aliases: "",
+                no_missing_aliases: "",
+                alias_report_title: "",
+                alias_report_description: "",
+                existing_aliases_header: "",
             };
             let content = content_template.render().unwrap();
 
@@ -747,6 +814,20 @@ pub async fn toggle_enabled_show(
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
+                alias_report: None,
+                catch_all_header: "",
+                destination_header: "",
+                required_aliases_header: "",
+                missing_aliases_header: "",
+                missing_required_aliases_header: "",
+                missing_common_aliases_header: "",
+                mail_header: "",
+                status_header: "",
+                no_required_aliases: "",
+                no_missing_aliases: "",
+                alias_report_title: "",
+                alias_report_description: "",
+                existing_aliases_header: "",
             };
             Html(content_template.render().unwrap())
         }

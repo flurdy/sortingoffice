@@ -458,3 +458,21 @@ config-add-common-alias-button = "Agregar Alias Común"
 config-remove-alias-button = "Eliminar"
 config-promote-button = "Promover a Requerido"
 config-demote-button = "Degradar a Común"
+
+# Matrix Report
+reports-matrix-title = "Reporte de Matriz de Alias de Dominios"
+reports-matrix-description = "Vista general completa de todos los dominios y su estado de alias con indicadores visuales"
+reports-status-present = "Presente y habilitado"
+reports-status-missing = "Faltante"
+reports-status-disabled = "Presente pero deshabilitado"
+reports-legend-title = "Leyenda de Estado"
+
+# Reports List
+reports-list-title = "Informes"
+reports-list-description = "Ver y analizar datos del servidor de correo con informes completos"
+reports-view-report = "Ver Informe"
+
+# Domain Alias Report
+domains-alias-report-title = "Informe de Alias"
+domains-alias-report-description = "Resumen de alias de captura total, requeridos y comunes para este dominio"
+domains-existing-aliases-header = "Alias Existentes"

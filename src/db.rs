@@ -586,3 +586,158 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
         domains_without_catch_all,
     })
 }
+
+// Matrix report functions
+pub fn get_domain_alias_matrix_report(pool: &DbPool) -> Result<DomainAliasMatrixReport, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Load configuration
+    let config = match crate::config::Config::load() {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::warn!("Failed to load config, using defaults: {:?}", e);
+            crate::config::Config::default()
+        }
+    };
+    
+    // Get all domains
+    let domains = get_domains(pool)?;
+    let mut matrix_rows = Vec::new();
+
+    for domain in domains {
+        // Check catch-all status
+        let catch_all_alias = aliases::table
+            .filter(aliases::mail.eq(format!("@{}", domain.domain)))
+            .select(Alias::as_select())
+            .first::<Alias>(&mut conn)
+            .optional()?;
+
+        let catch_all_status = match catch_all_alias {
+            Some(alias) if alias.enabled => AliasStatus::Present,
+            Some(_) => AliasStatus::Disabled,
+            None => AliasStatus::Missing,
+        };
+
+        // Get all aliases for this domain
+        let domain_aliases = aliases::table
+            .filter(aliases::mail.like(format!("%@{}", domain.domain)))
+            .select(Alias::as_select())
+            .load::<Alias>(&mut conn)?;
+
+        // Create a map of existing aliases for quick lookup
+        let existing_aliases: std::collections::HashMap<String, bool> = domain_aliases
+            .iter()
+            .map(|alias| {
+                let local_part = alias.mail.split('@').next().unwrap_or("").to_string();
+                (local_part, alias.enabled)
+            })
+            .collect();
+
+        // Check required aliases
+        let required_aliases = config.get_required_aliases_for_domain(&domain.domain);
+        let required_matrix_items: Vec<RequiredAliasMatrixItem> = required_aliases
+            .iter()
+            .map(|alias| {
+                let status = match existing_aliases.get(alias) {
+                    Some(&enabled) if enabled => AliasStatus::Present,
+                    Some(_) => AliasStatus::Disabled,
+                    None => AliasStatus::Missing,
+                };
+                RequiredAliasMatrixItem {
+                    alias: alias.clone(),
+                    status,
+                }
+            })
+            .collect();
+
+        matrix_rows.push(DomainAliasMatrixRow {
+            domain: domain.domain,
+            catch_all_status,
+            required_aliases: required_matrix_items,
+        });
+    }
+
+    // Get the list of required aliases for the header
+    let required_aliases_list = config.get_required_aliases_for_domain(""); // Get global required aliases
+
+    Ok(DomainAliasMatrixReport {
+        domains: matrix_rows,
+        required_aliases_list,
+    })
+}
+
+// Get alias report for a specific domain
+pub fn get_domain_alias_report(pool: &DbPool, domain_name: &str) -> Result<DomainAliasReport, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Load configuration
+    let config = match crate::config::Config::load() {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::warn!("Failed to load config, using defaults: {:?}", e);
+            crate::config::Config::default()
+        }
+    };
+    
+    // Check if this domain has a catch-all alias
+    let catch_all_alias = aliases::table
+        .filter(aliases::mail.eq(format!("@{}", domain_name)))
+        .filter(aliases::enabled.eq(true))
+        .select(Alias::as_select())
+        .first::<Alias>(&mut conn)
+        .optional()?;
+
+    // Get all aliases for this domain
+    let domain_aliases = aliases::table
+        .filter(aliases::mail.like(format!("%@{}", domain_name)))
+        .filter(aliases::enabled.eq(true))
+        .select(Alias::as_select())
+        .load::<Alias>(&mut conn)?;
+
+    // Convert to RequiredAlias format and sort by mail
+    let mut required_aliases: Vec<RequiredAlias> = domain_aliases
+        .iter()
+        .map(|alias| RequiredAlias {
+            mail: alias.mail.clone(),
+            destination: alias.destination.clone(),
+            enabled: alias.enabled,
+        })
+        .collect();
+    required_aliases.sort_by(|a, b| a.mail.cmp(&b.mail));
+
+    // Get required aliases for this specific domain
+    let domain_required_aliases = config.get_required_aliases_for_domain(domain_name);
+    let domain_common_aliases = config.get_common_aliases_for_domain(domain_name);
+
+    // Find missing required aliases
+    let existing_aliases: std::collections::HashSet<String> = domain_aliases
+        .iter()
+        .map(|alias| {
+            alias.mail.split('@').next().unwrap_or("").to_string()
+        })
+        .collect();
+
+    let mut missing_required_aliases: Vec<String> = domain_required_aliases
+        .iter()
+        .filter(|required| !existing_aliases.contains(*required))
+        .cloned()
+        .collect();
+    missing_required_aliases.sort();
+
+    let mut missing_common_aliases: Vec<String> = domain_common_aliases
+        .iter()
+        .filter(|common| !existing_aliases.contains(*common))
+        .cloned()
+        .collect();
+    missing_common_aliases.sort();
+
+    Ok(DomainAliasReport {
+        domain: domain_name.to_string(),
+        has_catch_all: catch_all_alias.is_some(),
+        catch_all_alias: catch_all_alias.as_ref().map(|ca| ca.mail.clone()),
+        catch_all_destination: catch_all_alias.as_ref().map(|ca| ca.destination.clone()),
+        required_aliases,
+        missing_required_aliases,
+        missing_common_aliases,
+    })
+}

@@ -458,3 +458,21 @@ config-add-common-alias-button = "Add Common Alias"
 config-remove-alias-button = "Remove"
 config-promote-button = "Promote to Required"
 config-demote-button = "Demote to Common"
+
+# Matrix Report
+reports-matrix-title = "Domain Alias Matrix Report"
+reports-matrix-description = "Comprehensive overview of all domains and their alias status with visual indicators"
+reports-status-present = "Present and enabled"
+reports-status-missing = "Missing"
+reports-status-disabled = "Present but disabled"
+reports-legend-title = "Status Legend"
+
+# Reports List
+reports-list-title = "Reports"
+reports-list-description = "View and analyze mail server data with comprehensive reports"
+reports-view-report = "View Report"
+
+# Domain Alias Report
+domains-alias-report-title = "Alias Report"
+domains-alias-report-description = "Overview of catch-all, required, and common aliases for this domain"
+domains-existing-aliases-header = "Existing Aliases"

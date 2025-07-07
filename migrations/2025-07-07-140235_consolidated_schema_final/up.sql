@@ -1,5 +1,6 @@
+-- Your SQL goes here
+
 -- Consolidated migration: Create all tables with final schema
--- This migration consolidates all previous schema changes into a single migration
 
 -- Create domains table
 CREATE TABLE domains (
