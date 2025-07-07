@@ -180,6 +180,37 @@ pub struct BackupForm {
     pub enabled: bool,
 }
 
+// Relay models
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = relays)]
+#[diesel(primary_key(pkid))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct Relay {
+    pub pkid: i32,
+    pub recipient: String,
+    pub status: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = relays)]
+pub struct NewRelay {
+    pub recipient: String,
+    pub status: String,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RelayForm {
+    pub recipient: String,
+    pub status: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
+}
+
 // Catch-all report models
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CatchAllReport {

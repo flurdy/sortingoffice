@@ -6,6 +6,7 @@ pub mod config;
 pub mod dashboard;
 pub mod domains;
 pub mod language;
+pub mod relays;
 pub mod reports;
 pub mod stats;
 pub mod theme;

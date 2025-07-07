@@ -376,6 +376,13 @@ make test-ui
 RUST_LOG=debug cargo run
 ```
 
+**Test Database Setup**: The project uses Testcontainers to provide isolated MySQL instances for each test. For detailed information about the test database setup, see [TEST_DATABASE_SETUP.md](docs/TEST_DATABASE_SETUP.md).
+
+**Test Types**:
+- **Unit Tests**: Isolated database operations using testcontainers
+- **Integration Tests**: End-to-end workflows
+- **UI Tests**: Selenium-based browser automation
+
 ### Database Management
 
 For comprehensive database management, see [DATABASE_MANAGEMENT.md](DATABASE_MANAGEMENT.md).

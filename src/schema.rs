@@ -40,6 +40,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    relays (pkid) {
+        pkid -> Integer,
+        #[max_length = 255]
+        recipient -> Varchar,
+        #[max_length = 10]
+        status -> Varchar,
+        enabled -> Bool,
+        created -> Datetime,
+        modified -> Datetime,
+    }
+}
+
+diesel::table! {
     users (pkid) {
         pkid -> Integer,
         #[max_length = 255]
@@ -65,5 +78,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     aliases,
     backups,
     domains,
+    relays,
     users,
 );

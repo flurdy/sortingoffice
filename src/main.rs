@@ -20,6 +20,7 @@ pub mod config;
 #[cfg(test)]
 pub mod tests;
 
+// Production uses MySQL
 pub type DbPool = r2d2::Pool<ConnectionManager<MysqlConnection>>;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
@@ -160,6 +161,23 @@ async fn main() {
         .route(
             "/backups/{id}/toggle",
             post(handlers::backups::toggle_enabled),
+        )
+        // Relays
+        .route(
+            "/relays",
+            get(handlers::relays::list_relays).post(handlers::relays::create_relay),
+        )
+        .route("/relays/new", get(handlers::relays::create_form))
+        .route(
+            "/relays/{id}",
+            get(handlers::relays::show_relay)
+                .put(handlers::relays::update_relay)
+                .delete(handlers::relays::delete_relay),
+        )
+        .route("/relays/{id}/edit", get(handlers::relays::edit_form))
+        .route(
+            "/relays/{id}/toggle-enabled",
+            post(handlers::relays::toggle_enabled),
         )
         // Stats
         .route("/stats", get(handlers::stats::index))

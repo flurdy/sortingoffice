@@ -448,6 +448,97 @@ pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Er
     get_backup(pool, backup_id)
 }
 
+// Relay database functions
+pub fn get_relays(pool: &DbPool) -> Result<Vec<Relay>, Error> {
+    let mut conn = pool.get().unwrap();
+    relays::table
+        .select(Relay::as_select())
+        .order(relays::recipient.asc())
+        .load::<Relay>(&mut conn)
+}
+
+pub fn get_relay(pool: &DbPool, relay_id: i32) -> Result<Relay, Error> {
+    let mut conn = pool.get().unwrap();
+    relays::table
+        .find(relay_id)
+        .select(Relay::as_select())
+        .first::<Relay>(&mut conn)
+}
+
+pub fn get_relay_by_recipient(pool: &DbPool, recipient: &str) -> Result<Relay, Error> {
+    let mut conn = pool.get().unwrap();
+    relays::table
+        .filter(relays::recipient.eq(recipient))
+        .select(Relay::as_select())
+        .first::<Relay>(&mut conn)
+}
+
+pub fn create_relay(pool: &DbPool, relay_data: RelayForm) -> Result<Relay, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+
+    let new_relay = NewRelay {
+        recipient: relay_data.recipient,
+        status: relay_data.status,
+        enabled: relay_data.enabled,
+    };
+
+    diesel::insert_into(relays::table)
+        .values((
+            relays::recipient.eq(new_relay.recipient),
+            relays::status.eq(new_relay.status),
+            relays::enabled.eq(new_relay.enabled),
+            relays::created.eq(now),
+            relays::modified.eq(now),
+        ))
+        .execute(&mut conn)?;
+
+    relays::table
+        .order(relays::pkid.desc())
+        .select(Relay::as_select())
+        .first::<Relay>(&mut conn)
+}
+
+pub fn update_relay(
+    pool: &DbPool,
+    relay_id: i32,
+    relay_data: RelayForm,
+) -> Result<Relay, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::update(relays::table.find(relay_id))
+        .set((
+            relays::recipient.eq(relay_data.recipient),
+            relays::status.eq(relay_data.status),
+            relays::enabled.eq(relay_data.enabled),
+            relays::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_relay(pool, relay_id)
+}
+
+pub fn delete_relay(pool: &DbPool, relay_id: i32) -> Result<usize, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::delete(relays::table.find(relay_id)).execute(&mut conn)
+}
+
+pub fn toggle_relay_enabled(pool: &DbPool, relay_id: i32) -> Result<Relay, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Get current relay
+    let current_relay = get_relay(pool, relay_id)?;
+    
+    // Toggle enabled status
+    diesel::update(relays::table.find(relay_id))
+        .set((
+            relays::enabled.eq(!current_relay.enabled),
+            relays::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_relay(pool, relay_id)
+}
+
 // Catch-all report functions
 pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error> {
     let mut conn = pool.get().unwrap();
