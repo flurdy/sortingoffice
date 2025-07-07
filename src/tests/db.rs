@@ -3,6 +3,8 @@ mod tests {
     use crate::db;
     use crate::models::*;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
+    use diesel::prelude::*;
+    use crate::schema::{aliases, domains};
 
     #[tokio::test]
     async fn test_domain_crud_operations() {
@@ -153,14 +155,12 @@ mod tests {
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
 
         let created_alias = db::create_alias(&pool, alias_form).unwrap();
         assert_eq!(created_alias.mail, "test@test.com");
         assert_eq!(created_alias.destination, "user@test.com");
-        assert_eq!(created_alias.domain, domain.domain);
         assert_eq!(created_alias.enabled, true);
 
         // Test get alias
@@ -172,7 +172,6 @@ mod tests {
         let update_form = AliasForm {
             mail: "updated@test.com".to_string(),
             destination: "updated@test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: false,
         };
 
@@ -270,7 +269,6 @@ mod tests {
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let alias = db::create_alias(&pool, alias_form).unwrap();
@@ -337,7 +335,6 @@ mod tests {
         let alias_form = AliasForm {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
@@ -408,5 +405,195 @@ mod tests {
         assert!(backup_update_result.is_err());
 
         cleanup_test_db(&pool);
+    }
+
+    #[test]
+    fn test_catch_all_report() {
+        let pool = setup_test_db();
+        
+        // Clean up any existing test data
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
+        
+        // Create a test domain
+        let new_domain = NewDomain {
+            domain: "test.com".to_string(),
+            transport: Some("virtual".to_string()),
+            enabled: true,
+        };
+        let domain = db::create_domain(&pool, new_domain).unwrap();
+        
+        // Create a catch-all alias
+        let catch_all_alias = NewAlias {
+            mail: "@test.com".to_string(),
+            destination: "admin@test.com".to_string(),
+            enabled: true,
+        };
+        let _ = db::create_alias(&pool, AliasForm {
+            mail: catch_all_alias.mail.clone(),
+            destination: catch_all_alias.destination.clone(),
+            enabled: catch_all_alias.enabled,
+        });
+        
+        // Create some required aliases
+        let required_aliases = vec![
+            ("postmaster@test.com", "admin@test.com"),
+            ("abuse@test.com", "admin@test.com"),
+            ("webmaster@test.com", "admin@test.com"),
+        ];
+        
+        for (mail, destination) in required_aliases {
+            let _ = db::create_alias(&pool, AliasForm {
+                mail: mail.to_string(),
+                destination: destination.to_string(),
+                enabled: true,
+            });
+        }
+        
+        // Test the catch-all report
+        let reports = db::get_catch_all_report(&pool).unwrap();
+        assert_eq!(reports.len(), 1);
+        
+        let report = &reports[0];
+        assert_eq!(report.domain, "test.com");
+        assert_eq!(report.catch_all_alias, "@test.com");
+        assert_eq!(report.catch_all_destination, "admin@test.com");
+        assert_eq!(report.required_aliases.len(), 3);
+        
+        // Clean up
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
+    }
+
+    #[test]
+    fn test_alias_report() {
+        let pool = setup_test_db();
+        
+        // Clean up any existing test data
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
+        
+        // Create two test domains
+        let domain1 = db::create_domain(&pool, NewDomain {
+            domain: "catchall.com".to_string(),
+            transport: Some("virtual".to_string()),
+            enabled: true,
+        }).unwrap();
+        
+        let domain2 = db::create_domain(&pool, NewDomain {
+            domain: "missing.com".to_string(),
+            transport: Some("virtual".to_string()),
+            enabled: true,
+        }).unwrap();
+        
+        // Create a catch-all alias for domain1
+        let _ = db::create_alias(&pool, AliasForm {
+            mail: "@catchall.com".to_string(),
+            destination: "admin@catchall.com".to_string(),
+            enabled: true,
+        });
+        
+        // Create some required aliases for domain1
+        let _ = db::create_alias(&pool, AliasForm {
+            mail: "postmaster@catchall.com".to_string(),
+            destination: "admin@catchall.com".to_string(),
+            enabled: true,
+        });
+        
+        // Create only some required aliases for domain2 (missing some)
+        let _ = db::create_alias(&pool, AliasForm {
+            mail: "postmaster@missing.com".to_string(),
+            destination: "admin@missing.com".to_string(),
+            enabled: true,
+        });
+        
+        // Test the enhanced alias report
+        let report = db::get_alias_report(&pool).unwrap();
+        
+        // Check domains with catch-all
+        assert_eq!(report.domains_with_catch_all.len(), 1);
+        let catch_all_domain = &report.domains_with_catch_all[0];
+        assert_eq!(catch_all_domain.domain, "catchall.com");
+        assert!(catch_all_domain.has_catch_all);
+        assert_eq!(catch_all_domain.catch_all_alias, Some("@catchall.com".to_string()));
+        assert_eq!(catch_all_domain.catch_all_destination, Some("admin@catchall.com".to_string()));
+        assert_eq!(catch_all_domain.required_aliases.len(), 2); // catch-all + postmaster
+        assert!(catch_all_domain.missing_required_aliases.len() > 0); // Should be missing some required aliases
+        
+        // Check domains without catch-all
+        assert_eq!(report.domains_without_catch_all.len(), 1);
+        let missing_domain = &report.domains_without_catch_all[0];
+        assert_eq!(missing_domain.domain, "missing.com");
+        assert!(!missing_domain.has_catch_all);
+        assert_eq!(missing_domain.catch_all_alias, None);
+        assert_eq!(missing_domain.catch_all_destination, None);
+        assert_eq!(missing_domain.required_aliases.len(), 1); // Only postmaster
+        assert!(missing_domain.missing_required_aliases.len() > 0); // Should be missing some required aliases
+        
+        // Clean up
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
+    }
+
+    #[test]
+    fn test_configurable_required_aliases() {
+        let pool = setup_test_db();
+        
+        // Clean up any existing test data
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
+        
+        // Create a test domain
+        let new_domain = NewDomain {
+            domain: "test.com".to_string(),
+            transport: Some("virtual".to_string()),
+            enabled: true,
+        };
+        let _domain = db::create_domain(&pool, new_domain).unwrap();
+        
+        // Test with default configuration
+        let report = db::get_alias_report(&pool).unwrap();
+        assert_eq!(report.domains_without_catch_all.len(), 1);
+        
+        let domain_report = &report.domains_without_catch_all[0];
+        assert_eq!(domain_report.domain, "test.com");
+        assert!(!domain_report.has_catch_all);
+        
+        // The default config should include standard aliases like postmaster, abuse, etc.
+        assert!(domain_report.missing_required_aliases.contains(&"postmaster".to_string()));
+        assert!(domain_report.missing_required_aliases.contains(&"abuse".to_string()));
+        assert!(domain_report.missing_required_aliases.contains(&"webmaster".to_string()));
+        
+        // Test RequiredAliasConfig methods
+        let mut config = RequiredAliasConfig::default();
+        assert!(config.get_required_aliases().contains(&"postmaster".to_string()));
+        assert!(config.get_common_aliases().contains(&"admin".to_string()));
+        
+        // Test adding and removing aliases
+        config.add_required_alias("custom".to_string());
+        assert!(config.get_required_aliases().contains(&"custom".to_string()));
+        
+        config.remove_required_alias("postmaster");
+        assert!(!config.get_required_aliases().contains(&"postmaster".to_string()));
+        
+        // Test promote/demote functionality
+        config.promote_to_required("admin");
+        assert!(config.get_required_aliases().contains(&"admin".to_string()));
+        assert!(!config.get_common_aliases().contains(&"admin".to_string()));
+        
+        config.demote_to_common("admin");
+        assert!(!config.get_required_aliases().contains(&"admin".to_string()));
+        assert!(config.get_common_aliases().contains(&"admin".to_string()));
+        
+        // Test from_strings method
+        let config_from_strings = RequiredAliasConfig::from_strings("test1,test2", "test3,test4");
+        assert_eq!(config_from_strings.get_required_aliases().len(), 2);
+        assert_eq!(config_from_strings.get_common_aliases().len(), 2);
+        assert!(config_from_strings.get_required_aliases().contains(&"test1".to_string()));
+        assert!(config_from_strings.get_common_aliases().contains(&"test3".to_string()));
+        
+        // Clean up
+        let _ = diesel::delete(aliases::table).execute(&mut pool.get().unwrap());
+        let _ = diesel::delete(domains::table).execute(&mut pool.get().unwrap());
     }
 }

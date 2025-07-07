@@ -1,0 +1,366 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ title }}</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400">{{ description }}</p>
+            </div>
+            
+            <form method="POST" action="/config/update" class="space-y-8">
+                <!-- Required Aliases Section -->
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            {{ required_aliases_header }}
+                        </h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                            These aliases are essential for email standards compliance (RFC requirements).
+                        </p>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-700">
+                        <div class="px-4 py-5 sm:px-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4">
+                                    <input type="text" 
+                                           name="new_required_alias" 
+                                           placeholder="Enter new required alias (e.g., postmaster)"
+                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <button type="button" 
+                                            onclick="addRequiredAlias()"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        {{ add_required_alias_button }}
+                                    </button>
+                                </div>
+                                
+                                <div id="required-aliases-list" class="space-y-2">
+                                    {% for alias in config.required_aliases %}
+                                    <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
+                                        <span class="text-sm font-medium text-red-900 dark:text-red-100">{{ alias }}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" 
+                                                    onclick="demoteToCommon('{{ alias }}')"
+                                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs">
+                                                {{ demote_button }}
+                                            </button>
+                                            <button type="button" 
+                                                    onclick="removeRequiredAlias('{{ alias }}')"
+                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                {{ remove_alias_button }}
+                                            </button>
+                                        </div>
+                                        <input type="hidden" name="required_aliases[]" value="{{ alias }}">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Aliases Section -->
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            {{ common_aliases_header }}
+                        </h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                            These aliases are commonly expected by users and services but not strictly required.
+                        </p>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-700">
+                        <div class="px-4 py-5 sm:px-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4">
+                                    <input type="text" 
+                                           name="new_common_alias" 
+                                           placeholder="Enter new common alias (e.g., admin)"
+                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <button type="button" 
+                                            onclick="addCommonAlias()"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                        {{ add_common_alias_button }}
+                                    </button>
+                                </div>
+                                
+                                <div id="common-aliases-list" class="space-y-2">
+                                    {% for alias in config.common_aliases %}
+                                    <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                                        <span class="text-sm font-medium text-yellow-900 dark:text-yellow-100">{{ alias }}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" 
+                                                    onclick="promoteToRequired('{{ alias }}')"
+                                                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs">
+                                                {{ promote_button }}
+                                            </button>
+                                            <button type="button" 
+                                                    onclick="removeCommonAlias('{{ alias }}')"
+                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                {{ remove_alias_button }}
+                                            </button>
+                                        </div>
+                                        <input type="hidden" name="common_aliases[]" value="{{ alias }}">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Domain Overrides Section -->
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            {{ domain_overrides_header }}
+                        </h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                            Override required aliases for specific domains.
+                        </p>
+                    </div>
+                    <div class="border-t border-gray-200 dark:border-gray-700">
+                        <div class="px-4 py-5 sm:px-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4">
+                                    <input type="text" 
+                                           name="new_domain" 
+                                           placeholder="Enter domain (e.g., example.com)"
+                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <button type="button" 
+                                            onclick="addDomainOverride()"
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Add Domain Override
+                                    </button>
+                                </div>
+                                
+                                <div id="domain-overrides-list" class="space-y-4">
+                                    {% for (domain, domain_override) in domain_overrides_vec %}
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-md p-4">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ domain }}</h4>
+                                            <button type="button" 
+                                                    onclick="removeDomainOverride('{{ domain }}')"
+                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                Remove Domain
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Required Aliases for this Domain -->
+                                        <div class="mb-4">
+                                            <h5 class="text-xs font-medium text-red-600 dark:text-red-400 mb-2">Required Aliases</h5>
+                                            <div class="space-y-2">
+                                                {% for alias in domain_override.required %}
+                                                <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                                                    <span class="text-sm text-red-700 dark:text-red-300">{{ alias }}</span>
+                                                    <button type="button" 
+                                                            onclick="removeDomainRequiredAlias('{{ domain }}', '{{ alias }}')"
+                                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                        Remove
+                                                    </button>
+                                                    <input type="hidden" name="domain_overrides[{{ domain }}][required][]" value="{{ alias }}">
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Common Aliases for this Domain -->
+                                        <div class="mb-4">
+                                            <h5 class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mb-2">Common Aliases</h5>
+                                            <div class="space-y-2">
+                                                {% for alias in domain_override.common %}
+                                                <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                                                    <span class="text-sm text-yellow-700 dark:text-yellow-300">{{ alias }}</span>
+                                                    <button type="button" 
+                                                            onclick="removeDomainCommonAlias('{{ domain }}', '{{ alias }}')"
+                                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                        Remove
+                                                    </button>
+                                                    <input type="hidden" name="domain_overrides[{{ domain }}][common][]" value="{{ alias }}">
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        
+                                        <input type="hidden" name="domain_overrides[{{ domain }}][required][]" value="">
+                                        <input type="hidden" name="domain_overrides[{{ domain }}][common][]" value="">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4">
+                    <a href="/" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ cancel_button }}
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ save_button }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addRequiredAlias() {
+    const input = document.querySelector('input[name="new_required_alias"]');
+    const alias = input.value.trim();
+    if (!alias) return;
+    
+    const aliasesList = document.getElementById('required-aliases-list');
+    const aliasDiv = document.createElement('div');
+    aliasDiv.className = 'flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-md';
+    aliasDiv.innerHTML = `
+        <span class="text-sm font-medium text-red-900 dark:text-red-100">${alias}</span>
+        <div class="flex items-center space-x-2">
+            <button type="button" onclick="demoteToCommon('${alias}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs">
+                {{ demote_button }}
+            </button>
+            <button type="button" onclick="removeRequiredAlias('${alias}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                {{ remove_alias_button }}
+            </button>
+        </div>
+        <input type="hidden" name="required_aliases[]" value="${alias}">
+    `;
+    aliasesList.appendChild(aliasDiv);
+    input.value = '';
+}
+
+function removeRequiredAlias(alias) {
+    const aliasesList = document.getElementById('required-aliases-list');
+    const aliasDivs = aliasesList.querySelectorAll('div');
+    aliasDivs.forEach(div => {
+        const span = div.querySelector('span');
+        if (span && span.textContent === alias) {
+            div.remove();
+        }
+    });
+}
+
+function demoteToCommon(alias) {
+    // Implementation of demoteToCommon function
+}
+
+function addCommonAlias() {
+    const input = document.querySelector('input[name="new_common_alias"]');
+    const alias = input.value.trim();
+    if (!alias) return;
+    
+    const aliasesList = document.getElementById('common-aliases-list');
+    const aliasDiv = document.createElement('div');
+    aliasDiv.className = 'flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md';
+    aliasDiv.innerHTML = `
+        <span class="text-sm font-medium text-yellow-900 dark:text-yellow-100">${alias}</span>
+        <div class="flex items-center space-x-2">
+            <button type="button" onclick="promoteToRequired('${alias}')" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs">
+                {{ promote_button }}
+            </button>
+            <button type="button" onclick="removeCommonAlias('${alias}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                {{ remove_alias_button }}
+            </button>
+        </div>
+        <input type="hidden" name="common_aliases[]" value="${alias}">
+    `;
+    aliasesList.appendChild(aliasDiv);
+    input.value = '';
+}
+
+function removeCommonAlias(alias) {
+    const aliasesList = document.getElementById('common-aliases-list');
+    const aliasDivs = aliasesList.querySelectorAll('div');
+    aliasDivs.forEach(div => {
+        const span = div.querySelector('span');
+        if (span && span.textContent === alias) {
+            div.remove();
+        }
+    });
+}
+
+function promoteToRequired(alias) {
+    // Implementation of promoteToRequired function
+}
+
+function addDomainOverride() {
+    const input = document.querySelector('input[name="new_domain"]');
+    const domain = input.value.trim();
+    if (!domain) return;
+    
+    const overridesList = document.getElementById('domain-overrides-list');
+    const domainDiv = document.createElement('div');
+    domainDiv.className = 'border border-gray-200 dark:border-gray-600 rounded-md p-4';
+    domainDiv.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">${domain}</h4>
+            <button type="button" onclick="removeDomainOverride('${domain}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                Remove Domain
+            </button>
+        </div>
+        <div class="space-y-2">
+            <div class="flex items-center space-x-4">
+                <input type="text" placeholder="Enter alias for ${domain}" class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <button type="button" onclick="addDomainAlias('${domain}')" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Alias
+                </button>
+            </div>
+        </div>
+        <input type="hidden" name="domain_overrides[${domain}][]" value="">
+    `;
+    overridesList.appendChild(domainDiv);
+    input.value = '';
+}
+
+function removeDomainOverride(domain) {
+    const overridesList = document.getElementById('domain-overrides-list');
+    const domainDivs = overridesList.querySelectorAll('div');
+    domainDivs.forEach(div => {
+        const h4 = div.querySelector('h4');
+        if (h4 && h4.textContent === domain) {
+            div.remove();
+        }
+    });
+}
+
+function addDomainAlias(domain) {
+    const domainDiv = event.target.closest('div');
+    const input = domainDiv.querySelector('input[type="text"]');
+    const alias = input.value.trim();
+    if (!alias) return;
+    
+    const aliasesContainer = domainDiv.querySelector('.space-y-2');
+    const aliasDiv = document.createElement('div');
+    aliasDiv.className = 'flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded';
+    aliasDiv.innerHTML = `
+        <span class="text-sm text-gray-900 dark:text-white">${alias}</span>
+        <button type="button" onclick="removeDomainAlias('${domain}', '${alias}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+            Remove
+        </button>
+        <input type="hidden" name="domain_overrides[${domain}][]" value="${alias}">
+    `;
+    aliasesContainer.appendChild(aliasDiv);
+    input.value = '';
+}
+
+function removeDomainAlias(domain, alias) {
+    const domainDiv = event.target.closest('div');
+    const aliasDivs = domainDiv.querySelectorAll('div');
+    aliasDivs.forEach(div => {
+        const span = div.querySelector('span');
+        if (span && span.textContent === alias) {
+            div.remove();
+        }
+    });
+}
+
+function removeDomainRequiredAlias(domain, alias) {
+    // Implementation of removeDomainRequiredAlias function
+}
+
+function removeDomainCommonAlias(domain, alias) {
+    // Implementation of removeDomainCommonAlias function
+}
+</script> 

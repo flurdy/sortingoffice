@@ -1,6 +1,6 @@
 [package]
 name = "sortingoffice"
-version = "0.1.0"
+version = "3.0.0"
 edition = "2021"
 
 [dependencies]
@@ -43,6 +43,9 @@ uuid = { version = "1.17.0", features = ["v4", "serde"] }
 
 # Environment variables
 dotenvy = "0.15.7"
+
+# Configuration file parsing
+toml = "0.8.23"
 
 # HTTP client for external API calls
 reqwest = { version = "0.11.27", features = ["json"] }

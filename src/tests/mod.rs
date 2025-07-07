@@ -26,9 +26,11 @@ mod common {
                     tracing_subscriber::fmt::init();
                 });
 
-                let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-                    "mysql://root:password@localhost/sortingoffice_test".to_string()
-                });
+                let database_url = std::env::var("TEST_DATABASE_URL")
+                    .or_else(|_| std::env::var("DATABASE_URL"))
+                    .unwrap_or_else(|_| {
+                        "mysql://root:password@localhost/sortingoffice_test".to_string()
+                    });
 
                 let manager = ConnectionManager::<MysqlConnection>::new(database_url);
                 let pool = Pool::builder()

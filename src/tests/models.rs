@@ -76,7 +76,6 @@ mod tests {
             pkid: 1,
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
-            domain: "example.com".to_string(),
             created: chrono::Utc::now().naive_utc(),
             modified: chrono::Utc::now().naive_utc(),
             enabled: true,
@@ -88,7 +87,6 @@ mod tests {
         assert_eq!(alias.pkid, deserialized.pkid);
         assert_eq!(alias.mail, deserialized.mail);
         assert_eq!(alias.destination, deserialized.destination);
-        assert_eq!(alias.domain, deserialized.domain);
         assert_eq!(alias.enabled, deserialized.enabled);
     }
 
@@ -127,12 +125,11 @@ mod tests {
     #[test]
     fn test_alias_form_deserialization() {
         let form_data =
-            "mail=test%40example.com&destination=user%40example.com&domain=example.com&enabled=on";
+            "mail=test%40example.com&destination=user%40example.com&enabled=on";
         let form: AliasForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.mail, "test@example.com");
         assert_eq!(form.destination, "user@example.com");
-        assert_eq!(form.domain, "example.com");
         assert_eq!(form.enabled, true);
     }
 

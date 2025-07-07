@@ -346,8 +346,9 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             .count()
             .get_result(&mut conn)?;
 
+        // Count aliases for this domain by checking the domain part of the mail field
         let alias_count: i64 = aliases::table
-            .filter(aliases::domain.eq(&domain.domain))
+            .filter(aliases::mail.like(format!("%@{}", domain.domain)))
             .count()
             .get_result(&mut conn)?;
 
@@ -448,4 +449,140 @@ pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Er
         .execute(&mut conn)?;
 
     get_backup(pool, backup_id)
+}
+
+// Catch-all report functions
+pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Get all domains that have catch-all aliases (@domain.com)
+    let catch_all_aliases = aliases::table
+        .filter(aliases::mail.like("@%"))
+        .filter(aliases::enabled.eq(true))
+        .select(Alias::as_select())
+        .load::<Alias>(&mut conn)?;
+
+    let mut reports = Vec::new();
+
+    for catch_all_alias in catch_all_aliases {
+        let domain = catch_all_alias.domain();
+        
+        // Get all other aliases for this domain (excluding the catch-all)
+        let required_aliases = aliases::table
+            .filter(aliases::mail.like(format!("%@{}", domain)))
+            .filter(aliases::mail.ne(&catch_all_alias.mail))
+            .filter(aliases::enabled.eq(true))
+            .select(Alias::as_select())
+            .load::<Alias>(&mut conn)?;
+
+        let required_aliases: Vec<RequiredAlias> = required_aliases
+            .into_iter()
+            .map(|alias| RequiredAlias {
+                mail: alias.mail,
+                destination: alias.destination,
+                enabled: alias.enabled,
+            })
+            .collect();
+
+        reports.push(CatchAllReport {
+            domain,
+            catch_all_alias: catch_all_alias.mail,
+            catch_all_destination: catch_all_alias.destination,
+            required_aliases,
+        });
+    }
+
+    Ok(reports)
+}
+
+// Enhanced alias report functions
+pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Load configuration
+    let config = match crate::config::Config::load() {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::warn!("Failed to load config, using defaults: {:?}", e);
+            crate::config::Config::default()
+        }
+    };
+    
+    // Get all domains
+    let domains = get_domains(pool)?;
+    let mut domains_with_catch_all = Vec::new();
+    let mut domains_without_catch_all = Vec::new();
+
+    for domain in domains {
+        // Check if this domain has a catch-all alias
+        let catch_all_alias = aliases::table
+            .filter(aliases::mail.eq(format!("@{}", domain.domain)))
+            .filter(aliases::enabled.eq(true))
+            .select(Alias::as_select())
+            .first::<Alias>(&mut conn)
+            .optional()?;
+
+        // Get all aliases for this domain
+        let domain_aliases = aliases::table
+            .filter(aliases::mail.like(format!("%@{}", domain.domain)))
+            .filter(aliases::enabled.eq(true))
+            .select(Alias::as_select())
+            .load::<Alias>(&mut conn)?;
+
+        // Convert to RequiredAlias format
+        let required_aliases: Vec<RequiredAlias> = domain_aliases
+            .iter()
+            .map(|alias| RequiredAlias {
+                mail: alias.mail.clone(),
+                destination: alias.destination.clone(),
+                enabled: alias.enabled,
+            })
+            .collect();
+
+        // Get required aliases for this specific domain
+        let domain_required_aliases = config.get_required_aliases_for_domain(&domain.domain);
+        let domain_common_aliases = config.get_common_aliases_for_domain(&domain.domain);
+        let _domain_all_aliases = config.get_all_aliases_for_domain(&domain.domain);
+
+        // Find missing required aliases
+        let existing_aliases: std::collections::HashSet<String> = domain_aliases
+            .iter()
+            .map(|alias| {
+                alias.mail.split('@').next().unwrap_or("").to_string()
+            })
+            .collect();
+
+        let missing_required_aliases: Vec<String> = domain_required_aliases
+            .iter()
+            .filter(|required| !existing_aliases.contains(*required))
+            .cloned()
+            .collect();
+
+        let missing_common_aliases: Vec<String> = domain_common_aliases
+            .iter()
+            .filter(|common| !existing_aliases.contains(*common))
+            .cloned()
+            .collect();
+
+        let domain_report = DomainAliasReport {
+            domain: domain.domain,
+            has_catch_all: catch_all_alias.is_some(),
+            catch_all_alias: catch_all_alias.as_ref().map(|ca| ca.mail.clone()),
+            catch_all_destination: catch_all_alias.as_ref().map(|ca| ca.destination.clone()),
+            required_aliases,
+            missing_required_aliases,
+            missing_common_aliases,
+        };
+
+        if domain_report.has_catch_all {
+            domains_with_catch_all.push(domain_report);
+        } else {
+            domains_without_catch_all.push(domain_report);
+        }
+    }
+
+    Ok(AliasReport {
+        domains_with_catch_all,
+        domains_without_catch_all,
+    })
 }

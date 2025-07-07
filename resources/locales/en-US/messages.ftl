@@ -9,6 +9,8 @@ nav-backups = Backups
 nav-aliases = Aliases
 nav-users = Users
 nav-statistics = Statistics
+nav-reports = Reports
+nav-config = Configuration
 nav-about = About
 nav-logout = Logout
 
@@ -423,3 +425,36 @@ form-tooltip-transport = Transport configuration (e.g., virtual for virtual doma
 form-tooltip-enable = Enable this domain
 form-create-domain = Create Domain
 form-update-domain = Update Domain
+
+# Reports
+reports-catch-all-title = "Catch-All Report"
+reports-catch-all-description = "This report shows domains with catch-all email aliases and their required email aliases."
+reports-domain-header = "Domain"
+reports-catch-all-header = "Catch-All Alias"
+reports-destination-header = "Destination"
+reports-required-aliases-header = "Required Aliases"
+reports-missing-aliases-header = "Missing Required Aliases"
+reports-missing-required-aliases-header = "Missing Required Aliases"
+reports-missing-common-aliases-header = "Missing Common Aliases"
+reports-mail-header = "Email"
+reports-status-header = "Status"
+reports-no-catch-all-domains = "No domains with catch-all aliases found"
+reports-no-catch-all-domains-description = "There are currently no domains configured with catch-all email aliases."
+reports-no-required-aliases = "No required aliases found for this domain"
+reports-no-missing-aliases = "No missing required aliases for this domain"
+reports-domains-with-catch-all-header = "Domains with Catch-All Aliases"
+reports-domains-without-catch-all-header = "Domains Missing Required Aliases"
+
+# Configuration
+config-title = "Configuration"
+config-description = "Manage required aliases and domain-specific overrides."
+config-required-aliases-header = "Required Aliases"
+config-common-aliases-header = "Common Aliases"
+config-domain-overrides-header = "Domain Overrides"
+config-save-button = "Save Configuration"
+config-cancel-button = "Cancel"
+config-add-required-alias-button = "Add Required Alias"
+config-add-common-alias-button = "Add Common Alias"
+config-remove-alias-button = "Remove"
+config-promote-button = "Promote to Required"
+config-demote-button = "Demote to Common"

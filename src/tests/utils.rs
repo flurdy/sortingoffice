@@ -46,13 +46,11 @@ mod tests {
         let valid_alias_form = AliasForm {
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
-            domain: "example.com".to_string(),
             enabled: true,
         };
 
         assert!(!valid_alias_form.mail.is_empty());
         assert!(!valid_alias_form.destination.is_empty());
-        assert!(!valid_alias_form.domain.is_empty());
         assert!(valid_alias_form.mail.contains('@'));
         assert!(valid_alias_form.destination.contains('@'));
     }
@@ -106,7 +104,6 @@ mod tests {
             pkid: 1,
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
-            domain: "example.com".to_string(),
             created: now,
             modified: now,
             enabled: true,
@@ -115,7 +112,6 @@ mod tests {
         assert_eq!(alias.pkid, 1);
         assert_eq!(alias.mail, "test@example.com");
         assert_eq!(alias.destination, "user@example.com");
-        assert_eq!(alias.domain, "example.com");
         assert_eq!(alias.enabled, true);
     }
 
@@ -157,13 +153,11 @@ mod tests {
         let new_alias = NewAlias {
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
-            domain: "example.com".to_string(),
             enabled: true,
         };
 
         assert_eq!(new_alias.mail, "test@example.com");
         assert_eq!(new_alias.destination, "user@example.com");
-        assert_eq!(new_alias.domain, "example.com");
         assert_eq!(new_alias.enabled, true);
     }
 

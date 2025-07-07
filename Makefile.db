@@ -1,0 +1,174 @@
+# Database Management Makefile
+# Contains all database-related operations for Sorting Office
+
+.PHONY: migrate migrate-revert migrate-reset seed create-seed-migration test-db-setup test-db-clean test-db-reset prod-db-setup prod-db-reset list-domains count-domains list-aliases count-aliases list-users count-users
+
+# Database configuration
+MYSQL ?= mysql
+MYSQL_USER ?= root
+MYSQL_PASSWORD ?= password
+MYSQL_DATABASE ?= sortingoffice
+MYSQL_HOST ?= 127.0.0.1
+MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
+
+# General database operations
+migrate:
+	diesel migration run
+
+migrate-revert:
+	diesel migration revert
+
+migrate-reset:
+	diesel migration revert
+	diesel migration run
+
+# Seed data management
+seed:
+	@echo "🌱 Seeding database with initial data..."
+	@if [ -f "seed_data/all.sql" ]; then \
+		echo "Running seed data from seed_data/all.sql..."; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
+		echo "✅ Seed data loaded successfully!"; \
+	else \
+		echo "❌ No seed data found. Creating default seed data..."; \
+		make create-seed-data; \
+	fi
+
+seed-domains:
+	@echo "🌱 Seeding domains table..."
+	@if [ -f "seed_data/domains.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
+		echo "✅ Domains seeded successfully!"; \
+	else \
+		echo "❌ seed_data/domains.sql not found!"; \
+	fi
+
+seed-users:
+	@echo "🌱 Seeding users table..."
+	@if [ -f "seed_data/users.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
+		echo "✅ Users seeded successfully!"; \
+	else \
+		echo "❌ seed_data/users.sql not found!"; \
+	fi
+
+seed-aliases:
+	@echo "🌱 Seeding aliases table..."
+	@if [ -f "seed_data/aliases.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/aliases.sql; \
+		echo "✅ Aliases seeded successfully!"; \
+	else \
+		echo "❌ seed_data/aliases.sql not found!"; \
+	fi
+
+seed-backups:
+	@echo "🌱 Seeding backups table..."
+	@if [ -f "seed_data/backups.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/backups.sql; \
+		echo "✅ Backups seeded successfully!"; \
+	else \
+		echo "❌ seed_data/backups.sql not found!"; \
+	fi
+
+create-seed-data:
+	@echo "📝 Creating default seed data files..."
+	@mkdir -p seed_data
+	@echo "-- Seed data for domains table" > seed_data/domains.sql
+	@echo "-- This file contains initial domain data for development/testing" >> seed_data/domains.sql
+	@echo "" >> seed_data/domains.sql
+	@echo "-- Insert seed data for domains" >> seed_data/domains.sql
+	@echo "INSERT INTO domains (domain, transport, enabled) VALUES" >> seed_data/domains.sql
+	@echo "('example.com', 'virtual', 1);" >> seed_data/domains.sql
+	@echo "Seed data files created in seed_data/ directory"
+	@echo "Edit the files and run 'make seed' to load the data"
+
+# Test database management
+test-db-setup:
+	@echo "🧪 Setting up test database..."
+	@echo "Creating test database if it doesn't exist..."
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice_test;"
+	@echo "Running migrations on test database..."
+	@DATABASE_URL=mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@$(MYSQL_HOST)/sortingoffice_test diesel migration run
+
+test-db-clean:
+	@echo "🧹 Cleaning test database..."
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) sortingoffice_test -e "DROP DATABASE IF EXISTS sortingoffice_test;"
+
+test-db-reset: test-db-clean test-db-setup
+	@echo "🔄 Test database reset complete"
+
+# Production database management
+prod-db-setup:
+	@echo "🏭 Setting up production database..."
+	@echo "Creating production database if it doesn't exist..."
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
+	@echo "Running migrations on production database..."
+	@diesel migration run
+	@echo "Seeding production database..."
+	@make seed
+
+prod-db-reset:
+	@echo "⚠️  WARNING: This will reset the production database!"
+	@echo "Are you sure? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		echo "Resetting production database..."; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "DROP DATABASE IF EXISTS sortingoffice;"; \
+		make prod-db-setup; \
+	else \
+		echo "Operation cancelled."; \
+	fi
+
+# Database inspection commands
+list-domains:
+	@$(MYSQL_CMD) "SELECT * FROM domains;"
+
+count-domains:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"
+
+list-aliases:
+	@$(MYSQL_CMD) "SELECT * FROM aliases;"
+
+count-aliases:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM aliases;"
+
+list-users:
+	@$(MYSQL_CMD) "SELECT * FROM users;"
+
+count-users:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM users;"
+
+# Help for database operations
+db-help:
+	@echo "🗄️  Database Management Commands"
+	@echo "================================"
+	@echo ""
+	@echo "Migrations:"
+	@echo "  make migrate           - Run pending migrations"
+	@echo "  make migrate-revert    - Revert last migration"
+	@echo "  make migrate-reset     - Reset database (revert all, then run all)"
+	@echo ""
+	@echo "Seed Data:"
+	@echo "  make seed              - Seed database with all initial data"
+	@echo "  make seed-domains      - Seed only domains table"
+	@echo "  make seed-users        - Seed only users table"
+	@echo "  make seed-aliases      - Seed only aliases table"
+	@echo "  make seed-backups      - Seed only backups table"
+	@echo "  make create-seed-data  - Create default seed data files"
+	@echo ""
+	@echo "Test Database:"
+	@echo "  make test-db-setup     - Setup test database"
+	@echo "  make test-db-clean     - Clean test database"
+	@echo "  make test-db-reset     - Reset test database"
+	@echo ""
+	@echo "Production Database:"
+	@echo "  make prod-db-setup     - Setup production database with seed data"
+	@echo "  make prod-db-reset     - Reset production database (WARNING: destructive)"
+	@echo ""
+	@echo "Database Inspection:"
+	@echo "  make list-domains      - List all domains"
+	@echo "  make count-domains     - Count all domains"
+	@echo "  make list-aliases      - List all aliases"
+	@echo "  make count-aliases     - Count all aliases"
+	@echo "  make list-users        - List all users"
+	@echo "  make count-users       - Count all users" 

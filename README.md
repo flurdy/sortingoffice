@@ -124,8 +124,15 @@ The easiest way to run Sorting Office is using Docker Compose:
 
 4. **Run database migrations**:
    ```bash
+   # For detailed database setup instructions, see DATABASE_MANAGEMENT.md
+   
+   # Quick setup with seed data:
+   make prod-db-setup
+   
+   # Or manual setup:
    diesel setup
    diesel migration run
+   make seed
    ```
 
 5. **Build and run**:
@@ -356,11 +363,48 @@ migrations/              # Database migrations
 
 ### Testing
 ```bash
-# Run tests
-cargo test
+# Run all tests (automatically sets up test database)
+make test
+
+# Run only unit tests
+make test-unit
+
+# Run only UI tests
+make test-ui
 
 # Run with specific log level
 RUST_LOG=debug cargo run
+```
+
+### Database Management
+
+For comprehensive database management, see [DATABASE_MANAGEMENT.md](DATABASE_MANAGEMENT.md).
+
+**Quick Commands**:
+```bash
+# Show all database commands
+make db-help
+
+# Setup development database with seed data
+make prod-db-setup
+
+# Setup test database
+make test-db-setup
+
+# Run seed data
+make seed
+
+# Reset databases (WARNING: destructive)
+make prod-db-reset  # Development database
+make test-db-reset  # Test database
+```
+
+**Environment Management**:
+```bash
+# Set up different environments
+source scripts/set-env.sh dev    # Development
+source scripts/set-env.sh test   # Testing
+source scripts/set-env.sh docker # Docker
 ```
 
 ## Security Considerations
@@ -398,3 +442,73 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Based on [flurdy's Postfix mail server guide](https://flurdy.com/docs/postfix/)
 - Built with modern Rust web development tools
 - UI inspired by modern admin dashboard designs
+
+## Configuration
+
+### Required Aliases Configuration
+
+Sorting Office allows you to configure which email aliases are considered "required" for each domain. This is used in the reports to identify missing required aliases.
+
+#### Configuration Methods
+
+1. **Environment Variable**: Set the `REQUIRED_ALIASES` environment variable with a comma-separated list:
+   ```bash
+   export REQUIRED_ALIASES="postmaster,abuse,webmaster,admin,support,info,noreply,no-reply"
+   ```
+
+2. **Configuration File**: Create a `config/required_aliases.toml` file:
+   ```toml
+   # Required Aliases Configuration
+   required_aliases = [
+       "postmaster",
+       "abuse", 
+       "webmaster",
+       "admin",
+       "support",
+       "info",
+       "noreply",
+       "no-reply",
+       "hostmaster",
+       "security",
+       "help",
+       "contact",
+       "sales",
+       "marketing",
+       "hr",
+       "finance",
+       "legal",
+       "privacy",
+       "dmca",
+       "spam"
+   ]
+
+   # Optional: Domain-specific overrides
+   [domain_overrides]
+   # example.com = ["postmaster", "abuse", "admin"]
+   # another-domain.com = ["postmaster", "support", "info"]
+   ```
+
+3. **Web Interface**: Access the configuration page at `/config` to manage required aliases through the web interface.
+
+#### Default Required Aliases
+
+If no configuration is provided, the following aliases are considered required by default:
+- `postmaster`
+- `abuse`
+- `webmaster`
+- `admin`
+- `support`
+- `info`
+- `noreply`
+- `no-reply`
+
+#### Domain-Specific Overrides
+
+You can specify different required aliases for specific domains using the `domain_overrides` section in the configuration file. This allows you to have different requirements for different domains.
+
+#### Reports Integration
+
+The required aliases configuration is used in the catch-all reports (`/reports/catch-all`) to:
+- Show which required aliases are missing for domains without catch-all aliases
+- List all required aliases for domains with catch-all aliases
+- Help ensure compliance with email standards and organizational requirements

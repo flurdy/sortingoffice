@@ -1,0 +1,39 @@
+# Required and Common Aliases Configuration
+# This file defines the list of email aliases that are considered "required" and "common" for each domain.
+# These aliases will be checked in the reports to ensure they exist or are covered by a catch-all.
+
+# Required aliases (essential for email standards compliance)
+# These are typically mandated by RFC standards or legal requirements
+required_aliases = [
+    "postmaster",
+    "abuse",
+    "hostmaster",
+]
+
+# Common aliases (frequently used but not strictly required)
+# These are commonly expected by users and services
+common_aliases = [
+    "webmaster",
+    "admin",
+    "support",
+    "info",
+    "noreply",
+    "no-reply",
+    "security",
+    "help",
+    "contact",
+    "sales",
+    "marketing",
+    "hr",
+    "finance",
+    "legal",
+    "privacy",
+    "dmca",
+    "spam"
+]
+
+# Optional: Domain-specific overrides
+# You can specify different required and common aliases for specific domains
+[domain_overrides]
+# example.com = { required = ["postmaster", "abuse"], common = ["admin", "support"] }
+# another-domain.com = { required = ["postmaster"], common = ["info", "contact"] } 

@@ -15,6 +15,7 @@ pub mod i18n;
 pub mod models;
 pub mod schema;
 pub mod templates;
+pub mod config;
 
 #[cfg(test)]
 pub mod tests;
@@ -165,6 +166,10 @@ async fn main() {
         )
         // Stats
         .route("/stats", get(handlers::stats::index))
+        // Reports
+        .route("/reports/catch-all", get(handlers::reports::catch_all_report))
+        // Configuration
+        .route("/config", get(handlers::config::view_config))
         // Theme
         .route("/theme/toggle", post(handlers::theme::toggle_theme))
         // Language

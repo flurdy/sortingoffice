@@ -2547,7 +2547,7 @@ dependencies = [
 
 [[package]]
 name = "sortingoffice"
-version = "0.1.0"
+version = "3.0.0"
 dependencies = [
  "anyhow",
  "askama",
@@ -2571,6 +2571,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-test",
+ "toml",
  "tower 0.5.2",
  "tower-http 0.6.6",
  "tracing",

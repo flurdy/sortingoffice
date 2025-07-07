@@ -3,14 +3,16 @@ app-title = Sorting Office
 app-subtitle = Herramienta de Administración del Servidor de Correo
 
 # Navigation
-nav-dashboard = Panel de Control
-nav-domains = Dominios
-nav-backups = Copias de Seguridad
-nav-aliases = Alias
-nav-users = Usuarios
-nav-statistics = Estadísticas
-nav-about = Acerca de
-nav-logout = Cerrar Sesión
+nav-dashboard = "Panel"
+nav-domains = "Dominios"
+nav-backups = "Respaldo"
+nav-aliases = "Alias"
+nav-users = "Usuarios"
+nav-statistics = "Estadísticas"
+nav-reports = "Informes"
+nav-config = "Configuración"
+nav-about = "Acerca de"
+nav-logout = "Cerrar Sesión"
 
 # UI Controls
 theme-toggle = Cambiar tema
@@ -423,3 +425,36 @@ form-tooltip-transport = Configuración de transporte (ej., virtual para dominio
 form-tooltip-enable = Habilitar este dominio
 form-create-domain = Crear Dominio
 form-update-domain = Actualizar Dominio
+
+# Reports
+reports-catch-all-title = "Informe de Captura Total"
+reports-catch-all-description = "Este informe muestra dominios con alias de correo de captura total y sus alias de correo requeridos."
+reports-domain-header = "Dominio"
+reports-catch-all-header = "Alias de Captura Total"
+reports-destination-header = "Destino"
+reports-required-aliases-header = "Alias Requeridos"
+reports-missing-aliases-header = "Alias Requeridos Faltantes"
+reports-missing-required-aliases-header = "Alias Requeridos Faltantes"
+reports-missing-common-aliases-header = "Alias Comunes Faltantes"
+reports-mail-header = "Correo"
+reports-status-header = "Estado"
+reports-no-catch-all-domains = "No se encontraron dominios con alias de captura total"
+reports-no-catch-all-domains-description = "Actualmente no hay dominios configurados con alias de correo de captura total."
+reports-no-required-aliases = "No se encontraron alias requeridos para este dominio"
+reports-no-missing-aliases = "No hay alias requeridos faltantes para este dominio"
+reports-domains-with-catch-all-header = "Dominios con Alias de Captura Total"
+reports-domains-without-catch-all-header = "Dominios con Alias Requeridos Faltantes"
+
+# Configuration
+config-title = "Configuración"
+config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
+config-required-aliases-header = "Alias Requeridos"
+config-common-aliases-header = "Alias Comunes"
+config-domain-overrides-header = "Anulaciones de Dominio"
+config-save-button = "Guardar Configuración"
+config-cancel-button = "Cancelar"
+config-add-required-alias-button = "Agregar Alias Requerido"
+config-add-common-alias-button = "Agregar Alias Común"
+config-remove-alias-button = "Eliminar"
+config-promote-button = "Promover a Requerido"
+config-demote-button = "Degradar a Común"

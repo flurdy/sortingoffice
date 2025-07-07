@@ -1,6 +1,9 @@
 # Sorting Office Makefile
 # Provides convenient shortcuts for common tasks
 
+# Include database management Makefile
+include Makefile.db
+
 .PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-ui-setup test-ui-compose test-ui-cleanup test-ui-failfast
 
 # Default target
@@ -25,10 +28,12 @@ help:
 	@echo "  make shell      - Open shell in application container"
 	@echo "  make db-shell   - Open MySQL shell"
 	@echo ""
-	@echo "Database:"
-	@echo "  make migrate    - Run pending migrations"
-	@echo "  make migrate-revert - Revert last migration"
-	@echo "  make migrate-reset - Reset database (revert all, then run all)"
+	@echo "Database Management:"
+	@echo "  make db-help        - Show all database commands"
+	@echo "  make migrate        - Run pending migrations"
+	@echo "  make seed           - Seed database with initial data"
+	@echo "  make prod-db-setup  - Setup production database with seed data"
+	@echo "  make test-db-setup  - Setup test database"
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make install    - Install dependencies"
@@ -40,13 +45,7 @@ help:
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
 	@echo "  make test-ui-cleanup - Clean up UI test environment"
 	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
-	@echo "Database Inspection:"
-	@echo "  make list-domains   - List all domains in the database"
-	@echo "  make count-domains  - Count all domains in the database"
-	@echo "  make list-aliases   - List all aliases in the database"
-	@echo "  make count-aliases  - Count all aliases in the database"
-	@echo "  make list-users     - List all users in the database"
-	@echo "  make count-users    - Count all users in the database"
+
 
 # Docker commands
 build:
@@ -88,16 +87,16 @@ db-shell:
 install:
 	cargo install diesel_cli --no-default-features --features mysql
 
-test:
+test: test-db-setup
 	./tests/run_tests.sh all
 
-test-unit:
+test-unit: test-db-setup
 	./tests/run_tests.sh unit
 
 test-ui:
 	./tests/run_tests.sh ui
 
-test-all:
+test-all: test-db-setup
 	./tests/run_tests.sh all
 
 test-ui-setup:
@@ -119,16 +118,7 @@ test-ui-cleanup:
 run:
 	cargo watch -N -d 5 -x run
 
-# Database operations
-migrate:
-	diesel migration run
 
-migrate-revert:
-	diesel migration revert
-
-migrate-reset:
-	diesel migration revert
-	diesel migration run
 
 # Utility commands
 fmt:
@@ -169,29 +159,4 @@ info:
 #   tests/run_tests.sh   - Unified test runner 
 
 test-ui-failfast:
-	./tests/run_tests.sh ui --fail-fast 
-
-MYSQL ?= mysql
-MYSQL_USER ?= root
-MYSQL_PASSWORD ?= password
-MYSQL_DATABASE ?= sortingoffice
-MYSQL_HOST ?= 127.0.0.1
-MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
-
-list-domains:
-	@$(MYSQL_CMD) "SELECT * FROM domains;"
-
-count-domains:
-	@$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"
-
-list-aliases:
-	@$(MYSQL_CMD) "SELECT * FROM aliases;"
-
-count-aliases:
-	@$(MYSQL_CMD) "SELECT COUNT(*) FROM aliases;"
-
-list-users:
-	@$(MYSQL_CMD) "SELECT * FROM users;"
-
-count-users:
-	@$(MYSQL_CMD) "SELECT COUNT(*) FROM users;"
+	./tests/run_tests.sh ui --fail-fast

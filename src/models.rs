@@ -182,3 +182,206 @@ pub struct BackupForm {
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
 }
+
+// Catch-all report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CatchAllReport {
+    pub domain: String,
+    pub catch_all_alias: String,
+    pub catch_all_destination: String,
+    pub required_aliases: Vec<RequiredAlias>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RequiredAlias {
+    pub mail: String,
+    pub destination: String,
+    pub enabled: bool,
+}
+
+// Configuration for required and common aliases
+#[derive(Debug, Clone)]
+pub struct RequiredAliasConfig {
+    pub required_aliases: Vec<String>,
+    pub common_aliases: Vec<String>,
+}
+
+impl Default for RequiredAliasConfig {
+    fn default() -> Self {
+        // Try to read from environment variables first
+        let required_from_env = std::env::var("REQUIRED_ALIASES").ok();
+        let common_from_env = std::env::var("COMMON_ALIASES").ok();
+        
+        let required_aliases = if let Some(aliases_str) = required_from_env {
+            let aliases: Vec<String> = aliases_str
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            if !aliases.is_empty() {
+                aliases
+            } else {
+                Self::default_required_aliases()
+            }
+        } else {
+            Self::default_required_aliases()
+        };
+        
+        let common_aliases = if let Some(aliases_str) = common_from_env {
+            let aliases: Vec<String> = aliases_str
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            if !aliases.is_empty() {
+                aliases
+            } else {
+                Self::default_common_aliases()
+            }
+        } else {
+            Self::default_common_aliases()
+        };
+        
+        Self {
+            required_aliases,
+            common_aliases,
+        }
+    }
+}
+
+impl RequiredAliasConfig {
+    /// Default required aliases (essential for email standards)
+    fn default_required_aliases() -> Vec<String> {
+        vec![
+            "postmaster".to_string(),
+            "abuse".to_string(),
+            "hostmaster".to_string(),
+        ]
+    }
+    
+    /// Default common aliases (frequently used but not strictly required)
+    fn default_common_aliases() -> Vec<String> {
+        vec![
+            "webmaster".to_string(),
+            "admin".to_string(),
+            "support".to_string(),
+            "info".to_string(),
+            "noreply".to_string(),
+            "no-reply".to_string(),
+            "security".to_string(),
+            "help".to_string(),
+            "contact".to_string(),
+            "sales".to_string(),
+            "marketing".to_string(),
+            "hr".to_string(),
+            "finance".to_string(),
+            "legal".to_string(),
+            "privacy".to_string(),
+            "dmca".to_string(),
+            "spam".to_string(),
+        ]
+    }
+    
+    /// Get all aliases (required + common)
+    pub fn get_all_aliases(&self) -> Vec<String> {
+        let mut all = self.required_aliases.clone();
+        all.extend(self.common_aliases.clone());
+        all
+    }
+    
+    /// Create a new configuration from comma-separated strings
+    pub fn from_strings(required_str: &str, common_str: &str) -> Self {
+        let required_aliases: Vec<String> = required_str
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+            
+        let common_aliases: Vec<String> = common_str
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+            
+        Self {
+            required_aliases,
+            common_aliases,
+        }
+    }
+    
+    /// Create a new configuration from vectors
+    pub fn from_vecs(required: Vec<String>, common: Vec<String>) -> Self {
+        Self {
+            required_aliases: required,
+            common_aliases: common,
+        }
+    }
+    
+    /// Get the list of required aliases
+    pub fn get_required_aliases(&self) -> &[String] {
+        &self.required_aliases
+    }
+    
+    /// Get the list of common aliases
+    pub fn get_common_aliases(&self) -> &[String] {
+        &self.common_aliases
+    }
+    
+    /// Add a new required alias
+    pub fn add_required_alias(&mut self, alias: String) {
+        if !self.required_aliases.contains(&alias) {
+            self.required_aliases.push(alias);
+        }
+    }
+    
+    /// Add a new common alias
+    pub fn add_common_alias(&mut self, alias: String) {
+        if !self.common_aliases.contains(&alias) {
+            self.common_aliases.push(alias);
+        }
+    }
+    
+    /// Remove a required alias
+    pub fn remove_required_alias(&mut self, alias: &str) {
+        self.required_aliases.retain(|a| a != alias);
+    }
+    
+    /// Remove a common alias
+    pub fn remove_common_alias(&mut self, alias: &str) {
+        self.common_aliases.retain(|a| a != alias);
+    }
+    
+    /// Move an alias from common to required
+    pub fn promote_to_required(&mut self, alias: &str) {
+        if let Some(index) = self.common_aliases.iter().position(|a| a == alias) {
+            let alias = self.common_aliases.remove(index);
+            self.add_required_alias(alias);
+        }
+    }
+    
+    /// Move an alias from required to common
+    pub fn demote_to_common(&mut self, alias: &str) {
+        if let Some(index) = self.required_aliases.iter().position(|a| a == alias) {
+            let alias = self.required_aliases.remove(index);
+            self.add_common_alias(alias);
+        }
+    }
+}
+
+// Enhanced report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainAliasReport {
+    pub domain: String,
+    pub has_catch_all: bool,
+    pub catch_all_alias: Option<String>,
+    pub catch_all_destination: Option<String>,
+    pub required_aliases: Vec<RequiredAlias>,
+    pub missing_required_aliases: Vec<String>,
+    pub missing_common_aliases: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AliasReport {
+    pub domains_with_catch_all: Vec<DomainAliasReport>,
+    pub domains_without_catch_all: Vec<DomainAliasReport>,
+}

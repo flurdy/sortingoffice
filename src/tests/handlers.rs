@@ -610,7 +610,6 @@ mod tests {
         let alias_form = crate::models::AliasForm {
             mail: "test@aliases-list-test.com".to_string(),
             destination: "user@aliases-list-test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
@@ -653,7 +652,7 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&domain=aliases-create-test.com&enabled=on";
+        let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&enabled=on";
 
         let response = app
             .oneshot(
@@ -706,7 +705,6 @@ mod tests {
         let alias_form = crate::models::AliasForm {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
-            domain: domain.domain.clone(),
             enabled: true,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
