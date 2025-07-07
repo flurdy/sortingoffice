@@ -4,7 +4,7 @@ To unit test use `make test-unit`.
 
 Check compilation often with `cargo check`.
 
-If intending to use `cargo run`, check if already running, or `cargo watch -x run`, or if `make run` is running.
+If intending to use `cargo run`, check if already running, or `cargo watch -x run`, or if `make run` is running, if `cargo run` is running `pkill` it 
 
 Please format code frequently.
 

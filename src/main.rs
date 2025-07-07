@@ -142,7 +142,7 @@ async fn main() {
         // Backups
         .route(
             "/backups",
-            get(handlers::backups::list).post(handlers::backups::create),
+            post(handlers::backups::create),
         )
         .route("/backups/new", get(handlers::backups::new))
         .route(
@@ -152,10 +152,7 @@ async fn main() {
                 .delete(handlers::backups::delete),
         )
         .route("/backups/{id}/edit", get(handlers::backups::edit))
-        .route(
-            "/backups/{id}/toggle-list",
-            post(handlers::backups::toggle_enabled_list),
-        )
+
         .route(
             "/backups/{id}/toggle-show",
             post(handlers::backups::toggle_enabled_show),

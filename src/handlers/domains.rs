@@ -163,16 +163,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_tooltip_transport: &form_tooltip_transport,
         form_tooltip_enable: &form_tooltip_enable,
     };
-    
-    let content = content_template.render().unwrap();
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "domains-add-title").await,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {

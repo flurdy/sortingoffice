@@ -9,61 +9,7 @@ use axum::{
     Form,
 };
 
-pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
 
-    tracing::debug!("Handling backups list request");
-    let backups = match db::get_backups(pool) {
-        Ok(backups) => {
-            tracing::info!("Successfully retrieved {} backups", backups.len());
-            backups
-        },
-        Err(e) => {
-            tracing::error!("Failed to retrieve backups: {:?}", e);
-            vec![]
-        },
-    };
-
-    tracing::debug!("Rendering template with {} backups", backups.len());
-    let content_template = BackupListTemplate {
-        title: get_translation(&state, &locale, "backups-title").await,
-        description: get_translation(&state, &locale, "backups-description").await,
-        add_backup: get_translation(&state, &locale, "backups-add").await,
-        table_header_domain: get_translation(&state, &locale, "backups-table-header-domain").await,
-        table_header_transport: get_translation(&state, &locale, "backups-table-header-transport").await,
-        table_header_status: get_translation(&state, &locale, "backups-table-header-status").await,
-        table_header_created: get_translation(&state, &locale, "backups-table-header-created").await,
-        table_header_actions: get_translation(&state, &locale, "backups-table-header-actions").await,
-        status_active: get_translation(&state, &locale, "status-active").await,
-        status_inactive: get_translation(&state, &locale, "status-inactive").await,
-        view: get_translation(&state, &locale, "backups-view").await,
-        enable: get_translation(&state, &locale, "backups-enable").await,
-        disable: get_translation(&state, &locale, "backups-disable").await,
-        empty_no_backup_servers: get_translation(&state, &locale, "backups-empty-no-backup-servers").await,
-        empty_get_started: get_translation(&state, &locale, "backups-empty-get-started").await,
-        backups,
-    };
-    let content = match content_template.render() {
-        Ok(content) => {
-            tracing::debug!("Template rendered successfully, content length: {}", content.len());
-            content
-        },
-        Err(e) => {
-            tracing::error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "backups-title").await,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
-    Html(template.render().unwrap())
-}
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -93,16 +39,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form,
         error: None,
     };
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "backups-title").await,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
@@ -117,7 +54,7 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     let content_template = BackupShowTemplate {
         title: get_translation(&state, &locale, "backups-show-title").await,
         view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
-        back_to_backups: get_translation(&state, &locale, "backups-back-to-backups").await,
+        back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
         backup_information: get_translation(&state, &locale, "backups-backup-information").await,
         backup_details: get_translation(&state, &locale, "backups-backup-details").await,
         domain: get_translation(&state, &locale, "backups-domain").await,
@@ -181,16 +118,7 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         form,
         error: None,
     };
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "backups-title").await,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
-    Html(template.render().unwrap())
+    Html(content_template.render().unwrap())
 }
 
 pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form): Form<BackupForm>) -> Html<String> {
@@ -219,16 +147,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             form,
             error: Some(get_translation(&state, &locale, "validation-domain-required").await),
         };
-        let content = content_template.render().unwrap();
-
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "backups-title").await,
-            content,
-            &state,
-            &locale,
-        ).await.unwrap();
-        
-        return Html(template.render().unwrap());
+        return Html(content_template.render().unwrap());
     }
 
     let new_backup = NewBackup {
@@ -239,38 +158,8 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
 
     match db::create_backup(pool, new_backup) {
         Ok(_) => {
-            let backups = match db::get_backups(pool) {
-                Ok(backups) => backups,
-                Err(_) => vec![],
-            };
-            let content_template = BackupListTemplate {
-                title: get_translation(&state, &locale, "backups-title").await,
-                description: get_translation(&state, &locale, "backups-description").await,
-                add_backup: get_translation(&state, &locale, "backups-add").await,
-                table_header_domain: get_translation(&state, &locale, "backups-table-header-domain").await,
-                table_header_transport: get_translation(&state, &locale, "backups-table-header-transport").await,
-                table_header_status: get_translation(&state, &locale, "backups-table-header-status").await,
-                table_header_created: get_translation(&state, &locale, "backups-table-header-created").await,
-                table_header_actions: get_translation(&state, &locale, "backups-table-header-actions").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                view: get_translation(&state, &locale, "backups-view").await,
-                enable: get_translation(&state, &locale, "backups-enable").await,
-                disable: get_translation(&state, &locale, "backups-disable").await,
-                empty_no_backup_servers: get_translation(&state, &locale, "backups-empty-no-backup-servers").await,
-                empty_get_started: get_translation(&state, &locale, "backups-empty-get-started").await,
-                backups,
-            };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            // Redirect to domains page after creating backup
+            return Html("<script>window.location.href='/domains';</script>".to_string());
         }
         Err(e) => {
             let error_message = match e {
@@ -350,16 +239,7 @@ pub async fn update(
             form,
             error: Some(get_translation(&state, &locale, "validation-domain-required").await),
         };
-        let content = content_template.render().unwrap();
-
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "backups-title").await,
-            content,
-            &state,
-            &locale,
-        ).await.unwrap();
-        
-        return Html(template.render().unwrap());
+        return Html(content_template.render().unwrap());
     }
 
     match db::update_backup(pool, id, form.clone()) {
@@ -371,7 +251,7 @@ pub async fn update(
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
                 view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
-                back_to_backups: get_translation(&state, &locale, "backups-back-to-backups").await,
+                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
                 backup_information: get_translation(&state, &locale, "backups-backup-information").await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
@@ -388,16 +268,7 @@ pub async fn update(
                 delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
                 backup,
             };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(e) => {
             let error_message = match e {
@@ -432,58 +303,18 @@ pub async fn update(
                 form,
                 error: Some(error_message),
             };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            return Html(content_template.render().unwrap());
         }
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::delete_backup(pool, id) {
         Ok(_) => {
-            let backups = match db::get_backups(pool) {
-                Ok(backups) => backups,
-                Err(_) => vec![],
-            };
-            let content_template = BackupListTemplate {
-                title: get_translation(&state, &locale, "backups-title").await,
-                description: get_translation(&state, &locale, "backups-description").await,
-                add_backup: get_translation(&state, &locale, "backups-add").await,
-                table_header_domain: get_translation(&state, &locale, "backups-table-header-domain").await,
-                table_header_transport: get_translation(&state, &locale, "backups-table-header-transport").await,
-                table_header_status: get_translation(&state, &locale, "backups-table-header-status").await,
-                table_header_created: get_translation(&state, &locale, "backups-table-header-created").await,
-                table_header_actions: get_translation(&state, &locale, "backups-table-header-actions").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                view: get_translation(&state, &locale, "backups-view").await,
-                enable: get_translation(&state, &locale, "backups-enable").await,
-                disable: get_translation(&state, &locale, "backups-disable").await,
-                empty_no_backup_servers: get_translation(&state, &locale, "backups-empty-no-backup-servers").await,
-                empty_get_started: get_translation(&state, &locale, "backups-empty-get-started").await,
-                backups,
-            };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            // Redirect to domains page after deleting backup
+            return Html("<script>window.location.href='/domains';</script>".to_string());
         }
         Err(_) => Html("Error deleting backup".to_string()),
     }
@@ -503,7 +334,7 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
                 view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
-                back_to_backups: get_translation(&state, &locale, "backups-back-to-backups").await,
+                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
                 backup_information: get_translation(&state, &locale, "backups-backup-information").await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
@@ -520,62 +351,7 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
                 delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
                 backup,
             };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
-        }
-        Err(_) => Html("Error toggling backup status".to_string()),
-    }
-}
-
-pub async fn toggle_enabled_list(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    headers: HeaderMap,
-) -> Html<String> {
-    let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
-    match db::toggle_backup_enabled(pool, id) {
-        Ok(_) => {
-            let backups = match db::get_backups(pool) {
-                Ok(backups) => backups,
-                Err(_) => vec![],
-            };
-            let content_template = BackupListTemplate {
-                title: get_translation(&state, &locale, "backups-title").await,
-                description: get_translation(&state, &locale, "backups-description").await,
-                add_backup: get_translation(&state, &locale, "backups-add").await,
-                table_header_domain: get_translation(&state, &locale, "backups-table-header-domain").await,
-                table_header_transport: get_translation(&state, &locale, "backups-table-header-transport").await,
-                table_header_status: get_translation(&state, &locale, "backups-table-header-status").await,
-                table_header_created: get_translation(&state, &locale, "backups-table-header-created").await,
-                table_header_actions: get_translation(&state, &locale, "backups-table-header-actions").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                view: get_translation(&state, &locale, "backups-view").await,
-                enable: get_translation(&state, &locale, "backups-enable").await,
-                disable: get_translation(&state, &locale, "backups-disable").await,
-                empty_no_backup_servers: get_translation(&state, &locale, "backups-empty-no-backup-servers").await,
-                empty_get_started: get_translation(&state, &locale, "backups-empty-get-started").await,
-                backups,
-            };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error toggling backup status".to_string()),
     }
@@ -597,7 +373,7 @@ pub async fn toggle_enabled_show(
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
                 view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
-                back_to_backups: get_translation(&state, &locale, "backups-back-to-backups").await,
+                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
                 backup_information: get_translation(&state, &locale, "backups-backup-information").await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
@@ -614,16 +390,7 @@ pub async fn toggle_enabled_show(
                 delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
                 backup,
             };
-            let content = content_template.render().unwrap();
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
-                &state,
-                &locale,
-            ).await.unwrap();
-            
-            Html(template.render().unwrap())
+            Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error toggling backup status".to_string()),
     }

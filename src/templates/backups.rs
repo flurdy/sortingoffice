@@ -1,33 +1,14 @@
 use crate::models::*;
 use askama::Template;
 
-#[derive(Template)]
-#[template(path = "backups/list.html")]
-pub struct BackupListTemplate {
-    pub title: String,
-    pub description: String,
-    pub add_backup: String,
-    pub table_header_domain: String,
-    pub table_header_transport: String,
-    pub table_header_status: String,
-    pub table_header_created: String,
-    pub table_header_actions: String,
-    pub status_active: String,
-    pub status_inactive: String,
-    pub view: String,
-    pub enable: String,
-    pub disable: String,
-    pub empty_no_backup_servers: String,
-    pub empty_get_started: String,
-    pub backups: Vec<Backup>,
-}
+
 
 #[derive(Template)]
 #[template(path = "backups/show.html")]
 pub struct BackupShowTemplate {
     pub title: String,
     pub view_edit_settings: String,
-    pub back_to_backups: String,
+    pub back_to_domains: String,
     pub backup_information: String,
     pub backup_details: String,
     pub domain: String,
