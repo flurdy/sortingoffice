@@ -17,6 +17,10 @@ pub struct BaseTemplate {
     pub nav_about: String,
     pub nav_logout: String,
     pub theme_toggle: String,
+    pub language_selector: String,
+    pub language_english: String,
+    pub language_spanish: String,
+    pub current_locale: String,
 }
 
 #[derive(Template)]
@@ -36,6 +40,10 @@ pub struct LayoutTemplate<'a> {
     pub nav_about: &'a str,
     pub nav_logout: &'a str,
     pub theme_toggle: &'a str,
+    pub language_selector: &'a str,
+    pub language_english: &'a str,
+    pub language_spanish: &'a str,
+    pub current_locale: &'a str,
 }
 
 impl BaseTemplate {
@@ -59,6 +67,10 @@ impl BaseTemplate {
             nav_about: crate::i18n::get_translation(state, locale, "nav-about").await,
             nav_logout: crate::i18n::get_translation(state, locale, "nav-logout").await,
             theme_toggle: crate::i18n::get_translation(state, locale, "theme-toggle").await,
+            language_selector: crate::i18n::get_translation(state, locale, "language-selector").await,
+            language_english: crate::i18n::get_translation(state, locale, "language-english").await,
+            language_spanish: crate::i18n::get_translation(state, locale, "language-spanish").await,
+            current_locale: locale.to_string(),
         })
     }
 }

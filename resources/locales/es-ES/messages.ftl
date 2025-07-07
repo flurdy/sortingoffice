@@ -12,6 +12,64 @@ nav-statistics = Estadísticas
 nav-about = Acerca de
 nav-logout = Cerrar Sesión
 
+# UI Controls
+theme-toggle = Cambiar tema
+language-selector = Idioma
+language-english = English
+language-spanish = Español
+
+# About Page
+about-title = Acerca de Sorting Office
+about-subtitle = Una herramienta completa de administración de servidor de correo para gestionar dominios, usuarios, alias y copias de seguridad.
+about-what-is-title = ¿Qué es Sorting Office?
+about-what-is-p1 = Sorting Office es una interfaz de administración web para gestionar una configuración completa de servidor de correo. Proporciona una forma intuitiva de gestionar dominios, usuarios, alias de correo electrónico y configuraciones de respaldo para un entorno de servidor de correo Postfix y Dovecot.
+about-what-is-p2 = Construido con Rust y tecnologías web modernas, Sorting Office ofrece una forma segura, rápida y confiable de administrar su servidor de correo sin necesidad de editar manualmente archivos de configuración.
+about-features-title = Características Principales
+about-feature-domain-management = Gestión de Dominios
+about-feature-domain-management-desc = Agregar, editar y gestionar dominios de correo con facilidad
+about-feature-user-management = Gestión de Usuarios
+about-feature-user-management-desc = Crear y gestionar usuarios de correo electrónico y cuentas
+about-feature-alias-management = Gestión de Alias
+about-feature-alias-management-desc = Configurar alias de correo electrónico y reglas de reenvío
+about-feature-backup-configuration = Configuración de Respaldo
+about-feature-backup-configuration-desc = Configurar y gestionar servidores MX de respaldo
+about-feature-statistics-dashboard = Panel de Estadísticas
+about-feature-statistics-dashboard-desc = Monitorear el uso y estadísticas de su servidor de correo
+about-feature-dark-mode-support = Soporte para Modo Oscuro
+about-feature-dark-mode-support-desc = Interfaz moderna con modo oscuro para un uso cómodo
+about-technology-stack-title = Stack Tecnológico
+about-backend = Backend
+about-backend-desc = Rust con framework web Axum
+about-database = Base de Datos
+about-database-desc = MySQL con ORM Diesel
+about-frontend = Frontend
+about-frontend-desc = Plantillas HTML con Tailwind CSS
+about-templating = Plantillas
+about-templating-desc = Motor de plantillas Askama
+about-mail-server = Servidor de Correo
+about-mail-server-desc = Postfix & Dovecot
+about-deployment = Despliegue
+about-deployment-desc = Contenedorización Docker
+about-based-on-flurdy-title = Basado en la Guía Completa de Servidor de Correo de flurdy
+about-based-on-flurdy-desc = Esta herramienta de administración está diseñada para trabajar con la guía completa de configuración de servidor de correo creada por flurdy, que cubre Postfix, Dovecot, SpamAssassin y más.
+about-read-guide = Leer la guía completa de configuración →
+about-github-project-title = Proyecto GitHub
+about-open-source = Código Abierto
+about-open-source-desc = Sorting Office es un proyecto de código abierto alojado en GitHub bajo la licencia MIT.
+about-view-repository = Ver Repositorio
+about-view-repository-desc = Explorar código fuente y documentación
+about-report-issues = Reportar Problemas
+about-report-issues-desc = Reportes de errores y solicitudes de características
+about-pull-requests = Pull Requests
+about-pull-requests-desc = Contribuir al proyecto
+about-readme = README
+about-readme-desc = Documentación del proyecto y configuración
+about-version-information = Información de Versión
+about-project-details = Detalles del Proyecto
+about-version = Versión
+about-license = Licencia
+about-maintainer = Mantenedor
+
 # Common actions
 action-add = Agregar
 action-edit = Editar

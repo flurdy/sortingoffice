@@ -50,6 +50,8 @@ async fn main() {
 
     // Initialize i18n
     let i18n = i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+    // Preload Spanish locale
+    i18n.load_locale("es-ES").await.expect("Failed to load Spanish locale");
     
     let app_state = AppState { pool, i18n };
 
@@ -165,6 +167,8 @@ async fn main() {
         .route("/stats", get(handlers::stats::index))
         // Theme
         .route("/theme/toggle", post(handlers::theme::toggle_theme))
+        // Language
+        .route("/language/set", post(handlers::language::set_language))
         // Serve static files at /static from the ./static directory
         .nest_service("/static", tower_http::services::ServeDir::new("./static"))
         .with_state(app_state)

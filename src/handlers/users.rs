@@ -93,24 +93,24 @@ async fn build_user_form_template(state: &AppState, locale: &str, user: Option<U
 
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     let users = match db::get_users(pool) {
         Ok(users) => users,
         Err(_) => vec![],
     };
 
-    let content_template = build_user_list_template(&state, locale, users).await;
+    let content_template = build_user_list_template(&state, &locale, users).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, locale, "users-title").await,
+            get_translation(&state, &locale, "users-title").await,
             content,
             &state,
-            locale,
+            &locale,
         ).await.unwrap();
         
         Html(template.render().unwrap())
@@ -118,7 +118,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
     let form = UserForm {
         id: "".to_string(),
         password: "".to_string(),
@@ -127,17 +127,17 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         enabled: true,
     };
 
-    let content_template = build_user_form_template(&state, locale, None, form, None).await;
+    let content_template = build_user_form_template(&state, &locale, None, form, None).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, locale, "users-add-title").await,
+            get_translation(&state, &locale, "users-add-title").await,
             content,
             &state,
-            locale,
+            &locale,
         ).await.unwrap();
         Html(template.render().unwrap())
     }
@@ -149,24 +149,24 @@ pub async fn show(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     let user = match db::get_user(pool, id) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
 
-    let content_template = build_user_show_template(&state, locale, user).await;
+    let content_template = build_user_show_template(&state, &locale, user).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, locale, "users-show-title").await,
+            get_translation(&state, &locale, "users-show-title").await,
             content,
             &state,
-            locale,
+            &locale,
         ).await.unwrap();
         Html(template.render().unwrap())
     }
@@ -178,7 +178,7 @@ pub async fn edit(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     let user = match db::get_user(pool, id) {
         Ok(user) => user,
@@ -193,17 +193,17 @@ pub async fn edit(
         enabled: user.enabled,
     };
 
-    let content_template = build_user_form_template(&state, locale, Some(user), form, None).await;
+    let content_template = build_user_form_template(&state, &locale, Some(user), form, None).await;
     let content = content_template.render().unwrap();
 
     if is_htmx_request(&headers) {
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, locale, "users-edit-title").await,
+            get_translation(&state, &locale, "users-edit-title").await,
             content,
             &state,
-            locale,
+            &locale,
         ).await.unwrap();
         Html(template.render().unwrap())
     }
@@ -215,22 +215,22 @@ pub async fn create(
     Form(form): Form<UserForm>,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let error_msg = get_translation(&state, locale, "validation-username-required").await;
-        let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
+        let error_msg = get_translation(&state, &locale, "validation-username-required").await;
+        let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
             Html(content)
         } else {
             let template = BaseTemplate::with_i18n(
-                get_translation(&state, locale, "users-add-title").await,
+                get_translation(&state, &locale, "users-add-title").await,
                 content,
                 &state,
-                locale,
+                &locale,
             ).await.unwrap();
             Html(template.render().unwrap())
         }
@@ -248,39 +248,39 @@ pub async fn create(
                                 vec![]
                             }
                         };
-                        let content_template = build_user_list_template(&state, locale, users).await;
+                        let content_template = build_user_list_template(&state, &locale, users).await;
                         let content = content_template.render().unwrap();
 
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
                             let template = BaseTemplate::with_i18n(
-                                get_translation(&state, locale, "users-title").await,
+                                get_translation(&state, &locale, "users-title").await,
                                 content,
                                 &state,
-                                locale,
+                                &locale,
                             ).await.unwrap();
                             Html(template.render().unwrap())
                         }
                     }
                     Err(e) => {
                         let error_msg = if e.to_string().contains("Duplicate entry") {
-                            get_translation(&state, locale, "error-duplicate-user").await
+                            get_translation(&state, &locale, "error-duplicate-user").await
                         } else {
-                            get_translation(&state, locale, "error-unexpected").await
+                            get_translation(&state, &locale, "error-unexpected").await
                         };
                         
-                        let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
+                        let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
                         let content = form_template.render().unwrap();
 
                         if is_htmx_request(&headers) {
                             Html(content)
                         } else {
                             let template = BaseTemplate::with_i18n(
-                                get_translation(&state, locale, "users-add-title").await,
+                                get_translation(&state, &locale, "users-add-title").await,
                                 content,
                                 &state,
-                                locale,
+                                &locale,
                             ).await.unwrap();
                             Html(template.render().unwrap())
                         }
@@ -289,17 +289,17 @@ pub async fn create(
             }
             Err(_) => {
                 let error_msg = "Domain does not exist. Please create the domain first.".to_string();
-                let form_template = build_user_form_template(&state, locale, None, form.clone(), Some(error_msg)).await;
+                let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
-                        get_translation(&state, locale, "users-add-title").await,
+                        get_translation(&state, &locale, "users-add-title").await,
                         content,
                         &state,
-                        locale,
+                        &locale,
                     ).await.unwrap();
                     Html(template.render().unwrap())
                 }
@@ -315,7 +315,7 @@ pub async fn update(
     Form(form): Form<UserForm>,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     // First get the existing user
     let existing_user = match db::get_user(pool, id) {
@@ -325,18 +325,18 @@ pub async fn update(
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let error_msg = get_translation(&state, locale, "validation-username-required").await;
-        let form_template = build_user_form_template(&state, locale, Some(existing_user), form.clone(), Some(error_msg)).await;
+        let error_msg = get_translation(&state, &locale, "validation-username-required").await;
+        let form_template = build_user_form_template(&state, &locale, Some(existing_user), form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
             Html(content)
         } else {
             let template = BaseTemplate::with_i18n(
-                get_translation(&state, locale, "users-edit-title").await,
+                get_translation(&state, &locale, "users-edit-title").await,
                 content,
                 &state,
-                locale,
+                &locale,
             ).await.unwrap();
             Html(template.render().unwrap())
         }
@@ -348,39 +348,39 @@ pub async fn update(
                     Err(_) => return Html("User not found".to_string()),
                 };
 
-                let content_template = build_user_show_template(&state, locale, user).await;
+                let content_template = build_user_show_template(&state, &locale, user).await;
                 let content = content_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
-                        get_translation(&state, locale, "users-show-title").await,
+                        get_translation(&state, &locale, "users-show-title").await,
                         content,
                         &state,
-                        locale,
+                        &locale,
                     ).await.unwrap();
                     Html(template.render().unwrap())
                 }
             }
             Err(e) => {
                 let error_msg = if e.to_string().contains("Duplicate entry") {
-                    get_translation(&state, locale, "error-duplicate-user").await
+                    get_translation(&state, &locale, "error-duplicate-user").await
                 } else {
-                    get_translation(&state, locale, "error-unexpected").await
+                    get_translation(&state, &locale, "error-unexpected").await
                 };
 
-                let form_template = build_user_form_template(&state, locale, Some(existing_user), form.clone(), Some(error_msg)).await;
+                let form_template = build_user_form_template(&state, &locale, Some(existing_user), form.clone(), Some(error_msg)).await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
-                        get_translation(&state, locale, "users-edit-title").await,
+                        get_translation(&state, &locale, "users-edit-title").await,
                         content,
                         &state,
-                        locale,
+                        &locale,
                     ).await.unwrap();
                     Html(template.render().unwrap())
                 }
@@ -389,9 +389,9 @@ pub async fn update(
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::delete_user(pool, id) {
         Ok(_) => {
@@ -400,16 +400,16 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
                 Err(_) => vec![],
             };
 
-            let content_template = build_user_list_template(&state, locale, users).await;
+            let content_template = build_user_list_template(&state, &locale, users).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to delete user".to_string()),
     }
 }
 
-pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
+pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::toggle_user_enabled(pool, id) {
         Ok(_) => {
@@ -418,7 +418,7 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) 
                 Err(_) => vec![],
             };
 
-            let content_template = build_user_list_template(&state, locale, users).await;
+            let content_template = build_user_list_template(&state, &locale, users).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),
@@ -428,9 +428,10 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>) 
 pub async fn toggle_enabled_list(
     State(state): State<AppState>,
     Path(id): Path<i32>,
+    headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::toggle_user_enabled(pool, id) {
         Ok(_) => {
@@ -439,7 +440,7 @@ pub async fn toggle_enabled_list(
                 Err(_) => vec![],
             };
 
-            let content_template = build_user_list_template(&state, locale, users).await;
+            let content_template = build_user_list_template(&state, &locale, users).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),
@@ -449,9 +450,10 @@ pub async fn toggle_enabled_list(
 pub async fn toggle_enabled_show(
     State(state): State<AppState>,
     Path(id): Path<i32>,
+    headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = "en-US"; // For now, use default locale
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::toggle_user_enabled(pool, id) {
         Ok(_) => {
@@ -460,7 +462,7 @@ pub async fn toggle_enabled_show(
                 Err(_) => return Html("User not found".to_string()),
             };
 
-            let content_template = build_user_show_template(&state, locale, user).await;
+            let content_template = build_user_show_template(&state, &locale, user).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),

@@ -12,6 +12,64 @@ nav-statistics = Statistics
 nav-about = About
 nav-logout = Logout
 
+# UI Controls
+theme-toggle = Toggle theme
+language-selector = Language
+language-english = English
+language-spanish = Español
+
+# About Page
+about-title = About Sorting Office
+about-subtitle = A comprehensive mail server administration tool for managing domains, users, aliases, and backups.
+about-what-is-title = What is Sorting Office?
+about-what-is-p1 = Sorting Office is a web-based administration interface for managing a complete mail server setup. It provides an intuitive way to manage domains, users, email aliases, and backup configurations for a Postfix and Dovecot mail server environment.
+about-what-is-p2 = Built with Rust and modern web technologies, Sorting Office offers a secure, fast, and reliable way to administer your mail server without needing to manually edit configuration files.
+about-features-title = Key Features
+about-feature-domain-management = Domain Management
+about-feature-domain-management-desc = Add, edit, and manage mail domains with ease
+about-feature-user-management = User Management
+about-feature-user-management-desc = Create and manage email users and accounts
+about-feature-alias-management = Alias Management
+about-feature-alias-management-desc = Set up email aliases and forwarding rules
+about-feature-backup-configuration = Backup Configuration
+about-feature-backup-configuration-desc = Configure and manage backup MX servers
+about-feature-statistics-dashboard = Statistics Dashboard
+about-feature-statistics-dashboard-desc = Monitor your mail server usage and statistics
+about-feature-dark-mode-support = Dark Mode Support
+about-feature-dark-mode-support-desc = Modern UI with dark mode for comfortable use
+about-technology-stack-title = Technology Stack
+about-backend = Backend
+about-backend-desc = Rust with Axum web framework
+about-database = Database
+about-database-desc = MySQL with Diesel ORM
+about-frontend = Frontend
+about-frontend-desc = HTML templates with Tailwind CSS
+about-templating = Templating
+about-templating-desc = Askama template engine
+about-mail-server = Mail Server
+about-mail-server-desc = Postfix & Dovecot
+about-deployment = Deployment
+about-deployment-desc = Docker containerization
+about-based-on-flurdy-title = Based on flurdy's Complete Mail Server Guide
+about-based-on-flurdy-desc = This administration tool is designed to work with the comprehensive mail server setup guide created by flurdy, which covers Postfix, Dovecot, SpamAssassin, and more.
+about-read-guide = Read the complete setup guide →
+about-github-project-title = GitHub Project
+about-open-source = Open Source
+about-open-source-desc = Sorting Office is an open-source project hosted on GitHub under the MIT license.
+about-view-repository = View Repository
+about-view-repository-desc = Browse source code and documentation
+about-report-issues = Report Issues
+about-report-issues-desc = Bug reports and feature requests
+about-pull-requests = Pull Requests
+about-pull-requests-desc = Contribute to the project
+about-readme = README
+about-readme-desc = Project documentation and setup
+about-version-information = Version Information
+about-project-details = Project Details
+about-version = Version
+about-license = License
+about-maintainer = Maintainer
+
 # Common actions
 action-add = Add
 action-edit = Edit

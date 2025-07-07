@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    <link rel="icon" type="image/png" href="/static/trays.png">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -69,6 +70,22 @@
                 setTheme(newTheme);
             });
         }
+
+        // Language dropdown toggle function
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('language-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close language dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('language-dropdown');
+            const button = event.target.closest('button[onclick="toggleLanguageDropdown()"]');
+            
+            if (!button && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
     </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -79,6 +96,8 @@
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
+                            <!-- Sorting Office trays logo -->
+                            <img src="/static/trays.png" alt="Sorting Office logo" class="h-8 w-8 mr-3" style="object-fit:contain; filter: drop-shadow(0 0 1px #222);" />
                             <h1 class="text-xl font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
                         </div>
                         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -106,6 +125,47 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
+                        <!-- Language Selector -->
+                        <div class="relative inline-block text-left">
+                            <button type="button" onclick="toggleLanguageDropdown()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200 flex items-center" title="{{ language_selector }}">
+                                <!-- Globe icon -->
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9"></path>
+                                </svg>
+                                <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <div id="language-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                <div class="py-1">
+                                    <form method="post" action="/language/set">
+                                        <input type="hidden" name="language" value="en-US">
+                                        <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                                            <span class="flag-icon flag-icon-us mr-2"></span>
+                                            {{ language_english }}
+                                            {% if current_locale == "en-US" %}
+                                            <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="post" action="/language/set">
+                                        <input type="hidden" name="language" value="es-ES">
+                                        <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                                            <span class="flag-icon flag-icon-es mr-2"></span>
+                                            {{ language_spanish }}
+                                            {% if current_locale == "es-ES" %}
+                                            <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Theme Toggle Button -->
                         <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="{{ theme_toggle }}">
                             <!-- Sun icon for dark mode -->
