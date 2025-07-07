@@ -1,5 +1,5 @@
 # Application title and branding
-app-title = Oficina de Clasificación
+app-title = Sorting Office
 app-subtitle = Herramienta de Administración del Servidor de Correo
 
 # Navigation
@@ -375,21 +375,19 @@ about-feature-backup-configuration = Configuración de Copias de Seguridad
 about-feature-backup-configuration-desc = Configurar y gestionar servidores MX de respaldo
 about-feature-statistics-dashboard = Panel de Estadísticas
 about-feature-statistics-dashboard-desc = Monitorear el uso y las estadísticas de tu servidor de correo
-about-feature-dark-mode = Soporte de Modo Oscuro
-about-feature-dark-mode-desc = Interfaz moderna con modo oscuro para uso cómodo
-about-tech-stack-title = Stack Tecnológico
-about-tech-backend = Backend
-about-tech-backend-desc = Rust con framework web Axum
-about-tech-database = Base de Datos
-about-tech-database-desc = MySQL con ORM Diesel
-about-tech-frontend = Frontend
-about-tech-frontend-desc = Plantillas HTML con Tailwind CSS
-about-tech-templating = Plantillas
-about-tech-templating-desc = Motor de plantillas Askama
-about-tech-mail-server = Servidor de Correo
-about-tech-mail-server-desc = Postfix & Dovecot
-about-tech-deployment = Despliegue
-about-tech-deployment-desc = Contenedorización Docker
+about-technology-stack-title = Stack Tecnológico
+about-backend = Backend
+about-backend-desc = Rust con framework web Axum
+about-database = Base de Datos
+about-database-desc = MySQL con ORM Diesel
+about-frontend = Frontend
+about-frontend-desc = Plantillas HTML con Tailwind CSS
+about-templating = Plantillas
+about-templating-desc = Motor de plantillas Askama
+about-mail-server = Servidor de Correo
+about-mail-server-desc = Postfix & Dovecot
+about-deployment = Despliegue
+about-deployment-desc = Contenedorización Docker
 about-flurdy-guide-title = Basado en la Guía Completa de Servidor de Correo de flurdy
 about-flurdy-guide-description = Esta herramienta de administración está diseñada para funcionar con la guía integral de configuración de servidor de correo creada por flurdy, que cubre Postfix, Dovecot, SpamAssassin y más.
 about-flurdy-guide-link = Leer la guía completa de configuración →
