@@ -313,7 +313,6 @@ pub async fn create(
                     // Redirect to the domain show page
                     let locale = crate::handlers::language::get_user_locale(&headers);
                     let title = get_translation(&state, &locale, "domains-show-title").await;
-                    let description = get_translation(&state, &locale, "domains-description").await;
                     let status = get_translation(&state, &locale, "domains-status").await;
                     let status_active = get_translation(&state, &locale, "status-active").await;
                     let status_inactive = get_translation(&state, &locale, "status-inactive").await;

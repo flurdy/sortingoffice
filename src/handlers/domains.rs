@@ -51,7 +51,6 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-    let action_view = get_translation(&state, &locale, "action-view").await;
     let action_enable = get_translation(&state, &locale, "action-enable").await;
     let action_disable = get_translation(&state, &locale, "action-disable").await;
     let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
@@ -81,7 +80,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         table_header_actions: &table_header_actions,
         status_active: &status_active,
         status_inactive: &status_inactive,
-        action_view: &action_view,
+        action_view: "",
         action_enable: &action_enable,
         action_disable: &action_disable,
         empty_title: &empty_title,
@@ -234,9 +233,6 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     let add_alias_button = get_translation(&state, &locale, "domains-add-alias-button").await;
     let no_catch_all_message = get_translation(&state, &locale, "domains-no-catch-all-message").await;
     
-    let action_view = get_translation(&state, &locale, "action-view").await;
-    let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
-    let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
     let add_common_alias_button = get_translation(&state, &locale, "reports-add-common-alias-button").await;
     
     let content_template = DomainShowTemplate {
@@ -410,7 +406,6 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-            let action_view = get_translation(&state, &locale, "action-view").await;
             let action_enable = get_translation(&state, &locale, "action-enable").await;
             let action_disable = get_translation(&state, &locale, "action-disable").await;
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
@@ -449,7 +444,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
-                action_view: &action_view,
+                action_view: "",
                 action_enable: &action_enable,
                 action_disable: &action_disable,
                 empty_title: &empty_title,
@@ -716,7 +711,6 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-            let action_view = get_translation(&state, &locale, "action-view").await;
             let action_enable = get_translation(&state, &locale, "action-enable").await;
             let action_disable = get_translation(&state, &locale, "action-disable").await;
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
@@ -755,7 +749,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
-                action_view: &action_view,
+                action_view: "",
                 action_enable: &action_enable,
                 action_disable: &action_disable,
                 empty_title: &empty_title,
@@ -892,7 +886,6 @@ pub async fn toggle_enabled_list(
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-            let action_view = get_translation(&state, &locale, "action-view").await;
             let action_enable = get_translation(&state, &locale, "action-enable").await;
             let action_disable = get_translation(&state, &locale, "action-disable").await;
             let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
@@ -931,7 +924,7 @@ pub async fn toggle_enabled_list(
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
-                action_view: &action_view,
+                action_view: "",
                 action_enable: &action_enable,
                 action_disable: &action_disable,
                 empty_title: &empty_title,

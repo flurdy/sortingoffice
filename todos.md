@@ -16,7 +16,7 @@
 
 ✅ can we add a button to add missing required aliases on the show domain page rows, and missing catchall if desired. - IMPLEMENTED
 
-aliases need to be unique
+✅ aliases need to be unique
 
 add a french translation
 
