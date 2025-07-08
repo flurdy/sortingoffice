@@ -17,6 +17,8 @@ mod common {
     pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
     static INIT: Once = Once::new();
+    // WARNING: The following uses a shared reference to mutable static. This is a known limitation for test pool setup in this test harness.
+    // See: https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html
     static mut TEST_POOL: Option<DbPool> = None;
 
     pub fn setup_test_db() -> DbPool {

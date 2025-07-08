@@ -24,7 +24,7 @@ impl TestContainer {
         });
 
         // Start testcontainers client (not static)
-        let mut docker = Box::new(Cli::default());
+        let docker = Box::new(Cli::default());
         // SAFETY: We must extend the container's lifetime to 'static for the struct, so we leak the container only (not the client)
         let mysql_container: Container<'static, Mysql> = unsafe {
             std::mem::transmute::<Container<'_, Mysql>, Container<'static, Mysql>>(docker.run(Mysql::default()))

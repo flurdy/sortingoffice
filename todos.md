@@ -26,7 +26,7 @@
 
 ✅ please tell me why the github workflow CI tests fail
 
-🔲 Lets introduce proper authentication. The admin credentials will be stored as config.
+✅ Lets introduce proper authentication. The admin credentials will be stored as config. - IMPLEMENTED with role-based access control
 
 The resources lists should support paging, in case of a lot rows.
 

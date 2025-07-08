@@ -1,5 +1,5 @@
 # Application title and branding
-app-title = Sorteringskontor
+app-title = Sorting Office
 app-subtitle = E-postserver administrasjonsverktøy
 
 # Navigation

@@ -78,13 +78,6 @@ mod tests {
         cookie.parse().unwrap()
     }
 
-    // Helper function to create headers with authentication
-    fn create_auth_headers(role: AdminRole) -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers.insert("cookie", create_auth_cookie(role));
-        headers
-    }
-
     #[tokio::test]
     async fn test_domains_list_handler() {
         let (app, state) = create_test_app().await;
@@ -171,12 +164,12 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/domains/{}", domain.pkid))
+                    .uri(format!("/domains/{}", _domain.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -210,12 +203,12 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/domains/{}/edit", domain.pkid))
+                    .uri(format!("/domains/{}/edit", _domain.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -250,7 +243,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let form_data = format!("domain=updated-test-{}.com&transport=smtp%3Aupdated&enabled=on", unique_id);
 
@@ -258,7 +251,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/domains/{}", domain.pkid))
+                    .uri(format!("/domains/{}", _domain.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
@@ -270,7 +263,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was updated
-        let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
+        let updated_domain = crate::db::get_domain(&state.pool, _domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, format!("updated-test-{}.com", unique_id));
         assert_eq!(updated_domain.transport, Some("smtp:updated".to_string()));
 
@@ -291,7 +284,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -299,7 +292,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/domains/{}/toggle", domain.pkid))
+                    .uri(format!("/domains/{}/toggle", _domain.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -310,7 +303,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was toggled
-        let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
+        let toggled_domain = crate::db::get_domain(&state.pool, _domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
 
         cleanup_test_db(&state.pool);
@@ -419,7 +412,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -428,12 +421,12 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/users/{}", user.pkid))
+                    .uri(format!("/users/{}", _user.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -467,7 +460,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -476,12 +469,12 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/users/{}/edit", user.pkid))
+                    .uri(format!("/users/{}/edit", _user.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -516,7 +509,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -525,7 +518,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
         let form_data = format!("id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on", unique_id);
 
@@ -533,7 +526,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/users/{}", user.pkid))
+                    .uri(format!("/users/{}", _user.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
@@ -545,7 +538,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was updated
-        let updated_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
+        let updated_user = crate::db::get_user(&state.pool, _user.pkid).unwrap();
         assert_eq!(updated_user.id, format!("updateduser@update-test-{}.com", unique_id));
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, true);
@@ -567,7 +560,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -576,7 +569,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -584,7 +577,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/users/{}/toggle", user.pkid))
+                    .uri(format!("/users/{}/toggle", _user.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -595,7 +588,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was toggled
-        let toggled_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(&state.pool, _user.pkid).unwrap();
         assert_eq!(toggled_user.enabled, false);
 
         cleanup_test_db(&state.pool);
@@ -614,7 +607,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let alias_form = crate::models::AliasForm {
             mail: "test@aliases-list-test.com".to_string(),
@@ -703,7 +696,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         let user_form = crate::models::UserForm {
             id: "testuser@stats-test.com".to_string(),
@@ -864,12 +857,12 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/backups/{}", backup.pkid))
+                    .uri(format!("/backups/{}", _backup.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -902,12 +895,12 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/backups/{}/edit", backup.pkid))
+                    .uri(format!("/backups/{}/edit", _backup.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -941,7 +934,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         let form_data = "domain=backup-updated-test.com&transport=smtp%3Aupdated&enabled=on";
 
@@ -949,7 +942,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/backups/{}", backup.pkid))
+                    .uri(format!("/backups/{}", _backup.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
@@ -961,7 +954,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify backup was updated
-        let updated_backup = crate::db::get_backup(&state.pool, backup.pkid).unwrap();
+        let updated_backup = crate::db::get_backup(&state.pool, _backup.pkid).unwrap();
         assert_eq!(updated_backup.domain, "backup-updated-test.com");
         assert_eq!(updated_backup.transport, Some("smtp:updated".to_string()));
 
@@ -981,7 +974,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -989,7 +982,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/backups/{}/toggle", backup.pkid))
+                    .uri(format!("/backups/{}/toggle", _backup.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -1000,7 +993,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify backup was toggled
-        let toggled_backup = crate::db::get_backup(&state.pool, backup.pkid).unwrap();
+        let toggled_backup = crate::db::get_backup(&state.pool, _backup.pkid).unwrap();
         assert_eq!(toggled_backup.enabled, false);
 
         cleanup_test_db(&state.pool);
@@ -1054,7 +1047,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         let form_data = "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
 
@@ -1062,7 +1055,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/backups/{}", backup.pkid))
+                    .uri(format!("/backups/{}", _backup.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
@@ -1099,13 +1092,13 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
                 Request::builder()
                     .method("DELETE")
-                    .uri(format!("/backups/{}", backup.pkid))
+                    .uri(format!("/backups/{}", _backup.pkid))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),

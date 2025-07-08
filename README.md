@@ -143,12 +143,25 @@ The easiest way to run Sorting Office is using Docker Compose:
 
 The application will be available at `http://localhost:3000`.
 
-## Default Login
+## Authentication
+
+Sorting Office implements a secure, role-based authentication system with support for multiple admin users and different permission levels.
+
+### Default Login
 
 - **Username**: `admin`
-- **Password**: `admin`
+- **Password**: `admin123`
 
 **Important**: Change these credentials in production!
+
+### Authentication Features
+
+- **Multiple Admin Support**: Configure multiple admin users with different roles
+- **Role-Based Access Control**: Read-Only and Edit permission levels
+- **Secure Password Storage**: bcrypt hashing for all passwords
+- **Session Management**: HTTP-only cookies with expiration
+
+For detailed authentication documentation, see [AUTHENTICATION.md](docs/AUTHENTICATION.md).
 
 ## Database Schema
 
@@ -416,11 +429,14 @@ source scripts/set-env.sh docker # Docker
 
 ## Security Considerations
 
-- All passwords are hashed using bcrypt
-- SQL injection protection via Diesel ORM
-- CSRF protection for forms
-- Input validation and sanitization
-- Secure session management
+- **Role-Based Authentication**: Secure, role-based access control with multiple admin support
+- **Password Security**: All passwords are hashed using bcrypt with configurable cost
+- **Session Management**: HTTP-only cookies with automatic expiration and CSRF protection
+- **SQL Injection Protection**: All database operations use Diesel ORM with parameterized queries
+- **Input Validation**: Comprehensive validation and sanitization of all user inputs
+- **HTTPS Ready**: Designed for HTTPS deployment with secure cookie attributes
+
+For detailed security information, see [AUTHENTICATION.md](docs/AUTHENTICATION.md).
 
 ## Production Deployment
 
@@ -428,7 +444,7 @@ source scripts/set-env.sh docker # Docker
 2. **Database**: Use production MySQL/MariaDB instance
 3. **Reverse Proxy**: Configure nginx/Apache as reverse proxy
 4. **SSL/TLS**: Enable HTTPS with proper certificates
-5. **Authentication**: Implement proper admin authentication
+5. **Authentication**: Configure role-based authentication with multiple admin users (see [AUTHENTICATION.md](docs/AUTHENTICATION.md))
 6. **Backup**: Set up regular database backups
 7. **Monitoring**: Configure logging and monitoring
 

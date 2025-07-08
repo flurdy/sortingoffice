@@ -3,6 +3,11 @@ use fantoccini::{elements::Element, Client, ClientBuilder, Locator};
 use std::time::Duration as StdDuration;
 use tokio::time::{timeout, Duration};
 
+// Function to get the application URL from environment variable or use default
+fn get_app_url() -> String {
+    std::env::var("APP_URL").unwrap_or_else(|_| "http://localhost:3000".to_string())
+}
+
 async fn setup_client() -> Result<Client> {
     // Add retry logic for session creation with longer delays
     let mut attempts = 0;
@@ -32,6 +37,31 @@ async fn setup_client() -> Result<Client> {
         "Failed to create WebDriver session after {} attempts",
         max_attempts
     ))
+}
+
+// Helper function to authenticate the client
+async fn authenticate_client(client: &Client) -> Result<()> {
+    // Navigate to login page
+    client.goto(&format!("{}/login", get_app_url())).await?;
+    
+    // Wait for page to load
+    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+    
+    // Fill in login form
+    let username_field = client.find(Locator::Css("input[name='id']")).await?;
+    username_field.send_keys("admin").await?;
+    
+    let password_field = client.find(Locator::Css("input[name='password']")).await?;
+    password_field.send_keys("admin123").await?;
+    
+    // Submit the form
+    let submit_button = client.find(Locator::Css("button[type='submit']")).await?;
+    submit_button.click().await?;
+    
+    // Wait for redirect
+    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    
+    Ok(())
 }
 
 // Helper function to run a test with timeout
@@ -99,9 +129,12 @@ async fn test_domain_creation_workflow() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to domain creation page
             client
-                .goto("http://host.docker.internal:3000/domains/new")
+                .goto(&format!("{}/domains/new", get_app_url()))
                 .await?;
 
             // Fill out the form
@@ -144,9 +177,12 @@ async fn test_user_creation_workflow() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to user creation page
             client
-                .goto("http://host.docker.internal:3000/users/new")
+                .goto(&format!("{}/users/new", get_app_url()))
                 .await?;
 
             // Fill out the form
@@ -191,16 +227,18 @@ async fn test_user_creation_workflow() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_alias_creation_workflow() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to alias creation page
             client
-                .goto("http://host.docker.internal:3000/aliases/new")
+                .goto(&format!("{}/aliases/new", get_app_url()))
                 .await?;
 
             // Fill out the form
@@ -252,16 +290,18 @@ async fn test_alias_creation_workflow() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_form_validation_errors() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to domain creation page
             client
-                .goto("http://host.docker.internal:3000/domains/new")
+                .goto(&format!("{}/domains/new", get_app_url()))
                 .await?;
 
             // Try to submit empty form
@@ -297,16 +337,18 @@ async fn test_form_validation_errors() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_navigation_breadcrumbs() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to a nested page
             client
-                .goto("http://host.docker.internal:3000/domains/new")
+                .goto(&format!("{}/domains/new", get_app_url()))
                 .await?;
 
             // Look for breadcrumb navigation
@@ -334,16 +376,18 @@ async fn test_navigation_breadcrumbs() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_table_sorting_and_pagination() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to a list page
             client
-                .goto("http://host.docker.internal:3000/domains")
+                .goto(&format!("{}/domains", get_app_url()))
                 .await?;
 
             // Look for table elements
@@ -379,16 +423,18 @@ async fn test_table_sorting_and_pagination() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_search_functionality() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to a list page
             client
-                .goto("http://host.docker.internal:3000/domains")
+                .goto(&format!("{}/domains", get_app_url()))
                 .await?;
 
             // Look for search input
@@ -432,16 +478,18 @@ async fn test_search_functionality() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_modal_dialogs() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to a page that might have modals
             client
-                .goto("http://host.docker.internal:3000/domains")
+                .goto(&format!("{}/domains", get_app_url()))
                 .await?;
 
             // Look for modal triggers (buttons that might open modals)
@@ -484,10 +532,13 @@ async fn test_performance_metrics() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Test page load performance
             let start_time = std::time::Instant::now();
 
-            client.goto("http://host.docker.internal:3000").await?;
+            client.goto(&get_app_url()).await?;
 
             let load_time = start_time.elapsed();
 
@@ -501,7 +552,7 @@ async fn test_performance_metrics() -> Result<()> {
             // Test navigation performance
             let nav_start = std::time::Instant::now();
             client
-                .goto("http://host.docker.internal:3000/dashboard")
+                .goto(&format!("{}/dashboard", get_app_url()))
                 .await?;
             let nav_time = nav_start.elapsed();
 
@@ -521,16 +572,18 @@ async fn test_performance_metrics() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "Requires authentication which is not implemented yet"]
 async fn test_data_persistence() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to a form page
             client
-                .goto("http://host.docker.internal:3000/domains/new")
+                .goto(&format!("{}/domains/new", get_app_url()))
                 .await?;
 
             // Fill out form partially
@@ -540,10 +593,10 @@ async fn test_data_persistence() -> Result<()> {
 
             // Navigate away and back
             client
-                .goto("http://host.docker.internal:3000/dashboard")
+                .goto(&format!("{}/dashboard", get_app_url()))
                 .await?;
             client
-                .goto("http://host.docker.internal:3000/domains/new")
+                .goto(&format!("{}/domains/new", get_app_url()))
                 .await?;
 
             // Check if form data is preserved (this might not be implemented)

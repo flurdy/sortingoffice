@@ -38,6 +38,49 @@ async fn setup_client() -> Result<Client> {
     ))
 }
 
+// Helper function to authenticate the client
+async fn authenticate_client(client: &Client) -> Result<()> {
+    println!("Starting authentication...");
+    
+    // Navigate to login page
+    let login_url = format!("{}/login", get_app_url());
+    println!("Navigating to login page: {}", login_url);
+    client.goto(&login_url).await?;
+    
+    // Wait for page to load
+    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+    
+    // Get current URL to debug
+    let current_url = client.current_url().await?;
+    println!("Current URL after navigation: {}", current_url);
+    
+    // Fill in login form
+    println!("Looking for username field...");
+    let username_field = client.find(fantoccini::Locator::Css("input[name='id']")).await?;
+    username_field.send_keys("admin").await?;
+    println!("Username field filled");
+    
+    println!("Looking for password field...");
+    let password_field = client.find(fantoccini::Locator::Css("input[name='password']")).await?;
+    password_field.send_keys("admin123").await?;
+    println!("Password field filled");
+    
+    // Submit the form
+    println!("Looking for submit button...");
+    let submit_button = client.find(fantoccini::Locator::Css("button[type='submit']")).await?;
+    submit_button.click().await?;
+    println!("Form submitted");
+    
+    // Wait for redirect
+    tokio::time::sleep(tokio::time::Duration::from_millis(3000)).await;
+    
+    // Get final URL to debug
+    let final_url = client.current_url().await?;
+    println!("Final URL after authentication: {}", final_url);
+    
+    Ok(())
+}
+
 // Helper function to run a test with timeout
 async fn run_test_with_timeout<F, T>(test_fn: F, timeout_duration: Duration) -> Result<T>
 where
@@ -88,6 +131,9 @@ async fn test_dashboard_navigation() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             // Navigate to dashboard
             client.goto(&format!("{}/dashboard", get_app_url())).await?;
@@ -338,6 +384,9 @@ async fn test_domains_list_page() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             client.goto(&format!("{}/domains", get_app_url())).await?;
 
             // Check for domains page content
@@ -360,6 +409,9 @@ async fn test_users_list_page() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             client.goto(&format!("{}/users", get_app_url())).await?;
 
             // Check for users page content
@@ -381,6 +433,9 @@ async fn test_aliases_list_page() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             // Navigate to aliases page
             client.goto(&format!("{}/aliases", get_app_url())).await?;
@@ -405,6 +460,9 @@ async fn test_stats_page() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             // Navigate to stats page
             client.goto(&format!("{}/stats", get_app_url())).await?;
 
@@ -427,6 +485,9 @@ async fn test_sidebar_functionality() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             client.goto(&format!("{}/domains", get_app_url())).await?;
 
@@ -453,6 +514,9 @@ async fn test_responsive_sidebar_behavior() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             client.goto(&format!("{}/domains", get_app_url())).await?;
 
@@ -485,6 +549,9 @@ async fn test_domains_page_includes_backups() -> Result<()> {
         async {
             let client = setup_client().await?;
 
+            // Authenticate first
+            authenticate_client(&client).await?;
+
             client.goto(&format!("{}/domains", get_app_url())).await?;
 
             // Check for both domains and backups sections
@@ -509,6 +576,9 @@ async fn test_backup_creation_flow() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             // Navigate to domains page
             client.goto(&format!("{}/domains", get_app_url())).await?;
@@ -538,6 +608,9 @@ async fn test_htmx_compatibility() -> Result<()> {
     run_test_with_timeout(
         async {
             let client = setup_client().await?;
+
+            // Authenticate first
+            authenticate_client(&client).await?;
 
             // Test that forms have HTMX attributes
             client.goto(&format!("{}/domains/new", get_app_url())).await?;
