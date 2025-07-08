@@ -179,6 +179,23 @@ async fn main() {
             "/relays/{id}/toggle-enabled",
             post(handlers::relays::toggle_enabled),
         )
+        // Relocated
+        .route(
+            "/relocated",
+            get(handlers::relocated::list_relocated).post(handlers::relocated::create_relocated),
+        )
+        .route("/relocated/new", get(handlers::relocated::create_form))
+        .route(
+            "/relocated/{id}",
+            get(handlers::relocated::show_relocated)
+                .put(handlers::relocated::update_relocated)
+                .delete(handlers::relocated::delete_relocated),
+        )
+        .route("/relocated/{id}/edit", get(handlers::relocated::edit_form))
+        .route(
+            "/relocated/{id}/toggle-enabled",
+            post(handlers::relocated::toggle_enabled),
+        )
         // Stats
         .route("/stats", get(handlers::stats::index))
         // Reports

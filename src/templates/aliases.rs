@@ -10,7 +10,7 @@ pub struct AliasListTemplate<'a> {
     pub add_alias: &'a str,
     pub table_header_mail: &'a str,
     pub table_header_destination: &'a str,
-    pub table_header_status: &'a str,
+    pub table_header_enabled: &'a str,
     pub table_header_actions: &'a str,
     pub status_active: &'a str,
     pub status_inactive: &'a str,

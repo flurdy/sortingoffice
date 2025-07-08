@@ -9,8 +9,7 @@ pub struct UserListTemplate {
     pub add_user: String,
     pub table_header_user_id: String,
     pub table_header_name: String,
-
-    pub table_header_status: String,
+    pub table_header_enabled: String,
     pub table_header_actions: String,
     pub status_active: String,
     pub status_inactive: String,

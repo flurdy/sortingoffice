@@ -39,7 +39,6 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
     let table_header_recipient = get_translation(&state, &locale, "relays-table-header-recipient").await;
     let table_header_status = get_translation(&state, &locale, "relays-table-header-status").await;
     let table_header_enabled = get_translation(&state, &locale, "relays-table-header-enabled").await;
-    let table_header_modified = get_translation(&state, &locale, "relays-table-header-modified").await;
     let table_header_actions = get_translation(&state, &locale, "relays-table-header-actions").await;
     let status_enabled = get_translation(&state, &locale, "status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "status-disabled").await;
@@ -57,7 +56,6 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
         table_header_recipient: &table_header_recipient,
         table_header_status: &table_header_status,
         table_header_enabled: &table_header_enabled,
-        table_header_modified: &table_header_modified,
         table_header_actions: &table_header_actions,
         status_enabled: &status_enabled,
         status_disabled: &status_disabled,
@@ -421,13 +419,32 @@ pub async fn toggle_enabled(
             
             // Check if this is a list view toggle (targeting relay-status-{id})
             if is_htmx_request(&headers) {
-                // For list view, return just the status badge
+                // For list view, return status badge and update button text
                 let badge_class = if relay.enabled { 
                     "inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800" 
                 } else { 
                     "inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800" 
                 };
-                Html(format!("<span class=\"{}\">{}</span>", badge_class, enabled_text))
+                
+                let button_text = if relay.enabled {
+                    get_translation(&state, &locale, "action-disable").await
+                } else {
+                    get_translation(&state, &locale, "action-enable").await
+                };
+                
+                // Check if this is a show view toggle (targeting relay-show-status-{id})
+                let script = if headers.get("hx-target").and_then(|v| v.to_str().ok()).unwrap_or("").contains("relay-show-status") {
+                    format!(
+                        "<span class=\"{}\">{}</span><script>document.getElementById('relay-show-button-{}').textContent = '{}';</script>",
+                        badge_class, enabled_text, relay_id, button_text
+                    )
+                } else {
+                    format!(
+                        "<span class=\"{}\">{}</span><script>document.getElementById('relay-button-{}').textContent = '{}';</script>",
+                        badge_class, enabled_text, relay_id, button_text
+                    )
+                };
+                Html(script)
             } else {
                 // For show view, return the full status section
                 let status_enabled = get_translation(&state, &locale, "status-enabled").await;

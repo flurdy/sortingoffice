@@ -46,7 +46,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let description = get_translation(&state, &locale, "domains-description").await;
     let add_domain = get_translation(&state, &locale, "domains-add").await;
     let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
-    let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
+    let table_header_enabled = get_translation(&state, &locale, "domains-table-header-enabled").await;
     let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
     let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
@@ -63,7 +63,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let add_backup = get_translation(&state, &locale, "backups-add").await;
     let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
     let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
-    let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+    let backups_table_header_enabled = get_translation(&state, &locale, "backups-table-header-enabled").await;
     let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
     let backups_view = get_translation(&state, &locale, "backups-view").await;
     let backups_disable = get_translation(&state, &locale, "backups-disable").await;
@@ -77,7 +77,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         add_domain: &add_domain,
         table_header_domain: &table_header_domain,
         table_header_transport: &table_header_transport,
-        table_header_status: &table_header_status,
+        table_header_enabled: &table_header_enabled,
         table_header_actions: &table_header_actions,
         status_active: &status_active,
         status_inactive: &status_inactive,
@@ -92,7 +92,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         add_backup: &add_backup,
         backups_table_header_domain: &backups_table_header_domain,
         backups_table_header_transport: &backups_table_header_transport,
-        backups_table_header_status: &backups_table_header_status,
+        backups_table_header_enabled: &backups_table_header_enabled,
         backups_table_header_actions: &backups_table_header_actions,
         backups,
         backups_view: &backups_view,
@@ -375,7 +375,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let description = get_translation(&state, &locale, "domains-description").await;
             let add_domain = get_translation(&state, &locale, "domains-add").await;
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
-            let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "domains-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -401,7 +401,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let add_backup = get_translation(&state, &locale, "backups-add").await;
             let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
             let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
-            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_enabled = get_translation(&state, &locale, "backups-table-header-enabled").await;
             let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
             let backups_view = get_translation(&state, &locale, "backups-view").await;
             let backups_disable = get_translation(&state, &locale, "backups-disable").await;
@@ -415,7 +415,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
                 table_header_transport: &table_header_transport,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -430,7 +430,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 add_backup: &add_backup,
                 backups_table_header_domain: &backups_table_header_domain,
                 backups_table_header_transport: &backups_table_header_transport,
-                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
                 backups,
                 backups_view: &backups_view,
@@ -670,7 +670,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let description = get_translation(&state, &locale, "domains-description").await;
             let add_domain = get_translation(&state, &locale, "domains-add").await;
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
-            let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "domains-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -696,7 +696,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let add_backup = get_translation(&state, &locale, "backups-add").await;
             let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
             let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
-            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_enabled = get_translation(&state, &locale, "backups-table-header-enabled").await;
             let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
             let backups_view = get_translation(&state, &locale, "backups-view").await;
             let backups_disable = get_translation(&state, &locale, "backups-disable").await;
@@ -710,7 +710,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
                 table_header_transport: &table_header_transport,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -725,7 +725,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 add_backup: &add_backup,
                 backups_table_header_domain: &backups_table_header_domain,
                 backups_table_header_transport: &backups_table_header_transport,
-                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
                 backups,
                 backups_view: &backups_view,
@@ -835,7 +835,7 @@ pub async fn toggle_enabled_list(
             let description = get_translation(&state, &locale, "domains-description").await;
             let add_domain = get_translation(&state, &locale, "domains-add").await;
             let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
-            let table_header_status = get_translation(&state, &locale, "domains-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "domains-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "domains-table-header-actions").await;
             let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
@@ -861,7 +861,7 @@ pub async fn toggle_enabled_list(
             let add_backup = get_translation(&state, &locale, "backups-add").await;
             let backups_table_header_domain = get_translation(&state, &locale, "backups-table-header-domain").await;
             let backups_table_header_transport = get_translation(&state, &locale, "backups-table-header-transport").await;
-            let backups_table_header_status = get_translation(&state, &locale, "backups-table-header-status").await;
+            let backups_table_header_enabled = get_translation(&state, &locale, "backups-table-header-enabled").await;
             let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
             let backups_view = get_translation(&state, &locale, "backups-view").await;
             let backups_disable = get_translation(&state, &locale, "backups-disable").await;
@@ -875,7 +875,7 @@ pub async fn toggle_enabled_list(
                 add_domain: &add_domain,
                 table_header_domain: &table_header_domain,
                 table_header_transport: &table_header_transport,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -890,7 +890,7 @@ pub async fn toggle_enabled_list(
                 add_backup: &add_backup,
                 backups_table_header_domain: &backups_table_header_domain,
                 backups_table_header_transport: &backups_table_header_transport,
-                backups_table_header_status: &backups_table_header_status,
+                backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
                 backups,
                 backups_view: &backups_view,

@@ -15,6 +15,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             total_users: 0,
             total_aliases: 0,
             total_backups: 0,
+            total_relays: 0,
+            total_relocated: 0,
             total_quota: 0,
             used_quota: 0,
         },
@@ -34,6 +36,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let total_backups = get_translation(&state, &locale, "stats-total-backups").await;
     let total_aliases = get_translation(&state, &locale, "stats-total-aliases").await;
     let total_users = get_translation(&state, &locale, "stats-total-users").await;
+    let total_relays = get_translation(&state, &locale, "stats-total-relays").await;
+    let total_relocated = get_translation(&state, &locale, "stats-total-relocated").await;
     let domain_statistics = get_translation(&state, &locale, "stats-domain-statistics").await;
     let table_header_domain = get_translation(&state, &locale, "stats-table-header-domain").await;
     let table_header_users = get_translation(&state, &locale, "stats-table-header-users").await;
@@ -50,6 +54,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         total_backups: &total_backups,
         total_aliases: &total_aliases,
         total_users: &total_users,
+        total_relays: &total_relays,
+        total_relocated: &total_relocated,
         domain_statistics: &domain_statistics,
         table_header_domain: &table_header_domain,
         table_header_users: &table_header_users,

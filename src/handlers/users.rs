@@ -14,6 +14,7 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 }
 
 async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<User>) -> UserListTemplate {
+    let table_header_enabled = get_translation(state, locale, "users-table-header-enabled").await;
     UserListTemplate {
         title: get_translation(state, locale, "users-title").await,
         description: get_translation(state, locale, "users-description").await,
@@ -21,7 +22,7 @@ async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<Use
         table_header_user_id: get_translation(state, locale, "users-table-header-user-id").await,
         table_header_name: get_translation(state, locale, "users-table-header-name").await,
 
-        table_header_status: get_translation(state, locale, "users-table-header-status").await,
+        table_header_enabled: table_header_enabled,
         table_header_actions: get_translation(state, locale, "users-table-header-actions").await,
         status_active: get_translation(state, locale, "status-active").await,
         status_inactive: get_translation(state, locale, "status-inactive").await,
@@ -44,7 +45,6 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         user_id: get_translation(state, locale, "users-user-id").await,
         full_name: get_translation(state, locale, "users-full-name").await,
 
-        status: get_translation(state, locale, "users-status").await,
         created: get_translation(state, locale, "users-created").await,
         modified: get_translation(state, locale, "users-modified").await,
         status_active: get_translation(state, locale, "status-active").await,
@@ -54,6 +54,7 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         disable_user: get_translation(state, locale, "users-disable-user").await,
         delete_user: get_translation(state, locale, "users-delete-user").await,
         delete_confirm: get_translation(state, locale, "users-delete-confirm").await,
+        status: get_translation(state, locale, "users-status").await,
         user,
     }
 }

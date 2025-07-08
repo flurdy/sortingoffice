@@ -316,6 +316,8 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
     let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
+    let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
+    let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
 
     let total_quota: i64 = 0; // Quota field removed from users table
 
@@ -324,6 +326,8 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         total_users,
         total_aliases,
         total_backups,
+        total_relays,
+        total_relocated,
         total_quota,
         used_quota: 0, // This would need to be calculated from actual disk usage
     })
@@ -537,6 +541,97 @@ pub fn toggle_relay_enabled(pool: &DbPool, relay_id: i32) -> Result<Relay, Error
         .execute(&mut conn)?;
 
     get_relay(pool, relay_id)
+}
+
+// Relocated functions
+pub fn get_relocated(pool: &DbPool) -> Result<Vec<Relocated>, Error> {
+    let mut conn = pool.get().unwrap();
+    relocated::table
+        .select(Relocated::as_select())
+        .order(relocated::old_address.asc())
+        .load::<Relocated>(&mut conn)
+}
+
+pub fn get_relocated_by_id(pool: &DbPool, relocated_id: i32) -> Result<Relocated, Error> {
+    let mut conn = pool.get().unwrap();
+    relocated::table
+        .find(relocated_id)
+        .select(Relocated::as_select())
+        .first::<Relocated>(&mut conn)
+}
+
+pub fn get_relocated_by_old_address(pool: &DbPool, old_address: &str) -> Result<Relocated, Error> {
+    let mut conn = pool.get().unwrap();
+    relocated::table
+        .filter(relocated::old_address.eq(old_address))
+        .select(Relocated::as_select())
+        .first::<Relocated>(&mut conn)
+}
+
+pub fn create_relocated(pool: &DbPool, relocated_data: RelocatedForm) -> Result<Relocated, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+
+    let new_relocated = NewRelocated {
+        old_address: relocated_data.old_address,
+        new_address: relocated_data.new_address,
+        enabled: relocated_data.enabled,
+    };
+
+    diesel::insert_into(relocated::table)
+        .values((
+            relocated::old_address.eq(new_relocated.old_address),
+            relocated::new_address.eq(new_relocated.new_address),
+            relocated::enabled.eq(new_relocated.enabled),
+            relocated::created.eq(now),
+            relocated::modified.eq(now),
+        ))
+        .execute(&mut conn)?;
+
+    relocated::table
+        .order(relocated::pkid.desc())
+        .select(Relocated::as_select())
+        .first::<Relocated>(&mut conn)
+}
+
+pub fn update_relocated(
+    pool: &DbPool,
+    relocated_id: i32,
+    relocated_data: RelocatedForm,
+) -> Result<Relocated, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::update(relocated::table.find(relocated_id))
+        .set((
+            relocated::old_address.eq(relocated_data.old_address),
+            relocated::new_address.eq(relocated_data.new_address),
+            relocated::enabled.eq(relocated_data.enabled),
+            relocated::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_relocated_by_id(pool, relocated_id)
+}
+
+pub fn delete_relocated(pool: &DbPool, relocated_id: i32) -> Result<usize, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::delete(relocated::table.find(relocated_id)).execute(&mut conn)
+}
+
+pub fn toggle_relocated_enabled(pool: &DbPool, relocated_id: i32) -> Result<Relocated, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    // Get current relocated
+    let current_relocated = get_relocated_by_id(pool, relocated_id)?;
+    
+    // Toggle enabled status
+    diesel::update(relocated::table.find(relocated_id))
+        .set((
+            relocated::enabled.eq(!current_relocated.enabled),
+            relocated::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_relocated_by_id(pool, relocated_id)
 }
 
 // Catch-all report functions

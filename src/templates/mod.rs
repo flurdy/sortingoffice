@@ -6,6 +6,7 @@ pub mod config;
 pub mod dashboard;
 pub mod domains;
 pub mod layout;
+pub mod relocated;
 pub mod relays;
 pub mod reports;
 pub mod stats;

@@ -165,6 +165,8 @@ mod tests {
             total_users: 25,
             total_aliases: 50,
             total_backups: 3,
+            total_relays: 2,
+            total_relocated: 1,
             total_quota: 10000000,
             used_quota: 5000000,
         };
@@ -176,6 +178,8 @@ mod tests {
         assert_eq!(stats.total_users, deserialized.total_users);
         assert_eq!(stats.total_aliases, deserialized.total_aliases);
         assert_eq!(stats.total_backups, deserialized.total_backups);
+        assert_eq!(stats.total_relays, deserialized.total_relays);
+        assert_eq!(stats.total_relocated, deserialized.total_relocated);
         assert_eq!(stats.total_quota, deserialized.total_quota);
         assert_eq!(stats.used_quota, deserialized.used_quota);
     }

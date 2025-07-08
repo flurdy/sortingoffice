@@ -12,6 +12,8 @@ pub struct StatsTemplate<'a> {
     pub total_backups: &'a str,
     pub total_aliases: &'a str,
     pub total_users: &'a str,
+    pub total_relays: &'a str,
+    pub total_relocated: &'a str,
     pub domain_statistics: &'a str,
     pub table_header_domain: &'a str,
     pub table_header_users: &'a str,

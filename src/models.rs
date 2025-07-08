@@ -146,6 +146,8 @@ pub struct SystemStats {
     pub total_users: i64,
     pub total_aliases: i64,
     pub total_backups: i64,
+    pub total_relays: i64,
+    pub total_relocated: i64,
     pub total_quota: i64,
     pub used_quota: i64,
 }
@@ -206,6 +208,37 @@ pub struct NewRelay {
 pub struct RelayForm {
     pub recipient: String,
     pub status: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
+}
+
+// Relocated models
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = relocated)]
+#[diesel(primary_key(pkid))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct Relocated {
+    pub pkid: i32,
+    pub old_address: String,
+    pub new_address: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = relocated)]
+pub struct NewRelocated {
+    pub old_address: String,
+    pub new_address: String,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RelocatedForm {
+    pub old_address: String,
+    pub new_address: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,

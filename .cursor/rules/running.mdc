@@ -11,3 +11,5 @@ To pkill remember that we use fish shell so need to specify process name.
 if `cargo watch`  or `make run` is running it should restart itself.
 
 Before a `cargo run` always chech with `cargo check` first.
+
+Never run a `cargo run` without prefixing it with a `pkill` command.

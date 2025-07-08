@@ -27,7 +27,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let add_alias = get_translation(&state, &locale, "aliases-add").await;
     let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
     let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-    let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
+    let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
     let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -44,7 +44,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         add_alias: &add_alias,
         table_header_mail: &table_header_mail,
         table_header_destination: &table_header_destination,
-        table_header_status: &table_header_status,
+        table_header_enabled: &table_header_enabled,
         table_header_actions: &table_header_actions,
         status_active: &status_active,
         status_inactive: &status_inactive,
@@ -294,8 +294,7 @@ pub async fn create(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-
-            let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -311,7 +310,7 @@ pub async fn create(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -581,7 +580,7 @@ pub async fn delete(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -597,7 +596,7 @@ pub async fn delete(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -718,7 +717,7 @@ pub async fn toggle_enabled_list(
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
             let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_status = get_translation(&state, &locale, "aliases-table-header-status").await;
+            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
             let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
@@ -734,7 +733,7 @@ pub async fn toggle_enabled_list(
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
                 table_header_destination: &table_header_destination,
-                table_header_status: &table_header_status,
+                table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
                 status_active: &status_active,
                 status_inactive: &status_inactive,

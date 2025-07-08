@@ -53,6 +53,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    relocated (pkid) {
+        pkid -> Integer,
+        #[max_length = 255]
+        old_address -> Varchar,
+        #[max_length = 255]
+        new_address -> Varchar,
+        enabled -> Bool,
+        created -> Datetime,
+        modified -> Datetime,
+    }
+}
+
+diesel::table! {
     users (pkid) {
         pkid -> Integer,
         #[max_length = 255]
@@ -79,5 +92,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     backups,
     domains,
     relays,
+    relocated,
     users,
 );

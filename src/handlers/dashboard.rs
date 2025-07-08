@@ -14,6 +14,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             total_users: 0,
             total_aliases: 0,
             total_backups: 0,
+            total_relays: 0,
+            total_relocated: 0,
             total_quota: 0,
             used_quota: 0,
         },
@@ -29,6 +31,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let total_backups = crate::i18n::get_translation(&state, &locale, "dashboard-total-backups").await;
     let total_aliases = crate::i18n::get_translation(&state, &locale, "dashboard-total-aliases").await;
     let total_users = crate::i18n::get_translation(&state, &locale, "dashboard-total-users").await;
+    let total_relays = crate::i18n::get_translation(&state, &locale, "dashboard-total-relays").await;
+    let total_relocated = crate::i18n::get_translation(&state, &locale, "dashboard-total-relocated").await;
     let quick_actions = crate::i18n::get_translation(&state, &locale, "dashboard-quick-actions").await;
     let manage_domains = crate::i18n::get_translation(&state, &locale, "quick-action-manage-domains").await;
     let manage_domains_desc = crate::i18n::get_translation(&state, &locale, "quick-action-manage-domains-desc").await;
@@ -50,6 +54,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         total_backups: &total_backups,
         total_aliases: &total_aliases,
         total_users: &total_users,
+        total_relays: &total_relays,
+        total_relocated: &total_relocated,
         quick_actions: &quick_actions,
         manage_domains: &manage_domains,
         manage_domains_desc: &manage_domains_desc,

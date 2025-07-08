@@ -10,6 +10,8 @@ pub struct DashboardTemplate<'a> {
     pub total_backups: &'a str,
     pub total_aliases: &'a str,
     pub total_users: &'a str,
+    pub total_relays: &'a str,
+    pub total_relocated: &'a str,
     pub quick_actions: &'a str,
     pub manage_domains: &'a str,
     pub manage_domains_desc: &'a str,

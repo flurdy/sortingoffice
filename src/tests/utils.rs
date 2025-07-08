@@ -163,6 +163,8 @@ mod tests {
             total_users: 25,
             total_aliases: 50,
             total_backups: 3,
+            total_relays: 2,
+            total_relocated: 1,
             total_quota: 10000000,
             used_quota: 5000000,
         };
@@ -171,6 +173,8 @@ mod tests {
         assert_eq!(system_stats.total_users, 25);
         assert_eq!(system_stats.total_aliases, 50);
         assert_eq!(system_stats.total_backups, 3);
+        assert_eq!(system_stats.total_relays, 2);
+        assert_eq!(system_stats.total_relocated, 1);
         assert_eq!(system_stats.total_quota, 10000000);
         assert_eq!(system_stats.used_quota, 5000000);
 
