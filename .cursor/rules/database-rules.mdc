@@ -7,3 +7,7 @@ alwaysApply: false
 The database is in docker compose
 
 if needed it can be stopped and recreated using makefile aliases.
+
+Unit tests use testcontainers databases.
+
+database access details are in the docker-compose file and the .env file.

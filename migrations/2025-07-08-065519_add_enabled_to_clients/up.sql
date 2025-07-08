@@ -1,0 +1,3 @@
+-- Your SQL goes here
+
+ALTER TABLE clients ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE;

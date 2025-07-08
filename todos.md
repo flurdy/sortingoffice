@@ -20,6 +20,8 @@ add a french translation
 
 add a norwegian translation
 
+Prefer a British flag to the US flag in the language drop down, or maybe a hybrid flag.
+
 please add support for multiple databases as this will manage several servers
 
 please tell me why the github workflow CI tests fail

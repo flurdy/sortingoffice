@@ -3,12 +3,18 @@ use crate::templates::layout::BaseTemplate;
 use crate::{db, models::*, AppState, i18n::get_translation};
 use askama::Template;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Query},
     http::{HeaderMap, StatusCode},
     response::{Html, Redirect},
     Form,
 };
 use tracing::{info, warn};
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct ToggleClientRedirectQuery {
+    pub redirect: Option<String>,
+}
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
     headers.get("HX-Request").map_or(false, |v| v == "true")
@@ -40,13 +46,16 @@ pub async fn list_clients(
     let add_client = get_translation(&state, &locale, "clients-add").await;
     let table_header_client = get_translation(&state, &locale, "clients-table-header-client").await;
     let table_header_status = get_translation(&state, &locale, "clients-table-header-status").await;
-    let table_header_created = get_translation(&state, &locale, "clients-table-header-created").await;
     let table_header_actions = get_translation(&state, &locale, "clients-table-header-actions").await;
+    let table_header_enabled = get_translation(&state, &locale, "clients-table-header-enabled").await;
     let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
     let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
-    let action_view = get_translation(&state, &locale, "action-view").await;
-    let action_edit = get_translation(&state, &locale, "action-edit").await;
-    let action_delete = get_translation(&state, &locale, "action-delete").await;
+    let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
+    let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
+    let action_view = get_translation(&state, &locale, "clients-action-view").await;
+    let action_enable = get_translation(&state, &locale, "clients-action-enable").await;
+    let action_disable = get_translation(&state, &locale, "clients-action-disable").await;
+    let action_delete = get_translation(&state, &locale, "clients-action-delete").await;
     let delete_confirm = get_translation(&state, &locale, "clients-delete-confirm").await;
     let empty_title = get_translation(&state, &locale, "clients-empty-title").await;
     let empty_description = get_translation(&state, &locale, "clients-empty-description").await;
@@ -57,12 +66,15 @@ pub async fn list_clients(
         add_client: &add_client,
         table_header_client: &table_header_client,
         table_header_status: &table_header_status,
-        table_header_created: &table_header_created,
         table_header_actions: &table_header_actions,
+        table_header_enabled: &table_header_enabled,
         status_allowed: &status_allowed,
         status_blocked: &status_blocked,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
         action_view: &action_view,
-        action_edit: &action_edit,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
         action_delete: &action_delete,
         delete_confirm: &delete_confirm,
         empty_title: &empty_title,
@@ -115,7 +127,7 @@ pub async fn show_client(
 
     info!("Successfully retrieved client: {}", client.client);
 
-    let title = get_translation(&state, &locale, "clients-title").await;
+    let title = get_translation(&state, &locale, "clients-show-title").await;
     let view_edit_settings = get_translation(&state, &locale, "clients-view-edit-settings").await;
     let back_to_clients = get_translation(&state, &locale, "clients-back-to-clients").await;
     let client_information = get_translation(&state, &locale, "clients-info-title").await;
@@ -124,11 +136,16 @@ pub async fn show_client(
     let status = get_translation(&state, &locale, "clients-field-status").await;
     let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
     let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
+    let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
+    let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
     let created = get_translation(&state, &locale, "clients-field-created").await;
     let updated = get_translation(&state, &locale, "clients-field-updated").await;
     let edit_client = get_translation(&state, &locale, "clients-action-edit").await;
+    let action_enable = get_translation(&state, &locale, "clients-action-enable").await;
+    let action_disable = get_translation(&state, &locale, "clients-action-disable").await;
     let delete_client = get_translation(&state, &locale, "clients-action-delete").await;
     let delete_confirm = get_translation(&state, &locale, "clients-delete-confirm").await;
+    let enabled_label = get_translation(&state, &locale, "clients-field-enabled").await;
 
     let content_template = ClientShowTemplate {
         title: &title,
@@ -141,11 +158,16 @@ pub async fn show_client(
         status: &status,
         status_allowed: &status_allowed,
         status_blocked: &status_blocked,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
         created: &created,
         updated: &updated,
         edit_client: &edit_client,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
         delete_client: &delete_client,
         delete_confirm: &delete_confirm,
+        enabled_label: &enabled_label,
     };
 
     let content = match content_template.render() {
@@ -160,7 +182,7 @@ pub async fn show_client(
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "clients-title").await,
+            get_translation(&state, &locale, "clients-show-title").await,
             content,
             &state,
             &locale,
@@ -182,12 +204,18 @@ pub async fn create_client_form(
     let form_error = get_translation(&state, &locale, "form-error").await;
     let form_client = get_translation(&state, &locale, "clients-field-client").await;
     let form_status = get_translation(&state, &locale, "clients-field-status").await;
-    let form_cancel = get_translation(&state, &locale, "form-cancel").await;
+    let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
     let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_placeholder_client = get_translation(&state, &locale, "clients-placeholder-client").await;
     let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
     let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
+    let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
+    let form_tooltip_enabled = get_translation(&state, &locale, "clients-field-enabled-help").await;
+    let enabled_yes = get_translation(&state, &locale, "clients-enabled-yes").await;
+    let enabled_no = get_translation(&state, &locale, "clients-enabled-no").await;
+    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
+    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
 
     let content_template = ClientFormTemplate {
         title: &title,
@@ -201,6 +229,12 @@ pub async fn create_client_form(
         form_placeholder_client: &form_placeholder_client,
         form_tooltip_client: &form_tooltip_client,
         form_tooltip_status: &form_tooltip_status,
+        form_enabled: &form_enabled,
+        form_tooltip_enabled: &form_tooltip_enabled,
+        enabled_yes: &enabled_yes,
+        enabled_no: &enabled_no,
+        status_allowed: &status_allowed,
+        status_blocked: &status_blocked,
     };
 
     let content = match content_template.render() {
@@ -247,12 +281,18 @@ pub async fn edit_client_form(
     let form_error = get_translation(&state, &locale, "form-error").await;
     let form_client = get_translation(&state, &locale, "clients-field-client").await;
     let form_status = get_translation(&state, &locale, "clients-field-status").await;
-    let form_cancel = get_translation(&state, &locale, "form-cancel").await;
+    let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
     let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_placeholder_client = get_translation(&state, &locale, "clients-placeholder-client").await;
     let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
     let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
+    let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
+    let form_tooltip_enabled = get_translation(&state, &locale, "clients-field-enabled-help").await;
+    let enabled_yes = get_translation(&state, &locale, "clients-enabled-yes").await;
+    let enabled_no = get_translation(&state, &locale, "clients-enabled-no").await;
+    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
+    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
 
     let content_template = ClientFormTemplate {
         title: &title,
@@ -266,6 +306,12 @@ pub async fn edit_client_form(
         form_placeholder_client: &form_placeholder_client,
         form_tooltip_client: &form_tooltip_client,
         form_tooltip_status: &form_tooltip_status,
+        form_enabled: &form_enabled,
+        form_tooltip_enabled: &form_tooltip_enabled,
+        enabled_yes: &enabled_yes,
+        enabled_no: &enabled_no,
+        status_allowed: &status_allowed,
+        status_blocked: &status_blocked,
     };
 
     let content = match content_template.render() {
@@ -337,4 +383,27 @@ pub async fn delete_client(
     info!("Successfully deleted client with ID: {}", client_id);
 
     Ok(Redirect::to("/clients"))
+}
+
+pub async fn toggle_client(
+    State(state): State<AppState>,
+    Path(client_id): Path<i32>,
+    Query(redirect_query): Query<ToggleClientRedirectQuery>,
+) -> Result<Redirect, (StatusCode, String)> {
+    info!("Handling client toggle request for ID: {}", client_id);
+
+    let client = db::toggle_client_enabled(&state.pool, client_id).map_err(|e| {
+        warn!("Failed to toggle client {}: {:?}", client_id, e);
+        (StatusCode::INTERNAL_SERVER_ERROR, "Failed to toggle client".to_string())
+    })?;
+
+    info!("Successfully toggled client: {}", client.client);
+
+    let redirect_url = match redirect_query.redirect.as_deref() {
+        Some("list") => "/clients".to_string(),
+        Some("show") | None => format!("/clients/{}", client_id),
+        Some(_) => format!("/clients/{}", client_id),
+    };
+
+    Ok(Redirect::to(&redirect_url))
 } 

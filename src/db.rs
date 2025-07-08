@@ -960,6 +960,7 @@ pub fn create_client(pool: &DbPool, client_data: ClientForm) -> Result<Client, E
         .values((
             clients::client.eq(client_data.client),
             clients::status.eq(client_data.status),
+            clients::enabled.eq(client_data.enabled),
             clients::created_at.eq(now),
             clients::updated_at.eq(now),
         ))
@@ -982,6 +983,7 @@ pub fn update_client(
         .set((
             clients::client.eq(client_data.client),
             clients::status.eq(client_data.status),
+            clients::enabled.eq(client_data.enabled),
             clients::updated_at.eq(Utc::now().naive_utc()),
         ))
         .execute(&mut conn)?;
@@ -992,4 +994,31 @@ pub fn update_client(
 pub fn delete_client(pool: &DbPool, client_id: i32) -> Result<usize, Error> {
     let mut conn = pool.get().unwrap();
     diesel::delete(clients::table.find(client_id)).execute(&mut conn)
+}
+
+pub fn toggle_client_enabled(pool: &DbPool, client_id: i32) -> Result<Client, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+
+    // First get the current client to check its enabled status
+    let current_client = clients::table
+        .filter(clients::id.eq(client_id))
+        .select(Client::as_select())
+        .first::<Client>(&mut conn)?;
+
+    // Toggle the enabled status
+    let new_enabled = !current_client.enabled;
+
+    diesel::update(clients::table.filter(clients::id.eq(client_id)))
+        .set((
+            clients::enabled.eq(new_enabled),
+            clients::updated_at.eq(now),
+        ))
+        .execute(&mut conn)?;
+
+    // Return the updated client
+    clients::table
+        .filter(clients::id.eq(client_id))
+        .select(Client::as_select())
+        .first::<Client>(&mut conn)
 }

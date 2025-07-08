@@ -1,43 +1,51 @@
 <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
         {% if client.is_some() %}
-            Edit Client
+            {{ title }}
         {% else %}
-            Add New Client
+            {{ title }}
         {% endif %}
     </h1>
 
     <form {% if client.is_some() %}hx-put="/clients/{{ client.as_ref().unwrap().id }}"{% else %}hx-post="/clients"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="client">
-                Client Name
+                {{ form_client }}
             </label>
             <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                    id="client" name="client" type="text" 
                    value="{% if client.is_some() %}{{ client.as_ref().unwrap().client }}{% endif %}"
-                   placeholder="Enter client name" required>
+                   placeholder="{{ form_placeholder_client }}" required>
         </div>
 
         <div class="mb-4">
             <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="status">
-                Status
+                {{ form_status }}
             </label>
             <select class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                     id="status" name="status" required>
-                <option value="allowed" {% if client.is_some() %}{% if client.as_ref().unwrap().status == "allowed" %}selected{% endif %}{% endif %}>Allowed</option>
-                <option value="blocked" {% if client.is_some() %}{% if client.as_ref().unwrap().status == "blocked" %}selected{% endif %}{% endif %}>Blocked</option>
+                <option value="allowed" {% if client.is_some() %}{% if client.as_ref().unwrap().status == "allowed" %}selected{% endif %}{% endif %}>{{ status_allowed }}</option>
+                <option value="blocked" {% if client.is_some() %}{% if client.as_ref().unwrap().status == "blocked" %}selected{% endif %}{% endif %}>{{ status_blocked }}</option>
             </select>
         </div>
 
+        <div class="mb-4">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="enabled">
+                {{ form_enabled }}
+                <span class="text-xs text-gray-400 ml-2" title="{{ form_tooltip_enabled }}">?</span>
+            </label>
+            <input class="form-checkbox h-5 w-5 text-blue-600" type="checkbox" id="enabled" name="enabled" value="true" {% if client.is_some() %}{% if client.as_ref().unwrap().enabled %}checked{% endif %}{% endif %}>
+        </div>
+
         <div class="flex items-center justify-between">
-            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="/clients">
-                Cancel
+            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{% if client.is_some() %}/clients/{{ client.as_ref().unwrap().id }}{% else %}/clients{% endif %}">
+                {{ form_cancel }}
             </a>
             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                 {% if client.is_some() %}
-                    Update Client
+                    {{ form_update_client }}
                 {% else %}
-                    Create Client
+                    {{ form_create_client }}
                 {% endif %}
             </button>
         </div>

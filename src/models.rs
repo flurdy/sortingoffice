@@ -256,6 +256,7 @@ pub struct Client {
     pub status: String,
     pub created_at: Option<NaiveDateTime>,
     pub updated_at: Option<NaiveDateTime>,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -263,12 +264,16 @@ pub struct Client {
 pub struct NewClient {
     pub client: String,
     pub status: String,
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientForm {
     pub client: String,
     pub status: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
 }
 
 // Catch-all report models

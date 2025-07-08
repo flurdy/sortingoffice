@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use diesel::mysql::MysqlConnection;
@@ -209,6 +209,7 @@ async fn main() {
                 .delete(handlers::clients::delete_client),
         )
         .route("/clients/{id}/edit", get(handlers::clients::edit_client_form))
+        .route("/clients/{id}/toggle", put(handlers::clients::toggle_client))
         // Stats
         .route("/stats", get(handlers::stats::index))
         // Reports
