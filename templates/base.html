@@ -276,7 +276,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="en-US">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-us mr-2"></span>
+                                                <span class="flag-icon flag-icon-gb mr-2"></span>
                                                 {{ language_english }}
                                                 {% if current_locale == "en-US" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -303,6 +303,18 @@
                                                 <span class="flag-icon flag-icon-fr mr-2"></span>
                                                 {{ language_french }}
                                                 {% if current_locale == "fr-FR" %}
+                                                <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="/language/set">
+                                            <input type="hidden" name="language" value="nb-NO">
+                                            <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                                                <span class="flag-icon flag-icon-no mr-2"></span>
+                                                {{ language_norwegian }}
+                                                {% if current_locale == "nb-NO" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                                 </svg>

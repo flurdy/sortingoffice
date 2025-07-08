@@ -25,6 +25,7 @@ pub struct BaseTemplate {
     pub language_english: String,
     pub language_spanish: String,
     pub language_french: String,
+    pub language_norwegian: String,
     pub current_locale: String,
 }
 
@@ -53,6 +54,7 @@ pub struct LayoutTemplate<'a> {
     pub language_english: &'a str,
     pub language_spanish: &'a str,
     pub language_french: &'a str,
+    pub language_norwegian: &'a str,
     pub current_locale: &'a str,
 }
 
@@ -85,6 +87,7 @@ impl BaseTemplate {
             language_english: crate::i18n::get_translation(state, locale, "language-english").await,
             language_spanish: crate::i18n::get_translation(state, locale, "language-spanish").await,
             language_french: crate::i18n::get_translation(state, locale, "language-french").await,
+            language_norwegian: crate::i18n::get_translation(state, locale, "language-norwegian").await,
             current_locale: locale.to_string(),
         })
     }

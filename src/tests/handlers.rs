@@ -321,7 +321,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
         // Create test user with unique name
         let user_form = crate::models::UserForm {
@@ -605,6 +605,7 @@ mod tests {
             mail: "test@aliases-list-test.com".to_string(),
             destination: "user@aliases-list-test.com".to_string(),
             enabled: true,
+            return_url: None,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
 
@@ -699,6 +700,7 @@ mod tests {
             mail: "test@test.com".to_string(),
             destination: "user@test.com".to_string(),
             enabled: true,
+            return_url: None,
         };
         let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
 

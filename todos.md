@@ -18,13 +18,13 @@
 
 ✅ aliases need to be unique
 
-add a french translation
+✅ add a french translation
 
-add a norwegian translation
+✅ add a norwegian translation
 
-Prefer a British flag to the US flag in the language drop down, or maybe a hybrid flag.
+✅ Prefer a British flag to the US flag in the language drop down, or maybe a hybrid flag.
 
-please tell me why the github workflow CI tests fail
+✅ please tell me why the github workflow CI tests fail
 
 Lets introduce proper authentication. The admin credentials will be stored as config.
 

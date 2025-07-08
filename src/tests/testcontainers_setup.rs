@@ -3,7 +3,7 @@ use diesel::mysql::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::Once;
-use testcontainers::{clients::Cli, Container, GenericImage};
+use testcontainers::{clients::Cli, Container};
 use testcontainers_modules::mysql::Mysql;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();

@@ -45,6 +45,7 @@ mod tests {
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
             enabled: true,
+            return_url: None,
         };
 
         assert!(!valid_alias_form.mail.is_empty());
