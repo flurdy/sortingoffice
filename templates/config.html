@@ -14,7 +14,7 @@
                             {{ required_aliases_header }}
                         </h3>
                         <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            These aliases are essential for email standards compliance (RFC requirements).
+                            {{ required_aliases_description }}
                         </p>
                     </div>
                     <div class="border-t border-gray-200 dark:border-gray-700">
@@ -23,7 +23,7 @@
                                 <div class="flex items-center space-x-4">
                                     <input type="text" 
                                            name="new_required_alias" 
-                                           placeholder="Enter new required alias (e.g., postmaster)"
+                                           placeholder="{{ placeholder_required_alias }}"
                                            class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <button type="button" 
                                             onclick="addRequiredAlias()"
@@ -64,7 +64,7 @@
                             {{ common_aliases_header }}
                         </h3>
                         <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            These aliases are commonly expected by users and services but not strictly required.
+                            {{ common_aliases_description }}
                         </p>
                     </div>
                     <div class="border-t border-gray-200 dark:border-gray-700">
@@ -73,7 +73,7 @@
                                 <div class="flex items-center space-x-4">
                                     <input type="text" 
                                            name="new_common_alias" 
-                                           placeholder="Enter new common alias (e.g., admin)"
+                                           placeholder="{{ placeholder_common_alias }}"
                                            class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <button type="button" 
                                             onclick="addCommonAlias()"
@@ -114,7 +114,7 @@
                             {{ domain_overrides_header }}
                         </h3>
                         <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            Override required aliases for specific domains.
+                            {{ domain_overrides_description }}
                         </p>
                     </div>
                     <div class="border-t border-gray-200 dark:border-gray-700">
@@ -123,12 +123,12 @@
                                 <div class="flex items-center space-x-4">
                                     <input type="text" 
                                            name="new_domain" 
-                                           placeholder="Enter domain (e.g., example.com)"
+                                           placeholder="{{ placeholder_domain }}"
                                            class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <button type="button" 
                                             onclick="addDomainOverride()"
                                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        Add Domain Override
+                                        {{ add_domain_override_button }}
                                     </button>
                                 </div>
                                 
@@ -140,13 +140,13 @@
                                             <button type="button" 
                                                     onclick="removeDomainOverride('{{ domain }}')"
                                                     class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                Remove Domain
+                                                {{ remove_domain_button }}
                                             </button>
                                         </div>
                                         
                                         <!-- Required Aliases for this Domain -->
                                         <div class="mb-4">
-                                            <h5 class="text-xs font-medium text-red-600 dark:text-red-400 mb-2">Required Aliases</h5>
+                                            <h5 class="text-xs font-medium text-red-600 dark:text-red-400 mb-2">{{ required_aliases_label }}</h5>
                                             <div class="space-y-2">
                                                 {% for alias in domain_override.required %}
                                                 <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
@@ -154,7 +154,7 @@
                                                     <button type="button" 
                                                             onclick="removeDomainRequiredAlias('{{ domain }}', '{{ alias }}')"
                                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                        Remove
+                                                        {{ remove_button }}
                                                     </button>
                                                     <input type="hidden" name="domain_overrides[{{ domain }}][required][]" value="{{ alias }}">
                                                 </div>
@@ -164,7 +164,7 @@
                                         
                                         <!-- Common Aliases for this Domain -->
                                         <div class="mb-4">
-                                            <h5 class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mb-2">Common Aliases</h5>
+                                            <h5 class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ common_aliases_label }}</h5>
                                             <div class="space-y-2">
                                                 {% for alias in domain_override.common %}
                                                 <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
@@ -172,7 +172,7 @@
                                                     <button type="button" 
                                                             onclick="removeDomainCommonAlias('{{ domain }}', '{{ alias }}')"
                                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                        Remove
+                                                        {{ remove_button }}
                                                     </button>
                                                     <input type="hidden" name="domain_overrides[{{ domain }}][common][]" value="{{ alias }}">
                                                 </div>
@@ -297,14 +297,14 @@ function addDomainOverride() {
         <div class="flex items-center justify-between mb-3">
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">${domain}</h4>
             <button type="button" onclick="removeDomainOverride('${domain}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                Remove Domain
+                {{ remove_domain_button }}
             </button>
         </div>
         <div class="space-y-2">
             <div class="flex items-center space-x-4">
-                <input type="text" placeholder="Enter alias for ${domain}" class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <input type="text" placeholder="{{ placeholder_domain_alias }}" class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 <button type="button" onclick="addDomainAlias('${domain}')" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Add Alias
+                    {{ add_alias_button }}
                 </button>
             </div>
         </div>

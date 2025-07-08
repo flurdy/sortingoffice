@@ -13,6 +13,10 @@ pub async fn login_form() -> Html<String> {
     let template = LoginTemplate {
         title: "Login",
         error: "",
+        login_title: "Sign in to Sorting Office",
+        user_id: "User ID",
+        password: "Password",
+        sign_in: "Sign in",
     };
     Html(template.render().unwrap())
 }
@@ -38,6 +42,10 @@ pub async fn login(
     let template = LoginTemplate {
         title: "Login",
         error: "Invalid id or password",
+        login_title: "Sign in to Sorting Office",
+        user_id: "User ID",
+        password: "Password",
+        sign_in: "Sign in",
     };
     Err(Html(template.render().unwrap()))
 }
