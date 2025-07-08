@@ -873,5 +873,19 @@ common-api-coordination = Coordination d'API
 common-api-collaboration = Collaboration d'API
 common-api-integration = Intégration d'API
 common-api-federation = Fédération d'API
-common-api-federation = Fédération d'API
-common-api-federation = Fédération d'API 
+
+# Login
+login-title = Se connecter à Sorting Office
+login-user-id = Identifiant utilisateur
+login-password = Mot de passe
+login-sign-in = Se connecter
+login-error = Nom d'utilisateur ou mot de passe invalide
+
+# Roles and Permissions
+role-read-only = Lecture Seule
+role-edit = Modifier
+role-admin = Administrateur
+permission-insufficient = Permissions insuffisantes
+permission-read-only = Vous avez un accès en lecture seule à cette ressource.
+permission-edit-required = Des permissions de modification sont requises pour effectuer cette action.
+permission-admin-required = Des permissions d'administrateur sont requises pour effectuer cette action. 

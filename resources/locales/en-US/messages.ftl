@@ -372,7 +372,21 @@ login-title = Sign in to Sorting Office
 login-user-id = User ID
 login-password = Password
 login-sign-in = Sign in
-login-error = Error
+login-error = Invalid username or password
+login-error-invalid-credentials = Invalid username or password. Please try again.
+login-error-empty-fields = Please enter both username and password.
+login-error-session-expired = Your session has expired. Please sign in again.
+login-success = Sign in successful
+login-welcome = Welcome to Sorting Office
+
+# Roles and Permissions
+role-read-only = Read Only
+role-edit = Edit
+role-admin = Administrator
+permission-insufficient = Insufficient permissions
+permission-read-only = You have read-only access to this resource.
+permission-edit-required = Edit permissions are required to perform this action.
+permission-admin-required = Administrator permissions are required to perform this action.
 
 # About
 about-title = About Sorting Office

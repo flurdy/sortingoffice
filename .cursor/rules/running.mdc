@@ -12,4 +12,4 @@ if `cargo watch`  or `make run` is running it should restart itself.
 
 Before a `cargo run` always chech with `cargo check` first.
 
-Never run a `cargo run` without prefixing it with a `pkill` command.
+To restart `cargo run` use  `pkill -f sortingoffice; sleep 1; cargo run & sleep 3`

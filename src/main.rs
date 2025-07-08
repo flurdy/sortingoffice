@@ -1,4 +1,5 @@
 use axum::{
+    middleware,
     routing::{get, post, put},
     Router,
 };
@@ -28,6 +29,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 pub struct AppState {
     pool: DbPool,
     i18n: i18n::I18n,
+    config: config::Config,
 }
 
 #[tokio::main]
@@ -55,184 +57,120 @@ async fn main() {
     // Preload Spanish locale
     i18n.load_locale("es-ES").await.expect("Failed to load Spanish locale");
     
-    let app_state = AppState { pool, i18n };
+    // Load configuration
+    let config = config::Config::load().expect("Failed to load configuration");
+    
+    let app_state = AppState { pool, i18n, config };
 
+    // Create read-only routes (require authentication but not edit permissions)
+    let read_only_routes = Router::new()
+        .route("/", get(handlers::dashboard::index))
+        .route("/about", get(handlers::about::index))
+        // Read-only domain operations
+        .route("/domains", get(handlers::domains::list))
+        .route("/domains/{id}", get(handlers::domains::show))
+        // Read-only user operations
+        .route("/users", get(handlers::users::list))
+        .route("/users/{id}", get(handlers::users::show))
+        // Read-only alias operations
+        .route("/aliases", get(handlers::aliases::list))
+        .route("/aliases/{id}", get(handlers::aliases::show))
+        // Read-only backup operations
+        .route("/backups/{id}", get(handlers::backups::show))
+        // Read-only relay operations
+        .route("/relays", get(handlers::relays::list_relays))
+        .route("/relays/{id}", get(handlers::relays::show_relay))
+        // Read-only relocated operations
+        .route("/relocated", get(handlers::relocated::list_relocated))
+        .route("/relocated/{id}", get(handlers::relocated::show_relocated))
+        // Read-only client operations
+        .route("/clients", get(handlers::clients::list_clients))
+        .route("/clients/{id}", get(handlers::clients::show_client))
+        // Stats and reports
+        .route("/stats", get(handlers::stats::index))
+        .route("/reports", get(handlers::reports::reports_list))
+        .route("/reports/matrix", get(handlers::reports::matrix_report))
+        // Configuration
+        .route("/config", get(handlers::config::view_config))
+        // Theme and language
+        .route("/theme/toggle", post(handlers::theme::toggle_theme))
+        .route("/language/set", post(handlers::language::set_language))
+        // Serve static files at /static from the ./static directory
+        .nest_service("/static", tower_http::services::ServeDir::new("./static"))
+        .with_state(app_state.clone())
+        .layer(middleware::from_fn_with_state(app_state.clone(), handlers::auth::require_auth));
+
+    // Create edit routes (require edit permissions)
+    let edit_routes = Router::new()
+        // Domain edit operations
+        .route("/domains", post(handlers::domains::create))
+        .route("/domains/new", get(handlers::domains::new))
+        .route("/domains/{id}", put(handlers::domains::update).delete(handlers::domains::delete))
+        .route("/domains/{id}/edit", get(handlers::domains::edit))
+        .route("/domains/{id}/toggle-list", post(handlers::domains::toggle_enabled_list))
+        .route("/domains/{id}/toggle-show", post(handlers::domains::toggle_enabled_show))
+        .route("/domains/{id}/toggle", post(handlers::domains::toggle_enabled))
+        .route("/domains/{id}/add-missing-alias/{alias}", post(handlers::domains::add_missing_required_alias))
+        // User edit operations
+        .route("/users", post(handlers::users::create))
+        .route("/users/new", get(handlers::users::new))
+        .route("/users/{id}", put(handlers::users::update).delete(handlers::users::delete))
+        .route("/users/{id}/edit", get(handlers::users::edit))
+        .route("/users/{id}/toggle-list", post(handlers::users::toggle_enabled_list))
+        .route("/users/{id}/toggle-show", post(handlers::users::toggle_enabled_show))
+        .route("/users/{id}/toggle", post(handlers::users::toggle_enabled))
+        // Alias edit operations
+        .route("/aliases", post(handlers::aliases::create))
+        .route("/aliases/new", get(handlers::aliases::new))
+        .route("/aliases/{id}", put(handlers::aliases::update).delete(handlers::aliases::delete))
+        .route("/aliases/{id}/edit", get(handlers::aliases::edit))
+        .route("/aliases/{id}/toggle-list", post(handlers::aliases::toggle_enabled_list))
+        .route("/aliases/{id}/toggle-show", post(handlers::aliases::toggle_enabled_show))
+        .route("/aliases/{id}/toggle-domain-show", post(handlers::aliases::toggle_enabled_domain_show))
+        .route("/aliases/{id}/toggle", post(handlers::aliases::toggle_enabled))
+        // Backup edit operations
+        .route("/backups", post(handlers::backups::create))
+        .route("/backups/new", get(handlers::backups::new))
+        .route("/backups/{id}", put(handlers::backups::update).delete(handlers::backups::delete))
+        .route("/backups/{id}/edit", get(handlers::backups::edit))
+        .route("/backups/{id}/toggle-show", post(handlers::backups::toggle_enabled_show))
+        .route("/backups/{id}/toggle", post(handlers::backups::toggle_enabled))
+        // Relay edit operations
+        .route("/relays", post(handlers::relays::create_relay))
+        .route("/relays/new", get(handlers::relays::create_form))
+        .route("/relays/{id}", put(handlers::relays::update_relay).delete(handlers::relays::delete_relay))
+        .route("/relays/{id}/edit", get(handlers::relays::edit_form))
+        .route("/relays/{id}/toggle-enabled", post(handlers::relays::toggle_enabled))
+        // Relocated edit operations
+        .route("/relocated", post(handlers::relocated::create_relocated))
+        .route("/relocated/new", get(handlers::relocated::create_form))
+        .route("/relocated/{id}", put(handlers::relocated::update_relocated).delete(handlers::relocated::delete_relocated))
+        .route("/relocated/{id}/edit", get(handlers::relocated::edit_form))
+        .route("/relocated/{id}/toggle-enabled", post(handlers::relocated::toggle_enabled))
+        // Client edit operations
+        .route("/clients", post(handlers::clients::create_client))
+        .route("/clients/new", get(handlers::clients::create_client_form))
+        .route("/clients/{id}", put(handlers::clients::update_client).delete(handlers::clients::delete_client))
+        .route("/clients/{id}/edit", get(handlers::clients::edit_client_form))
+        .route("/clients/{id}/toggle", put(handlers::clients::toggle_client))
+        .with_state(app_state.clone())
+        .layer(middleware::from_fn_with_state(app_state.clone(), handlers::auth::require_auth))
+        .layer(middleware::from_fn_with_state(app_state.clone(), handlers::auth::require_edit_permissions));
+
+    // Create the main app with public and protected routes
     let app = Router::new()
-        // Auth
+        // Public routes (no authentication required)
         .route(
             "/login",
             get(handlers::auth::login_form).post(handlers::auth::login),
         )
         .route("/logout", post(handlers::auth::logout))
-        // Dashboard
-        .route("/", get(handlers::dashboard::index))
-        // About
-        .route("/about", get(handlers::about::index))
-        // Domains
-        .route(
-            "/domains",
-            get(handlers::domains::list).post(handlers::domains::create),
-        )
-        .route("/domains/new", get(handlers::domains::new))
-        .route(
-            "/domains/{id}",
-            get(handlers::domains::show)
-                .put(handlers::domains::update)
-                .delete(handlers::domains::delete),
-        )
-        .route("/domains/{id}/edit", get(handlers::domains::edit))
-        .route(
-            "/domains/{id}/toggle-list",
-            post(handlers::domains::toggle_enabled_list),
-        )
-        .route(
-            "/domains/{id}/toggle-show",
-            post(handlers::domains::toggle_enabled_show),
-        )
-        .route(
-            "/domains/{id}/toggle",
-            post(handlers::domains::toggle_enabled),
-        )
-        .route(
-            "/domains/{id}/add-missing-alias/{alias}",
-            post(handlers::domains::add_missing_required_alias),
-        )
-        // Users
-        .route(
-            "/users",
-            get(handlers::users::list).post(handlers::users::create),
-        )
-        .route("/users/new", get(handlers::users::new))
-        .route(
-            "/users/{id}",
-            get(handlers::users::show)
-                .put(handlers::users::update)
-                .delete(handlers::users::delete),
-        )
-        .route("/users/{id}/edit", get(handlers::users::edit))
-        .route(
-            "/users/{id}/toggle-list",
-            post(handlers::users::toggle_enabled_list),
-        )
-        .route(
-            "/users/{id}/toggle-show",
-            post(handlers::users::toggle_enabled_show),
-        )
-        .route("/users/{id}/toggle", post(handlers::users::toggle_enabled))
-        // Aliases
-        .route(
-            "/aliases",
-            get(handlers::aliases::list).post(handlers::aliases::create),
-        )
-        .route("/aliases/new", get(handlers::aliases::new))
-        .route(
-            "/aliases/{id}",
-            get(handlers::aliases::show)
-                .put(handlers::aliases::update)
-                .delete(handlers::aliases::delete),
-        )
-        .route("/aliases/{id}/edit", get(handlers::aliases::edit))
-        .route(
-            "/aliases/{id}/toggle-list",
-            post(handlers::aliases::toggle_enabled_list),
-        )
-        .route(
-            "/aliases/{id}/toggle-show",
-            post(handlers::aliases::toggle_enabled_show),
-        )
-        .route(
-            "/aliases/{id}/toggle-domain-show",
-            post(handlers::aliases::toggle_enabled_domain_show),
-        )
-        .route(
-            "/aliases/{id}/toggle",
-            post(handlers::aliases::toggle_enabled),
-        )
-        // Backups
-        .route(
-            "/backups",
-            post(handlers::backups::create),
-        )
-        .route("/backups/new", get(handlers::backups::new))
-        .route(
-            "/backups/{id}",
-            get(handlers::backups::show)
-                .put(handlers::backups::update)
-                .delete(handlers::backups::delete),
-        )
-        .route("/backups/{id}/edit", get(handlers::backups::edit))
-
-        .route(
-            "/backups/{id}/toggle-show",
-            post(handlers::backups::toggle_enabled_show),
-        )
-        .route(
-            "/backups/{id}/toggle",
-            post(handlers::backups::toggle_enabled),
-        )
-        // Relays
-        .route(
-            "/relays",
-            get(handlers::relays::list_relays).post(handlers::relays::create_relay),
-        )
-        .route("/relays/new", get(handlers::relays::create_form))
-        .route(
-            "/relays/{id}",
-            get(handlers::relays::show_relay)
-                .put(handlers::relays::update_relay)
-                .delete(handlers::relays::delete_relay),
-        )
-        .route("/relays/{id}/edit", get(handlers::relays::edit_form))
-        .route(
-            "/relays/{id}/toggle-enabled",
-            post(handlers::relays::toggle_enabled),
-        )
-        // Relocated
-        .route(
-            "/relocated",
-            get(handlers::relocated::list_relocated).post(handlers::relocated::create_relocated),
-        )
-        .route("/relocated/new", get(handlers::relocated::create_form))
-        .route(
-            "/relocated/{id}",
-            get(handlers::relocated::show_relocated)
-                .put(handlers::relocated::update_relocated)
-                .delete(handlers::relocated::delete_relocated),
-        )
-        .route("/relocated/{id}/edit", get(handlers::relocated::edit_form))
-        .route(
-            "/relocated/{id}/toggle-enabled",
-            post(handlers::relocated::toggle_enabled),
-        )
-        // Clients
-        .route(
-            "/clients",
-            get(handlers::clients::list_clients).post(handlers::clients::create_client),
-        )
-        .route("/clients/new", get(handlers::clients::create_client_form))
-        .route(
-            "/clients/{id}",
-            get(handlers::clients::show_client)
-                .put(handlers::clients::update_client)
-                .delete(handlers::clients::delete_client),
-        )
-        .route("/clients/{id}/edit", get(handlers::clients::edit_client_form))
-        .route("/clients/{id}/toggle", put(handlers::clients::toggle_client))
-        // Stats
-        .route("/stats", get(handlers::stats::index))
-        // Reports
-        .route("/reports", get(handlers::reports::reports_list))
-        .route("/reports/matrix", get(handlers::reports::matrix_report))
-        // Configuration
-        .route("/config", get(handlers::config::view_config))
-        // Theme
-        .route("/theme/toggle", post(handlers::theme::toggle_theme))
-        // Language
-        .route("/language/set", post(handlers::language::set_language))
-        // Serve static files at /static from the ./static directory
-        .nest_service("/static", tower_http::services::ServeDir::new("./static"))
+        // Merge read-only and edit routes
+        .merge(read_only_routes)
+        .merge(edit_routes)
         .with_state(app_state)
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .fallback(handlers::not_found);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", addr);

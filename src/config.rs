@@ -4,25 +4,57 @@ use std::fs;
 use std::path::Path;
 use crate::models::RequiredAliasConfig;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub enum AdminRole {
+    #[serde(rename = "read-only")]
+    ReadOnly,
+    #[serde(rename = "edit")]
+    Edit,
+}
+
+impl Default for AdminRole {
+    fn default() -> Self {
+        AdminRole::Edit
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DomainOverride {
     pub required: Vec<String>,
     pub common: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct AdminCredentials {
+    pub username: String,
+    pub password_hash: String,
+    #[serde(default)]
+    pub role: AdminRole,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub required_aliases: Vec<String>,
     pub common_aliases: Vec<String>,
     #[serde(default)]
     pub domain_overrides: HashMap<String, DomainOverride>,
+    #[serde(default)]
+    pub admins: Vec<AdminCredentials>,
+    #[serde(default)]
+    pub admin: Option<AdminCredentials>,
 }
 
 impl Config {
     /// Load configuration from a TOML file
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
         let content = fs::read_to_string(path)?;
-        let config: Config = toml::from_str(&content)?;
+        let mut config: Config = toml::from_str(&content)?;
+        // Migrate old config: if admins is empty and admin is present, push admin into admins
+        if config.admins.is_empty() {
+            if let Some(admin) = config.admin.take() {
+                config.admins.push(admin);
+            }
+        }
         Ok(config)
     }
     
@@ -67,6 +99,8 @@ impl Config {
                 "spam".to_string(),
             ],
             domain_overrides: HashMap::new(),
+            admins: vec![],
+            admin: None,
         })
     }
     
@@ -102,6 +136,17 @@ impl Config {
             self.get_common_aliases_for_domain(domain)
         )
     }
+    
+    /// Verify admin credentials and return role if valid
+    pub fn verify_admin_credentials(&self, username: &str, password: &str) -> Option<AdminRole> {
+        self.admins.iter().find_map(|admin| {
+            if admin.username == username && bcrypt::verify(password, &admin.password_hash).unwrap_or(false) {
+                Some(admin.role.clone())
+            } else {
+                None
+            }
+        })
+    }
 }
 
 impl Default for Config {
@@ -132,6 +177,12 @@ impl Default for Config {
                 "spam".to_string(),
             ],
             domain_overrides: HashMap::new(),
+            admins: vec![AdminCredentials {
+                username: "admin".to_string(),
+                password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(), // "admin123"
+                role: AdminRole::Edit,
+            }],
+            admin: None,
         }
     }
 } 

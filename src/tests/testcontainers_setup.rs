@@ -12,7 +12,7 @@ static INIT: Once = Once::new();
 
 pub struct TestContainer {
     pub pool: DbPool,
-    _docker: &'static Cli,
+    _docker: Box<Cli>,
     _container: Container<'static, Mysql>,
 }
 
@@ -20,25 +20,26 @@ impl TestContainer {
     pub fn new() -> Self {
         INIT.call_once(|| {
             std::env::set_var("RUST_LOG", "debug");
-            tracing_subscriber::fmt::init();
+            let _ = tracing_subscriber::fmt::try_init();
         });
 
-        // Start testcontainers client
-        let docker: &'static Cli = Box::leak(Box::new(Cli::default()));
-        
-        // Create MySQL container
-        let mysql_container = docker.run(Mysql::default());
-        
+        // Start testcontainers client (not static)
+        let mut docker = Box::new(Cli::default());
+        // SAFETY: We must extend the container's lifetime to 'static for the struct, so we leak the container only (not the client)
+        let mysql_container: Container<'static, Mysql> = unsafe {
+            std::mem::transmute::<Container<'_, Mysql>, Container<'static, Mysql>>(docker.run(Mysql::default()))
+        };
+
         // Get connection details
         let host = "127.0.0.1";
         let port = mysql_container.get_host_port_ipv4(3306);
-        
+
         // Create database URL
         let database_url = format!(
             "mysql://root@{}:{}/mysql",
             host, port
         );
-        
+
         // Create connection pool
         let manager = ConnectionManager::<MysqlConnection>::new(database_url);
         let pool = Pool::builder()
@@ -74,10 +75,8 @@ pub fn setup_test_db() -> TestContainer {
     TestContainer::new()
 }
 
-pub fn cleanup_test_db(container: &TestContainer) {
+pub fn cleanup_test_db(_container: &TestContainer) {
     // The container will be automatically cleaned up when it goes out of scope
-    // This function is kept for API compatibility
-    let _ = container;
 }
 
 pub fn unique_test_id() -> String {

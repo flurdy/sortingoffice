@@ -11,75 +11,78 @@ mod tests {
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
+    use crate::config::{Config, AdminRole};
+    use axum::http::{HeaderMap, HeaderValue};
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     async fn create_test_app() -> (Router, AppState) {
         let pool = setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
-        let state = AppState { pool, i18n };
-        let app = Router::new()
+        let config = Config::default();
+        let state = AppState { pool, i18n, config };
+        
+        // Create read-only routes
+        let read_only_routes = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
-            .route("/domains", axum::routing::post(handlers::domains::create))
             .route("/domains/{id}", axum::routing::get(handlers::domains::show))
-            .route(
-                "/domains/{id}/edit",
-                axum::routing::get(handlers::domains::edit),
-            )
-            .route(
-                "/domains/{id}",
-                axum::routing::put(handlers::domains::update),
-            )
-            .route(
-                "/domains/{id}",
-                axum::routing::delete(handlers::domains::delete),
-            )
-            .route(
-                "/domains/{id}/toggle",
-                axum::routing::post(handlers::domains::toggle_enabled),
-            )
-            .route("/backups", axum::routing::post(handlers::backups::create))
-            .route("/backups/{id}", axum::routing::get(handlers::backups::show))
-            .route("/backups/{id}/edit", axum::routing::get(handlers::backups::edit))
-            .route("/backups/{id}", axum::routing::put(handlers::backups::update))
-            .route("/backups/{id}", axum::routing::delete(handlers::backups::delete))
-            .route(
-                "/backups/{id}/toggle",
-                axum::routing::post(handlers::backups::toggle_enabled),
-            )
             .route("/users", axum::routing::get(handlers::users::list))
-            .route("/users", axum::routing::post(handlers::users::create))
             .route("/users/{id}", axum::routing::get(handlers::users::show))
-            .route("/users/{id}/edit", axum::routing::get(handlers::users::edit))
-            .route("/users/{id}", axum::routing::put(handlers::users::update))
-            .route("/users/{id}", axum::routing::delete(handlers::users::delete))
-            .route(
-                "/users/{id}/toggle",
-                axum::routing::post(handlers::users::toggle_enabled),
-            )
             .route("/aliases", axum::routing::get(handlers::aliases::list))
-            .route("/aliases", axum::routing::post(handlers::aliases::create))
-            .route("/aliases/{id}", axum::routing::get(handlers::aliases::show))
-            .route(
-                "/aliases/{id}/edit",
-                axum::routing::get(handlers::aliases::edit),
-            )
-            .route(
-                "/aliases/{id}",
-                axum::routing::put(handlers::aliases::update),
-            )
-            .route(
-                "/aliases/{id}",
-                axum::routing::delete(handlers::aliases::delete),
-            )
-            .route(
-                "/aliases/{id}/toggle-list",
-                axum::routing::post(handlers::aliases::toggle_enabled),
-            )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
             .route("/about", axum::routing::get(handlers::about::index))
-            .with_state(state.clone());
+            .route("/backups/{id}", axum::routing::get(handlers::backups::show))
+            .with_state(state.clone())
+            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_auth));
+
+        // Create edit routes
+        let edit_routes = Router::new()
+            .route("/domains", axum::routing::post(handlers::domains::create))
+            .route("/domains/{id}", axum::routing::put(handlers::domains::update).delete(handlers::domains::delete))
+            .route("/domains/{id}/edit", axum::routing::get(handlers::domains::edit))
+            .route("/domains/{id}/toggle", axum::routing::post(handlers::domains::toggle_enabled))
+            .route("/users", axum::routing::post(handlers::users::create))
+            .route("/users/{id}", axum::routing::put(handlers::users::update).delete(handlers::users::delete))
+            .route("/users/{id}/edit", axum::routing::get(handlers::users::edit))
+            .route("/users/{id}/toggle", axum::routing::post(handlers::users::toggle_enabled))
+            .route("/aliases", axum::routing::post(handlers::aliases::create))
+            .route("/aliases/{id}", axum::routing::put(handlers::aliases::update).delete(handlers::aliases::delete))
+            .route("/aliases/{id}/edit", axum::routing::get(handlers::aliases::edit))
+            .route("/aliases/{id}/toggle-list", axum::routing::post(handlers::aliases::toggle_enabled))
+            .route("/backups", axum::routing::post(handlers::backups::create))
+            .route("/backups/{id}", axum::routing::put(handlers::backups::update).delete(handlers::backups::delete))
+            .route("/backups/{id}/edit", axum::routing::get(handlers::backups::edit))
+            .route("/backups/{id}/toggle", axum::routing::post(handlers::backups::toggle_enabled))
+            .with_state(state.clone())
+            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_auth))
+            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_edit_permissions));
+
+        let app = Router::new()
+            .merge(read_only_routes)
+            .merge(edit_routes)
+            .with_state(state.clone())
+            .fallback(handlers::not_found);
 
         (app, state)
+    }
+
+    // Helper function to create an authenticated cookie with a specific role
+    fn create_auth_cookie(role: AdminRole) -> HeaderValue {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let expiry = now + 3600; // 1 hour from now
+        let role_str = match role {
+            AdminRole::ReadOnly => "read-only",
+            AdminRole::Edit => "edit",
+        };
+        let cookie = format!("authenticated={}:{}", expiry, role_str);
+        cookie.parse().unwrap()
+    }
+
+    // Helper function to create headers with authentication
+    fn create_auth_headers(role: AdminRole) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", create_auth_cookie(role));
+        headers
     }
 
     #[tokio::test]
@@ -102,6 +105,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/domains")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -136,6 +140,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -172,6 +177,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}", domain.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -210,6 +216,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}/edit", domain.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -253,6 +260,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/domains/{}", domain.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -292,6 +300,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/domains/{}/toggle", domain.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -336,6 +345,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/users")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -378,6 +388,7 @@ mod tests {
                     .method("POST")
                     .uri("/users")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -423,6 +434,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}", user.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -470,6 +482,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}/edit", user.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -522,6 +535,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/users/{}", user.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -571,6 +585,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/users/{}/toggle", user.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -613,6 +628,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/aliases")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -655,6 +671,7 @@ mod tests {
                     .method("POST")
                     .uri("/aliases")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -708,6 +725,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -735,6 +753,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/dashboard")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -762,6 +781,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/about")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -786,14 +806,15 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/nonexistent")
+                    .uri("/notfound")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
 
         cleanup_test_db(&state.pool);
     }
@@ -813,6 +834,7 @@ mod tests {
                     .method("POST")
                     .uri("/backups")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -848,6 +870,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/backups/{}", backup.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -885,6 +908,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/backups/{}/edit", backup.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -927,6 +951,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/backups/{}", backup.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -965,6 +990,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/backups/{}/toggle", backup.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -995,6 +1021,7 @@ mod tests {
                     .method("POST")
                     .uri("/backups")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -1037,6 +1064,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/backups/{}", backup.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -1078,6 +1106,7 @@ mod tests {
                 Request::builder()
                     .method("DELETE")
                     .uri(format!("/backups/{}", backup.pkid))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1125,6 +1154,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/domains")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1143,5 +1173,216 @@ mod tests {
         assert!(body_str.contains(&format!("backup-domain-test-{}", unique_id)));
 
         cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_login_success() {
+        use crate::handlers::auth::{login, LoginRequest};
+        use axum::extract::State;
+        use axum::Form;
+        use axum::http::HeaderMap;
+        use crate::AppState;
+        use crate::config::{Config, AdminCredentials, AdminRole};
+        
+        let pool = crate::tests::common::setup_test_db();
+        let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        let config = Config {
+            admins: vec![AdminCredentials {
+                username: "admin".to_string(),
+                password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(),
+                role: AdminRole::Edit,
+            }],
+            ..Config::default()
+        };
+        let state = AppState { pool, i18n, config };
+        let headers = HeaderMap::new();
+        let req = LoginRequest { id: "admin".to_string(), password: "admin123".to_string() };
+        let result = login(State(state), headers, Form(req)).await;
+        assert!(result.is_ok());
+        let response = result.unwrap();
+        assert_eq!(response.status(), axum::http::StatusCode::FOUND);
+        let set_cookie = response.headers().get("set-cookie").unwrap().to_str().unwrap();
+        assert!(set_cookie.contains("authenticated="));
+        assert!(set_cookie.contains("edit"));
+    }
+
+    #[tokio::test]
+    async fn test_login_failure() {
+
+        use crate::handlers::auth::{login, LoginRequest};
+        use axum::extract::State;
+        use axum::Form;
+        use axum::http::HeaderMap;
+        use crate::AppState;
+        use crate::config::Config;
+        
+        let pool = crate::tests::common::setup_test_db();
+        let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        let config = Config::default();
+        let state = AppState { pool, i18n, config };
+        let headers = HeaderMap::new();
+        let req = LoginRequest { id: "admin".to_string(), password: "wrongpassword".to_string() };
+        let result = login(State(state), headers, Form(req)).await;
+        assert!(result.is_err());
+        let html = result.err().unwrap().0;
+        assert!(html.contains("Error") || html.contains("error"));
+    }
+
+    #[tokio::test]
+    async fn test_is_authenticated_cookie() {
+        use axum::http::HeaderMap;
+        use crate::handlers::auth::is_authenticated;
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let expiry = now + 3600;
+        let cookie = format!("authenticated={}:edit", expiry);
+        let mut headers = HeaderMap::new();
+        let header_value = cookie.parse().unwrap();
+        headers.insert("cookie", header_value);
+        assert!(is_authenticated(&headers));
+    }
+
+    #[tokio::test]
+    async fn test_is_authenticated_cookie_expired() {
+        use axum::http::HeaderMap;
+        use crate::handlers::auth::is_authenticated;
+        let expiry = 1; // long expired
+        let cookie = format!("authenticated={}:edit", expiry);
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", cookie.parse().unwrap());
+        assert!(!is_authenticated(&headers));
+    }
+
+    #[tokio::test]
+    async fn test_is_authenticated_cookie_readonly() {
+        use axum::http::HeaderMap;
+        use crate::handlers::auth::is_authenticated;
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let expiry = now + 3600;
+        let cookie = format!("authenticated={}:read-only", expiry);
+        let mut headers = HeaderMap::new();
+        let header_value = cookie.parse().unwrap();
+        headers.insert("cookie", header_value);
+        assert!(is_authenticated(&headers));
+    }
+
+    #[tokio::test]
+    async fn test_has_edit_permissions() {
+        use axum::http::HeaderMap;
+        use crate::handlers::auth::{has_edit_permissions, is_authenticated};
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let expiry = now + 3600;
+        
+        // Test edit role
+        let cookie = format!("authenticated={}:edit", expiry);
+        let mut headers = HeaderMap::new();
+        let header_value = cookie.parse().unwrap();
+        headers.insert("cookie", header_value);
+        assert!(is_authenticated(&headers));
+        assert!(has_edit_permissions(&headers));
+        
+        // Test read-only role
+        let cookie = format!("authenticated={}:read-only", expiry);
+        let mut headers = HeaderMap::new();
+        let header_value = cookie.parse().unwrap();
+        headers.insert("cookie", header_value);
+        assert!(is_authenticated(&headers));
+        assert!(!has_edit_permissions(&headers));
+    }
+
+    #[tokio::test]
+    async fn test_role_based_access_control() {
+        use axum::http::HeaderMap;
+        use std::time::{SystemTime, UNIX_EPOCH};
+        
+        let (app, state) = create_test_app().await;
+        cleanup_test_db(&state.pool);
+        
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let expiry = now + 3600;
+        
+        // Test read-only user can access read-only routes
+        let cookie = format!("authenticated={}:read-only", expiry);
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", cookie.parse().unwrap());
+        
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/domains")
+                    .header("cookie", headers.get("cookie").unwrap())
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::OK);
+        
+        // Test read-only user gets 403 for edit routes
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/domains")
+                    .header("cookie", headers.get("cookie").unwrap())
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(Body::from("domain=test.com&transport=smtp%3Alocalhost&enabled=on"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        
+        // Test edit user can access edit routes
+        let cookie = format!("authenticated={}:edit", expiry);
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", cookie.parse().unwrap());
+        
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/domains")
+                    .header("cookie", headers.get("cookie").unwrap())
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(Body::from("domain=test-edit.com&transport=smtp%3Alocalhost&enabled=on"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        
+        assert_eq!(response.status(), StatusCode::OK);
+        
+        cleanup_test_db(&state.pool);
+    }
+
+    #[tokio::test]
+    async fn test_not_found_handler_anonymous() {
+        let (app, _state) = create_test_app().await;
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/notfound")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        assert!(body_str.contains("404"));
     }
 }

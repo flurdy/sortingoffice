@@ -374,6 +374,15 @@ login-password = Contraseña
 login-sign-in = Iniciar sesión
 login-error = Error
 
+# Roles and Permissions
+role-read-only = Solo Lectura
+role-edit = Editar
+role-admin = Administrador
+permission-insufficient = Permisos insuficientes
+permission-read-only = Tienes acceso de solo lectura a este recurso.
+permission-edit-required = Se requieren permisos de edición para realizar esta acción.
+permission-admin-required = Se requieren permisos de administrador para realizar esta acción.
+
 # About
 about-title = Acerca de Sorting Office
 about-description = Una herramienta integral de administración de servidores de correo para gestionar dominios, usuarios, alias y copias de seguridad.

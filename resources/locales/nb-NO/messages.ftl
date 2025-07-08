@@ -436,4 +436,20 @@ validation-invalid-email = Ugyldig e-postadresse
 validation-invalid-domain = Ugyldig domene
 validation-invalid-ip = Ugyldig IP-adresse
 validation-already-exists = Eksisterer allerede
-validation-not-found = Ikke funnet 
+validation-not-found = Ikke funnet
+
+# Login
+login-title = Logg inn på Sorteringskontor
+login-user-id = Bruker-ID
+login-password = Passord
+login-sign-in = Logg inn
+login-error = Ugyldig brukernavn eller passord
+
+# Roles and Permissions
+role-read-only = Kun Lesing
+role-edit = Rediger
+role-admin = Administrator
+permission-insufficient = Utilstrekkelige tillatelser
+permission-read-only = Du har kun lesetilgang til denne ressursen.
+permission-edit-required = Redigeringstillatelser kreves for å utføre denne handlingen.
+permission-admin-required = Administratorstillatelser kreves for å utføre denne handlingen. 

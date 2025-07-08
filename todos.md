@@ -26,11 +26,13 @@
 
 ✅ please tell me why the github workflow CI tests fail
 
-Lets introduce proper authentication. The admin credentials will be stored as config.
+🔲 Lets introduce proper authentication. The admin credentials will be stored as config.
 
 The resources lists should support paging, in case of a lot rows.
 
 On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
+
+Update the statistics page with more metrics.
 
 Go over the Rust code to see if there is any duplication we can make cleaner.
 
@@ -39,3 +41,7 @@ when filling in an alias destination we could have an inline search for an exist
 create a few functional testing journeys
 
 please add support for multiple databases as this will manage several servers
+
+Lets discuss how we can support different databases with different field names.
+
+Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates.
