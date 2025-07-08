@@ -128,6 +128,7 @@ pub struct AliasForm {
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
+    pub return_url: Option<String>,
 }
 
 // Statistics models

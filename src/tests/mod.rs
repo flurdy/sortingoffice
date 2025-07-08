@@ -2,8 +2,6 @@ pub mod handlers;
 pub mod integration;
 pub mod models;
 pub mod utils;
-pub mod sqlite_setup;
-pub mod sqlite_test;
 pub mod testcontainers_setup;
 pub mod testcontainers_test;
 
@@ -30,7 +28,6 @@ mod common {
                 });
 
                 // For now, keep using MySQL but with a test database
-                // TODO: Switch to SQLite in-memory when schema compatibility is resolved
                 let database_url = std::env::var("TEST_DATABASE_URL")
                     .or_else(|_| std::env::var("DATABASE_URL"))
                     .unwrap_or_else(|_| {

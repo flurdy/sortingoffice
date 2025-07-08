@@ -116,7 +116,7 @@ test-ui-cleanup:
 	docker compose --profile test down selenium
 
 run:
-	cargo watch -N -d 10 -x run
+	cargo watch -d 10 -x run
 
 
 

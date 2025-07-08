@@ -20,6 +20,9 @@
     {% endif %}
 
     <form {% if alias.is_some() %}hx-put="/aliases/{{ alias.as_ref().unwrap().pkid }}"{% else %}hx-post="/aliases"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        {% if return_url.is_some() %}
+        <input type="hidden" name="return_url" value="{{ return_url.as_ref().unwrap() }}">
+        {% endif %}
         <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
                 <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold" for="mail">
@@ -63,7 +66,7 @@
             </div>
         </div>
         <div class="flex items-center justify-between">
-            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{% if alias.is_some() %}/aliases/{{ alias.as_ref().unwrap().pkid }}{% else %}/aliases{% endif %}">
+            <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="{% if return_url.is_some() %}{{ return_url.as_ref().unwrap() }}{% elif alias.is_some() %}/aliases/{{ alias.as_ref().unwrap().pkid }}{% else %}/aliases{% endif %}">
                 {{ cancel }}
             </a>
             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">

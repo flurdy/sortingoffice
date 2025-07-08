@@ -93,6 +93,10 @@ async fn main() {
             "/domains/{id}/toggle",
             post(handlers::domains::toggle_enabled),
         )
+        .route(
+            "/domains/{id}/add-missing-alias/{alias}",
+            post(handlers::domains::add_missing_required_alias),
+        )
         // Users
         .route(
             "/users",
@@ -135,6 +139,10 @@ async fn main() {
         .route(
             "/aliases/{id}/toggle-show",
             post(handlers::aliases::toggle_enabled_show),
+        )
+        .route(
+            "/aliases/{id}/toggle-domain-show",
+            post(handlers::aliases::toggle_enabled_domain_show),
         )
         .route(
             "/aliases/{id}/toggle",

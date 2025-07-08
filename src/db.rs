@@ -1022,3 +1022,56 @@ pub fn toggle_client_enabled(pool: &DbPool, client_id: i32) -> Result<Client, Er
         .select(Client::as_select())
         .first::<Client>(&mut conn)
 }
+
+// Function to create multiple aliases for a domain
+pub fn create_domain_aliases(pool: &DbPool, domain: &str, aliases: Vec<(String, String)>) -> Result<Vec<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+    let mut created_aliases = Vec::new();
+
+    for (local_part, destination) in aliases {
+        let mail = if local_part == "@" {
+            format!("@{}", domain)
+        } else {
+            format!("{}@{}", local_part, domain)
+        };
+
+        // Check if alias already exists
+        let existing = aliases::table
+            .filter(aliases::mail.eq(&mail))
+            .select(Alias::as_select())
+            .first::<Alias>(&mut conn)
+            .optional()?;
+
+        if existing.is_none() {
+            diesel::insert_into(aliases::table)
+                .values((
+                    aliases::mail.eq(&mail),
+                    aliases::destination.eq(&destination),
+                    aliases::enabled.eq(true),
+                    aliases::created.eq(now),
+                    aliases::modified.eq(now),
+                ))
+                .execute(&mut conn)?;
+
+            // Get the created alias
+            let created_alias = aliases::table
+                .filter(aliases::mail.eq(&mail))
+                .select(Alias::as_select())
+                .first::<Alias>(&mut conn)?;
+            
+            created_aliases.push(created_alias);
+        }
+    }
+
+    Ok(created_aliases)
+}
+
+pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+    aliases::table
+        .filter(aliases::mail.like(format!("%@{}", domain_name)))
+        .select(Alias::as_select())
+        .order(aliases::mail.asc())
+        .load::<Alias>(&mut conn)
+}

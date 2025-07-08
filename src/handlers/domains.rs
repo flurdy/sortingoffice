@@ -187,6 +187,12 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         }
     };
 
+    // Get all aliases for this domain
+    let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
+        Ok(aliases) => aliases,
+        Err(_) => vec![],
+    };
+
     let title = get_translation(&state, &locale, "domains-title").await;
     let view_edit_settings = get_translation(&state, &locale, "domains-view-edit-settings").await;
     let back_to_domains = get_translation(&state, &locale, "domains-back-to-domains").await;
@@ -216,9 +222,22 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     let missing_required_aliases_header = get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
     let missing_common_aliases_header = get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
     let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
-    let status_header = get_translation(&state, &locale, "reports-status-header").await;
-    let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
+                let status_header = get_translation(&state, &locale, "reports-status-header").await;
+            let enabled_header = get_translation(&state, &locale, "reports-enabled-header").await;
+            let actions_header = get_translation(&state, &locale, "reports-actions-header").await;
+            let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
     let no_missing_aliases = get_translation(&state, &locale, "reports-no-missing-aliases").await;
+    
+    // New button translations
+    let add_missing_required_alias_button = get_translation(&state, &locale, "domains-add-missing-required-aliases-button").await;
+    let add_catch_all_button = get_translation(&state, &locale, "domains-add-catch-all-button").await;
+    let add_alias_button = get_translation(&state, &locale, "domains-add-alias-button").await;
+    let no_catch_all_message = get_translation(&state, &locale, "domains-no-catch-all-message").await;
+    
+    let action_view = get_translation(&state, &locale, "action-view").await;
+    let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
+    let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
+    let add_common_alias_button = get_translation(&state, &locale, "reports-add-common-alias-button").await;
     
     let content_template = DomainShowTemplate {
         title: &title,
@@ -244,15 +263,26 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         destination_header: &destination_header,
         required_aliases_header: &required_aliases_header,
         missing_aliases_header: &missing_aliases_header,
-        missing_required_aliases_header: &missing_required_aliases_header,
+        missing_required_alias_header: &missing_required_aliases_header,
         missing_common_aliases_header: &missing_common_aliases_header,
         mail_header: &mail_header,
         status_header: &status_header,
+        enabled_header: &enabled_header,
+        actions_header: &actions_header,
         no_required_aliases: &no_required_aliases,
         no_missing_aliases: &no_missing_aliases,
         alias_report_title: &alias_report_title,
         alias_report_description: &alias_report_description,
         existing_aliases_header: &existing_aliases_header,
+        add_missing_required_alias_button: &add_missing_required_alias_button,
+        add_common_alias_button: &add_common_alias_button,
+        add_catch_all_button: &add_catch_all_button,
+        add_alias_button: &add_alias_button,
+        no_catch_all_message: &no_catch_all_message,
+        existing_aliases: &existing_aliases,
+        action_view: "",
+        enable_alias: "",
+        disable_alias: "",
     };
     let content = content_template.render().unwrap();
 
@@ -586,15 +616,26 @@ pub async fn update(
                 destination_header: "",
                 required_aliases_header: "",
                 missing_aliases_header: "",
-                missing_required_aliases_header: "",
+                missing_required_alias_header: "",
                 missing_common_aliases_header: "",
                 mail_header: "",
                 status_header: "",
+                enabled_header: "",
+                actions_header: "",
                 no_required_aliases: "",
                 no_missing_aliases: "",
                 alias_report_title: "",
                 alias_report_description: "",
                 existing_aliases_header: "",
+                add_missing_required_alias_button: "",
+                add_common_alias_button: "",
+                add_catch_all_button: "",
+                add_alias_button: "",
+                no_catch_all_message: "",
+                existing_aliases: &[],
+                action_view: "",
+                enable_alias: "",
+                disable_alias: "",
             };
             Html(content_template.render().unwrap())
         }
@@ -792,15 +833,26 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
                 destination_header: "",
                 required_aliases_header: "",
                 missing_aliases_header: "",
-                missing_required_aliases_header: "",
+                missing_required_alias_header: "",
                 missing_common_aliases_header: "",
                 mail_header: "",
                 status_header: "",
+                enabled_header: "",
+                actions_header: "",
                 no_required_aliases: "",
                 no_missing_aliases: "",
                 alias_report_title: "",
                 alias_report_description: "",
                 existing_aliases_header: "",
+                add_missing_required_alias_button: "",
+                add_common_alias_button: "",
+                add_catch_all_button: "",
+                add_alias_button: "",
+                no_catch_all_message: "",
+                existing_aliases: &[],
+                action_view: "",
+                enable_alias: "",
+                disable_alias: "",
             };
             let content = content_template.render().unwrap();
 
@@ -959,18 +1011,126 @@ pub async fn toggle_enabled_show(
                 destination_header: "",
                 required_aliases_header: "",
                 missing_aliases_header: "",
-                missing_required_aliases_header: "",
+                missing_required_alias_header: "",
                 missing_common_aliases_header: "",
                 mail_header: "",
                 status_header: "",
+                enabled_header: "",
+                actions_header: "",
                 no_required_aliases: "",
                 no_missing_aliases: "",
                 alias_report_title: "",
                 alias_report_description: "",
                 existing_aliases_header: "",
+                add_missing_required_alias_button: "",
+                add_common_alias_button: "",
+                add_catch_all_button: "",
+                add_alias_button: "",
+                no_catch_all_message: "",
+                existing_aliases: &[],
+                action_view: "",
+                enable_alias: "",
+                disable_alias: "",
             };
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Error toggling domain status".to_string()),
     }
+}
+
+// Add missing required aliases for a domain
+pub async fn add_missing_required_aliases(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = &state.pool;
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    let domain = match db::get_domain(pool, id) {
+        Ok(domain) => domain,
+        Err(_) => {
+            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
+            return Html(not_found_msg);
+        }
+    };
+
+    // Load configuration to get required aliases
+    let _config = match crate::config::Config::load() {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::warn!("Failed to load config, using defaults: {:?}", e);
+            crate::config::Config::default()
+        }
+    };
+
+    // Get current alias report to see what's missing
+    let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+        Ok(report) => report,
+        Err(e) => {
+            tracing::error!("Failed to get alias report for domain {}: {:?}", domain.domain, e);
+            let error_msg = get_translation(&state, &locale, "domains-error-loading-report").await;
+            return Html(error_msg);
+        }
+    };
+
+    // Create aliases for missing required aliases
+    let aliases_to_create: Vec<(String, String)> = alias_report.missing_required_aliases
+        .iter()
+        .map(|alias| (alias.clone(), format!("admin@{}", domain.domain)))
+        .collect();
+
+    if !aliases_to_create.is_empty() {
+        match db::create_domain_aliases(pool, &domain.domain, aliases_to_create) {
+            Ok(created_aliases) => {
+                tracing::info!("Created {} missing required aliases for domain {}", created_aliases.len(), domain.domain);
+            }
+            Err(e) => {
+                tracing::error!("Failed to create missing required aliases for domain {}: {:?}", domain.domain, e);
+                let error_msg = get_translation(&state, &locale, "domains-error-creating-aliases").await;
+                return Html(error_msg);
+            }
+        }
+    }
+
+    // Redirect back to the domain show page
+    let redirect_url = format!("/domains/{}", domain.pkid);
+    Html(format!("<script>window.location.href = '{}';</script>", redirect_url))
+}
+
+// Add a single missing required alias for a domain
+pub async fn add_missing_required_alias(
+    State(state): State<AppState>,
+    Path((id, alias)): Path<(i32, String)>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = &state.pool;
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    let domain = match db::get_domain(pool, id) {
+        Ok(domain) => domain,
+        Err(_) => {
+            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
+            return Html(not_found_msg);
+        }
+    };
+
+    // Create the alias (destination defaults to admin@domain)
+    let destination = format!("admin@{}", domain.domain);
+    let aliases_to_create = vec![(alias.clone(), destination)];
+
+    match db::create_domain_aliases(pool, &domain.domain, aliases_to_create) {
+        Ok(_created_aliases) => {
+            tracing::info!("Created missing required alias {} for domain {}", alias, domain.domain);
+        }
+        Err(e) => {
+            tracing::error!("Failed to create missing required alias {} for domain {}: {:?}", alias, domain.domain, e);
+            let error_msg = get_translation(&state, &locale, "domains-error-creating-aliases").await;
+            return Html(error_msg);
+        }
+    }
+
+    // Redirect back to the domain show page
+    let redirect_url = format!("/domains/{}", domain.pkid);
+    Html(format!("<script>window.location.href = '{}';</script>", redirect_url))
 }

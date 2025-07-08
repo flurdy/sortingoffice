@@ -51,6 +51,7 @@ pub struct AliasFormTemplate<'a> {
     pub alias: Option<Alias>,
     pub form: AliasForm,
     pub error: Option<String>,
+    pub return_url: Option<&'a str>,
     pub edit_alias: &'a str,
     pub new_alias: &'a str,
     pub form_error: &'a str,

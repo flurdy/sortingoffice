@@ -1,5 +1,5 @@
 ---
-description: when changing any files
+description: when developing
 globs: 
 alwaysApply: false
 ---
@@ -15,3 +15,5 @@ Please add and update unit tests when applicable.
 Use the makefiles aliases when appropriate
 
 If any documentation is needed put in /docs, or in README.md if important.
+
+Use curl to verify UI changes

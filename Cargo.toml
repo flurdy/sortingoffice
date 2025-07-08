@@ -11,8 +11,8 @@ tower-http = { version = "0.6.6", features = ["trace", "cors", "fs"] }
 tokio = { version = "1", features = ["full"] }
 
 # Database
-diesel = { version = "2.2.11", features = ["mysql", "sqlite", "r2d2", "chrono", "numeric"] }
-diesel_migrations = { version = "2.2.0", features = ["mysql", "sqlite"] }
+diesel = { version = "2.2.11", features = ["mysql", "r2d2", "chrono", "numeric"] }
+diesel_migrations = { version = "2.2.0", features = ["mysql"] }
 
 # Serialization
 serde = { version = "1.0.219", features = ["derive"] }

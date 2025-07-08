@@ -367,9 +367,8 @@ services:
 
 ### Alternative Approaches
 
-1. **SQLite In-Memory**: For faster unit tests
-2. **Mock Database**: For pure logic testing
-3. **Shared Test Database**: For integration tests
+1. **Mock Database**: For pure logic testing
+2. **Shared Test Database**: For integration tests
 
 ## Conclusion
 
