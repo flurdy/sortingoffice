@@ -148,6 +148,7 @@ pub struct SystemStats {
     pub total_backups: i64,
     pub total_relays: i64,
     pub total_relocated: i64,
+    pub total_clients: i64,
     pub total_quota: i64,
     pub used_quota: i64,
 }
@@ -242,6 +243,32 @@ pub struct RelocatedForm {
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
+}
+
+// Client models
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[diesel(table_name = clients)]
+#[diesel(primary_key(id))]
+#[diesel(check_for_backend(diesel::mysql::Mysql))]
+pub struct Client {
+    pub id: i32,
+    pub client: String,
+    pub status: String,
+    pub created_at: Option<NaiveDateTime>,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Insertable)]
+#[diesel(table_name = clients)]
+pub struct NewClient {
+    pub client: String,
+    pub status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClientForm {
+    pub client: String,
+    pub status: String,
 }
 
 // Catch-all report models

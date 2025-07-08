@@ -165,6 +165,7 @@ mod tests {
             total_backups: 3,
             total_relays: 2,
             total_relocated: 1,
+            total_clients: 10,
             total_quota: 10000000,
             used_quota: 5000000,
         };
@@ -175,6 +176,7 @@ mod tests {
         assert_eq!(system_stats.total_backups, 3);
         assert_eq!(system_stats.total_relays, 2);
         assert_eq!(system_stats.total_relocated, 1);
+        assert_eq!(system_stats.total_clients, 10);
         assert_eq!(system_stats.total_quota, 10000000);
         assert_eq!(system_stats.used_quota, 5000000);
 

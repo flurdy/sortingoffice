@@ -196,6 +196,19 @@ async fn main() {
             "/relocated/{id}/toggle-enabled",
             post(handlers::relocated::toggle_enabled),
         )
+        // Clients
+        .route(
+            "/clients",
+            get(handlers::clients::list_clients).post(handlers::clients::create_client),
+        )
+        .route("/clients/new", get(handlers::clients::create_client_form))
+        .route(
+            "/clients/{id}",
+            get(handlers::clients::show_client)
+                .put(handlers::clients::update_client)
+                .delete(handlers::clients::delete_client),
+        )
+        .route("/clients/{id}/edit", get(handlers::clients::edit_client_form))
         // Stats
         .route("/stats", get(handlers::stats::index))
         // Reports

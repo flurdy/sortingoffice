@@ -10,6 +10,7 @@ nav-aliases = Aliases
 nav-users = Users
 nav-relays = Relays
 nav-relocated = Relocated
+nav-clients = Clients
 nav-statistics = Statistics
 nav-reports = Reports
 nav-config = Configuration
@@ -21,6 +22,7 @@ theme-toggle = Toggle theme
 language-selector = Language
 language-english = English
 language-spanish = Español
+language-french = Français
 
 # About Page
 about-title = About Sorting Office
@@ -101,6 +103,7 @@ dashboard-total-aliases = Total Aliases
 dashboard-total-users = Total Users
 dashboard-total-relays = Total Relays
 dashboard-total-relocated = Total Relocated
+dashboard-total-clients = Total Clients
 dashboard-quick-actions = Quick Actions
 dashboard-help-resources = Help & Resources
 
@@ -113,6 +116,8 @@ quick-action-manage-aliases = Manage Aliases
 quick-action-manage-aliases-desc = Add, edit, or remove email aliases
 quick-action-manage-users = Manage Users
 quick-action-manage-users-desc = Add, edit, or remove users
+quick-action-manage-clients = Manage Clients
+quick-action-manage-clients-desc = Add, edit, or remove client access controls
 
 # Help section
 help-title = Need help setting up your mail server?
@@ -567,3 +572,43 @@ relocated-new-relocated = New Relocated Address
 relocated-edit-relocated = Edit Relocated Address
 relocated-not-found = Relocated address not found
 relocated-create-error = Failed to create relocated address
+
+# Clients
+clients-title = Clients
+clients-description = Manage client access controls for SMTP authentication.
+clients-add = Add Client
+clients-list-description = Manage client access controls for SMTP authentication.
+clients-table-header-client = Client
+clients-table-header-status = Status
+clients-table-header-created = Created
+clients-table-header-actions = Actions
+clients-empty-title = No clients
+clients-empty-description = Get started by creating a new client access control.
+clients-add-title = Add Client
+clients-edit-title = Edit Client
+clients-show-title = Client
+clients-show-title-label = Client
+clients-view-edit-settings = View and edit client access control settings.
+clients-back-to-clients = Back to Clients
+clients-info-title = Client Information
+clients-info-description = Details about this client access control configuration.
+clients-field-id = ID
+clients-field-client = Client
+clients-field-status = Status
+clients-field-created = Created
+clients-field-updated = Last Updated
+clients-action-edit = Edit
+clients-action-delete = Delete
+clients-action-view = View
+clients-delete-confirm = Are you sure you want to delete this client?
+clients-placeholder-client = Enter client name or IP
+clients-field-client-help = The client name, IP address, or identifier for access control
+clients-field-status-help = Whether this client is allowed or blocked
+clients-action-cancel = Cancel
+clients-action-save = Save
+clients-new-client = New Client
+clients-edit-client = Edit Client
+clients-not-found = Client not found
+clients-create-error = Failed to create client
+clients-status-allowed = Allowed
+clients-status-blocked = Blocked

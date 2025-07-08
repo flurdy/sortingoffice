@@ -14,6 +14,7 @@ pub struct BaseTemplate {
     pub nav_users: String,
     pub nav_relays: String,
     pub nav_relocated: String,
+    pub nav_clients: String,
     pub nav_statistics: String,
     pub nav_reports: String,
     pub nav_config: String,
@@ -23,6 +24,7 @@ pub struct BaseTemplate {
     pub language_selector: String,
     pub language_english: String,
     pub language_spanish: String,
+    pub language_french: String,
     pub current_locale: String,
 }
 
@@ -40,6 +42,7 @@ pub struct LayoutTemplate<'a> {
     pub nav_users: &'a str,
     pub nav_relays: &'a str,
     pub nav_relocated: &'a str,
+    pub nav_clients: &'a str,
     pub nav_statistics: &'a str,
     pub nav_reports: &'a str,
     pub nav_config: &'a str,
@@ -49,6 +52,7 @@ pub struct LayoutTemplate<'a> {
     pub language_selector: &'a str,
     pub language_english: &'a str,
     pub language_spanish: &'a str,
+    pub language_french: &'a str,
     pub current_locale: &'a str,
 }
 
@@ -70,6 +74,7 @@ impl BaseTemplate {
             nav_users: crate::i18n::get_translation(state, locale, "nav-users").await,
             nav_relays: crate::i18n::get_translation(state, locale, "nav-relays").await,
             nav_relocated: crate::i18n::get_translation(state, locale, "nav-relocated").await,
+            nav_clients: crate::i18n::get_translation(state, locale, "nav-clients").await,
             nav_statistics: crate::i18n::get_translation(state, locale, "nav-statistics").await,
             nav_reports: crate::i18n::get_translation(state, locale, "nav-reports").await,
             nav_config: crate::i18n::get_translation(state, locale, "nav-config").await,
@@ -79,6 +84,7 @@ impl BaseTemplate {
             language_selector: crate::i18n::get_translation(state, locale, "language-selector").await,
             language_english: crate::i18n::get_translation(state, locale, "language-english").await,
             language_spanish: crate::i18n::get_translation(state, locale, "language-spanish").await,
+            language_french: crate::i18n::get_translation(state, locale, "language-french").await,
             current_locale: locale.to_string(),
         })
     }

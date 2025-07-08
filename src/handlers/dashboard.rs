@@ -16,6 +16,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             total_backups: 0,
             total_relays: 0,
             total_relocated: 0,
+            total_clients: 0,
             total_quota: 0,
             used_quota: 0,
         },
@@ -33,6 +34,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let total_users = crate::i18n::get_translation(&state, &locale, "dashboard-total-users").await;
     let total_relays = crate::i18n::get_translation(&state, &locale, "dashboard-total-relays").await;
     let total_relocated = crate::i18n::get_translation(&state, &locale, "dashboard-total-relocated").await;
+    let total_clients = crate::i18n::get_translation(&state, &locale, "dashboard-total-clients").await;
     let quick_actions = crate::i18n::get_translation(&state, &locale, "dashboard-quick-actions").await;
     let manage_domains = crate::i18n::get_translation(&state, &locale, "quick-action-manage-domains").await;
     let manage_domains_desc = crate::i18n::get_translation(&state, &locale, "quick-action-manage-domains-desc").await;
@@ -42,6 +44,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let manage_aliases_desc = crate::i18n::get_translation(&state, &locale, "quick-action-manage-aliases-desc").await;
     let manage_users = crate::i18n::get_translation(&state, &locale, "quick-action-manage-users").await;
     let manage_users_desc = crate::i18n::get_translation(&state, &locale, "quick-action-manage-users-desc").await;
+    let manage_clients = crate::i18n::get_translation(&state, &locale, "quick-action-manage-clients").await;
+    let manage_clients_desc = crate::i18n::get_translation(&state, &locale, "quick-action-manage-clients-desc").await;
     let help_resources = crate::i18n::get_translation(&state, &locale, "dashboard-help-resources").await;
     let help_title = crate::i18n::get_translation(&state, &locale, "help-title").await;
     let help_description = crate::i18n::get_translation(&state, &locale, "help-description").await;
@@ -56,6 +60,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         total_users: &total_users,
         total_relays: &total_relays,
         total_relocated: &total_relocated,
+        total_clients: &total_clients,
         quick_actions: &quick_actions,
         manage_domains: &manage_domains,
         manage_domains_desc: &manage_domains_desc,
@@ -65,6 +70,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         manage_aliases_desc: &manage_aliases_desc,
         manage_users: &manage_users,
         manage_users_desc: &manage_users_desc,
+        manage_clients: &manage_clients,
+        manage_clients_desc: &manage_clients_desc,
         help_resources: &help_resources,
         help_title: &help_title,
         help_description: &help_description,

@@ -10,6 +10,7 @@ nav-aliases = "Alias"
 nav-users = "Usuarios"
 nav-relays = "Relés"
 nav-relocated = "Reubicados"
+nav-clients = "Clientes"
 nav-statistics = "Estadísticas"
 nav-reports = "Informes"
 nav-config = "Configuración"
@@ -21,6 +22,7 @@ theme-toggle = Cambiar tema
 language-selector = Idioma
 language-english = English
 language-spanish = Español
+language-french = Français
 
 # About Page
 about-title = Acerca de Sorting Office
@@ -101,6 +103,7 @@ dashboard-total-aliases = Total de Alias
 dashboard-total-users = Total de Usuarios
 dashboard-total-relays = Total de Relés
 dashboard-total-relocated = Total de Reubicados
+dashboard-total-clients = Total de Clientes
 dashboard-quick-actions = Acciones Rápidas
 dashboard-help-resources = Ayuda y Recursos
 
@@ -113,6 +116,8 @@ quick-action-manage-aliases = Gestionar Alias
 quick-action-manage-aliases-desc = Agregar, editar o eliminar alias de correo
 quick-action-manage-users = Gestionar Usuarios
 quick-action-manage-users-desc = Agregar, editar o eliminar usuarios
+quick-action-manage-clients = Gestionar Clientes
+quick-action-manage-clients-desc = Agregar, editar o eliminar controles de acceso de clientes
 
 # Help section
 help-title = ¿Necesita ayuda para configurar su servidor de correo?
@@ -567,3 +572,43 @@ relocated-new-relocated = Nueva Dirección Reubicada
 relocated-edit-relocated = Editar Dirección Reubicada
 relocated-not-found = Dirección reubicada no encontrada
 relocated-create-error = Error al crear dirección reubicada
+
+# Clients
+clients-title = Clientes
+clients-description = Gestionar controles de acceso de clientes para autenticación SMTP.
+clients-add = Agregar Cliente
+clients-list-description = Gestionar controles de acceso de clientes para autenticación SMTP.
+clients-table-header-client = Cliente
+clients-table-header-status = Estado
+clients-table-header-created = Creado
+clients-table-header-actions = Acciones
+clients-empty-title = No hay clientes
+clients-empty-description = Comienza creando un nuevo control de acceso de cliente.
+clients-add-title = Agregar Cliente
+clients-edit-title = Editar Cliente
+clients-show-title = Cliente
+clients-show-title-label = Cliente
+clients-view-edit-settings = Ver y editar configuración de control de acceso de cliente.
+clients-back-to-clients = Volver a Clientes
+clients-info-title = Información de Cliente
+clients-info-description = Detalles sobre esta configuración de control de acceso de cliente.
+clients-field-id = ID
+clients-field-client = Cliente
+clients-field-status = Estado
+clients-field-created = Creado
+clients-field-updated = Última Actualización
+clients-action-edit = Editar
+clients-action-delete = Eliminar
+clients-action-view = Ver
+clients-delete-confirm = ¿Está seguro de que desea eliminar este cliente?
+clients-placeholder-client = Ingrese nombre de cliente o IP
+clients-field-client-help = El nombre del cliente, dirección IP o identificador para control de acceso
+clients-field-status-help = Si este cliente está permitido o bloqueado
+clients-action-cancel = Cancelar
+clients-action-save = Guardar
+clients-new-client = Nuevo Cliente
+clients-edit-client = Editar Cliente
+clients-not-found = Cliente no encontrado
+clients-create-error = Error al crear cliente
+clients-status-allowed = Permitido
+clients-status-blocked = Bloqueado

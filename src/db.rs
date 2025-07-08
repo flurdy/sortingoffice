@@ -318,6 +318,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
     let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
     let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
+    let total_clients: i64 = clients::table.count().get_result(&mut conn)?;
 
     let total_quota: i64 = 0; // Quota field removed from users table
 
@@ -328,6 +329,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         total_backups,
         total_relays,
         total_relocated,
+        total_clients,
         total_quota,
         used_quota: 0, // This would need to be calculated from actual disk usage
     })
@@ -923,4 +925,71 @@ pub fn get_domain_alias_report(pool: &DbPool, domain_name: &str) -> Result<Domai
         missing_required_aliases,
         missing_common_aliases,
     })
+}
+
+// Client functions
+pub fn get_clients(pool: &DbPool) -> Result<Vec<Client>, Error> {
+    let mut conn = pool.get().unwrap();
+    clients::table
+        .select(Client::as_select())
+        .order(clients::client.asc())
+        .load::<Client>(&mut conn)
+}
+
+pub fn get_client(pool: &DbPool, client_id: i32) -> Result<Client, Error> {
+    let mut conn = pool.get().unwrap();
+    clients::table
+        .find(client_id)
+        .select(Client::as_select())
+        .first::<Client>(&mut conn)
+}
+
+pub fn get_client_by_name(pool: &DbPool, client_name: &str) -> Result<Client, Error> {
+    let mut conn = pool.get().unwrap();
+    clients::table
+        .filter(clients::client.eq(client_name))
+        .select(Client::as_select())
+        .first::<Client>(&mut conn)
+}
+
+pub fn create_client(pool: &DbPool, client_data: ClientForm) -> Result<Client, Error> {
+    let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+
+    diesel::insert_into(clients::table)
+        .values((
+            clients::client.eq(client_data.client),
+            clients::status.eq(client_data.status),
+            clients::created_at.eq(now),
+            clients::updated_at.eq(now),
+        ))
+        .execute(&mut conn)?;
+
+    clients::table
+        .order(clients::id.desc())
+        .select(Client::as_select())
+        .first::<Client>(&mut conn)
+}
+
+pub fn update_client(
+    pool: &DbPool,
+    client_id: i32,
+    client_data: ClientForm,
+) -> Result<Client, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    diesel::update(clients::table.find(client_id))
+        .set((
+            clients::client.eq(client_data.client),
+            clients::status.eq(client_data.status),
+            clients::updated_at.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    get_client(pool, client_id)
+}
+
+pub fn delete_client(pool: &DbPool, client_id: i32) -> Result<usize, Error> {
+    let mut conn = pool.get().unwrap();
+    diesel::delete(clients::table.find(client_id)).execute(&mut conn)
 }

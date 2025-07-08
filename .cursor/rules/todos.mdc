@@ -7,3 +7,5 @@ alwaysApply: false
 Update the todo file with tick when finished a task.
 
 Before starting a new todo ask for confirmation.
+
+Once started the first thing is to add an unchecked emoji to the todo task.

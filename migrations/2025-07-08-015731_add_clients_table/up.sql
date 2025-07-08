@@ -1,0 +1,10 @@
+-- Your SQL goes here
+
+CREATE TABLE clients (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    client VARCHAR(255) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'allowed',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_client (client)
+);

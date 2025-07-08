@@ -17,6 +17,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             total_backups: 0,
             total_relays: 0,
             total_relocated: 0,
+            total_clients: 0,
             total_quota: 0,
             used_quota: 0,
         },
