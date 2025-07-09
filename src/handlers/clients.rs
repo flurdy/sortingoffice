@@ -1,15 +1,15 @@
 use crate::templates::clients::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
     response::{Html, Redirect},
     Form,
 };
-use tracing::{info, warn};
 use serde::Deserialize;
+use tracing::{info, warn};
 
 #[derive(Deserialize)]
 pub struct ToggleClientRedirectQuery {
@@ -32,18 +32,25 @@ pub async fn list_clients(
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
 
-    info!("Handling clients list request with pagination: page={}, per_page={}", page, per_page);
+    info!(
+        "Handling clients list request with pagination: page={}, per_page={}",
+        page, per_page
+    );
 
     let paginated_clients = match db::get_clients_paginated(pool, page, per_page) {
         Ok(clients) => {
-            info!("Successfully retrieved {} clients (page {} of {})", 
-                clients.items.len(), clients.current_page, clients.total_pages);
+            info!(
+                "Successfully retrieved {} clients (page {} of {})",
+                clients.items.len(),
+                clients.current_page,
+                clients.total_pages
+            );
             clients
-        },
+        }
         Err(e) => {
             warn!("Failed to retrieve clients: {:?}", e);
             PaginatedResult::new(vec![], 0, 1, per_page)
-        },
+        }
     };
 
     // Get all translations
@@ -52,8 +59,10 @@ pub async fn list_clients(
     let add_client = get_translation(&state, &locale, "clients-add").await;
     let table_header_client = get_translation(&state, &locale, "clients-table-header-client").await;
     let table_header_status = get_translation(&state, &locale, "clients-table-header-status").await;
-    let table_header_actions = get_translation(&state, &locale, "clients-table-header-actions").await;
-    let table_header_enabled = get_translation(&state, &locale, "clients-table-header-enabled").await;
+    let table_header_actions =
+        get_translation(&state, &locale, "clients-table-header-actions").await;
+    let table_header_enabled =
+        get_translation(&state, &locale, "clients-table-header-enabled").await;
     let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
     let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
     let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
@@ -66,9 +75,17 @@ pub async fn list_clients(
     let empty_title = get_translation(&state, &locale, "clients-empty-title").await;
     let empty_description = get_translation(&state, &locale, "clients-empty-description").await;
 
-    let paginated = PaginatedResult::new(paginated_clients.items.clone(), paginated_clients.total_count, paginated_clients.current_page, paginated_clients.per_page);
+    let paginated = PaginatedResult::new(
+        paginated_clients.items.clone(),
+        paginated_clients.total_count,
+        paginated_clients.current_page,
+        paginated_clients.per_page,
+    );
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
     let content_template = ClientsListTemplate {
         title: &title,
         description: &description,
@@ -96,13 +113,10 @@ pub async fn list_clients(
 
     let content = content_template.render().unwrap();
 
-    let template = BaseTemplate::with_i18n(
-        title,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
+    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
+        .await
+        .unwrap();
+
     Html(template.render().unwrap())
 }
 
@@ -185,16 +199,15 @@ pub async fn show_client(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
 
-pub async fn create_client_form(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-) -> Html<String> {
+pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     info!("Handling client create form request");
@@ -206,7 +219,8 @@ pub async fn create_client_form(
     let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
     let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_placeholder_client = get_translation(&state, &locale, "clients-placeholder-client").await;
+    let form_placeholder_client =
+        get_translation(&state, &locale, "clients-placeholder-client").await;
     let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
     let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
     let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
@@ -252,8 +266,10 @@ pub async fn create_client_form(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -283,7 +299,8 @@ pub async fn edit_client_form(
     let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
     let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
     let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_placeholder_client = get_translation(&state, &locale, "clients-placeholder-client").await;
+    let form_placeholder_client =
+        get_translation(&state, &locale, "clients-placeholder-client").await;
     let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
     let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
     let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
@@ -329,8 +346,10 @@ pub async fn edit_client_form(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -343,7 +362,10 @@ pub async fn create_client(
 
     let client = db::create_client(&state.pool, client_data).map_err(|e| {
         warn!("Failed to create client: {:?}", e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create client".to_string())
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to create client".to_string(),
+        )
     })?;
 
     info!("Successfully created client: {}", client.client);
@@ -360,7 +382,10 @@ pub async fn update_client(
 
     let client = db::update_client(&state.pool, client_id, client_data).map_err(|e| {
         warn!("Failed to update client {}: {:?}", client_id, e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Failed to update client".to_string())
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to update client".to_string(),
+        )
     })?;
 
     info!("Successfully updated client: {}", client.client);
@@ -376,7 +401,10 @@ pub async fn delete_client(
 
     db::delete_client(&state.pool, client_id).map_err(|e| {
         warn!("Failed to delete client {}: {:?}", client_id, e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Failed to delete client".to_string())
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to delete client".to_string(),
+        )
     })?;
 
     info!("Successfully deleted client with ID: {}", client_id);
@@ -393,7 +421,10 @@ pub async fn toggle_client(
 
     let client = db::toggle_client_enabled(&state.pool, client_id).map_err(|e| {
         warn!("Failed to toggle client {}: {:?}", client_id, e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Failed to toggle client".to_string())
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to toggle client".to_string(),
+        )
     })?;
 
     info!("Successfully toggled client: {}", client.client);
@@ -405,4 +436,4 @@ pub async fn toggle_client(
     };
 
     Ok(Redirect::to(&redirect_url))
-} 
+}

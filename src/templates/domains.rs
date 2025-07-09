@@ -1,4 +1,4 @@
-use crate::models::{Domain, DomainForm, Backup, PaginatedResult};
+use crate::models::{Backup, Domain, DomainForm, PaginatedResult};
 use askama::Template;
 
 #[derive(Template)]

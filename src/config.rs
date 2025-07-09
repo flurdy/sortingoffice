@@ -1,8 +1,8 @@
+use crate::models::RequiredAliasConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use crate::models::RequiredAliasConfig;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub enum AdminRole {
@@ -57,7 +57,7 @@ impl Config {
         }
         Ok(config)
     }
-    
+
     /// Load configuration from the default config file
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_paths = [
@@ -67,13 +67,13 @@ impl Config {
             "/etc/sortingoffice/config.toml",
             "./config.toml",
         ];
-        
+
         for path in &config_paths {
             if Path::new(path).exists() {
                 return Self::from_file(path);
             }
         }
-        
+
         // Return default config if no file found
         Ok(Config {
             required_aliases: vec![
@@ -105,7 +105,7 @@ impl Config {
             admin: None,
         })
     }
-    
+
     /// Get required aliases for a specific domain
     pub fn get_required_aliases_for_domain(&self, domain: &str) -> Vec<String> {
         if let Some(overrides) = self.domain_overrides.get(domain) {
@@ -114,7 +114,7 @@ impl Config {
             self.required_aliases.clone()
         }
     }
-    
+
     /// Get common aliases for a specific domain
     pub fn get_common_aliases_for_domain(&self, domain: &str) -> Vec<String> {
         if let Some(overrides) = self.domain_overrides.get(domain) {
@@ -123,22 +123,22 @@ impl Config {
             self.common_aliases.clone()
         }
     }
-    
+
     /// Get all aliases (required + common) for a specific domain
     pub fn get_all_aliases_for_domain(&self, domain: &str) -> Vec<String> {
         let mut all = self.get_required_aliases_for_domain(domain);
         all.extend(self.get_common_aliases_for_domain(domain));
         all
     }
-    
+
     /// Convert to RequiredAliasConfig for a specific domain
     pub fn to_required_alias_config(&self, domain: &str) -> RequiredAliasConfig {
         RequiredAliasConfig::from_vecs(
             self.get_required_aliases_for_domain(domain),
-            self.get_common_aliases_for_domain(domain)
+            self.get_common_aliases_for_domain(domain),
         )
     }
-    
+
     /// Verify admin credentials and return role if valid
     pub fn verify_admin_credentials(&self, username: &str, password: &str) -> Option<AdminRole> {
         for admin in &self.admins {
@@ -155,7 +155,7 @@ impl Config {
                 }
             }
         }
-        
+
         None
     }
 }
@@ -190,11 +190,12 @@ impl Default for Config {
             domain_overrides: HashMap::new(),
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
-                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO".to_string(), // "admin123"
+                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
+                    .to_string(), // "admin123"
                 // password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(), // "admin123"
                 role: AdminRole::Edit,
             }],
             admin: None,
         }
     }
-} 
+}

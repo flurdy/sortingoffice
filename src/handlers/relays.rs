@@ -1,6 +1,6 @@
-use crate::templates::relays::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::templates::relays::*;
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -21,7 +21,7 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relays list request");
-    
+
     let relays = match db::get_relays(pool) {
         Ok(relays) => {
             info!("Successfully retrieved {} relays", relays.len());
@@ -36,10 +36,13 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
     // Get translations
     let title = get_translation(&state, &locale, "relays-title").await;
     let add_relay = get_translation(&state, &locale, "relays-add").await;
-    let table_header_recipient = get_translation(&state, &locale, "relays-table-header-recipient").await;
+    let table_header_recipient =
+        get_translation(&state, &locale, "relays-table-header-recipient").await;
     let table_header_status = get_translation(&state, &locale, "relays-table-header-status").await;
-    let table_header_enabled = get_translation(&state, &locale, "relays-table-header-enabled").await;
-    let table_header_actions = get_translation(&state, &locale, "relays-table-header-actions").await;
+    let table_header_enabled =
+        get_translation(&state, &locale, "relays-table-header-enabled").await;
+    let table_header_actions =
+        get_translation(&state, &locale, "relays-table-header-actions").await;
     let status_enabled = get_translation(&state, &locale, "status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "status-disabled").await;
     let action_view = get_translation(&state, &locale, "action-view").await;
@@ -68,10 +71,13 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
         relays,
         relays_list_description: &relays_list_description,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => {
-            debug!("Template rendered successfully, content length: {}", content.len());
+            debug!(
+                "Template rendered successfully, content length: {}",
+                content.len()
+            );
             content
         }
         Err(e) => {
@@ -88,8 +94,10 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -104,7 +112,7 @@ pub async fn show_relay(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay show request for ID: {}", relay_id);
-    
+
     let relay = match db::get_relay(pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
@@ -155,7 +163,7 @@ pub async fn show_relay(
         relay_info_title: &relay_info_title,
         relay_info_description: &relay_info_description,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -172,8 +180,10 @@ pub async fn show_relay(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -183,7 +193,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay create form request");
-    
+
     let form = RelayForm {
         recipient: "".to_string(),
         status: "".to_string(),
@@ -195,12 +205,14 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
     let field_status = get_translation(&state, &locale, "relays-field-status").await;
     let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
-    let field_recipient_help = get_translation(&state, &locale, "relays-field-recipient-help").await;
+    let field_recipient_help =
+        get_translation(&state, &locale, "relays-field-recipient-help").await;
     let field_status_help = get_translation(&state, &locale, "relays-field-status-help").await;
     let action_save = get_translation(&state, &locale, "action-save").await;
     let action_cancel = get_translation(&state, &locale, "action-cancel").await;
     let back_to_list = get_translation(&state, &locale, "relays-back-to-list").await;
-    let placeholder_recipient = get_translation(&state, &locale, "relays-placeholder-recipient").await;
+    let placeholder_recipient =
+        get_translation(&state, &locale, "relays-placeholder-recipient").await;
     let placeholder_status = get_translation(&state, &locale, "relays-placeholder-status").await;
 
     let content_template = RelayFormTemplate {
@@ -218,7 +230,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         placeholder_recipient: &placeholder_recipient,
         placeholder_status: &placeholder_status,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -235,8 +247,10 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -251,11 +265,14 @@ pub async fn create_relay(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay create request");
-    
+
     match db::create_relay(pool, form) {
         Ok(relay) => {
             info!("Successfully created relay: {}", relay.recipient);
-            Html(format!("<script>window.location.href='/relays/{}';</script>", relay.pkid))
+            Html(format!(
+                "<script>window.location.href='/relays/{}';</script>",
+                relay.pkid
+            ))
         }
         Err(e) => {
             error!("Failed to create relay: {:?}", e);
@@ -275,7 +292,7 @@ pub async fn edit_form(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay edit form request for ID: {}", relay_id);
-    
+
     let relay = match db::get_relay(pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
@@ -295,12 +312,14 @@ pub async fn edit_form(
     let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
     let field_status = get_translation(&state, &locale, "relays-field-status").await;
     let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
-    let field_recipient_help = get_translation(&state, &locale, "relays-field-recipient-help").await;
+    let field_recipient_help =
+        get_translation(&state, &locale, "relays-field-recipient-help").await;
     let field_status_help = get_translation(&state, &locale, "relays-field-status-help").await;
     let action_save = get_translation(&state, &locale, "action-save").await;
     let action_cancel = get_translation(&state, &locale, "action-cancel").await;
     let back_to_list = get_translation(&state, &locale, "relays-back-to-list").await;
-    let placeholder_recipient = get_translation(&state, &locale, "relays-placeholder-recipient").await;
+    let placeholder_recipient =
+        get_translation(&state, &locale, "relays-placeholder-recipient").await;
     let placeholder_status = get_translation(&state, &locale, "relays-placeholder-status").await;
 
     let content_template = RelayFormTemplate {
@@ -318,7 +337,7 @@ pub async fn edit_form(
         placeholder_recipient: &placeholder_recipient,
         placeholder_status: &placeholder_status,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -335,8 +354,10 @@ pub async fn edit_form(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -352,11 +373,14 @@ pub async fn update_relay(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay update request for ID: {}", relay_id);
-    
+
     match db::update_relay(pool, relay_id, form) {
         Ok(relay) => {
             info!("Successfully updated relay: {}", relay.recipient);
-            Html(format!("<script>window.location.href='/relays/{}';</script>", relay.pkid))
+            Html(format!(
+                "<script>window.location.href='/relays/{}';</script>",
+                relay.pkid
+            ))
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
@@ -380,7 +404,7 @@ pub async fn delete_relay(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay delete request for ID: {}", relay_id);
-    
+
     match db::delete_relay(pool, relay_id) {
         Ok(_) => {
             info!("Successfully deleted relay ID: {}", relay_id);
@@ -408,32 +432,37 @@ pub async fn toggle_enabled(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay toggle enabled request for ID: {}", relay_id);
-    
+
     match db::toggle_relay_enabled(pool, relay_id) {
         Ok(relay) => {
-            let enabled_text = if relay.enabled { 
-                get_translation(&state, &locale, "status-enabled").await 
-            } else { 
-                get_translation(&state, &locale, "status-disabled").await 
+            let enabled_text = if relay.enabled {
+                get_translation(&state, &locale, "status-enabled").await
+            } else {
+                get_translation(&state, &locale, "status-disabled").await
             };
-            
+
             // Check if this is a list view toggle (targeting relay-status-{id})
             if is_htmx_request(&headers) {
                 // For list view, return status badge and update button text
-                let badge_class = if relay.enabled { 
-                    "inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800" 
-                } else { 
-                    "inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800" 
+                let badge_class = if relay.enabled {
+                    "inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
+                } else {
+                    "inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800"
                 };
-                
+
                 let button_text = if relay.enabled {
                     get_translation(&state, &locale, "action-disable").await
                 } else {
                     get_translation(&state, &locale, "action-enable").await
                 };
-                
+
                 // Check if this is a show view toggle (targeting relay-show-status-{id})
-                let script = if headers.get("hx-target").and_then(|v| v.to_str().ok()).unwrap_or("").contains("relay-show-status") {
+                let script = if headers
+                    .get("hx-target")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("")
+                    .contains("relay-show-status")
+                {
                     format!(
                         "<span class=\"{}\">{}</span><script>document.getElementById('relay-show-button-{}').textContent = '{}';</script>",
                         badge_class, enabled_text, relay_id, button_text
@@ -449,7 +478,7 @@ pub async fn toggle_enabled(
                 // For show view, return the full status section
                 let status_enabled = get_translation(&state, &locale, "status-enabled").await;
                 let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-                
+
                 if relay.enabled {
                     Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{}</span>", status_enabled))
                 } else {
@@ -459,12 +488,18 @@ pub async fn toggle_enabled(
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            Html(format!("<span class=\"text-danger\">{}</span>", not_found_msg))
+            Html(format!(
+                "<span class=\"text-danger\">{}</span>",
+                not_found_msg
+            ))
         }
         Err(e) => {
-            error!("Failed to toggle relay {} enabled status: {:?}", relay_id, e);
+            error!(
+                "Failed to toggle relay {} enabled status: {:?}",
+                relay_id, e
+            );
             let error_msg = get_translation(&state, &locale, "relays-toggle-error").await;
             Html(format!("<span class=\"text-danger\">{}</span>", error_msg))
         }
     }
-} 
+}

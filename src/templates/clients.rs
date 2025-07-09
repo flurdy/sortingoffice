@@ -73,4 +73,4 @@ pub struct ClientFormTemplate<'a> {
     pub status_blocked: &'a str,
     pub enabled_yes: &'a str,
     pub enabled_no: &'a str,
-} 
+}

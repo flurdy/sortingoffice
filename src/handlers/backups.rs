@@ -1,6 +1,6 @@
 use crate::templates::backups::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -8,8 +8,6 @@ use axum::{
     response::Html,
     Form,
 };
-
-
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -26,7 +24,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_transport: get_translation(&state, &locale, "backups-form-transport").await,
         form_active: get_translation(&state, &locale, "backups-form-active").await,
         placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport")
+            .await,
         tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
         tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
         tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
@@ -42,7 +41,11 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     Html(content_template.render().unwrap())
 }
 
-pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn show(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -78,12 +81,18 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         content,
         &state,
         &locale,
-    ).await.unwrap();
-    
+    )
+    .await
+    .unwrap();
+
     Html(template.render().unwrap())
 }
 
-pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn edit(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -105,7 +114,8 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         form_transport: get_translation(&state, &locale, "backups-form-transport").await,
         form_active: get_translation(&state, &locale, "backups-form-active").await,
         placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport")
+            .await,
         tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
         tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
         tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
@@ -121,7 +131,11 @@ pub async fn edit(State(state): State<AppState>, Path(id): Path<i32>, headers: H
     Html(content_template.render().unwrap())
 }
 
-pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form): Form<BackupForm>) -> Html<String> {
+pub async fn create(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): Form<BackupForm>,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -133,8 +147,14 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             form_domain: get_translation(&state, &locale, "backups-form-domain").await,
             form_transport: get_translation(&state, &locale, "backups-form-transport").await,
             form_active: get_translation(&state, &locale, "backups-form-active").await,
-            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-            placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
+                .await,
+            placeholder_transport: get_translation(
+                &state,
+                &locale,
+                "backups-placeholder-transport",
+            )
+            .await,
             tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
             tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
             tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
@@ -166,7 +186,9 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::UniqueViolation,
                     _,
-                ) => get_translation(&state, &locale, "error-duplicate-backup").await.replace("{domain}", &form.domain),
+                ) => get_translation(&state, &locale, "error-duplicate-backup")
+                    .await
+                    .replace("{domain}", &form.domain),
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::CheckViolation,
                     _,
@@ -180,16 +202,24 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 form_domain: get_translation(&state, &locale, "backups-form-domain").await,
                 form_transport: get_translation(&state, &locale, "backups-form-transport").await,
                 form_active: get_translation(&state, &locale, "backups-form-active").await,
-                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-                placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
+                    .await,
+                placeholder_transport: get_translation(
+                    &state,
+                    &locale,
+                    "backups-placeholder-transport",
+                )
+                .await,
                 tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
+                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
+                    .await,
                 tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
                 cancel: get_translation(&state, &locale, "backups-cancel").await,
                 create_backup: get_translation(&state, &locale, "backups-create-backup").await,
                 update_backup: get_translation(&state, &locale, "backups-update-backup").await,
                 new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
+                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
+                    .await,
                 backup: None,
                 form,
                 error: Some(error_message),
@@ -201,8 +231,10 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 content,
                 &state,
                 &locale,
-            ).await.unwrap();
-            
+            )
+            .await
+            .unwrap();
+
             Html(template.render().unwrap())
         }
     }
@@ -225,8 +257,14 @@ pub async fn update(
             form_domain: get_translation(&state, &locale, "backups-form-domain").await,
             form_transport: get_translation(&state, &locale, "backups-form-transport").await,
             form_active: get_translation(&state, &locale, "backups-form-active").await,
-            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-            placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
+                .await,
+            placeholder_transport: get_translation(
+                &state,
+                &locale,
+                "backups-placeholder-transport",
+            )
+            .await,
             tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
             tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
             tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
@@ -250,9 +288,11 @@ pub async fn update(
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
+                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
+                    .await,
                 back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information").await,
+                backup_information: get_translation(&state, &locale, "backups-backup-information")
+                    .await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
                 transport: get_translation(&state, &locale, "backups-transport").await,
@@ -275,7 +315,9 @@ pub async fn update(
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::UniqueViolation,
                     _,
-                ) => get_translation(&state, &locale, "error-duplicate-backup").await.replace("{domain}", &form.domain),
+                ) => get_translation(&state, &locale, "error-duplicate-backup")
+                    .await
+                    .replace("{domain}", &form.domain),
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::CheckViolation,
                     _,
@@ -289,16 +331,24 @@ pub async fn update(
                 form_domain: get_translation(&state, &locale, "backups-form-domain").await,
                 form_transport: get_translation(&state, &locale, "backups-form-transport").await,
                 form_active: get_translation(&state, &locale, "backups-form-active").await,
-                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-                placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
+                    .await,
+                placeholder_transport: get_translation(
+                    &state,
+                    &locale,
+                    "backups-placeholder-transport",
+                )
+                .await,
                 tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
+                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
+                    .await,
                 tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
                 cancel: get_translation(&state, &locale, "backups-cancel").await,
                 create_backup: get_translation(&state, &locale, "backups-create-backup").await,
                 update_backup: get_translation(&state, &locale, "backups-update-backup").await,
                 new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
+                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
+                    .await,
                 backup: None,
                 form,
                 error: Some(error_message),
@@ -320,7 +370,11 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<
     }
 }
 
-pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn toggle_enabled(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -333,9 +387,11 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
 
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
+                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
+                    .await,
                 back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information").await,
+                backup_information: get_translation(&state, &locale, "backups-backup-information")
+                    .await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
                 transport: get_translation(&state, &locale, "backups-transport").await,
@@ -372,9 +428,11 @@ pub async fn toggle_enabled_show(
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings").await,
+                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
+                    .await,
                 back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information").await,
+                backup_information: get_translation(&state, &locale, "backups-backup-information")
+                    .await,
                 backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                 domain: get_translation(&state, &locale, "backups-domain").await,
                 transport: get_translation(&state, &locale, "backups-transport").await,
@@ -394,4 +452,4 @@ pub async fn toggle_enabled_show(
         }
         Err(_) => Html("Error toggling backup status".to_string()),
     }
-} 
+}

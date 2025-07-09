@@ -38,7 +38,13 @@ pub async fn set_language(
     Response::builder()
         .status(StatusCode::FOUND)
         .header("Location", redirect_url)
-        .header("Set-Cookie", format!("language={}; Path=/; Max-Age=31536000; SameSite=Lax", locale))
+        .header(
+            "Set-Cookie",
+            format!(
+                "language={}; Path=/; Max-Age=31536000; SameSite=Lax",
+                locale
+            ),
+        )
         .body("".into())
         .unwrap()
 }
@@ -53,7 +59,11 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
                 if cookie.starts_with("language=") {
                     let language = cookie.strip_prefix("language=").unwrap_or("en-US");
                     // Validate the language
-                    if language == "en-US" || language == "es-ES" || language == "fr-FR" || language == "nb-NO" {
+                    if language == "en-US"
+                        || language == "es-ES"
+                        || language == "fr-FR"
+                        || language == "nb-NO"
+                    {
                         return language.to_string();
                     }
                 }
@@ -63,4 +73,4 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
 
     // Fall back to Accept-Language header
     crate::i18n::get_locale_from_headers(headers)
-} 
+}

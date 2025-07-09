@@ -305,7 +305,7 @@ impl Default for RequiredAliasConfig {
         // Try to read from environment variables first
         let required_from_env = std::env::var("REQUIRED_ALIASES").ok();
         let common_from_env = std::env::var("COMMON_ALIASES").ok();
-        
+
         let required_aliases = if let Some(aliases_str) = required_from_env {
             let aliases: Vec<String> = aliases_str
                 .split(',')
@@ -320,7 +320,7 @@ impl Default for RequiredAliasConfig {
         } else {
             Self::default_required_aliases()
         };
-        
+
         let common_aliases = if let Some(aliases_str) = common_from_env {
             let aliases: Vec<String> = aliases_str
                 .split(',')
@@ -335,7 +335,7 @@ impl Default for RequiredAliasConfig {
         } else {
             Self::default_common_aliases()
         };
-        
+
         Self {
             required_aliases,
             common_aliases,
@@ -352,7 +352,7 @@ impl RequiredAliasConfig {
             "hostmaster".to_string(),
         ]
     }
-    
+
     /// Default common aliases (frequently used but not strictly required)
     fn default_common_aliases() -> Vec<String> {
         vec![
@@ -375,14 +375,14 @@ impl RequiredAliasConfig {
             "spam".to_string(),
         ]
     }
-    
+
     /// Get all aliases (required + common)
     pub fn get_all_aliases(&self) -> Vec<String> {
         let mut all = self.required_aliases.clone();
         all.extend(self.common_aliases.clone());
         all
     }
-    
+
     /// Create a new configuration from comma-separated strings
     pub fn from_strings(required_str: &str, common_str: &str) -> Self {
         let required_aliases: Vec<String> = required_str
@@ -390,19 +390,19 @@ impl RequiredAliasConfig {
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
-            
+
         let common_aliases: Vec<String> = common_str
             .split(',')
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
-            
+
         Self {
             required_aliases,
             common_aliases,
         }
     }
-    
+
     /// Create a new configuration from vectors
     pub fn from_vecs(required: Vec<String>, common: Vec<String>) -> Self {
         Self {
@@ -410,41 +410,41 @@ impl RequiredAliasConfig {
             common_aliases: common,
         }
     }
-    
+
     /// Get the list of required aliases
     pub fn get_required_aliases(&self) -> &[String] {
         &self.required_aliases
     }
-    
+
     /// Get the list of common aliases
     pub fn get_common_aliases(&self) -> &[String] {
         &self.common_aliases
     }
-    
+
     /// Add a new required alias
     pub fn add_required_alias(&mut self, alias: String) {
         if !self.required_aliases.contains(&alias) {
             self.required_aliases.push(alias);
         }
     }
-    
+
     /// Add a new common alias
     pub fn add_common_alias(&mut self, alias: String) {
         if !self.common_aliases.contains(&alias) {
             self.common_aliases.push(alias);
         }
     }
-    
+
     /// Remove a required alias
     pub fn remove_required_alias(&mut self, alias: &str) {
         self.required_aliases.retain(|a| a != alias);
     }
-    
+
     /// Remove a common alias
     pub fn remove_common_alias(&mut self, alias: &str) {
         self.common_aliases.retain(|a| a != alias);
     }
-    
+
     /// Move an alias from common to required
     pub fn promote_to_required(&mut self, alias: &str) {
         if let Some(index) = self.common_aliases.iter().position(|a| a == alias) {
@@ -452,7 +452,7 @@ impl RequiredAliasConfig {
             self.add_required_alias(alias);
         }
     }
-    
+
     /// Move an alias from required to common
     pub fn demote_to_common(&mut self, alias: &str) {
         if let Some(index) = self.required_aliases.iter().position(|a| a == alias) {
@@ -514,7 +514,7 @@ impl AliasStatus {
             AliasStatus::Disabled => "⚠️",
         }
     }
-    
+
     pub fn css_class(&self) -> &'static str {
         match self {
             AliasStatus::Present => "text-green-600 dark:text-green-400",
@@ -522,7 +522,7 @@ impl AliasStatus {
             AliasStatus::Disabled => "text-yellow-600 dark:text-yellow-400",
         }
     }
-    
+
     pub fn tooltip(&self) -> &'static str {
         match self {
             AliasStatus::Present => "Present and enabled",

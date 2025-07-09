@@ -1,9 +1,9 @@
 pub mod handlers;
 pub mod integration;
 pub mod models;
-pub mod utils;
 pub mod testcontainers_setup;
 pub mod testcontainers_test;
+pub mod utils;
 
 #[cfg(test)]
 mod common {

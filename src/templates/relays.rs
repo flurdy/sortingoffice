@@ -63,4 +63,4 @@ pub struct RelayFormTemplate<'a> {
     pub back_to_list: &'a str,
     pub placeholder_recipient: &'a str,
     pub placeholder_status: &'a str,
-} 
+}

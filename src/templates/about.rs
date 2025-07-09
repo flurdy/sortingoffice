@@ -53,4 +53,4 @@ pub struct AboutTemplate<'a> {
     pub version: &'a str,
     pub license: &'a str,
     pub maintainer: &'a str,
-} 
+}

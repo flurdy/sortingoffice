@@ -1,4 +1,4 @@
-use crate::models::{User, UserForm, PaginatedResult};
+use crate::models::{PaginatedResult, User, UserForm};
 use askama::Template;
 
 #[derive(Template)]

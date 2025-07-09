@@ -13,7 +13,7 @@ env:
 
 jobs:
   ui-tests:
-    name: UI Tests with Selenium
+    name: UI Tests (Headless)
     runs-on: ubuntu-latest
     
     services:
@@ -32,21 +32,6 @@ jobs:
           --health-retries 5
         ports:
           - 3306:3306
-
-      # Selenium WebDriver
-      selenium:
-        image: selenium/standalone-chrome:114.0
-        env:
-          SE_CHROME_ARGS: "--no-sandbox --disable-dev-shm-usage --headless=new --disable-gpu"
-        options: >-
-          --health-cmd "curl -f http://localhost:4444/status"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --shm-size 2g
-        ports:
-          - 4444:4444
-          - 7900:7900
 
     steps:
     - name: Checkout code
@@ -87,12 +72,6 @@ jobs:
       env:
         DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
       run: diesel migration run
-
-    - name: Wait for Selenium
-      run: |
-        while ! curl -s http://localhost:4444/status > /dev/null; do
-          sleep 1
-        done
 
     - name: Start application
       env:

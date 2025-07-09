@@ -39,9 +39,15 @@ mod tests {
             .route("/users", axum::routing::get(handlers::users::list))
             .route("/users", axum::routing::post(handlers::users::create))
             .route("/users/{id}", axum::routing::get(handlers::users::show))
-            .route("/users/{id}/edit", axum::routing::get(handlers::users::edit))
+            .route(
+                "/users/{id}/edit",
+                axum::routing::get(handlers::users::edit),
+            )
             .route("/users/{id}", axum::routing::put(handlers::users::update))
-            .route("/users/{id}", axum::routing::delete(handlers::users::delete))
+            .route(
+                "/users/{id}",
+                axum::routing::delete(handlers::users::delete),
+            )
             .route(
                 "/users/{id}/toggle",
                 axum::routing::post(handlers::users::toggle_enabled),
@@ -139,7 +145,8 @@ mod tests {
         assert_eq!(show_response.status(), StatusCode::OK);
 
         // Step 5: Update the domain
-        let update_form_data = "domain=updated-integration.com&transport=smtp%3Aupdated&enabled=off";
+        let update_form_data =
+            "domain=updated-integration.com&transport=smtp%3Aupdated&enabled=off";
 
         let update_response = app
             .clone()
@@ -210,7 +217,8 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for users)
-        let domain_form_data = "domain=integration-user-test.com&transport=smtp%3Alocalhost&enabled=on";
+        let domain_form_data =
+            "domain=integration-user-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()
@@ -326,7 +334,8 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create a domain first (required for aliases)
-        let domain_form_data = "domain=integration-alias-test.com&transport=smtp%3Alocalhost&enabled=on";
+        let domain_form_data =
+            "domain=integration-alias-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()
@@ -443,7 +452,8 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         // Step 1: Create test data
-        let domain_form_data = "domain=integration-stats-test.com&transport=smtp%3Alocalhost&enabled=on";
+        let domain_form_data =
+            "domain=integration-stats-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let _domain_response = app
             .clone()

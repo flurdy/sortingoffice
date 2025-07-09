@@ -1,9 +1,9 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::users::*;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     http::HeaderMap,
     response::Html,
     Form,
@@ -13,7 +13,12 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
     headers.get("HX-Request").map_or(false, |v| v == "true")
 }
 
-async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<User>, pagination: PaginatedResult<User>) -> UsersListTemplate {
+async fn build_user_list_template(
+    state: &AppState,
+    locale: &str,
+    users: Vec<User>,
+    pagination: PaginatedResult<User>,
+) -> UsersListTemplate {
     let title = get_translation(state, locale, "users-title").await;
     let description = get_translation(state, locale, "users-description").await;
     let add_user = get_translation(state, locale, "users-add").await;
@@ -29,8 +34,11 @@ async fn build_user_list_template(state: &AppState, locale: &str, users: Vec<Use
     let empty_title = get_translation(state, locale, "users-empty-title").await;
     let empty_description = get_translation(state, locale, "users-empty-description").await;
     let page_range: Vec<i64> = (1..=pagination.total_pages).collect();
-    let max_item = std::cmp::min(pagination.current_page * pagination.per_page, pagination.total_count);
-    
+    let max_item = std::cmp::min(
+        pagination.current_page * pagination.per_page,
+        pagination.total_count,
+    );
+
     UsersListTemplate {
         title,
         description,
@@ -77,7 +85,13 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
     }
 }
 
-async fn build_user_form_template(state: &AppState, locale: &str, user: Option<User>, form: UserForm, error: Option<String>) -> UserFormTemplate {
+async fn build_user_form_template(
+    state: &AppState,
+    locale: &str,
+    user: Option<User>,
+    form: UserForm,
+    error: Option<String>,
+) -> UserFormTemplate {
     let title = if user.is_some() {
         get_translation(state, locale, "users-edit-user-title").await
     } else {
@@ -91,7 +105,8 @@ async fn build_user_form_template(state: &AppState, locale: &str, user: Option<U
         form_name: get_translation(state, locale, "users-form-name").await,
 
         form_active: get_translation(state, locale, "users-form-active").await,
-        placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email").await,
+        placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email")
+            .await,
         placeholder_name: get_translation(state, locale, "users-placeholder-name").await,
 
         tooltip_user_id: get_translation(state, locale, "users-tooltip-user-id").await,
@@ -111,7 +126,7 @@ async fn build_user_form_template(state: &AppState, locale: &str, user: Option<U
 }
 
 pub async fn list(
-    State(state): State<AppState>, 
+    State(state): State<AppState>,
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
@@ -130,10 +145,13 @@ pub async fn list(
     let title = get_translation(&state, &locale, "users-title").await;
     let _description = get_translation(&state, &locale, "users-description").await;
     let _add_user = get_translation(&state, &locale, "users-add").await;
-    let _table_header_username = get_translation(&state, &locale, "users-table-header-username").await;
+    let _table_header_username =
+        get_translation(&state, &locale, "users-table-header-username").await;
     let _table_header_domain = get_translation(&state, &locale, "users-table-header-domain").await;
-    let _table_header_enabled = get_translation(&state, &locale, "users-table-header-enabled").await;
-    let _table_header_actions = get_translation(&state, &locale, "users-table-header-actions").await;
+    let _table_header_enabled =
+        get_translation(&state, &locale, "users-table-header-enabled").await;
+    let _table_header_actions =
+        get_translation(&state, &locale, "users-table-header-actions").await;
     let _status_active = get_translation(&state, &locale, "status-active").await;
     let _status_inactive = get_translation(&state, &locale, "status-inactive").await;
     let _action_view = get_translation(&state, &locale, "action-view").await;
@@ -142,17 +160,20 @@ pub async fn list(
     let _empty_title = get_translation(&state, &locale, "users-empty-title").await;
     let _empty_description = get_translation(&state, &locale, "users-empty-description").await;
 
-    let paginated = PaginatedResult::new(paginated_users.items.clone(), paginated_users.total_count, paginated_users.current_page, paginated_users.per_page);
-    let content_template = build_user_list_template(&state, &locale, paginated_users.items, paginated).await;
+    let paginated = PaginatedResult::new(
+        paginated_users.items.clone(),
+        paginated_users.total_count,
+        paginated_users.current_page,
+        paginated_users.per_page,
+    );
+    let content_template =
+        build_user_list_template(&state, &locale, paginated_users.items, paginated).await;
     let content = content_template.render().unwrap();
 
-    let template = BaseTemplate::with_i18n(
-        title,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
+    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
+        .await
+        .unwrap();
+
     Html(template.render().unwrap())
 }
 
@@ -176,7 +197,9 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
             content,
             &state,
             &locale,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -205,7 +228,9 @@ pub async fn show(
             content,
             &state,
             &locale,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -241,7 +266,9 @@ pub async fn edit(
             content,
             &state,
             &locale,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
         Html(template.render().unwrap())
     }
 }
@@ -257,7 +284,8 @@ pub async fn create(
     // Validate required fields
     if form.id.trim().is_empty() {
         let error_msg = get_translation(&state, &locale, "validation-username-required").await;
-        let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
+        let form_template =
+            build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
@@ -268,7 +296,9 @@ pub async fn create(
                 content,
                 &state,
                 &locale,
-            ).await.unwrap();
+            )
+            .await
+            .unwrap();
             Html(template.render().unwrap())
         }
     } else {
@@ -283,7 +313,8 @@ pub async fn create(
                     }
                 };
                 let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
-                let content_template = build_user_list_template(&state, &locale, users, paginated).await;
+                let content_template =
+                    build_user_list_template(&state, &locale, users, paginated).await;
                 let content = content_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
@@ -294,7 +325,9 @@ pub async fn create(
                         content,
                         &state,
                         &locale,
-                    ).await.unwrap();
+                    )
+                    .await
+                    .unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -304,8 +337,10 @@ pub async fn create(
                 } else {
                     get_translation(&state, &locale, "error-unexpected").await
                 };
-                
-                let form_template = build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
+
+                let form_template =
+                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
+                        .await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
@@ -316,7 +351,9 @@ pub async fn create(
                         content,
                         &state,
                         &locale,
-                    ).await.unwrap();
+                    )
+                    .await
+                    .unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -342,7 +379,14 @@ pub async fn update(
     // Validate required fields
     if form.id.trim().is_empty() {
         let error_msg = get_translation(&state, &locale, "validation-username-required").await;
-        let form_template = build_user_form_template(&state, &locale, Some(existing_user), form.clone(), Some(error_msg)).await;
+        let form_template = build_user_form_template(
+            &state,
+            &locale,
+            Some(existing_user),
+            form.clone(),
+            Some(error_msg),
+        )
+        .await;
         let content = form_template.render().unwrap();
 
         if is_htmx_request(&headers) {
@@ -353,7 +397,9 @@ pub async fn update(
                 content,
                 &state,
                 &locale,
-            ).await.unwrap();
+            )
+            .await
+            .unwrap();
             Html(template.render().unwrap())
         }
     } else {
@@ -375,7 +421,9 @@ pub async fn update(
                         content,
                         &state,
                         &locale,
-                    ).await.unwrap();
+                    )
+                    .await
+                    .unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -386,7 +434,14 @@ pub async fn update(
                     get_translation(&state, &locale, "error-unexpected").await
                 };
 
-                let form_template = build_user_form_template(&state, &locale, Some(existing_user), form.clone(), Some(error_msg)).await;
+                let form_template = build_user_form_template(
+                    &state,
+                    &locale,
+                    Some(existing_user),
+                    form.clone(),
+                    Some(error_msg),
+                )
+                .await;
                 let content = form_template.render().unwrap();
 
                 if is_htmx_request(&headers) {
@@ -397,7 +452,9 @@ pub async fn update(
                         content,
                         &state,
                         &locale,
-                    ).await.unwrap();
+                    )
+                    .await
+                    .unwrap();
                     Html(template.render().unwrap())
                 }
             }
@@ -405,7 +462,11 @@ pub async fn update(
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn delete(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -416,14 +477,19 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 Err(_) => vec![],
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
-            let content_template = build_user_list_template(&state, &locale, users, paginated).await;
+            let content_template =
+                build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to delete user".to_string()),
     }
 }
 
-pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+pub async fn toggle_enabled(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -434,7 +500,8 @@ pub async fn toggle_enabled(State(state): State<AppState>, Path(id): Path<i32>, 
                 Err(_) => vec![],
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
-            let content_template = build_user_list_template(&state, &locale, users, paginated).await;
+            let content_template =
+                build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),
@@ -456,7 +523,8 @@ pub async fn toggle_enabled_list(
                 Err(_) => vec![],
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
-            let content_template = build_user_list_template(&state, &locale, users, paginated).await;
+            let content_template =
+                build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),

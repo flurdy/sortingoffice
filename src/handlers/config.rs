@@ -1,45 +1,60 @@
+use crate::templates::config::ConfigTemplate;
+use crate::templates::layout::BaseTemplate;
+use crate::{config::Config, i18n::get_translation, AppState};
+use askama::Template;
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
     response::Html,
 };
-use crate::{AppState, config::Config, i18n::get_translation};
-use crate::templates::layout::BaseTemplate;
-use crate::templates::config::ConfigTemplate;
-use askama::Template;
 
 pub async fn view_config(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    
+
     // Get translations
     let title = get_translation(&state, &locale, "config-title").await;
     let description = get_translation(&state, &locale, "config-description").await;
-    let required_aliases_header = get_translation(&state, &locale, "config-required-aliases-header").await;
-    let common_aliases_header = get_translation(&state, &locale, "config-common-aliases-header").await;
-    let domain_overrides_header = get_translation(&state, &locale, "config-domain-overrides-header").await;
+    let required_aliases_header =
+        get_translation(&state, &locale, "config-required-aliases-header").await;
+    let common_aliases_header =
+        get_translation(&state, &locale, "config-common-aliases-header").await;
+    let domain_overrides_header =
+        get_translation(&state, &locale, "config-domain-overrides-header").await;
     let save_button = get_translation(&state, &locale, "config-save-button").await;
     let cancel_button = get_translation(&state, &locale, "config-cancel-button").await;
-    let add_required_alias_button = get_translation(&state, &locale, "config-add-required-alias-button").await;
-    let add_common_alias_button = get_translation(&state, &locale, "config-add-common-alias-button").await;
+    let add_required_alias_button =
+        get_translation(&state, &locale, "config-add-required-alias-button").await;
+    let add_common_alias_button =
+        get_translation(&state, &locale, "config-add-common-alias-button").await;
     let remove_alias_button = get_translation(&state, &locale, "config-remove-alias-button").await;
     let promote_button = get_translation(&state, &locale, "config-promote-button").await;
     let demote_button = get_translation(&state, &locale, "config-demote-button").await;
-    let required_aliases_description = get_translation(&state, &locale, "config-required-aliases-description").await;
-    let common_aliases_description = get_translation(&state, &locale, "config-common-aliases-description").await;
-    let domain_overrides_description = get_translation(&state, &locale, "config-domain-overrides-description").await;
-    let add_domain_override_button = get_translation(&state, &locale, "config-add-domain-override-button").await;
-    let remove_domain_button = get_translation(&state, &locale, "config-remove-domain-button").await;
-    let required_aliases_label = get_translation(&state, &locale, "config-required-aliases-label").await;
-    let common_aliases_label = get_translation(&state, &locale, "config-common-aliases-label").await;
+    let required_aliases_description =
+        get_translation(&state, &locale, "config-required-aliases-description").await;
+    let common_aliases_description =
+        get_translation(&state, &locale, "config-common-aliases-description").await;
+    let domain_overrides_description =
+        get_translation(&state, &locale, "config-domain-overrides-description").await;
+    let add_domain_override_button =
+        get_translation(&state, &locale, "config-add-domain-override-button").await;
+    let remove_domain_button =
+        get_translation(&state, &locale, "config-remove-domain-button").await;
+    let required_aliases_label =
+        get_translation(&state, &locale, "config-required-aliases-label").await;
+    let common_aliases_label =
+        get_translation(&state, &locale, "config-common-aliases-label").await;
     let remove_button = get_translation(&state, &locale, "config-remove-button").await;
     let add_alias_button = get_translation(&state, &locale, "config-add-alias-button").await;
-    let placeholder_required_alias = get_translation(&state, &locale, "config-placeholder-required-alias").await;
-    let placeholder_common_alias = get_translation(&state, &locale, "config-placeholder-common-alias").await;
+    let placeholder_required_alias =
+        get_translation(&state, &locale, "config-placeholder-required-alias").await;
+    let placeholder_common_alias =
+        get_translation(&state, &locale, "config-placeholder-common-alias").await;
     let placeholder_domain = get_translation(&state, &locale, "config-placeholder-domain").await;
-    let placeholder_domain_alias = get_translation(&state, &locale, "config-placeholder-domain-alias").await;
+    let placeholder_domain_alias =
+        get_translation(&state, &locale, "config-placeholder-domain-alias").await;
 
     // Load current configuration
     let config = match Config::load() {
@@ -51,7 +66,8 @@ pub async fn view_config(
     };
 
     // Create the config template
-    let domain_overrides_vec: Vec<(&String, &crate::config::DomainOverride)> = config.domain_overrides.iter().collect();
+    let domain_overrides_vec: Vec<(&String, &crate::config::DomainOverride)> =
+        config.domain_overrides.iter().collect();
     let content_template = ConfigTemplate {
         title: &title,
         description: &description,
@@ -106,4 +122,4 @@ pub async fn view_config(
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
-} 
+}

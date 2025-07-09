@@ -1,31 +1,33 @@
+use crate::templates::layout::BaseTemplate;
+use crate::templates::reports::{MatrixReportTemplate, ReportsListTemplate};
+use crate::{db, i18n::get_translation, AppState};
+use askama::Template;
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
     response::Html,
 };
-use crate::{AppState, db, i18n::get_translation};
-use crate::templates::layout::BaseTemplate;
-use crate::templates::reports::{MatrixReportTemplate, ReportsListTemplate};
-use askama::Template;
 
 pub async fn matrix_report(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    
+
     // Get translations
     let title = get_translation(&state, &locale, "reports-matrix-title").await;
     let description = get_translation(&state, &locale, "reports-matrix-description").await;
     let domain_header = get_translation(&state, &locale, "reports-domain-header").await;
     let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
-    let required_aliases_header = get_translation(&state, &locale, "reports-required-aliases-header").await;
+    let required_aliases_header =
+        get_translation(&state, &locale, "reports-required-aliases-header").await;
     let status_present = get_translation(&state, &locale, "reports-status-present").await;
     let status_missing = get_translation(&state, &locale, "reports-status-missing").await;
     let status_disabled = get_translation(&state, &locale, "reports-status-disabled").await;
     let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
     let no_domains = get_translation(&state, &locale, "reports-no-domains").await;
-    let no_domains_description = get_translation(&state, &locale, "reports-no-domains-description").await;
+    let no_domains_description =
+        get_translation(&state, &locale, "reports-no-domains-description").await;
 
     // Get matrix report data
     let report = match db::get_domain_alias_matrix_report(&state.pool) {
@@ -83,14 +85,15 @@ pub async fn reports_list(
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    
+
     // Get translations
     let title = get_translation(&state, &locale, "reports-list-title").await;
     let description = get_translation(&state, &locale, "reports-list-description").await;
     let matrix_report_title = get_translation(&state, &locale, "reports-matrix-title").await;
-    let matrix_report_description = get_translation(&state, &locale, "reports-matrix-description").await;
+    let matrix_report_description =
+        get_translation(&state, &locale, "reports-matrix-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
-    
+
     // Create the reports list template
     let content_template = ReportsListTemplate {
         title: &title,
@@ -99,7 +102,7 @@ pub async fn reports_list(
         matrix_report_description: &matrix_report_description,
         view_report: &view_report,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -125,4 +128,3 @@ pub async fn reports_list(
         }
     }
 }
- 

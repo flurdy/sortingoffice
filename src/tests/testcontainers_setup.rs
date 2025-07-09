@@ -27,7 +27,9 @@ impl TestContainer {
         let docker = Box::new(Cli::default());
         // SAFETY: We must extend the container's lifetime to 'static for the struct, so we leak the container only (not the client)
         let mysql_container: Container<'static, Mysql> = unsafe {
-            std::mem::transmute::<Container<'_, Mysql>, Container<'static, Mysql>>(docker.run(Mysql::default()))
+            std::mem::transmute::<Container<'_, Mysql>, Container<'static, Mysql>>(
+                docker.run(Mysql::default()),
+            )
         };
 
         // Get connection details
@@ -35,10 +37,7 @@ impl TestContainer {
         let port = mysql_container.get_host_port_ipv4(3306);
 
         // Create database URL
-        let database_url = format!(
-            "mysql://root@{}:{}/mysql",
-            host, port
-        );
+        let database_url = format!("mysql://root@{}:{}/mysql", host, port);
 
         // Create connection pool
         let manager = ConnectionManager::<MysqlConnection>::new(database_url);
@@ -86,4 +85,4 @@ pub fn unique_test_id() -> String {
         .unwrap()
         .as_nanos();
     format!("test-{}", timestamp)
-} 
+}

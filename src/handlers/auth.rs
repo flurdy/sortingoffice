@@ -1,6 +1,6 @@
-use crate::templates::auth::LoginTemplate;
-use crate::{AppState};
 use crate::config::AdminRole;
+use crate::templates::auth::LoginTemplate;
+use crate::AppState;
 use askama::Template;
 use axum::{
     extract::State,
@@ -11,25 +11,24 @@ use axum::{
 use serde::Deserialize;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub async fn login_form(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-) -> Html<String> {
+pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    
+
     let title = crate::i18n::get_translation(&state, &locale, "login-title").await;
     let user_id = crate::i18n::get_translation(&state, &locale, "login-user-id").await;
     let password = crate::i18n::get_translation(&state, &locale, "login-password").await;
     let sign_in = crate::i18n::get_translation(&state, &locale, "login-sign-in").await;
     let app_title = crate::i18n::get_translation(&state, &locale, "app-title").await;
     let app_subtitle = crate::i18n::get_translation(&state, &locale, "app-subtitle").await;
-    let language_selector = crate::i18n::get_translation(&state, &locale, "language-selector").await;
+    let language_selector =
+        crate::i18n::get_translation(&state, &locale, "language-selector").await;
     let theme_toggle = crate::i18n::get_translation(&state, &locale, "theme-toggle").await;
     let language_english = crate::i18n::get_translation(&state, &locale, "language-english").await;
     let language_spanish = crate::i18n::get_translation(&state, &locale, "language-spanish").await;
     let language_french = crate::i18n::get_translation(&state, &locale, "language-french").await;
-    let language_norwegian = crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
-    
+    let language_norwegian =
+        crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
+
     let template = LoginTemplate {
         title: &title,
         error: "",
@@ -47,7 +46,7 @@ pub async fn login_form(
         language_norwegian: &language_norwegian,
         current_locale: &locale,
     };
-    
+
     Html(template.render().unwrap())
 }
 
@@ -63,15 +62,18 @@ pub async fn login(
     Form(request): Form<LoginRequest>,
 ) -> Result<Response, Html<String>> {
     println!("🔐 [AUTH] Login attempt for user: '{}'", request.id);
-    
+
     let locale = crate::handlers::language::get_user_locale(&headers);
     let is_htmx = headers.get("hx-request").is_some();
-    
+
     // Validate input
     if request.id.trim().is_empty() || request.password.trim().is_empty() {
-        println!("🔐 [AUTH] ❌ Login failed: Empty fields for user '{}'", request.id);
+        println!(
+            "🔐 [AUTH] ❌ Login failed: Empty fields for user '{}'",
+            request.id
+        );
         let error = crate::i18n::get_translation(&state, &locale, "login-error-empty-fields").await;
-        
+
         if is_htmx {
             // Return just the error message for HTMX requests
             return Ok(Response::builder()
@@ -102,12 +104,17 @@ pub async fn login(
             let sign_in = crate::i18n::get_translation(&state, &locale, "login-sign-in").await;
             let app_title = crate::i18n::get_translation(&state, &locale, "app-title").await;
             let app_subtitle = crate::i18n::get_translation(&state, &locale, "app-subtitle").await;
-            let language_selector = crate::i18n::get_translation(&state, &locale, "language-selector").await;
+            let language_selector =
+                crate::i18n::get_translation(&state, &locale, "language-selector").await;
             let theme_toggle = crate::i18n::get_translation(&state, &locale, "theme-toggle").await;
-            let language_english = crate::i18n::get_translation(&state, &locale, "language-english").await;
-            let language_spanish = crate::i18n::get_translation(&state, &locale, "language-spanish").await;
-            let language_french = crate::i18n::get_translation(&state, &locale, "language-french").await;
-            let language_norwegian = crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
+            let language_english =
+                crate::i18n::get_translation(&state, &locale, "language-english").await;
+            let language_spanish =
+                crate::i18n::get_translation(&state, &locale, "language-spanish").await;
+            let language_french =
+                crate::i18n::get_translation(&state, &locale, "language-french").await;
+            let language_norwegian =
+                crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
 
             let template = LoginTemplate {
                 title: &title,
@@ -129,10 +136,16 @@ pub async fn login(
             return Err(Html(template.render().unwrap()));
         }
     }
-    
+
     // Verify admin credentials from config
-    if let Some(role) = state.config.verify_admin_credentials(&request.id.trim(), &request.password) {
-        println!("🔐 [AUTH] ✅ Login successful for user '{}' with role: {:?}", request.id, role);
+    if let Some(role) = state
+        .config
+        .verify_admin_credentials(&request.id.trim(), &request.password)
+    {
+        println!(
+            "🔐 [AUTH] ✅ Login successful for user '{}' with role: {:?}",
+            request.id, role
+        );
         // Set authentication cookie with role
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -143,7 +156,10 @@ pub async fn login(
             AdminRole::ReadOnly => "read-only",
             AdminRole::Edit => "edit",
         };
-        let cookie_value = format!("authenticated={}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax", expiry, role_str);
+        let cookie_value = format!(
+            "authenticated={}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
+            expiry, role_str
+        );
         if is_htmx {
             // For htmx, use HX-Redirect header to force a full page reload
             return Ok(Response::builder()
@@ -163,10 +179,14 @@ pub async fn login(
         }
     }
 
-    println!("🔐 [AUTH] ❌ Login failed: Invalid credentials for user '{}'", request.id);
+    println!(
+        "🔐 [AUTH] ❌ Login failed: Invalid credentials for user '{}'",
+        request.id
+    );
 
-    let error = crate::i18n::get_translation(&state, &locale, "login-error-invalid-credentials").await;
-    
+    let error =
+        crate::i18n::get_translation(&state, &locale, "login-error-invalid-credentials").await;
+
     if is_htmx {
         // Return just the error message for HTMX requests
         Ok(Response::builder()
@@ -197,14 +217,19 @@ pub async fn login(
         let sign_in = crate::i18n::get_translation(&state, &locale, "login-sign-in").await;
         let app_title = crate::i18n::get_translation(&state, &locale, "app-title").await;
         let app_subtitle = crate::i18n::get_translation(&state, &locale, "app-subtitle").await;
-        let language_selector = crate::i18n::get_translation(&state, &locale, "language-selector").await;
+        let language_selector =
+            crate::i18n::get_translation(&state, &locale, "language-selector").await;
         let theme_toggle = crate::i18n::get_translation(&state, &locale, "theme-toggle").await;
-        let language_english = crate::i18n::get_translation(&state, &locale, "language-english").await;
-        let language_spanish = crate::i18n::get_translation(&state, &locale, "language-spanish").await;
-        let language_french = crate::i18n::get_translation(&state, &locale, "language-french").await;
-        let language_norwegian = crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
+        let language_english =
+            crate::i18n::get_translation(&state, &locale, "language-english").await;
+        let language_spanish =
+            crate::i18n::get_translation(&state, &locale, "language-spanish").await;
+        let language_french =
+            crate::i18n::get_translation(&state, &locale, "language-french").await;
+        let language_norwegian =
+            crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
 
-    let template = LoginTemplate {
+        let template = LoginTemplate {
             title: &title,
             error: &error,
             login_title: &title,
@@ -220,15 +245,15 @@ pub async fn login(
             language_french: &language_french,
             language_norwegian: &language_norwegian,
             current_locale: &locale,
-    };
-    Err(Html(template.render().unwrap()))
-}
+        };
+        Err(Html(template.render().unwrap()))
+    }
 }
 
 pub async fn logout() -> Response {
     // Clear authentication cookie
     let cookie_value = "authenticated=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax";
-    
+
     Response::builder()
         .status(StatusCode::FOUND)
         .header("Location", "/login")
@@ -243,20 +268,20 @@ pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
         if let Ok(cookie_str) = cookie_header.to_str() {
             for cookie in cookie_str.split(';') {
                 let cookie = cookie.trim();
-                
+
                 if cookie.starts_with("authenticated=") {
                     // Correctly extract the value after 'authenticated='
                     let value_part = &cookie[14..].split(';').next().unwrap_or("");
-                    
+
                     let parts: Vec<&str> = value_part.split(':').collect();
-                    
+
                     if parts.len() >= 2 {
                         if let Ok(expiry) = parts[0].parse::<u64>() {
                             let now = SystemTime::now()
                                 .duration_since(UNIX_EPOCH)
                                 .unwrap()
                                 .as_secs();
-                            
+
                             if expiry > now {
                                 // Parse role
                                 match parts[1] {
@@ -271,7 +296,7 @@ pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
             }
         }
     }
-    
+
     None
 }
 
@@ -293,7 +318,7 @@ pub async fn require_auth(
     next: axum::middleware::Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
-    
+
     if is_authenticated(&headers) {
         Ok(next.run(request).await)
     } else {
@@ -315,11 +340,14 @@ pub async fn require_edit_permissions(
     next: axum::middleware::Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
-    
+
     if has_edit_permissions(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [AUTH] ❌ Insufficient permissions for access to: {}", path);
+        println!(
+            "🔐 [AUTH] ❌ Insufficient permissions for access to: {}",
+            path
+        );
         // Return 403 Forbidden
         Ok(Response::builder()
             .status(StatusCode::FORBIDDEN)

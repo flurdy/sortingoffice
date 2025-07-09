@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::models::Relocated;
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "relocated/list.html", escape = "html")]
@@ -63,4 +63,4 @@ pub struct RelocatedFormTemplate<'a> {
     pub back_to_list: &'a str,
     pub placeholder_old_address: &'a str,
     pub placeholder_new_address: &'a str,
-} 
+}

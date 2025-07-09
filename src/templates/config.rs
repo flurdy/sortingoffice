@@ -31,4 +31,4 @@ pub struct ConfigTemplate<'a> {
     pub placeholder_domain_alias: &'a str,
     pub config: &'a Config,
     pub domain_overrides_vec: Vec<(&'a String, &'a crate::config::DomainOverride)>,
-} 
+}

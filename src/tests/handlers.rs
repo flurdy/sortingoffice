@@ -8,10 +8,10 @@ mod tests {
 
     use tower::ServiceExt;
 
+    use crate::config::{AdminRole, Config};
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
-    use crate::config::{Config, AdminRole};
     use axum::http::{HeaderMap, HeaderValue};
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -20,7 +20,7 @@ mod tests {
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
         let state = AppState { pool, i18n, config };
-        
+
         // Create read-only routes
         let read_only_routes = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
@@ -33,29 +33,74 @@ mod tests {
             .route("/about", axum::routing::get(handlers::about::index))
             .route("/backups/{id}", axum::routing::get(handlers::backups::show))
             .with_state(state.clone())
-            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_auth));
+            .layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                handlers::auth::require_auth,
+            ));
 
         // Create edit routes
         let edit_routes = Router::new()
             .route("/domains", axum::routing::post(handlers::domains::create))
-            .route("/domains/{id}", axum::routing::put(handlers::domains::update).delete(handlers::domains::delete))
-            .route("/domains/{id}/edit", axum::routing::get(handlers::domains::edit))
-            .route("/domains/{id}/toggle", axum::routing::post(handlers::domains::toggle_enabled))
+            .route(
+                "/domains/{id}",
+                axum::routing::put(handlers::domains::update).delete(handlers::domains::delete),
+            )
+            .route(
+                "/domains/{id}/edit",
+                axum::routing::get(handlers::domains::edit),
+            )
+            .route(
+                "/domains/{id}/toggle",
+                axum::routing::post(handlers::domains::toggle_enabled),
+            )
             .route("/users", axum::routing::post(handlers::users::create))
-            .route("/users/{id}", axum::routing::put(handlers::users::update).delete(handlers::users::delete))
-            .route("/users/{id}/edit", axum::routing::get(handlers::users::edit))
-            .route("/users/{id}/toggle", axum::routing::post(handlers::users::toggle_enabled))
+            .route(
+                "/users/{id}",
+                axum::routing::put(handlers::users::update).delete(handlers::users::delete),
+            )
+            .route(
+                "/users/{id}/edit",
+                axum::routing::get(handlers::users::edit),
+            )
+            .route(
+                "/users/{id}/toggle",
+                axum::routing::post(handlers::users::toggle_enabled),
+            )
             .route("/aliases", axum::routing::post(handlers::aliases::create))
-            .route("/aliases/{id}", axum::routing::put(handlers::aliases::update).delete(handlers::aliases::delete))
-            .route("/aliases/{id}/edit", axum::routing::get(handlers::aliases::edit))
-            .route("/aliases/{id}/toggle-list", axum::routing::post(handlers::aliases::toggle_enabled))
+            .route(
+                "/aliases/{id}",
+                axum::routing::put(handlers::aliases::update).delete(handlers::aliases::delete),
+            )
+            .route(
+                "/aliases/{id}/edit",
+                axum::routing::get(handlers::aliases::edit),
+            )
+            .route(
+                "/aliases/{id}/toggle-list",
+                axum::routing::post(handlers::aliases::toggle_enabled),
+            )
             .route("/backups", axum::routing::post(handlers::backups::create))
-            .route("/backups/{id}", axum::routing::put(handlers::backups::update).delete(handlers::backups::delete))
-            .route("/backups/{id}/edit", axum::routing::get(handlers::backups::edit))
-            .route("/backups/{id}/toggle", axum::routing::post(handlers::backups::toggle_enabled))
+            .route(
+                "/backups/{id}",
+                axum::routing::put(handlers::backups::update).delete(handlers::backups::delete),
+            )
+            .route(
+                "/backups/{id}/edit",
+                axum::routing::get(handlers::backups::edit),
+            )
+            .route(
+                "/backups/{id}/toggle",
+                axum::routing::post(handlers::backups::toggle_enabled),
+            )
             .with_state(state.clone())
-            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_auth))
-            .layer(axum::middleware::from_fn_with_state(state.clone(), handlers::auth::require_edit_permissions));
+            .layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                handlers::auth::require_auth,
+            ))
+            .layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                handlers::auth::require_edit_permissions,
+            ));
 
         let app = Router::new()
             .merge(read_only_routes)
@@ -68,7 +113,10 @@ mod tests {
 
     // Helper function to create an authenticated cookie with a specific role
     fn create_auth_cookie(role: AdminRole) -> HeaderValue {
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expiry = now + 3600; // 1 hour from now
         let role_str = match role {
             AdminRole::ReadOnly => "read-only",
@@ -125,7 +173,10 @@ mod tests {
         cleanup_test_db(&state.pool);
 
         let unique_id = crate::tests::common::unique_test_id();
-        let form_data = format!("domain=create-test-{}.com&transport=smtp%3Alocalhost&enabled=on", unique_id);
+        let form_data = format!(
+            "domain=create-test-{}.com&transport=smtp%3Alocalhost&enabled=on",
+            unique_id
+        );
 
         let response = app
             .oneshot(
@@ -145,7 +196,9 @@ mod tests {
         // Verify domain was created
         let domains = crate::db::get_domains(&state.pool).unwrap();
         assert!(!domains.is_empty());
-        assert!(domains.iter().any(|d| d.domain == format!("create-test-{}.com", unique_id)));
+        assert!(domains
+            .iter()
+            .any(|d| d.domain == format!("create-test-{}.com", unique_id)));
 
         cleanup_test_db(&state.pool);
     }
@@ -245,7 +298,10 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = format!("domain=updated-test-{}.com&transport=smtp%3Aupdated&enabled=on", unique_id);
+        let form_data = format!(
+            "domain=updated-test-{}.com&transport=smtp%3Aupdated&enabled=on",
+            unique_id
+        );
 
         let response = app
             .oneshot(
@@ -264,7 +320,10 @@ mod tests {
 
         // Verify domain was updated
         let updated_domain = crate::db::get_domain(&state.pool, _domain.pkid).unwrap();
-        assert_eq!(updated_domain.domain, format!("updated-test-{}.com", unique_id));
+        assert_eq!(
+            updated_domain.domain,
+            format!("updated-test-{}.com", unique_id)
+        );
         assert_eq!(updated_domain.transport, Some("smtp:updated".to_string()));
 
         cleanup_test_db(&state.pool);
@@ -373,7 +432,10 @@ mod tests {
         };
         let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
 
-        let form_data = format!("id=testuser@create-test-{}.com&password=password123&name=Test+User&enabled=on", unique_id);
+        let form_data = format!(
+            "id=testuser@create-test-{}.com&password=password123&name=Test+User&enabled=on",
+            unique_id
+        );
 
         let response = app
             .oneshot(
@@ -393,7 +455,9 @@ mod tests {
         // Verify user was created
         let users = crate::db::get_users(&state.pool).unwrap();
         assert!(!users.is_empty());
-        assert!(users.iter().any(|u| u.id == format!("testuser@create-test-{}.com", unique_id)));
+        assert!(users
+            .iter()
+            .any(|u| u.id == format!("testuser@create-test-{}.com", unique_id)));
 
         cleanup_test_db(&state.pool);
     }
@@ -520,7 +584,10 @@ mod tests {
         };
         let _user = crate::db::create_user(&state.pool, user_form).unwrap();
 
-        let form_data = format!("id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on", unique_id);
+        let form_data = format!(
+            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on",
+            unique_id
+        );
 
         let response = app
             .oneshot(
@@ -539,7 +606,10 @@ mod tests {
 
         // Verify user was updated
         let updated_user = crate::db::get_user(&state.pool, _user.pkid).unwrap();
-        assert_eq!(updated_user.id, format!("updateduser@update-test-{}.com", unique_id));
+        assert_eq!(
+            updated_user.id,
+            format!("updateduser@update-test-{}.com", unique_id)
+        );
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, true);
 
@@ -1049,7 +1119,8 @@ mod tests {
         };
         let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
 
-        let form_data = "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
+        let form_data =
+            "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
 
         let response = app
             .oneshot(
@@ -1170,51 +1241,62 @@ mod tests {
 
     #[tokio::test]
     async fn test_login_success() {
+        use crate::config::{AdminCredentials, AdminRole, Config};
         use crate::handlers::auth::{login, LoginRequest};
-        use axum::extract::State;
-        use axum::Form;
-        use axum::http::HeaderMap;
         use crate::AppState;
-        use crate::config::{Config, AdminCredentials, AdminRole};
-        
+        use axum::extract::State;
+        use axum::http::HeaderMap;
+        use axum::Form;
+
         let pool = crate::tests::common::setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config {
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
-                password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(),
+                password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO"
+                    .to_string(),
                 role: AdminRole::Edit,
             }],
             ..Config::default()
         };
         let state = AppState { pool, i18n, config };
         let headers = HeaderMap::new();
-        let req = LoginRequest { id: "admin".to_string(), password: "admin123".to_string() };
+        let req = LoginRequest {
+            id: "admin".to_string(),
+            password: "admin123".to_string(),
+        };
         let result = login(State(state), headers, Form(req)).await;
         assert!(result.is_ok());
         let response = result.unwrap();
         assert_eq!(response.status(), axum::http::StatusCode::FOUND);
-        let set_cookie = response.headers().get("set-cookie").unwrap().to_str().unwrap();
+        let set_cookie = response
+            .headers()
+            .get("set-cookie")
+            .unwrap()
+            .to_str()
+            .unwrap();
         assert!(set_cookie.contains("authenticated="));
         assert!(set_cookie.contains("edit"));
     }
 
     #[tokio::test]
     async fn test_login_failure() {
-
-        use crate::handlers::auth::{login, LoginRequest};
-        use axum::extract::State;
-        use axum::Form;
-        use axum::http::HeaderMap;
-        use crate::AppState;
         use crate::config::Config;
-        
+        use crate::handlers::auth::{login, LoginRequest};
+        use crate::AppState;
+        use axum::extract::State;
+        use axum::http::HeaderMap;
+        use axum::Form;
+
         let pool = crate::tests::common::setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
         let state = AppState { pool, i18n, config };
         let headers = HeaderMap::new();
-        let req = LoginRequest { id: "admin".to_string(), password: "wrongpassword".to_string() };
+        let req = LoginRequest {
+            id: "admin".to_string(),
+            password: "wrongpassword".to_string(),
+        };
         let result = login(State(state), headers, Form(req)).await;
         assert!(result.is_err());
         let html = result.err().unwrap().0;
@@ -1223,10 +1305,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_is_authenticated_cookie() {
-        use axum::http::HeaderMap;
         use crate::handlers::auth::is_authenticated;
+        use axum::http::HeaderMap;
         use std::time::{SystemTime, UNIX_EPOCH};
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expiry = now + 3600;
         let cookie = format!("authenticated={}:edit", expiry);
         let mut headers = HeaderMap::new();
@@ -1237,8 +1322,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_is_authenticated_cookie_expired() {
-        use axum::http::HeaderMap;
         use crate::handlers::auth::is_authenticated;
+        use axum::http::HeaderMap;
         let expiry = 1; // long expired
         let cookie = format!("authenticated={}:edit", expiry);
         let mut headers = HeaderMap::new();
@@ -1248,10 +1333,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_is_authenticated_cookie_readonly() {
-        use axum::http::HeaderMap;
         use crate::handlers::auth::is_authenticated;
+        use axum::http::HeaderMap;
         use std::time::{SystemTime, UNIX_EPOCH};
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expiry = now + 3600;
         let cookie = format!("authenticated={}:read-only", expiry);
         let mut headers = HeaderMap::new();
@@ -1262,12 +1350,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_has_edit_permissions() {
-        use axum::http::HeaderMap;
         use crate::handlers::auth::{has_edit_permissions, is_authenticated};
+        use axum::http::HeaderMap;
         use std::time::{SystemTime, UNIX_EPOCH};
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expiry = now + 3600;
-        
+
         // Test edit role
         let cookie = format!("authenticated={}:edit", expiry);
         let mut headers = HeaderMap::new();
@@ -1275,7 +1366,7 @@ mod tests {
         headers.insert("cookie", header_value);
         assert!(is_authenticated(&headers));
         assert!(has_edit_permissions(&headers));
-        
+
         // Test read-only role
         let cookie = format!("authenticated={}:read-only", expiry);
         let mut headers = HeaderMap::new();
@@ -1289,18 +1380,21 @@ mod tests {
     async fn test_role_based_access_control() {
         use axum::http::HeaderMap;
         use std::time::{SystemTime, UNIX_EPOCH};
-        
+
         let (app, state) = create_test_app().await;
         cleanup_test_db(&state.pool);
-        
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let expiry = now + 3600;
-        
+
         // Test read-only user can access read-only routes
         let cookie = format!("authenticated={}:read-only", expiry);
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
-        
+
         let response = app
             .clone()
             .oneshot(
@@ -1312,9 +1406,9 @@ mod tests {
             )
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::OK);
-        
+
         // Test read-only user gets 403 for edit routes
         let response = app
             .clone()
@@ -1324,19 +1418,21 @@ mod tests {
                     .uri("/domains")
                     .header("cookie", headers.get("cookie").unwrap())
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from("domain=test.com&transport=smtp%3Alocalhost&enabled=on"))
+                    .body(Body::from(
+                        "domain=test.com&transport=smtp%3Alocalhost&enabled=on",
+                    ))
                     .unwrap(),
             )
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::FORBIDDEN);
-        
+
         // Test edit user can access edit routes
         let cookie = format!("authenticated={}:edit", expiry);
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
-        
+
         let response = app
             .oneshot(
                 Request::builder()
@@ -1344,14 +1440,16 @@ mod tests {
                     .uri("/domains")
                     .header("cookie", headers.get("cookie").unwrap())
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from("domain=test-edit.com&transport=smtp%3Alocalhost&enabled=on"))
+                    .body(Body::from(
+                        "domain=test-edit.com&transport=smtp%3Alocalhost&enabled=on",
+                    ))
                     .unwrap(),
             )
             .await
             .unwrap();
-        
+
         assert_eq!(response.status(), StatusCode::OK);
-        
+
         cleanup_test_db(&state.pool);
     }
 

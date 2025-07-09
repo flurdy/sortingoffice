@@ -1,6 +1,6 @@
-use crate::templates::relocated::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::templates::relocated::*;
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -21,10 +21,13 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated list request");
-    
+
     let relocated = match db::get_relocated(pool) {
         Ok(relocated) => {
-            info!("Successfully retrieved {} relocated entries", relocated.len());
+            info!(
+                "Successfully retrieved {} relocated entries",
+                relocated.len()
+            );
             relocated
         }
         Err(e) => {
@@ -36,10 +39,14 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
     // Get translations
     let title = get_translation(&state, &locale, "relocated-title").await;
     let add_relocated = get_translation(&state, &locale, "relocated-add").await;
-    let table_header_old_address = get_translation(&state, &locale, "relocated-table-header-old-address").await;
-    let table_header_new_address = get_translation(&state, &locale, "relocated-table-header-new-address").await;
-    let table_header_enabled = get_translation(&state, &locale, "relocated-table-header-enabled").await;
-    let table_header_actions = get_translation(&state, &locale, "relocated-table-header-actions").await;
+    let table_header_old_address =
+        get_translation(&state, &locale, "relocated-table-header-old-address").await;
+    let table_header_new_address =
+        get_translation(&state, &locale, "relocated-table-header-new-address").await;
+    let table_header_enabled =
+        get_translation(&state, &locale, "relocated-table-header-enabled").await;
+    let table_header_actions =
+        get_translation(&state, &locale, "relocated-table-header-actions").await;
     let status_enabled = get_translation(&state, &locale, "status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "status-disabled").await;
     let action_view = get_translation(&state, &locale, "action-view").await;
@@ -48,7 +55,8 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
     let delete_confirm = get_translation(&state, &locale, "relocated-delete-confirm").await;
     let empty_title = get_translation(&state, &locale, "relocated-empty-title").await;
     let empty_description = get_translation(&state, &locale, "relocated-empty-description").await;
-    let relocated_list_description = get_translation(&state, &locale, "relocated-list-description").await;
+    let relocated_list_description =
+        get_translation(&state, &locale, "relocated-list-description").await;
 
     let content_template = RelocatedListTemplate {
         title: &title,
@@ -68,10 +76,13 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         relocated,
         relocated_list_description: &relocated_list_description,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => {
-            debug!("Template rendered successfully, content length: {}", content.len());
+            debug!(
+                "Template rendered successfully, content length: {}",
+                content.len()
+            );
             content
         }
         Err(e) => {
@@ -88,8 +99,10 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -104,7 +117,7 @@ pub async fn show_relocated(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated show request for ID: {}", relocated_id);
-    
+
     let relocated = match db::get_relocated_by_id(pool, relocated_id) {
         Ok(relocated) => relocated,
         Err(_) => {
@@ -131,7 +144,8 @@ pub async fn show_relocated(
     let view_edit_settings = get_translation(&state, &locale, "relocated-view-edit-settings").await;
     let relocated_show_title = get_translation(&state, &locale, "relocated-show-title").await;
     let relocated_info_title = get_translation(&state, &locale, "relocated-info-title").await;
-    let relocated_info_description = get_translation(&state, &locale, "relocated-info-description").await;
+    let relocated_info_description =
+        get_translation(&state, &locale, "relocated-info-description").await;
 
     let content_template = RelocatedShowTemplate {
         title: &title,
@@ -155,7 +169,7 @@ pub async fn show_relocated(
         relocated_info_description: &relocated_info_description,
         relocated,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -172,8 +186,10 @@ pub async fn show_relocated(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -183,7 +199,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated create form request");
-    
+
     let form = RelocatedForm {
         old_address: "".to_string(),
         new_address: "".to_string(),
@@ -195,13 +211,17 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     let field_old_address = get_translation(&state, &locale, "relocated-field-old-address").await;
     let field_new_address = get_translation(&state, &locale, "relocated-field-new-address").await;
     let field_enabled = get_translation(&state, &locale, "relocated-field-enabled").await;
-    let field_old_address_help = get_translation(&state, &locale, "relocated-field-old-address-help").await;
-    let field_new_address_help = get_translation(&state, &locale, "relocated-field-new-address-help").await;
+    let field_old_address_help =
+        get_translation(&state, &locale, "relocated-field-old-address-help").await;
+    let field_new_address_help =
+        get_translation(&state, &locale, "relocated-field-new-address-help").await;
     let action_save = get_translation(&state, &locale, "action-save").await;
     let action_cancel = get_translation(&state, &locale, "action-cancel").await;
     let back_to_list = get_translation(&state, &locale, "relocated-back-to-list").await;
-    let placeholder_old_address = get_translation(&state, &locale, "relocated-placeholder-old-address").await;
-    let placeholder_new_address = get_translation(&state, &locale, "relocated-placeholder-new-address").await;
+    let placeholder_old_address =
+        get_translation(&state, &locale, "relocated-placeholder-old-address").await;
+    let placeholder_new_address =
+        get_translation(&state, &locale, "relocated-placeholder-new-address").await;
 
     let content_template = RelocatedFormTemplate {
         title: &title,
@@ -218,7 +238,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         placeholder_old_address: &placeholder_old_address,
         placeholder_new_address: &placeholder_new_address,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -235,8 +255,10 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -251,11 +273,17 @@ pub async fn create_relocated(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated create request");
-    
+
     match db::create_relocated(pool, form) {
         Ok(relocated) => {
-            info!("Successfully created relocated entry: {}", relocated.old_address);
-            Html(format!("<script>window.location.href='/relocated/{}';</script>", relocated.pkid))
+            info!(
+                "Successfully created relocated entry: {}",
+                relocated.old_address
+            );
+            Html(format!(
+                "<script>window.location.href='/relocated/{}';</script>",
+                relocated.pkid
+            ))
         }
         Err(e) => {
             error!("Failed to create relocated entry: {:?}", e);
@@ -274,8 +302,11 @@ pub async fn edit_form(
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    debug!("Handling relocated edit form request for ID: {}", relocated_id);
-    
+    debug!(
+        "Handling relocated edit form request for ID: {}",
+        relocated_id
+    );
+
     let relocated = match db::get_relocated_by_id(pool, relocated_id) {
         Ok(relocated) => relocated,
         Err(_) => {
@@ -295,13 +326,17 @@ pub async fn edit_form(
     let field_old_address = get_translation(&state, &locale, "relocated-field-old-address").await;
     let field_new_address = get_translation(&state, &locale, "relocated-field-new-address").await;
     let field_enabled = get_translation(&state, &locale, "relocated-field-enabled").await;
-    let field_old_address_help = get_translation(&state, &locale, "relocated-field-old-address-help").await;
-    let field_new_address_help = get_translation(&state, &locale, "relocated-field-new-address-help").await;
+    let field_old_address_help =
+        get_translation(&state, &locale, "relocated-field-old-address-help").await;
+    let field_new_address_help =
+        get_translation(&state, &locale, "relocated-field-new-address-help").await;
     let action_save = get_translation(&state, &locale, "action-save").await;
     let action_cancel = get_translation(&state, &locale, "action-cancel").await;
     let back_to_list = get_translation(&state, &locale, "relocated-back-to-list").await;
-    let placeholder_old_address = get_translation(&state, &locale, "relocated-placeholder-old-address").await;
-    let placeholder_new_address = get_translation(&state, &locale, "relocated-placeholder-new-address").await;
+    let placeholder_old_address =
+        get_translation(&state, &locale, "relocated-placeholder-old-address").await;
+    let placeholder_new_address =
+        get_translation(&state, &locale, "relocated-placeholder-new-address").await;
 
     let content_template = RelocatedFormTemplate {
         title: &title,
@@ -318,7 +353,7 @@ pub async fn edit_form(
         placeholder_old_address: &placeholder_old_address,
         placeholder_new_address: &placeholder_new_address,
     };
-    
+
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -335,8 +370,10 @@ pub async fn edit_form(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -352,11 +389,17 @@ pub async fn update_relocated(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated update request for ID: {}", relocated_id);
-    
+
     match db::update_relocated(pool, relocated_id, form) {
         Ok(relocated) => {
-            info!("Successfully updated relocated entry: {}", relocated.old_address);
-            Html(format!("<script>window.location.href='/relocated/{}';</script>", relocated.pkid))
+            info!(
+                "Successfully updated relocated entry: {}",
+                relocated.old_address
+            );
+            Html(format!(
+                "<script>window.location.href='/relocated/{}';</script>",
+                relocated.pkid
+            ))
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
@@ -380,7 +423,7 @@ pub async fn delete_relocated(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated delete request for ID: {}", relocated_id);
-    
+
     match db::delete_relocated(pool, relocated_id) {
         Ok(_) => {
             info!("Successfully deleted relocated entry ID: {}", relocated_id);
@@ -407,33 +450,41 @@ pub async fn toggle_enabled(
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    debug!("Handling relocated toggle enabled request for ID: {}", relocated_id);
-    
+    debug!(
+        "Handling relocated toggle enabled request for ID: {}",
+        relocated_id
+    );
+
     match db::toggle_relocated_enabled(pool, relocated_id) {
         Ok(relocated) => {
-            let enabled_text = if relocated.enabled { 
-                get_translation(&state, &locale, "status-enabled").await 
-            } else { 
-                get_translation(&state, &locale, "status-disabled").await 
+            let enabled_text = if relocated.enabled {
+                get_translation(&state, &locale, "status-enabled").await
+            } else {
+                get_translation(&state, &locale, "status-disabled").await
             };
-            
+
             // Check if this is a list view toggle (targeting relocated-status-{id})
             if is_htmx_request(&headers) {
                 // For list view, return status badge and update button text
-                let badge_class = if relocated.enabled { 
-                    "inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800" 
-                } else { 
-                    "inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800" 
+                let badge_class = if relocated.enabled {
+                    "inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
+                } else {
+                    "inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800"
                 };
-                
+
                 let button_text = if relocated.enabled {
                     get_translation(&state, &locale, "action-disable").await
                 } else {
                     get_translation(&state, &locale, "action-enable").await
                 };
-                
+
                 // Check if this is a show view toggle (targeting relocated-show-status-{id})
-                let script = if headers.get("hx-target").and_then(|v| v.to_str().ok()).unwrap_or("").contains("relocated-show-status") {
+                let script = if headers
+                    .get("hx-target")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or("")
+                    .contains("relocated-show-status")
+                {
                     format!(
                         "<span class=\"{}\">{}</span><script>document.getElementById('relocated-show-button-{}').textContent = '{}';</script>",
                         badge_class, enabled_text, relocated_id, button_text
@@ -449,7 +500,7 @@ pub async fn toggle_enabled(
                 // For show view, return the full status section
                 let status_enabled = get_translation(&state, &locale, "status-enabled").await;
                 let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-                
+
                 if relocated.enabled {
                     Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{}</span>", status_enabled))
                 } else {
@@ -459,7 +510,10 @@ pub async fn toggle_enabled(
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            Html(format!("<span class=\"text-danger\">{}</span>", not_found_msg))
+            Html(format!(
+                "<span class=\"text-danger\">{}</span>",
+                not_found_msg
+            ))
         }
         Err(e) => {
             error!("Failed to toggle relocated entry {}: {:?}", relocated_id, e);
@@ -467,4 +521,4 @@ pub async fn toggle_enabled(
             Html(format!("<span class=\"text-danger\">{}</span>", error_msg))
         }
     }
-} 
+}

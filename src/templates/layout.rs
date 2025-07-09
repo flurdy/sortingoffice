@@ -83,11 +83,13 @@ impl BaseTemplate {
             nav_about: crate::i18n::get_translation(state, locale, "nav-about").await,
             nav_logout: crate::i18n::get_translation(state, locale, "nav-logout").await,
             theme_toggle: crate::i18n::get_translation(state, locale, "theme-toggle").await,
-            language_selector: crate::i18n::get_translation(state, locale, "language-selector").await,
+            language_selector: crate::i18n::get_translation(state, locale, "language-selector")
+                .await,
             language_english: crate::i18n::get_translation(state, locale, "language-english").await,
             language_spanish: crate::i18n::get_translation(state, locale, "language-spanish").await,
             language_french: crate::i18n::get_translation(state, locale, "language-french").await,
-            language_norwegian: crate::i18n::get_translation(state, locale, "language-norwegian").await,
+            language_norwegian: crate::i18n::get_translation(state, locale, "language-norwegian")
+                .await,
             current_locale: locale.to_string(),
         })
     }

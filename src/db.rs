@@ -13,18 +13,18 @@ pub fn get_domains(pool: &DbPool) -> Result<Vec<Domain>, Error> {
             Box::new(e.to_string()),
         )
     })?;
-    
+
     tracing::debug!("Executing get_domains query");
     let result = domains::table
         .select(Domain::as_select())
         .order(domains::domain.asc())
         .load::<Domain>(&mut conn);
-    
+
     match &result {
         Ok(domains) => tracing::debug!("Retrieved {} domains", domains.len()),
         Err(e) => tracing::error!("Error retrieving domains: {:?}", e),
     }
-    
+
     result
 }
 
@@ -505,11 +505,7 @@ pub fn create_relay(pool: &DbPool, relay_data: RelayForm) -> Result<Relay, Error
         .first::<Relay>(&mut conn)
 }
 
-pub fn update_relay(
-    pool: &DbPool,
-    relay_id: i32,
-    relay_data: RelayForm,
-) -> Result<Relay, Error> {
+pub fn update_relay(pool: &DbPool, relay_id: i32, relay_data: RelayForm) -> Result<Relay, Error> {
     let mut conn = pool.get().unwrap();
     diesel::update(relays::table.find(relay_id))
         .set((
@@ -530,10 +526,10 @@ pub fn delete_relay(pool: &DbPool, relay_id: i32) -> Result<usize, Error> {
 
 pub fn toggle_relay_enabled(pool: &DbPool, relay_id: i32) -> Result<Relay, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Get current relay
     let current_relay = get_relay(pool, relay_id)?;
-    
+
     // Toggle enabled status
     diesel::update(relays::table.find(relay_id))
         .set((
@@ -621,10 +617,10 @@ pub fn delete_relocated(pool: &DbPool, relocated_id: i32) -> Result<usize, Error
 
 pub fn toggle_relocated_enabled(pool: &DbPool, relocated_id: i32) -> Result<Relocated, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Get current relocated
     let current_relocated = get_relocated_by_id(pool, relocated_id)?;
-    
+
     // Toggle enabled status
     diesel::update(relocated::table.find(relocated_id))
         .set((
@@ -639,7 +635,7 @@ pub fn toggle_relocated_enabled(pool: &DbPool, relocated_id: i32) -> Result<Relo
 // Catch-all report functions
 pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Get all domains that have catch-all aliases (@domain.com)
     let catch_all_aliases = aliases::table
         .filter(aliases::mail.like("@%"))
@@ -651,7 +647,7 @@ pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error>
 
     for catch_all_alias in catch_all_aliases {
         let domain = catch_all_alias.domain();
-        
+
         // Get all other aliases for this domain (excluding the catch-all)
         let required_aliases = aliases::table
             .filter(aliases::mail.like(format!("%@{}", domain)))
@@ -683,7 +679,7 @@ pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error>
 // Enhanced alias report functions
 pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Load configuration
     let config = match crate::config::Config::load() {
         Ok(config) => config,
@@ -692,7 +688,7 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
             crate::config::Config::default()
         }
     };
-    
+
     // Get all domains
     let domains = get_domains(pool)?;
     let mut domains_with_catch_all = Vec::new();
@@ -732,9 +728,7 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
         // Find missing required aliases
         let existing_aliases: std::collections::HashSet<String> = domain_aliases
             .iter()
-            .map(|alias| {
-                alias.mail.split('@').next().unwrap_or("").to_string()
-            })
+            .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
             .collect();
 
         let missing_required_aliases: Vec<String> = domain_required_aliases
@@ -775,7 +769,7 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
 // Matrix report functions
 pub fn get_domain_alias_matrix_report(pool: &DbPool) -> Result<DomainAliasMatrixReport, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Load configuration
     let config = match crate::config::Config::load() {
         Ok(config) => config,
@@ -784,7 +778,7 @@ pub fn get_domain_alias_matrix_report(pool: &DbPool) -> Result<DomainAliasMatrix
             crate::config::Config::default()
         }
     };
-    
+
     // Get all domains
     let domains = get_domains(pool)?;
     let mut matrix_rows = Vec::new();
@@ -852,9 +846,12 @@ pub fn get_domain_alias_matrix_report(pool: &DbPool) -> Result<DomainAliasMatrix
 }
 
 // Get alias report for a specific domain
-pub fn get_domain_alias_report(pool: &DbPool, domain_name: &str) -> Result<DomainAliasReport, Error> {
+pub fn get_domain_alias_report(
+    pool: &DbPool,
+    domain_name: &str,
+) -> Result<DomainAliasReport, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     // Load configuration
     let config = match crate::config::Config::load() {
         Ok(config) => config,
@@ -863,7 +860,7 @@ pub fn get_domain_alias_report(pool: &DbPool, domain_name: &str) -> Result<Domai
             crate::config::Config::default()
         }
     };
-    
+
     // Check if this domain has a catch-all alias
     let catch_all_alias = aliases::table
         .filter(aliases::mail.eq(format!("@{}", domain_name)))
@@ -897,9 +894,7 @@ pub fn get_domain_alias_report(pool: &DbPool, domain_name: &str) -> Result<Domai
     // Find missing required aliases
     let existing_aliases: std::collections::HashSet<String> = domain_aliases
         .iter()
-        .map(|alias| {
-            alias.mail.split('@').next().unwrap_or("").to_string()
-        })
+        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
         .collect();
 
     let mut missing_required_aliases: Vec<String> = domain_required_aliases
@@ -978,7 +973,7 @@ pub fn update_client(
     client_data: ClientForm,
 ) -> Result<Client, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     diesel::update(clients::table.find(client_id))
         .set((
             clients::client.eq(client_data.client),
@@ -1024,7 +1019,11 @@ pub fn toggle_client_enabled(pool: &DbPool, client_id: i32) -> Result<Client, Er
 }
 
 // Function to create multiple aliases for a domain
-pub fn create_domain_aliases(pool: &DbPool, domain: &str, aliases: Vec<(String, String)>) -> Result<Vec<Alias>, Error> {
+pub fn create_domain_aliases(
+    pool: &DbPool,
+    domain: &str,
+    aliases: Vec<(String, String)>,
+) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
     let now = Utc::now().naive_utc();
     let mut created_aliases = Vec::new();
@@ -1059,7 +1058,7 @@ pub fn create_domain_aliases(pool: &DbPool, domain: &str, aliases: Vec<(String, 
                 .filter(aliases::mail.eq(&mail))
                 .select(Alias::as_select())
                 .first::<Alias>(&mut conn)?;
-            
+
             created_aliases.push(created_alias);
         }
     }
@@ -1077,7 +1076,11 @@ pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Al
 }
 
 // Paginated functions
-pub fn get_domains_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Domain>, Error> {
+pub fn get_domains_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<Domain>, Error> {
     let mut conn = pool.get().map_err(|e| {
         tracing::error!("Failed to get connection from pool: {:?}", e);
         Error::DatabaseError(
@@ -1085,12 +1088,12 @@ pub fn get_domains_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<
             Box::new(e.to_string()),
         )
     })?;
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = domains::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let domains = domains::table
         .select(Domain::as_select())
@@ -1098,18 +1101,22 @@ pub fn get_domains_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<
         .limit(per_page)
         .offset(offset)
         .load::<Domain>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(domains, total_count, page, per_page))
 }
 
-pub fn get_aliases_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Alias>, Error> {
+pub fn get_aliases_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<Alias>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = aliases::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let aliases = aliases::table
         .select(Alias::as_select())
@@ -1117,18 +1124,22 @@ pub fn get_aliases_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<
         .limit(per_page)
         .offset(offset)
         .load::<Alias>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(aliases, total_count, page, per_page))
 }
 
-pub fn get_users_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<User>, Error> {
+pub fn get_users_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<User>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = users::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let users = users::table
         .select(User::as_select())
@@ -1136,18 +1147,22 @@ pub fn get_users_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<Pa
         .limit(per_page)
         .offset(offset)
         .load::<User>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(users, total_count, page, per_page))
 }
 
-pub fn get_clients_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Client>, Error> {
+pub fn get_clients_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<Client>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = clients::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let clients = clients::table
         .select(Client::as_select())
@@ -1155,18 +1170,22 @@ pub fn get_clients_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<
         .limit(per_page)
         .offset(offset)
         .load::<Client>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(clients, total_count, page, per_page))
 }
 
-pub fn get_relays_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Relay>, Error> {
+pub fn get_relays_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<Relay>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = relays::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let relays = relays::table
         .select(Relay::as_select())
@@ -1174,18 +1193,22 @@ pub fn get_relays_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<P
         .limit(per_page)
         .offset(offset)
         .load::<Relay>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(relays, total_count, page, per_page))
 }
 
-pub fn get_relocated_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Relocated>, Error> {
+pub fn get_relocated_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<Relocated>, Error> {
     let mut conn = pool.get().unwrap();
-    
+
     let offset = (page - 1) * per_page;
-    
+
     // Get total count
     let total_count: i64 = relocated::table.count().get_result(&mut conn)?;
-    
+
     // Get paginated results
     let relocated = relocated::table
         .select(Relocated::as_select())
@@ -1193,6 +1216,6 @@ pub fn get_relocated_paginated(pool: &DbPool, page: i64, per_page: i64) -> Resul
         .limit(per_page)
         .offset(offset)
         .load::<Relocated>(&mut conn)?;
-    
+
     Ok(PaginatedResult::new(relocated, total_count, page, per_page))
 }

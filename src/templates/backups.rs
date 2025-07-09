@@ -1,8 +1,6 @@
 use crate::models::*;
 use askama::Template;
 
-
-
 #[derive(Template)]
 #[template(path = "backups/show.html")]
 pub struct BackupShowTemplate {
@@ -47,4 +45,4 @@ pub struct BackupFormTemplate {
     pub backup: Option<Backup>,
     pub form: BackupForm,
     pub error: Option<String>,
-} 
+}

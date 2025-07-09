@@ -121,8 +121,7 @@ mod tests {
 
     #[test]
     fn test_alias_form_deserialization() {
-        let form_data =
-            "mail=test%40example.com&destination=user%40example.com&enabled=on";
+        let form_data = "mail=test%40example.com&destination=user%40example.com&enabled=on";
         let form: AliasForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.mail, "test@example.com");
@@ -235,7 +234,10 @@ mod tests {
         };
 
         assert_eq!(new_backup.domain, "backup.test.com");
-        assert_eq!(new_backup.transport, Some("smtp:relay.test.com".to_string()));
+        assert_eq!(
+            new_backup.transport,
+            Some("smtp:relay.test.com".to_string())
+        );
         assert_eq!(new_backup.enabled, true);
     }
 

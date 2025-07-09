@@ -1,9 +1,9 @@
 use crate::templates::aliases::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState, i18n::get_translation};
+use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     http::HeaderMap,
     response::Html,
     Form,
@@ -21,7 +21,7 @@ pub struct AliasPrefill {
 }
 
 pub async fn list(
-    State(state): State<AppState>, 
+    State(state): State<AppState>,
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
@@ -41,9 +41,12 @@ pub async fn list(
     let description = get_translation(&state, &locale, "aliases-description").await;
     let add_alias = get_translation(&state, &locale, "aliases-add").await;
     let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
-    let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-    let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
-    let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
+    let table_header_destination =
+        get_translation(&state, &locale, "aliases-table-header-destination").await;
+    let table_header_enabled =
+        get_translation(&state, &locale, "aliases-table-header-enabled").await;
+    let table_header_actions =
+        get_translation(&state, &locale, "aliases-table-header-actions").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
     let action_view = get_translation(&state, &locale, "action-view").await;
@@ -52,9 +55,17 @@ pub async fn list(
     let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
     let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
 
-    let paginated = PaginatedResult::new(paginated_aliases.items.clone(), paginated_aliases.total_count, paginated_aliases.current_page, paginated_aliases.per_page);
+    let paginated = PaginatedResult::new(
+        paginated_aliases.items.clone(),
+        paginated_aliases.total_count,
+        paginated_aliases.current_page,
+        paginated_aliases.per_page,
+    );
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
     let content_template = AliasesListTemplate {
         title: &title,
         aliases: &paginated_aliases.items,
@@ -77,17 +88,18 @@ pub async fn list(
     };
     let content = content_template.render().unwrap();
 
-    let template = BaseTemplate::with_i18n(
-        title,
-        content,
-        &state,
-        &locale,
-    ).await.unwrap();
-    
+    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
+        .await
+        .unwrap();
+
     Html(template.render().unwrap())
 }
 
-pub async fn new(State(state): State<AppState>, headers: HeaderMap, Query(prefill): Query<AliasPrefill>) -> Html<String> {
+pub async fn new(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(prefill): Query<AliasPrefill>,
+) -> Html<String> {
     // Check if we have a return URL from the referer header
     let return_url = headers
         .get("referer")
@@ -115,7 +127,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap, Query(prefil
     let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
     let destination = get_translation(&state, &locale, "aliases-destination").await;
     let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
-    let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
+    let placeholder_destination =
+        get_translation(&state, &locale, "aliases-placeholder-destination").await;
     let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
     let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
     let active = get_translation(&state, &locale, "aliases-active").await;
@@ -156,8 +169,10 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap, Query(prefil
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -189,7 +204,8 @@ pub async fn show(
     let modified = get_translation(&state, &locale, "aliases-modified").await;
     let edit_alias_button = get_translation(&state, &locale, "aliases-edit-alias-button").await;
     let enable_alias_button = get_translation(&state, &locale, "aliases-enable-alias-button").await;
-    let disable_alias_button = get_translation(&state, &locale, "aliases-disable-alias-button").await;
+    let disable_alias_button =
+        get_translation(&state, &locale, "aliases-disable-alias-button").await;
     let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
     let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
 
@@ -224,8 +240,10 @@ pub async fn show(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -257,7 +275,8 @@ pub async fn edit(
     let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
     let destination = get_translation(&state, &locale, "aliases-destination").await;
     let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
-    let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
+    let placeholder_destination =
+        get_translation(&state, &locale, "aliases-placeholder-destination").await;
     let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
     let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
     let active = get_translation(&state, &locale, "aliases-active").await;
@@ -298,8 +317,10 @@ pub async fn edit(
             content,
             &state,
             &locale,
-        ).await.unwrap();
-        
+        )
+        .await
+        .unwrap();
+
         Html(template.render().unwrap())
     }
 }
@@ -315,7 +336,7 @@ pub async fn create(
         Ok(created_alias) => {
             // Extract domain from the created alias and redirect to domain show page
             let domain_name = created_alias.domain();
-            
+
             // Try to find the domain by name
             match db::get_domain_by_name(pool, &domain_name) {
                 Ok(domain) => {
@@ -327,29 +348,57 @@ pub async fn create(
                     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
                     let created = get_translation(&state, &locale, "domains-created").await;
                     let modified = get_translation(&state, &locale, "domains-modified").await;
-                    let edit_domain_button = get_translation(&state, &locale, "domains-edit-domain-button").await;
-                    let enable_domain = get_translation(&state, &locale, "domains-enable-domain").await;
-                    let disable_domain = get_translation(&state, &locale, "domains-disable-domain").await;
-                    let delete_domain = get_translation(&state, &locale, "domains-delete-domain").await;
-                    let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
-                    let alias_report_title = get_translation(&state, &locale, "reports-alias-report-title").await;
-                    let alias_report_description = get_translation(&state, &locale, "reports-alias-report-description").await;
-                    let add_alias_button = get_translation(&state, &locale, "domains-add-alias-button").await;
-                    let missing_aliases_header = get_translation(&state, &locale, "reports-missing-aliases-header").await;
-                    let missing_required_alias_header = get_translation(&state, &locale, "reports-missing-required-alias-header").await;
-                    let missing_common_aliases_header = get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
-                    let add_missing_required_alias_button = get_translation(&state, &locale, "reports-add-missing-required-alias-button").await;
-                    let add_common_alias_button = get_translation(&state, &locale, "reports-add-common-alias-button").await;
-                    let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
-                    let add_catch_all_button = get_translation(&state, &locale, "reports-add-catch-all-button").await;
-                    let no_catch_all_message = get_translation(&state, &locale, "reports-no-catch-all-message").await;
-                    let destination_header = get_translation(&state, &locale, "reports-destination-header").await;
-                    let existing_aliases_header = get_translation(&state, &locale, "reports-existing-aliases-header").await;
-                    let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
+                    let edit_domain_button =
+                        get_translation(&state, &locale, "domains-edit-domain-button").await;
+                    let enable_domain =
+                        get_translation(&state, &locale, "domains-enable-domain").await;
+                    let disable_domain =
+                        get_translation(&state, &locale, "domains-disable-domain").await;
+                    let delete_domain =
+                        get_translation(&state, &locale, "domains-delete-domain").await;
+                    let delete_confirm =
+                        get_translation(&state, &locale, "domains-delete-confirm").await;
+                    let alias_report_title =
+                        get_translation(&state, &locale, "reports-alias-report-title").await;
+                    let alias_report_description =
+                        get_translation(&state, &locale, "reports-alias-report-description").await;
+                    let add_alias_button =
+                        get_translation(&state, &locale, "domains-add-alias-button").await;
+                    let missing_aliases_header =
+                        get_translation(&state, &locale, "reports-missing-aliases-header").await;
+                    let missing_required_alias_header =
+                        get_translation(&state, &locale, "reports-missing-required-alias-header")
+                            .await;
+                    let missing_common_aliases_header =
+                        get_translation(&state, &locale, "reports-missing-common-aliases-header")
+                            .await;
+                    let add_missing_required_alias_button = get_translation(
+                        &state,
+                        &locale,
+                        "reports-add-missing-required-alias-button",
+                    )
+                    .await;
+                    let add_common_alias_button =
+                        get_translation(&state, &locale, "reports-add-common-alias-button").await;
+                    let catch_all_header =
+                        get_translation(&state, &locale, "reports-catch-all-header").await;
+                    let add_catch_all_button =
+                        get_translation(&state, &locale, "reports-add-catch-all-button").await;
+                    let no_catch_all_message =
+                        get_translation(&state, &locale, "reports-no-catch-all-message").await;
+                    let destination_header =
+                        get_translation(&state, &locale, "reports-destination-header").await;
+                    let existing_aliases_header =
+                        get_translation(&state, &locale, "reports-existing-aliases-header").await;
+                    let no_required_aliases =
+                        get_translation(&state, &locale, "reports-no-required-aliases").await;
                     let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
-                    let enabled_header = get_translation(&state, &locale, "reports-enabled-header").await;
-                    let actions_header = get_translation(&state, &locale, "reports-actions-header").await;
-                    let no_missing_aliases = get_translation(&state, &locale, "reports-no-missing-aliases").await;
+                    let enabled_header =
+                        get_translation(&state, &locale, "reports-enabled-header").await;
+                    let actions_header =
+                        get_translation(&state, &locale, "reports-actions-header").await;
+                    let no_missing_aliases =
+                        get_translation(&state, &locale, "reports-no-missing-aliases").await;
 
                     // Get alias report for the domain
                     let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
@@ -369,18 +418,26 @@ pub async fn create(
                         }
                     };
 
-                    let view_edit_settings = get_translation(&state, &locale, "domains-view-edit-settings").await;
-                    let back_to_domains = get_translation(&state, &locale, "domains-back-to-domains").await;
-                    let domain_information = get_translation(&state, &locale, "domains-domain-information").await;
-                    let domain_details = get_translation(&state, &locale, "domains-domain-details").await;
+                    let view_edit_settings =
+                        get_translation(&state, &locale, "domains-view-edit-settings").await;
+                    let back_to_domains =
+                        get_translation(&state, &locale, "domains-back-to-domains").await;
+                    let domain_information =
+                        get_translation(&state, &locale, "domains-domain-information").await;
+                    let domain_details =
+                        get_translation(&state, &locale, "domains-domain-details").await;
                     let domain_name = get_translation(&state, &locale, "domains-domain-name").await;
                     let transport = get_translation(&state, &locale, "domains-transport").await;
-                    let required_aliases_header = get_translation(&state, &locale, "reports-required-aliases-header").await;
-                    let status_header = get_translation(&state, &locale, "reports-status-header").await;
+                    let required_aliases_header =
+                        get_translation(&state, &locale, "reports-required-aliases-header").await;
+                    let status_header =
+                        get_translation(&state, &locale, "reports-status-header").await;
 
                     let action_view = get_translation(&state, &locale, "action-view").await;
-                    let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
-                    let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
+                    let enable_alias =
+                        get_translation(&state, &locale, "aliases-enable-alias").await;
+                    let disable_alias =
+                        get_translation(&state, &locale, "aliases-disable-alias").await;
 
                     let content_template = crate::templates::domains::DomainShowTemplate {
                         title: &title,
@@ -438,7 +495,9 @@ pub async fn create(
                             content,
                             &state,
                             &locale,
-                        ).await.unwrap();
+                        )
+                        .await
+                        .unwrap();
                         Html(template.render().unwrap())
                     }
                 }
@@ -456,20 +515,30 @@ pub async fn create(
                     let title = get_translation(&state, &locale, "aliases-title").await;
                     let description = get_translation(&state, &locale, "aliases-description").await;
                     let add_alias = get_translation(&state, &locale, "aliases-add").await;
-                    let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
-                    let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-                    let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
-                    let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
+                    let table_header_mail =
+                        get_translation(&state, &locale, "aliases-table-header-mail").await;
+                    let table_header_destination =
+                        get_translation(&state, &locale, "aliases-table-header-destination").await;
+                    let table_header_enabled =
+                        get_translation(&state, &locale, "aliases-table-header-enabled").await;
+                    let table_header_actions =
+                        get_translation(&state, &locale, "aliases-table-header-actions").await;
                     let status_active = get_translation(&state, &locale, "status-active").await;
                     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
                     let action_view = get_translation(&state, &locale, "action-view").await;
-                    let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
-                    let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
+                    let enable_alias =
+                        get_translation(&state, &locale, "aliases-enable-alias").await;
+                    let disable_alias =
+                        get_translation(&state, &locale, "aliases-disable-alias").await;
                     let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
-                    let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
+                    let empty_description =
+                        get_translation(&state, &locale, "aliases-empty-description").await;
                     let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
                     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-                    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+                    let max_item = std::cmp::min(
+                        paginated.current_page * paginated.per_page,
+                        paginated.total_count,
+                    );
                     let content_template = AliasesListTemplate {
                         title: &title,
                         aliases: &aliases,
@@ -501,7 +570,9 @@ pub async fn create(
                             content,
                             &state,
                             &locale,
-                        ).await.unwrap();
+                        )
+                        .await
+                        .unwrap();
                         Html(template.render().unwrap())
                     }
                 }
@@ -509,7 +580,7 @@ pub async fn create(
         }
         Err(e) => {
             eprintln!("Error creating alias: {:?}", e);
-            
+
             // Handle specific database errors with user-friendly messages
             let error_message = match e {
                 diesel::result::Error::DatabaseError(
@@ -531,15 +602,18 @@ pub async fn create(
             let form_error = get_translation(&state, &locale, "aliases-form-error").await;
             let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
             let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
-            let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
+            let placeholder_mail =
+                get_translation(&state, &locale, "aliases-placeholder-mail").await;
+            let placeholder_destination =
+                get_translation(&state, &locale, "aliases-placeholder-destination").await;
             let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
-            let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
+            let tooltip_destination =
+                get_translation(&state, &locale, "aliases-tooltip-destination").await;
             let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
             let cancel = get_translation(&state, &locale, "aliases-cancel").await;
             let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
             let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
-            
+
             let active = get_translation(&state, &locale, "aliases-active").await;
             let content_template = AliasFormTemplate {
                 title: &title,
@@ -573,7 +647,9 @@ pub async fn create(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -594,12 +670,14 @@ pub async fn update(
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
-            
+
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "aliases-show-title").await;
-            let view_edit_settings = get_translation(&state, &locale, "aliases-view-edit-settings").await;
+            let view_edit_settings =
+                get_translation(&state, &locale, "aliases-view-edit-settings").await;
             let back_to_aliases = get_translation(&state, &locale, "aliases-back-to-aliases").await;
-            let alias_information = get_translation(&state, &locale, "aliases-alias-information").await;
+            let alias_information =
+                get_translation(&state, &locale, "aliases-alias-information").await;
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
@@ -608,12 +686,15 @@ pub async fn update(
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let created = get_translation(&state, &locale, "aliases-created").await;
             let modified = get_translation(&state, &locale, "aliases-modified").await;
-            let edit_alias_button = get_translation(&state, &locale, "aliases-edit-alias-button").await;
-            let enable_alias_button = get_translation(&state, &locale, "aliases-enable-alias-button").await;
-            let disable_alias_button = get_translation(&state, &locale, "aliases-disable-alias-button").await;
+            let edit_alias_button =
+                get_translation(&state, &locale, "aliases-edit-alias-button").await;
+            let enable_alias_button =
+                get_translation(&state, &locale, "aliases-enable-alias-button").await;
+            let disable_alias_button =
+                get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
-            
+
             let content_template = AliasShowTemplate {
                 title: &title,
                 alias,
@@ -645,13 +726,15 @@ pub async fn update(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
         Err(e) => {
             eprintln!("Error updating alias: {:?}", e);
-            
+
             // Handle specific database errors with user-friendly messages
             let error_message = match e {
                 diesel::result::Error::DatabaseError(
@@ -683,15 +766,18 @@ pub async fn update(
             let form_error = get_translation(&state, &locale, "aliases-form-error").await;
             let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
             let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
-            let placeholder_destination = get_translation(&state, &locale, "aliases-placeholder-destination").await;
+            let placeholder_mail =
+                get_translation(&state, &locale, "aliases-placeholder-mail").await;
+            let placeholder_destination =
+                get_translation(&state, &locale, "aliases-placeholder-destination").await;
             let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
-            let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
+            let tooltip_destination =
+                get_translation(&state, &locale, "aliases-tooltip-destination").await;
             let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
             let cancel = get_translation(&state, &locale, "aliases-cancel").await;
             let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
             let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
-            
+
             let active = get_translation(&state, &locale, "aliases-active").await;
             let content_template = AliasFormTemplate {
                 title: &title,
@@ -725,7 +811,9 @@ pub async fn update(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -752,20 +840,28 @@ pub async fn delete(
             let title = get_translation(&state, &locale, "aliases-title").await;
             let description = get_translation(&state, &locale, "aliases-description").await;
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
-            let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
-            let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
-            let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
+            let table_header_mail =
+                get_translation(&state, &locale, "aliases-table-header-mail").await;
+            let table_header_destination =
+                get_translation(&state, &locale, "aliases-table-header-destination").await;
+            let table_header_enabled =
+                get_translation(&state, &locale, "aliases-table-header-enabled").await;
+            let table_header_actions =
+                get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let action_view = get_translation(&state, &locale, "action-view").await;
             let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
             let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
             let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
-            let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
+            let empty_description =
+                get_translation(&state, &locale, "aliases-empty-description").await;
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
             let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let max_item = std::cmp::min(
+                paginated.current_page * paginated.per_page,
+                paginated.total_count,
+            );
             let content_template = AliasesListTemplate {
                 title: &title,
                 aliases: &aliases,
@@ -797,7 +893,9 @@ pub async fn delete(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -818,12 +916,14 @@ pub async fn toggle_enabled(
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
-            
+
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "aliases-show-title").await;
-            let view_edit_settings = get_translation(&state, &locale, "aliases-view-edit-settings").await;
+            let view_edit_settings =
+                get_translation(&state, &locale, "aliases-view-edit-settings").await;
             let back_to_aliases = get_translation(&state, &locale, "aliases-back-to-aliases").await;
-            let alias_information = get_translation(&state, &locale, "aliases-alias-information").await;
+            let alias_information =
+                get_translation(&state, &locale, "aliases-alias-information").await;
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
@@ -832,12 +932,15 @@ pub async fn toggle_enabled(
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let created = get_translation(&state, &locale, "aliases-created").await;
             let modified = get_translation(&state, &locale, "aliases-modified").await;
-            let edit_alias_button = get_translation(&state, &locale, "aliases-edit-alias-button").await;
-            let enable_alias_button = get_translation(&state, &locale, "aliases-enable-alias-button").await;
-            let disable_alias_button = get_translation(&state, &locale, "aliases-disable-alias-button").await;
+            let edit_alias_button =
+                get_translation(&state, &locale, "aliases-edit-alias-button").await;
+            let enable_alias_button =
+                get_translation(&state, &locale, "aliases-enable-alias-button").await;
+            let disable_alias_button =
+                get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
-            
+
             let content_template = AliasShowTemplate {
                 title: &title,
                 alias,
@@ -868,7 +971,9 @@ pub async fn toggle_enabled(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -895,20 +1000,28 @@ pub async fn toggle_enabled_list(
             let title = get_translation(&state, &locale, "aliases-title").await;
             let description = get_translation(&state, &locale, "aliases-description").await;
             let add_alias = get_translation(&state, &locale, "aliases-add").await;
-            let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
-            let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
-            let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
+            let table_header_mail =
+                get_translation(&state, &locale, "aliases-table-header-mail").await;
+            let table_header_destination =
+                get_translation(&state, &locale, "aliases-table-header-destination").await;
+            let table_header_enabled =
+                get_translation(&state, &locale, "aliases-table-header-enabled").await;
+            let table_header_actions =
+                get_translation(&state, &locale, "aliases-table-header-actions").await;
             let status_active = get_translation(&state, &locale, "status-active").await;
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let action_view = get_translation(&state, &locale, "action-view").await;
             let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
             let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
             let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
-            let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
+            let empty_description =
+                get_translation(&state, &locale, "aliases-empty-description").await;
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
             let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let max_item = std::cmp::min(
+                paginated.current_page * paginated.per_page,
+                paginated.total_count,
+            );
             let content_template = AliasesListTemplate {
                 title: &title,
                 aliases: &aliases,
@@ -940,7 +1053,9 @@ pub async fn toggle_enabled_list(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -960,12 +1075,14 @@ pub async fn toggle_enabled_show(
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
-            
+
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "aliases-show-title").await;
-            let view_edit_settings = get_translation(&state, &locale, "aliases-view-edit-settings").await;
+            let view_edit_settings =
+                get_translation(&state, &locale, "aliases-view-edit-settings").await;
             let back_to_aliases = get_translation(&state, &locale, "aliases-back-to-aliases").await;
-            let alias_information = get_translation(&state, &locale, "aliases-alias-information").await;
+            let alias_information =
+                get_translation(&state, &locale, "aliases-alias-information").await;
             let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
             let mail = get_translation(&state, &locale, "aliases-mail").await;
             let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
@@ -974,12 +1091,15 @@ pub async fn toggle_enabled_show(
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let created = get_translation(&state, &locale, "aliases-created").await;
             let modified = get_translation(&state, &locale, "aliases-modified").await;
-            let edit_alias_button = get_translation(&state, &locale, "aliases-edit-alias-button").await;
-            let enable_alias_button = get_translation(&state, &locale, "aliases-enable-alias-button").await;
-            let disable_alias_button = get_translation(&state, &locale, "aliases-disable-alias-button").await;
+            let edit_alias_button =
+                get_translation(&state, &locale, "aliases-edit-alias-button").await;
+            let enable_alias_button =
+                get_translation(&state, &locale, "aliases-enable-alias-button").await;
+            let disable_alias_button =
+                get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
-            
+
             let content_template = AliasShowTemplate {
                 title: &title,
                 alias,
@@ -1011,7 +1131,9 @@ pub async fn toggle_enabled_show(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }
@@ -1025,7 +1147,7 @@ pub async fn toggle_enabled_domain_show(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    
+
     // First toggle the alias
     match db::toggle_alias_enabled(pool, id) {
         Ok(_) => {
@@ -1034,22 +1156,24 @@ pub async fn toggle_enabled_domain_show(
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
-            
+
             // Extract domain from alias mail (e.g., "user@domain.com" -> "domain.com")
             let domain_name = alias.mail.split('@').last().unwrap_or("");
-            
+
             // Find the domain by name
             let domain = match db::get_domain_by_name(pool, domain_name) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
-            
+
             // Now render the domain show page with updated alias data
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "domains-title").await;
-            let view_edit_settings = get_translation(&state, &locale, "domains-view-edit-settings").await;
+            let view_edit_settings =
+                get_translation(&state, &locale, "domains-view-edit-settings").await;
             let back_to_domains = get_translation(&state, &locale, "domains-back-to-domains").await;
-            let domain_information = get_translation(&state, &locale, "domains-domain-information").await;
+            let domain_information =
+                get_translation(&state, &locale, "domains-domain-information").await;
             let domain_details = get_translation(&state, &locale, "domains-domain-details").await;
             let domain_name_label = get_translation(&state, &locale, "domains-domain-name").await;
             let transport = get_translation(&state, &locale, "domains-transport").await;
@@ -1058,45 +1182,62 @@ pub async fn toggle_enabled_domain_show(
             let status_inactive = get_translation(&state, &locale, "status-inactive").await;
             let created = get_translation(&state, &locale, "domains-created").await;
             let modified = get_translation(&state, &locale, "domains-modified").await;
-            let edit_domain_button = get_translation(&state, &locale, "domains-edit-domain-button").await;
+            let edit_domain_button =
+                get_translation(&state, &locale, "domains-edit-domain-button").await;
             let enable_domain = get_translation(&state, &locale, "domains-enable-domain").await;
             let disable_domain = get_translation(&state, &locale, "domains-disable-domain").await;
             let delete_domain = get_translation(&state, &locale, "domains-delete-domain").await;
             let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
-            
+
             // Get alias report for the domain
             let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
                 Ok(report) => Some(report),
                 Err(_) => None,
             };
-            
+
             // Get existing aliases for the domain
             let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
                 Ok(aliases) => aliases,
                 Err(_) => vec![],
             };
-            
-            let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
-            let destination_header = get_translation(&state, &locale, "reports-destination-header").await;
-            let required_aliases_header = get_translation(&state, &locale, "reports-required-aliases-header").await;
-            let missing_aliases_header = get_translation(&state, &locale, "reports-missing-aliases-header").await;
-            let missing_required_alias_header = get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
-            let missing_common_aliases_header = get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
+
+            let catch_all_header =
+                get_translation(&state, &locale, "reports-catch-all-header").await;
+            let destination_header =
+                get_translation(&state, &locale, "reports-destination-header").await;
+            let required_aliases_header =
+                get_translation(&state, &locale, "reports-required-aliases-header").await;
+            let missing_aliases_header =
+                get_translation(&state, &locale, "reports-missing-aliases-header").await;
+            let missing_required_alias_header =
+                get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
+            let missing_common_aliases_header =
+                get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
             let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
             let status_header = get_translation(&state, &locale, "reports-status-header").await;
             let enabled_header = get_translation(&state, &locale, "reports-enabled-header").await;
             let actions_header = get_translation(&state, &locale, "reports-actions-header").await;
-            let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
-            let no_missing_aliases = get_translation(&state, &locale, "reports-no-missing-aliases").await;
-            let alias_report_title = get_translation(&state, &locale, "domains-alias-report-title").await;
-            let alias_report_description = get_translation(&state, &locale, "domains-alias-report-description").await;
-            let existing_aliases_header = get_translation(&state, &locale, "domains-existing-aliases-header").await;
-            let add_missing_required_alias_button = get_translation(&state, &locale, "reports-add-missing-required-alias-button").await;
-            let add_common_alias_button = get_translation(&state, &locale, "reports-add-common-alias-button").await;
-            let add_catch_all_button = get_translation(&state, &locale, "reports-add-catch-all-button").await;
-            let add_alias_button = get_translation(&state, &locale, "domains-add-alias-button").await;
-            let no_catch_all_message = get_translation(&state, &locale, "domains-no-catch-all-message").await;
-            
+            let no_required_aliases =
+                get_translation(&state, &locale, "reports-no-required-aliases").await;
+            let no_missing_aliases =
+                get_translation(&state, &locale, "reports-no-missing-aliases").await;
+            let alias_report_title =
+                get_translation(&state, &locale, "domains-alias-report-title").await;
+            let alias_report_description =
+                get_translation(&state, &locale, "domains-alias-report-description").await;
+            let existing_aliases_header =
+                get_translation(&state, &locale, "domains-existing-aliases-header").await;
+            let add_missing_required_alias_button =
+                get_translation(&state, &locale, "reports-add-missing-required-alias-button").await;
+            let add_common_alias_button =
+                get_translation(&state, &locale, "reports-add-common-alias-button").await;
+            let add_catch_all_button =
+                get_translation(&state, &locale, "reports-add-catch-all-button").await;
+            let add_alias_button =
+                get_translation(&state, &locale, "domains-add-alias-button").await;
+            let no_catch_all_message =
+                get_translation(&state, &locale, "domains-no-catch-all-message").await;
+
             let action_view = get_translation(&state, &locale, "action-view").await;
             let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
             let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
@@ -1157,7 +1298,9 @@ pub async fn toggle_enabled_domain_show(
                     content,
                     &state,
                     &locale,
-                ).await.unwrap();
+                )
+                .await
+                .unwrap();
                 Html(template.render().unwrap())
             }
         }

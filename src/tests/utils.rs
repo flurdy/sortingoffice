@@ -26,7 +26,11 @@ mod tests {
         };
 
         assert!(!valid_domain_form.domain.is_empty());
-        assert!(valid_domain_form.enabled, "Failed for input: {}", valid_domain_form.domain);
+        assert!(
+            valid_domain_form.enabled,
+            "Failed for input: {}",
+            valid_domain_form.domain
+        );
 
         // Test valid user form
         let valid_user_form = UserForm {
@@ -314,24 +318,15 @@ mod tests {
         let valid_ids = vec!["user", "user123", "user-name", "user_name", "user.name"];
 
         for id in valid_ids {
-            assert!(
-                !id.is_empty(),
-                "Id should not be empty: {}",
-                id
-            );
-            assert!(
-                id.len() <= 64,
-                "Id should not be too long: {}",
-                id
-            );
+            assert!(!id.is_empty(), "Id should not be empty: {}", id);
+            assert!(id.len() <= 64, "Id should not be too long: {}", id);
             // Add more specific validation rules as needed
         }
 
         // Test invalid ids
         let long_id = "a".repeat(65);
         let invalid_ids = vec![
-            "",
-            &long_id, // Too long
+            "", &long_id, // Too long
         ];
 
         for id in invalid_ids {

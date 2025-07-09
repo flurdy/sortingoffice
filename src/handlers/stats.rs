@@ -1,8 +1,8 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::stats::StatsTemplate;
-use crate::{db, AppState, i18n::get_translation};
+use crate::{db, i18n::get_translation, AppState};
 use askama::Template;
-use axum::{extract::State, response::Html, http::HeaderMap};
+use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
@@ -43,8 +43,10 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let table_header_domain = get_translation(&state, &locale, "stats-table-header-domain").await;
     let table_header_users = get_translation(&state, &locale, "stats-table-header-users").await;
     let table_header_aliases = get_translation(&state, &locale, "stats-table-header-aliases").await;
-    let table_header_total_quota = get_translation(&state, &locale, "stats-table-header-total-quota").await;
-    let table_header_used_quota = get_translation(&state, &locale, "stats-table-header-used-quota").await;
+    let table_header_total_quota =
+        get_translation(&state, &locale, "stats-table-header-total-quota").await;
+    let table_header_used_quota =
+        get_translation(&state, &locale, "stats-table-header-used-quota").await;
 
     let content_template = StatsTemplate {
         title: &title,
@@ -73,7 +75,9 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         content,
         &state,
         &locale,
-    ).await.unwrap();
-    
+    )
+    .await
+    .unwrap();
+
     Html(template.render().unwrap())
 }

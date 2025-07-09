@@ -1,12 +1,12 @@
 use crate::templates::about::AboutTemplate;
 use crate::templates::layout::BaseTemplate;
-use crate::{AppState, i18n::get_translation};
+use crate::{i18n::get_translation, AppState};
 use askama::Template;
-use axum::{extract::State, response::Html, http::HeaderMap};
+use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    
+
     let content_template = AboutTemplate {
         title: &get_translation(&state, &locale, "about-title").await,
         subtitle: &get_translation(&state, &locale, "about-subtitle").await,
@@ -14,19 +14,76 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         what_is_p1: &get_translation(&state, &locale, "about-what-is-p1").await,
         what_is_p2: &get_translation(&state, &locale, "about-what-is-p2").await,
         features_title: &get_translation(&state, &locale, "about-features-title").await,
-        feature_domain_management: &get_translation(&state, &locale, "about-feature-domain-management").await,
-        feature_domain_management_desc: &get_translation(&state, &locale, "about-feature-domain-management-desc").await,
-        feature_user_management: &get_translation(&state, &locale, "about-feature-user-management").await,
-        feature_user_management_desc: &get_translation(&state, &locale, "about-feature-user-management-desc").await,
-        feature_alias_management: &get_translation(&state, &locale, "about-feature-alias-management").await,
-        feature_alias_management_desc: &get_translation(&state, &locale, "about-feature-alias-management-desc").await,
-        feature_backup_configuration: &get_translation(&state, &locale, "about-feature-backup-configuration").await,
-        feature_backup_configuration_desc: &get_translation(&state, &locale, "about-feature-backup-configuration-desc").await,
-        feature_statistics_dashboard: &get_translation(&state, &locale, "about-feature-statistics-dashboard").await,
-        feature_statistics_dashboard_desc: &get_translation(&state, &locale, "about-feature-statistics-dashboard-desc").await,
-        feature_dark_mode_support: &get_translation(&state, &locale, "about-feature-dark-mode-support").await,
-        feature_dark_mode_support_desc: &get_translation(&state, &locale, "about-feature-dark-mode-support-desc").await,
-        technology_stack_title: &get_translation(&state, &locale, "about-technology-stack-title").await,
+        feature_domain_management: &get_translation(
+            &state,
+            &locale,
+            "about-feature-domain-management",
+        )
+        .await,
+        feature_domain_management_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-domain-management-desc",
+        )
+        .await,
+        feature_user_management: &get_translation(&state, &locale, "about-feature-user-management")
+            .await,
+        feature_user_management_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-user-management-desc",
+        )
+        .await,
+        feature_alias_management: &get_translation(
+            &state,
+            &locale,
+            "about-feature-alias-management",
+        )
+        .await,
+        feature_alias_management_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-alias-management-desc",
+        )
+        .await,
+        feature_backup_configuration: &get_translation(
+            &state,
+            &locale,
+            "about-feature-backup-configuration",
+        )
+        .await,
+        feature_backup_configuration_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-backup-configuration-desc",
+        )
+        .await,
+        feature_statistics_dashboard: &get_translation(
+            &state,
+            &locale,
+            "about-feature-statistics-dashboard",
+        )
+        .await,
+        feature_statistics_dashboard_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-statistics-dashboard-desc",
+        )
+        .await,
+        feature_dark_mode_support: &get_translation(
+            &state,
+            &locale,
+            "about-feature-dark-mode-support",
+        )
+        .await,
+        feature_dark_mode_support_desc: &get_translation(
+            &state,
+            &locale,
+            "about-feature-dark-mode-support-desc",
+        )
+        .await,
+        technology_stack_title: &get_translation(&state, &locale, "about-technology-stack-title")
+            .await,
         backend: &get_translation(&state, &locale, "about-backend").await,
         backend_desc: &get_translation(&state, &locale, "about-backend-desc").await,
         database: &get_translation(&state, &locale, "about-database").await,
@@ -39,7 +96,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         mail_server_desc: &get_translation(&state, &locale, "about-mail-server-desc").await,
         deployment: &get_translation(&state, &locale, "about-deployment").await,
         deployment_desc: &get_translation(&state, &locale, "about-deployment-desc").await,
-        based_on_flurdy_title: &get_translation(&state, &locale, "about-based-on-flurdy-title").await,
+        based_on_flurdy_title: &get_translation(&state, &locale, "about-based-on-flurdy-title")
+            .await,
         based_on_flurdy_desc: &get_translation(&state, &locale, "about-based-on-flurdy-desc").await,
         read_guide: &get_translation(&state, &locale, "about-read-guide").await,
         github_project_title: &get_translation(&state, &locale, "about-github-project-title").await,
@@ -66,7 +124,9 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         content,
         &state,
         &locale,
-    ).await.unwrap();
-    
+    )
+    .await
+    .unwrap();
+
     Html(template.render().unwrap())
-} 
+}

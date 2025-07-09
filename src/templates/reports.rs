@@ -25,4 +25,4 @@ pub struct ReportsListTemplate<'a> {
     pub matrix_report_title: &'a str,
     pub matrix_report_description: &'a str,
     pub view_report: &'a str,
-} 
+}
