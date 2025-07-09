@@ -111,19 +111,12 @@ jobs:
           sleep 1
         done
 
-    - name: Run basic UI tests
+    - name: Run headless UI tests
       env:
         RUST_TEST_THREADS: 1
         RUST_LOG: info
       run: |
-        cargo test --test ui -- --nocapture --test-threads=1
-
-    - name: Run advanced UI tests
-      env:
-        RUST_TEST_THREADS: 1
-        RUST_LOG: info
-      run: |
-        cargo test --test ui_advanced -- --nocapture --test-threads=1
+        cargo test --test ui_headless -- --nocapture --test-threads=1
 
     - name: Upload test artifacts
       if: failure()

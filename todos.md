@@ -28,7 +28,11 @@
 
 ✅ Lets introduce proper authentication. The admin credentials will be stored as config. - IMPLEMENTED with role-based access control
 
-🔄 The resources lists should support paging, in case of a lot rows.
+✅ The resources lists should support paging, in case of a lot rows.
+
+✅ UI tests now have Selenium readiness checks and headless browser testing options - IMPLEMENTED
+
+✅ Cleaned up UI tests to use only headless testcontainers approach - IMPLEMENTED
 
 On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
 

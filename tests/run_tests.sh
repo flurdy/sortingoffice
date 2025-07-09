@@ -36,6 +36,7 @@ show_usage() {
     echo "Options:"
     echo "  unit              Run only unit tests (default)"
     echo "  ui                Run only UI tests"
+    echo "  ui-headless       Run only headless UI tests"
     echo "  all               Run all tests (unit + UI)"
     echo "  ui-setup          Setup UI test environment"
     echo "  help              Show this help message"
@@ -44,6 +45,7 @@ show_usage() {
     echo "  $0                # Run unit tests"
     echo "  $0 unit           # Run unit tests"
     echo "  $0 ui             # Run UI tests"
+    echo "  $0 ui-headless    # Run headless UI tests"
     echo "  $0 all            # Run all tests"
     echo "  $0 ui-setup       # Setup UI test environment"
 }
@@ -90,74 +92,57 @@ run_ui_tests() {
 
     print_success "Application is running on localhost:3000"
 
-    # Check if Selenium WebDriver is running
-    print_status "Checking if Selenium WebDriver is running..."
-    if ! curl -s http://localhost:4444/status > /dev/null 2>&1; then
-        print_warning "Selenium WebDriver is not running on localhost:4444"
-        print_status "Please start Selenium WebDriver first:"
-        echo "  $0 ui-setup"
-        echo "  # or manually:"
-        echo "  docker compose --profile test up -d selenium"
-        echo ""
-        print_status "Then run this script again."
-        exit 1
-    fi
-
-    print_success "Selenium WebDriver is running on localhost:4444"
-
     # Set environment variables
     export RUST_TEST_THREADS=1
     export RUST_LOG=info
 
-    # Check for --fail-fast flag
-    FAIL_FAST=0
-    for arg in "$@"; do
-        if [[ "$arg" == "--fail-fast" ]]; then
-            FAIL_FAST=1
-        fi
-    done
-
-    if [[ $FAIL_FAST -eq 1 ]]; then
-        print_status "Running UI tests in fail-fast mode..."
-        # Run both ui and ui_advanced test binaries in fail-fast mode
-        for BIN in ui ui_advanced; do
-            print_status "Listing tests for $BIN..."
-            TESTS=$(cargo test --test $BIN -- --list | grep '^test' | awk '{print $1}')
-            for TEST in $TESTS; do
-                print_status "Running test: $TEST ($BIN)"
-                cargo test --test $BIN -- --exact "$TEST" --nocapture --test-threads=1
-                STATUS=$?
-                if [[ $STATUS -ne 0 ]]; then
-                    print_error "[FAIL-FAST] Test $TEST in $BIN failed. Stopping."
-                    exit $STATUS
-                fi
-            done
-        done
-        print_success "All UI tests passed in fail-fast mode."
-        exit 0
-    fi
-
-    # Run the UI tests (normal mode)
-    print_status "Running basic UI tests..."
-    if cargo test --test ui -- --nocapture --test-threads=1; then
-        print_success "Basic UI tests passed!"
+    # Run the headless UI tests (now the only UI tests)
+    print_status "Running headless UI tests with testcontainers..."
+    if cargo test --test ui_headless -- --nocapture --test-threads=1; then
+        print_success "Headless UI tests passed!"
     else
-        print_error "Basic UI tests failed!"
-        exit 1
-    fi
-
-    echo ""
-
-    print_status "Running advanced UI tests..."
-    if cargo test --test ui_advanced -- --nocapture --test-threads=1; then
-        print_success "Advanced UI tests passed!"
-    else
-        print_error "Advanced UI tests failed!"
+        print_error "Headless UI tests failed!"
         exit 1
     fi
 
     echo ""
     print_success "All UI tests completed successfully! 🎉"
+}
+
+# Function to run headless UI tests
+run_headless_ui_tests() {
+    print_status "Running headless UI tests for sortingoffice..."
+    
+    # Check if the application is running
+    print_status "Checking if application is running..."
+    if ! curl -s http://localhost:3000/ > /dev/null 2>&1; then
+        print_warning "Application is not running on localhost:3000"
+        print_status "Please start the application first:"
+        echo "  cargo run"
+        echo "  # or"
+        echo "  docker-compose up"
+        echo ""
+        print_status "Then run this script again."
+        exit 1
+    fi
+
+    print_success "Application is running on localhost:3000"
+
+    # Set environment variables
+    export RUST_TEST_THREADS=1
+    export RUST_LOG=info
+
+    # Run the headless UI tests (uses testcontainers automatically)
+    print_status "Running headless UI tests with testcontainers..."
+    if cargo test --test ui_headless -- --nocapture --test-threads=1; then
+        print_success "Headless UI tests passed!"
+    else
+        print_error "Headless UI tests failed!"
+        exit 1
+    fi
+
+    echo ""
+    print_success "Headless UI tests completed successfully! 🎉"
 }
 
 # Function to setup UI test environment
@@ -207,6 +192,9 @@ case "${1:-unit}" in
         ;;
     "ui")
         run_ui_tests
+        ;;
+    "ui-headless")
+        run_headless_ui_tests
         ;;
     "all")
         run_all_tests

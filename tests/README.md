@@ -11,8 +11,7 @@ The test suite is organized into several modules:
 - **Handler Tests** (`src/tests/handlers.rs`): Tests for HTTP request handling and responses
 - **Utility Tests** (`src/tests/utils.rs`): Tests for helper functions and validation logic
 - **Integration Tests** (`src/tests/integration.rs`): End-to-end workflow tests
-- **UI Tests** (`tests/ui.rs`): Functional UI tests using Selenium WebDriver
-- **Advanced UI Tests** (`tests/ui_advanced.rs`): Complex UI workflows and interactions
+- **Headless UI Tests** (`tests/ui_headless.rs`): Comprehensive UI tests using testcontainers and thirtyfour
 
 ## Running Tests
 
@@ -20,7 +19,7 @@ The test suite is organized into several modules:
 
 1. **Database Setup**: Ensure you have a MySQL database available for testing
 2. **Environment Variables**: Set up your test environment
-3. **For UI Tests**: Docker and Chrome WebDriver (see UI Testing section)
+3. **For UI Tests**: Docker (for testcontainers) and the application running
 
 ### Quick Start
 
@@ -34,11 +33,11 @@ The test suite is organized into several modules:
 # Run only UI tests
 ./tests/run_tests.sh ui
 
+# Run only headless UI tests
+./tests/run_tests.sh ui-headless
+
 # Run all tests (unit + UI)
 ./tests/run_tests.sh all
-
-# Setup UI test environment
-./tests/run_tests.sh ui-setup
 
 # Show help
 ./tests/run_tests.sh help
@@ -58,8 +57,7 @@ cargo test utils
 cargo test integration
 
 # Run UI tests
-cargo test --test ui
-cargo test --test ui_advanced
+cargo test --test ui_headless
 
 # Run with verbose output
 cargo test --verbose
@@ -157,92 +155,66 @@ End-to-end workflow tests that combine multiple components:
 - `test_full_alias_workflow()`: Complete alias management workflow
 - `test_stats_integration()`: Statistics integration testing
 
-### 6. UI Tests (`tests/ui.rs`)
+### 6. Headless UI Tests (`tests/ui_headless.rs`)
 
-Functional UI tests using Selenium WebDriver:
+Comprehensive UI tests using testcontainers and thirtyfour:
 
 - **Page Loading**: Tests that all pages load correctly
-- **Navigation**: Tests menu navigation and breadcrumbs
+- **Authentication**: Tests login and session management
+- **Navigation**: Tests menu navigation and page transitions
 - **Responsive Design**: Tests different viewport sizes
+- **Form Validation**: Tests form submission and validation
 - **Error Handling**: Tests 404 pages and error states
 - **Accessibility**: Basic accessibility checks
+- **Performance**: Page load time measurements
+- **HTMX Compatibility**: Tests HTMX attribute presence
 - **Cross-browser Compatibility**: Tests different viewport sizes
 
 **Key Test Functions:**
-- `test_homepage_loads()`: Tests homepage loading and redirects
-- `test_dashboard_navigation()`: Tests dashboard functionality
-- `test_navigation_menu()`: Tests menu navigation
-- `test_responsive_design()`: Tests responsive behavior
-- `test_error_pages()`: Tests error page handling
-
-### 7. Advanced UI Tests (`tests/ui_advanced.rs`)
-
-Complex UI workflows and interactions:
-
-- **Form Workflows**: Complete user workflows for creating domains, users, and aliases
-- **Form Validation**: Tests client-side and server-side validation
-- **Table Features**: Sorting, pagination, and search functionality
-- **Modal Dialogs**: Tests confirmation dialogs and popups
-- **Performance**: Measures page load times and responsiveness
-
-**Key Test Functions:**
-- `test_domain_creation_workflow()`: Complete domain creation workflow
-- `test_user_creation_workflow()`: Complete user creation workflow
-- `test_alias_creation_workflow()`: Complete alias creation workflow
-- `test_form_validation_errors()`: Tests form validation
-- `test_performance_metrics()`: Tests page load performance
+- `test_homepage_loads_headless()`: Tests homepage loading and authentication
+- `test_dashboard_navigation_headless()`: Tests dashboard functionality
+- `test_navigation_menu_headless()`: Tests menu navigation
+- `test_responsive_design_headless()`: Tests responsive behavior
+- `test_error_pages_headless()`: Tests error page handling
+- `test_form_validation_headless()`: Tests form validation
+- `test_page_titles_headless()`: Tests page title consistency
+- `test_htmx_compatibility_headless()`: Tests HTMX integration
+- `test_performance_metrics_headless()`: Tests page load performance
 
 ## UI Testing Setup
 
 ### Prerequisites for UI Tests
 
-1. **Docker**: For running Selenium WebDriver
+1. **Docker**: For running testcontainers (Selenium containers)
 2. **Application Running**: The SortingOffice application must be running on localhost:3000
-3. **Selenium WebDriver**: Chrome WebDriver for browser automation
+3. **Testcontainers**: Automatically manages Selenium containers
 
-### Quick UI Test Setup (Docker Compose)
+### Quick UI Test Setup
 
 ```bash
-# Setup UI test environment (starts Selenium WebDriver via Docker Compose)
-./tests/run_tests.sh ui-setup
-
 # Start your application
 cargo run
 
-# Run UI tests
-./tests/run_tests.sh ui
-```
-
-### Alternative: All-in-one UI Test Command
-
-```bash
-# Run UI tests with Docker Compose (starts Selenium automatically)
-make test-ui-compose
-```
-
-### Manual UI Test Setup
-
-```bash
-# Start Selenium WebDriver manually via Docker Compose
-docker compose --profile test up -d selenium
-
-# Start your application
-cargo run
-
-# Run UI tests
+# Run UI tests (uses testcontainers automatically)
 ./tests/run_tests.sh ui
 
-# Clean up when done
-docker compose --profile test down selenium
+# Or run headless UI tests directly
+cargo test --test ui_headless -- --nocapture --test-threads=1
 ```
+
+### UI Test Features
+
+- **Automatic Container Management**: Testcontainers automatically starts and stops Selenium containers
+- **Isolation**: Each test runs in its own isolated container
+- **No External Dependencies**: No need to manually start Selenium services
+- **CI/CD Friendly**: Works reliably in automated environments
+- **Fast Execution**: Headless mode for quick test execution
 
 ### UI Test Debugging
 
-- **VNC Access**: Connect to localhost:7900 (password: `secret`) to see the browser
-- **Screenshots**: Tests can capture screenshots on failure
 - **Logging**: Set `RUST_LOG=debug` for detailed WebDriver logs
-
-For detailed UI testing information, see [UI_TESTS.md](UI_TESTS.md).
+- **Timeouts**: All actions have 10-second timeouts with clear error messages
+- **Container Logs**: Failed tests show container IDs for manual log inspection
 
 ## Test Database Setup
 
@@ -299,11 +271,6 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      selenium:
-        image: selenium/standalone-chrome
-        ports:
-          - 4444:4444
-        shm_size: 2gb
     
     steps:
       - uses: actions/checkout@v2
@@ -321,7 +288,7 @@ jobs:
       - name: Wait for application
         run: sleep 10
       - name: Run UI tests
-        run: cargo test --test ui --test ui_advanced
+        run: cargo test --test ui_headless -- --nocapture --test-threads=1
 ```
 
 ## Debugging Tests
@@ -331,6 +298,7 @@ jobs:
 1. **Database Connection**: Ensure MySQL is running and accessible
 2. **Permissions**: Verify database user has proper permissions
 3. **Migrations**: Ensure all migrations are up to date
+4. **Application**: Ensure the application is running on localhost:3000 for UI tests
 
 ### Debug Commands
 
@@ -385,6 +353,7 @@ async fn test_new_feature() {
 - Each test runs in isolation for reliability
 - Database connections are pooled for efficiency
 - Test data is cleaned up after each test
+- UI tests use testcontainers for automatic resource management
 
 ## Contributing
 
@@ -404,13 +373,11 @@ src/tests/
 ├── db.rs              # Database operation tests
 ├── handlers.rs        # HTTP handler tests
 ├── utils.rs           # Utility function tests
-├── integration.rs     # End-to-end workflow tests
-├── ui.rs              # Basic UI functionality tests
-└── ui_advanced.rs     # Advanced UI workflow tests
+└── integration.rs     # End-to-end workflow tests
 
 tests/
 ├── README.md          # This documentation
-├── UI_TESTS.md        # Detailed UI testing guide
+├── ui_headless.rs     # Comprehensive headless UI tests
 └── run_tests.sh       # Unified test runner script
 ```
 

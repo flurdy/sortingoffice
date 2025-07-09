@@ -40,6 +40,7 @@ help:
 	@echo "  make test       - Run all tests (unit + UI)"
 	@echo "  make test-unit  - Run only unit/integration tests"
 	@echo "  make test-ui    - Run only UI tests"
+	@echo "  make test-ui-headless - Run only headless UI tests"
 	@echo "  make test-all   - Run all tests (unit + UI)"
 	@echo "  make test-ui-setup - Setup Selenium for UI tests"
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
@@ -94,26 +95,25 @@ test-unit: test-db-setup
 	./tests/run_tests.sh unit
 
 test-ui:
-	./tests/run_tests.sh ui
+	./tests/run_tests.sh ui-headless
+
+test-ui-headless:
+	./tests/run_tests.sh ui-headless
 
 test-all: test-db-setup
 	./tests/run_tests.sh all
 
 test-ui-setup:
 	@echo "🔧 Setting up UI test environment..."
-	./tests/run_tests.sh ui-setup
+	@echo "Note: UI tests now use testcontainers and don't require external Selenium setup"
 
-# Docker Compose UI test commands
+# Docker Compose UI test commands (deprecated - now using testcontainers)
 test-ui-compose:
-	@echo "🧪 Running UI tests with Docker Compose..."
-	docker compose --profile test up -d selenium
-	@echo "⏳ Waiting for Selenium to be ready..."
-	@sleep 5
-	./tests/run_tests.sh ui
+	@echo "🧪 Running UI tests with testcontainers..."
+	./tests/run_tests.sh ui-headless
 
 test-ui-cleanup:
-	@echo "🧹 Cleaning up UI test environment..."
-	docker compose --profile test down selenium
+	@echo "🧹 UI test cleanup not needed - testcontainers auto-cleanup"
 
 run:
 	cargo watch -d 5 -x run

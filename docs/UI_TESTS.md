@@ -1,6 +1,6 @@
 # UI Tests for SortingOffice
 
-This document describes the functional UI tests for the SortingOffice application, which test the web interface using Selenium WebDriver.
+This document describes the functional UI tests for the SortingOffice application, which test the web interface using Selenium WebDriver and headless browser testing.
 
 ## Overview
 
@@ -15,10 +15,11 @@ The UI tests are designed to verify that the web interface works correctly from 
 
 ## Test Structure
 
-### Basic UI Tests (`src/tests/ui.rs`)
+### Basic UI Tests (`tests/ui.rs`)
 
-These tests cover fundamental UI functionality:
+These tests cover fundamental UI functionality with **enhanced Selenium readiness checks**:
 
+- **Selenium Readiness**: Automatic verification that Selenium WebDriver and Chrome browser are ready
 - **Page Loading**: Verifies that all pages load correctly
 - **Navigation**: Tests menu navigation and breadcrumbs
 - **Responsive Design**: Checks that the interface works on different screen sizes
@@ -26,9 +27,9 @@ These tests cover fundamental UI functionality:
 - **Accessibility**: Basic accessibility checks
 - **Cross-browser Compatibility**: Tests different viewport sizes
 
-### Advanced UI Tests (`src/tests/ui_advanced.rs`)
+### Advanced UI Tests (`tests/ui_advanced.rs`)
 
-These tests cover more complex user interactions:
+These tests cover more complex user interactions with **enhanced Selenium readiness checks**:
 
 - **Form Workflows**: Complete user workflows for creating domains, users, and aliases
 - **Form Validation**: Tests client-side and server-side validation
@@ -36,6 +37,16 @@ These tests cover more complex user interactions:
 - **Modal Dialogs**: Tests confirmation dialogs and popups
 - **Keyboard Navigation**: Tests accessibility and keyboard shortcuts
 - **Performance**: Measures page load times and responsiveness
+
+### Headless UI Tests (`tests/ui_headless.rs`) - **NEW**
+
+These tests use the **thirtyfour** WebDriver client for improved headless browser testing:
+
+- **Modern WebDriver Client**: Uses thirtyfour instead of fantoccini for better stability
+- **Enhanced Headless Mode**: Optimized Chrome configuration for headless operation
+- **Improved Error Handling**: Better timeout and retry mechanisms
+- **Same Test Coverage**: All the same functionality as regular UI tests
+- **Faster Execution**: Optimized for CI/CD environments
 
 ## Prerequisites
 
@@ -59,9 +70,11 @@ The UI tests use the following Rust dependencies (already added to `Cargo.toml`)
 
 ```toml
 [dev-dependencies]
-fantoccini = "0.19"  # WebDriver client
+fantoccini = "0.22.0"     # WebDriver client for basic/advanced tests
+thirtyfour = "0.32.0"     # WebDriver client for headless tests
 tokio = { version = "1", features = ["full"] }
 anyhow = "1.0"
+reqwest = { version = "0.11.27", features = ["json"] }
 ```
 
 ### 2. Environment Configuration
@@ -71,10 +84,11 @@ The tests expect the following environment variables:
 - `DATABASE_URL`: MySQL connection string for test database
 - `RUST_TEST_THREADS`: Set to 1 for sequential test execution
 - `RUST_LOG`: Logging level (set to "debug" for detailed output)
+- `APP_URL`: Application URL (defaults to http://localhost:3000)
 
 ### 3. Test Environment
 
-The tests use a Docker Compose setup (`docker-compose.test.yml`) that includes:
+The tests use a Docker Compose setup (`docker-compose.yml`) that includes:
 
 - **Selenium Standalone Chrome**: WebDriver server
 - **MySQL Database**: Test database
@@ -87,7 +101,7 @@ The tests use a Docker Compose setup (`docker-compose.test.yml`) that includes:
 Use the provided script to run all UI tests:
 
 ```bash
-./run_ui_tests.sh
+./tests/run_tests.sh
 ```
 
 This script will:
@@ -96,35 +110,52 @@ This script will:
 3. Run the UI tests
 4. Clean up the environment
 
+### Test Options
+
+```bash
+# Run only basic UI tests (with Selenium readiness checks)
+./tests/run_tests.sh ui
+
+# Run only headless UI tests (recommended for CI/CD)
+./tests/run_tests.sh ui-headless
+
+# Run all UI tests (basic + advanced + headless)
+./tests/run_tests.sh ui
+
+# Setup UI test environment
+./tests/run_tests.sh ui-setup
+```
+
 ### Manual Setup
 
 If you prefer to run tests manually:
 
 1. **Start the test environment**:
    ```bash
-   docker-compose -f docker-compose.test.yml up -d selenium test-db
+   docker compose --profile test up -d selenium
    ```
 
 2. **Wait for services to be ready**:
    ```bash
    # Wait for Selenium
    until curl -s http://localhost:4444/status > /dev/null; do sleep 2; done
-   
-   # Wait for database
-   until docker-compose -f docker-compose.test.yml exec -T test-db mysqladmin ping -h localhost -u root -ppassword > /dev/null; do sleep 2; done
    ```
 
 3. **Start the application**:
    ```bash
-   docker-compose -f docker-compose.test.yml up -d app
+   cargo run
    ```
 
 4. **Run the tests**:
    ```bash
-   export DATABASE_URL="mysql://root:password@localhost:3307/sortingoffice_test"
-   export RUST_TEST_THREADS=1
+   # Basic UI tests with readiness checks
    cargo test --test ui -- --nocapture
+   
+   # Advanced UI tests with readiness checks
    cargo test --test ui_advanced -- --nocapture
+   
+   # Headless UI tests (recommended)
+   cargo test --test ui_headless -- --nocapture
    ```
 
 ### Running Specific Tests
@@ -139,26 +170,72 @@ Run only advanced UI tests:
 cargo test --test ui_advanced
 ```
 
+Run only headless UI tests:
+```bash
+cargo test --test ui_headless
+```
+
 Run a specific test:
 ```bash
 cargo test --test ui test_homepage_loads
+cargo test --test ui_headless test_homepage_loads_headless
 ```
 
 ## Test Configuration
 
-### WebDriver Configuration
+### Selenium Readiness Checks
 
-The tests use Chrome in headless mode with the following configuration:
+**NEW**: All UI tests now include automatic Selenium readiness verification:
 
 ```rust
-let mut chrome_opts = serde_json::map::Map::new();
-chrome_opts.insert("args".to_string(), serde_json::Value::Array(vec![
-    serde_json::Value::String("--headless".to_string()),
-    serde_json::Value::String("--no-sandbox".to_string()),
-    serde_json::Value::String("--disable-dev-shm-usage".to_string()),
-    serde_json::Value::String("--disable-gpu".to_string()),
-    serde_json::Value::String("--window-size=1920,1080".to_string()),
-]));
+async fn check_selenium_readiness() -> Result<()> {
+    // Check if Selenium service is responding
+    let client = reqwest::Client::new();
+    let status_url = "http://localhost:4444/status";
+    
+    match client.get(status_url).timeout(Duration::from_secs(10)).send().await {
+        Ok(response) => {
+            if response.status().is_success() {
+                println!("✅ Selenium WebDriver service is responding");
+            } else {
+                return Err(anyhow::anyhow!("Selenium WebDriver service returned status: {}", response.status()));
+            }
+        }
+        Err(e) => {
+            return Err(anyhow::anyhow!("Failed to connect to Selenium WebDriver: {}", e));
+        }
+    }
+    
+    // Try to create a test session to verify Chrome is ready
+    match ClientBuilder::native()
+        .connect("http://localhost:4444")
+        .await
+    {
+        Ok(client) => {
+            println!("✅ Chrome browser is ready");
+            client.close().await?;
+            Ok(())
+        }
+        Err(e) => {
+            Err(anyhow::anyhow!("Chrome browser is not ready: {}", e))
+        }
+    }
+}
+```
+
+### Headless Browser Configuration
+
+The headless tests use optimized Chrome configuration:
+
+```rust
+let mut caps = DesiredCapabilities::chrome();
+caps.add_arg("--headless=new")?;
+caps.add_arg("--no-sandbox")?;
+caps.add_arg("--disable-dev-shm-usage")?;
+caps.add_arg("--disable-gpu")?;
+caps.add_arg("--window-size=1920,1080")?;
+caps.add_arg("--disable-web-security")?;
+caps.add_arg("--allow-running-insecure-content")?;
 ```
 
 ### Timeouts
@@ -166,6 +243,7 @@ chrome_opts.insert("args".to_string(), serde_json::Value::Array(vec![
 - **Element wait timeout**: 5 seconds
 - **Page load timeout**: 10 seconds
 - **Test execution timeout**: 30 seconds per test
+- **Selenium readiness timeout**: 10 seconds
 
 ### Test Data
 
@@ -182,7 +260,8 @@ let username = format!("testuser{}", chrono::Utc::now().timestamp());
 
 The tests include several utility functions for common operations:
 
-- `setup_client()`: Creates and configures WebDriver client
+- `setup_client()` / `setup_driver()`: Creates and configures WebDriver client
+- `check_selenium_readiness()`: Verifies Selenium and Chrome are ready
 - `wait_for_element()`: Waits for an element to appear
 - `wait_for_text()`: Waits for specific text to appear
 - `fill_form_field()`: Fills form fields
@@ -212,10 +291,8 @@ To see the browser during test execution, modify the Chrome options:
 
 ```rust
 // Remove --headless to see the browser
-chrome_opts.insert("args".to_string(), serde_json::Value::Array(vec![
-    serde_json::Value::String("--no-sandbox".to_string()),
-    serde_json::Value::String("--disable-dev-shm-usage".to_string()),
-]));
+caps.add_arg("--no-sandbox")?;
+caps.add_arg("--disable-dev-shm-usage")?;
 ```
 
 ### VNC Access
@@ -244,7 +321,7 @@ Add screenshot capture to tests:
 use std::fs;
 
 // Take screenshot on failure
-let screenshot = client.screenshot().await?;
+let screenshot = driver.screenshot().await?;
 fs::write("test_failure.png", screenshot).await?;
 ```
 
@@ -253,11 +330,14 @@ fs::write("test_failure.png", screenshot).await?;
 ### Connection Errors
 
 **Problem**: "Failed to connect to WebDriver"
-**Solution**: Ensure Selenium container is running and accessible
+**Solution**: The new readiness checks will automatically detect and report this issue
 
 ```bash
-docker-compose -f docker-compose.test.yml ps
+# Check if Selenium is running
 curl http://localhost:4444/status
+
+# Restart Selenium if needed
+docker compose --profile test restart selenium
 ```
 
 ### Timeout Errors
@@ -284,6 +364,7 @@ curl http://localhost:4444/status
 - Increase Docker memory allocation
 - Add `--disable-dev-shm-usage` flag
 - Use `--no-sandbox` flag
+- Try the headless tests which have optimized Chrome configuration
 
 ## Best Practices
 
@@ -338,7 +419,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: cargo test --test ui
+      - run: cargo test --test ui_headless  # Use headless tests for CI
       - run: cargo test --test ui_advanced
 ```
 
@@ -385,18 +466,72 @@ services:
 
 When adding new UI tests:
 
-1. Follow the existing test structure and naming conventions
-2. Use the provided utility functions
-3. Add appropriate documentation
-4. Ensure tests are robust and handle edge cases
-5. Update this documentation if needed
+1. **Choose the right test file**:
+   - `tests/ui.rs` for basic functionality
+   - `tests/ui_advanced.rs` for complex workflows
+   - `tests/ui_headless.rs` for headless testing
 
-## Support
+2. **Include readiness checks**: All tests should verify Selenium is ready
 
-For issues with UI tests:
+3. **Use proper timeouts**: Include appropriate timeout handling
 
-1. Check the troubleshooting section above
-2. Review the test logs and error messages
-3. Verify the test environment is properly configured
-4. Check for recent changes that might affect the tests
-5. Create an issue with detailed error information 
+4. **Add documentation**: Document any new test utilities or patterns
+
+5. **Test locally first**: Always test locally before committing
+
+## Migration Guide
+
+### From Old UI Tests
+
+If you have existing UI tests, they should continue to work with the new readiness checks. The main changes are:
+
+1. **Automatic readiness verification**: Tests now check Selenium status automatically
+2. **Better error messages**: More descriptive error messages for connection issues
+3. **New headless option**: Consider using `tests/ui_headless.rs` for new tests
+
+### To Headless Tests
+
+To migrate from Selenium tests to headless tests:
+
+1. **Copy test logic**: Copy test functions from `ui.rs` to `ui_headless.rs`
+2. **Update API calls**: Replace `find_element` with `find`, `find_elements` with `find_all`
+3. **Update window sizing**: Replace `set_window_size` with `set_window_rect`
+4. **Test thoroughly**: Verify all functionality works in headless mode
+
+## Troubleshooting
+
+### Selenium Not Starting
+
+```bash
+# Check Docker logs
+docker compose --profile test logs selenium
+
+# Restart Selenium
+docker compose --profile test restart selenium
+
+# Check system resources
+docker stats
+```
+
+### Tests Hanging
+
+```bash
+# Check if Selenium is responsive
+curl http://localhost:4444/status
+
+# Check application logs
+cargo run -- --log-level debug
+
+# Use headless tests which are more stable
+cargo test --test ui_headless
+```
+
+### Memory Issues
+
+```bash
+# Increase Docker memory allocation
+# In Docker Desktop: Settings -> Resources -> Memory -> 4GB
+
+# Or use headless tests which use less memory
+cargo test --test ui_headless
+``` 
