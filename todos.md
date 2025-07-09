@@ -28,7 +28,7 @@
 
 ✅ Lets introduce proper authentication. The admin credentials will be stored as config. - IMPLEMENTED with role-based access control
 
-The resources lists should support paging, in case of a lot rows.
+🔄 The resources lists should support paging, in case of a lot rows.
 
 On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
 
@@ -53,3 +53,12 @@ Add German translation
 Should we still use a CDN for HTMX and Tailwind?
 
 Put inline css style and scripts in the header into separate files where suitable
+
+The dashboard stats should be changed to
+  - a combined enabled domains and backups total
+  - an enabled aliases total
+  - an enabled users total
+
+The dashboard should have descriptive link to further stats and reports
+
+The current dashboard quick actions are a bit repetitive, perhaps invert it.

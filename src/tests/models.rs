@@ -258,4 +258,50 @@ mod tests {
         assert_eq!(form.transport, "smtp:relay.test.com");
         assert_eq!(form.enabled, false); // Default value
     }
+
+    #[test]
+    fn test_paginated_result_empty() {
+        let paginated: PaginatedResult<i32> = PaginatedResult::new(vec![], 0, 1, 10);
+        assert_eq!(paginated.items.len(), 0);
+        assert_eq!(paginated.total_count, 0);
+        assert_eq!(paginated.current_page, 1);
+        assert_eq!(paginated.per_page, 10);
+        assert_eq!(paginated.total_pages, 0);
+        assert!(!paginated.has_next);
+        assert!(!paginated.has_prev);
+    }
+
+    #[test]
+    fn test_paginated_result_single_page() {
+        let paginated = PaginatedResult::new(vec![1, 2, 3], 3, 1, 10);
+        assert_eq!(paginated.total_pages, 1);
+        assert!(!paginated.has_next);
+        assert!(!paginated.has_prev);
+    }
+
+    #[test]
+    fn test_paginated_result_multiple_pages() {
+        let paginated = PaginatedResult::new((1..21).collect(), 100, 2, 20);
+        assert_eq!(paginated.total_pages, 5);
+        assert!(paginated.has_next);
+        assert!(paginated.has_prev);
+        assert_eq!(paginated.current_page, 2);
+        assert_eq!(paginated.per_page, 20);
+    }
+
+    #[test]
+    fn test_paginated_result_last_page() {
+        let paginated = PaginatedResult::new((81..101).collect(), 100, 5, 20);
+        assert_eq!(paginated.total_pages, 5);
+        assert!(!paginated.has_next);
+        assert!(paginated.has_prev);
+    }
+
+    #[test]
+    fn test_paginated_result_out_of_bounds_page() {
+        let paginated: PaginatedResult<i32> = PaginatedResult::new(vec![], 30, 5, 10);
+        assert_eq!(paginated.total_pages, 3);
+        assert!(!paginated.has_next);
+        assert!(paginated.has_prev);
+    }
 }

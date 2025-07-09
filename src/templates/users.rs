@@ -1,24 +1,27 @@
-use crate::models::{User, UserForm};
+use crate::models::{User, UserForm, PaginatedResult};
 use askama::Template;
 
 #[derive(Template)]
 #[template(path = "users/list.html", escape = "html")]
-pub struct UserListTemplate {
+pub struct UsersListTemplate {
     pub title: String,
     pub description: String,
     pub add_user: String,
-    pub table_header_user_id: String,
-    pub table_header_name: String,
+    pub table_header_username: String,
+    pub table_header_domain: String,
     pub table_header_enabled: String,
     pub table_header_actions: String,
     pub status_active: String,
     pub status_inactive: String,
-    pub view: String,
-    pub enable: String,
-    pub disable: String,
-    pub empty_no_users: String,
-    pub empty_get_started: String,
+    pub action_view: String,
+    pub enable_user: String,
+    pub disable_user: String,
+    pub empty_title: String,
+    pub empty_description: String,
     pub users: Vec<User>,
+    pub pagination: PaginatedResult<User>,
+    pub page_range: Vec<i64>,
+    pub max_item: i64,
 }
 
 #[derive(Template)]

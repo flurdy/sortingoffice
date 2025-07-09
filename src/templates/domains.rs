@@ -1,9 +1,9 @@
-use crate::models::{Domain, DomainForm, Backup};
+use crate::models::{Domain, DomainForm, Backup, PaginatedResult};
 use askama::Template;
 
 #[derive(Template)]
 #[template(path = "domains/list.html", escape = "html")]
-pub struct DomainListTemplate<'a> {
+pub struct DomainsListTemplate<'a> {
     pub title: &'a str,
     pub description: &'a str,
     pub add_domain: &'a str,
@@ -18,7 +18,10 @@ pub struct DomainListTemplate<'a> {
     pub action_disable: &'a str,
     pub empty_title: &'a str,
     pub empty_description: &'a str,
-    pub domains: Vec<Domain>,
+    pub domains: &'a [Domain],
+    pub pagination: &'a PaginatedResult<Domain>,
+    pub page_range: &'a [i64],
+    pub max_item: i64,
     pub backups_title: &'a str,
     pub backups_description: &'a str,
     pub add_backup: &'a str,
@@ -26,10 +29,10 @@ pub struct DomainListTemplate<'a> {
     pub backups_table_header_transport: &'a str,
     pub backups_table_header_enabled: &'a str,
     pub backups_table_header_actions: &'a str,
-    pub backups: Vec<Backup>,
+    pub backups: &'a [Backup],
     pub backups_view: &'a str,
-    pub backups_disable: &'a str,
     pub backups_enable: &'a str,
+    pub backups_disable: &'a str,
     pub backups_empty_no_backup_servers: &'a str,
     pub backups_empty_get_started: &'a str,
 }
@@ -55,7 +58,7 @@ pub struct DomainShowTemplate<'a> {
     pub disable_domain: &'a str,
     pub delete_domain: &'a str,
     pub delete_confirm: &'a str,
-    pub alias_report: Option<&'a crate::models::DomainAliasReport>,
+    pub alias_report: Option<crate::models::DomainAliasReport>,
     pub catch_all_header: &'a str,
     pub destination_header: &'a str,
     pub required_aliases_header: &'a str,

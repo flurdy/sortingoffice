@@ -1,4 +1,4 @@
-use crate::models::Client;
+use crate::models::{Client, PaginatedResult};
 use askama::Template;
 
 #[derive(Template)]
@@ -22,7 +22,10 @@ pub struct ClientsListTemplate<'a> {
     pub delete_confirm: &'a str,
     pub empty_title: &'a str,
     pub empty_description: &'a str,
-    pub clients: Vec<Client>,
+    pub clients: &'a [Client],
+    pub pagination: &'a PaginatedResult<Client>,
+    pub page_range: &'a [i64],
+    pub max_item: i64,
 }
 
 #[derive(Template)]

@@ -14,7 +14,7 @@ where
     ))
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = domains)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -41,7 +41,7 @@ pub struct NewDomain {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = users)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -84,7 +84,7 @@ pub struct UserForm {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = aliases)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -247,7 +247,7 @@ pub struct RelocatedForm {
 }
 
 // Client models
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = clients)]
 #[diesel(primary_key(id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -528,6 +528,51 @@ impl AliasStatus {
             AliasStatus::Present => "Present and enabled",
             AliasStatus::Missing => "Missing",
             AliasStatus::Disabled => "Present but disabled",
+        }
+    }
+}
+
+// Pagination models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PaginationParams {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+}
+
+impl Default for PaginationParams {
+    fn default() -> Self {
+        Self {
+            page: Some(1),
+            per_page: Some(20),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PaginatedResult<T> {
+    pub items: Vec<T>,
+    pub total_count: i64,
+    pub current_page: i64,
+    pub per_page: i64,
+    pub total_pages: i64,
+    pub has_next: bool,
+    pub has_prev: bool,
+}
+
+impl<T> PaginatedResult<T> {
+    pub fn new(items: Vec<T>, total_count: i64, current_page: i64, per_page: i64) -> Self {
+        let total_pages = (total_count + per_page - 1) / per_page; // Ceiling division
+        let has_next = current_page < total_pages;
+        let has_prev = current_page > 1;
+
+        Self {
+            items,
+            total_count,
+            current_page,
+            per_page,
+            total_pages,
+            has_next,
+            has_prev,
         }
     }
 }

@@ -23,20 +23,26 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 pub async fn list_clients(
     State(state): State<AppState>,
     headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
 ) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    info!("Handling clients list request");
+    // Parse pagination parameters
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
 
-    let clients = match db::get_clients(pool) {
+    info!("Handling clients list request with pagination: page={}, per_page={}", page, per_page);
+
+    let paginated_clients = match db::get_clients_paginated(pool, page, per_page) {
         Ok(clients) => {
-            info!("Successfully retrieved {} clients", clients.len());
+            info!("Successfully retrieved {} clients (page {} of {})", 
+                clients.items.len(), clients.current_page, clients.total_pages);
             clients
         },
         Err(e) => {
             warn!("Failed to retrieve clients: {:?}", e);
-            vec![]
+            PaginatedResult::new(vec![], 0, 1, per_page)
         },
     };
 
@@ -60,14 +66,17 @@ pub async fn list_clients(
     let empty_title = get_translation(&state, &locale, "clients-empty-title").await;
     let empty_description = get_translation(&state, &locale, "clients-empty-description").await;
 
+    let paginated = PaginatedResult::new(paginated_clients.items.clone(), paginated_clients.total_count, paginated_clients.current_page, paginated_clients.per_page);
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
     let content_template = ClientsListTemplate {
         title: &title,
         description: &description,
         add_client: &add_client,
         table_header_client: &table_header_client,
         table_header_status: &table_header_status,
-        table_header_actions: &table_header_actions,
         table_header_enabled: &table_header_enabled,
+        table_header_actions: &table_header_actions,
         status_allowed: &status_allowed,
         status_blocked: &status_blocked,
         status_enabled: &status_enabled,
@@ -79,32 +88,22 @@ pub async fn list_clients(
         delete_confirm: &delete_confirm,
         empty_title: &empty_title,
         empty_description: &empty_description,
-        clients,
+        clients: &paginated_clients.items,
+        pagination: &paginated,
+        page_range: &page_range,
+        max_item,
     };
 
-    let content = match content_template.render() {
-        Ok(content) => {
-            info!("Template rendered successfully, content length: {}", content.len());
-            content
-        },
-        Err(e) => {
-            warn!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
+    let content = content_template.render().unwrap();
 
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "clients-title").await,
-            content,
-            &state,
-            &locale,
-        ).await.unwrap();
-        
-        Html(template.render().unwrap())
-    }
+    let template = BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+    ).await.unwrap();
+    
+    Html(template.render().unwrap())
 }
 
 pub async fn show_client(

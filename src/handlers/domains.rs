@@ -3,7 +3,7 @@ use crate::templates::layout::BaseTemplate;
 use crate::{db, models::*, AppState, i18n::get_translation};
 use askama::Template;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Query},
     http::HeaderMap,
     response::Html,
     Form,
@@ -11,23 +11,33 @@ use axum::{
 
 
 
-pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn list(
+    State(state): State<AppState>, 
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> Html<String> {
     let pool = &state.pool;
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    tracing::debug!("Handling domains list request");
-    let domains = match db::get_domains(pool) {
+    // Parse pagination parameters
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+
+    tracing::debug!("Handling domains list request with pagination: page={}, per_page={}", page, per_page);
+    
+    let paginated_domains = match db::get_domains_paginated(pool, page, per_page) {
         Ok(domains) => {
-            tracing::info!("Successfully retrieved {} domains", domains.len());
+            tracing::info!("Successfully retrieved {} domains (page {} of {})", 
+                domains.items.len(), domains.current_page, domains.total_pages);
             domains
         },
         Err(e) => {
             tracing::error!("Failed to retrieve domains: {:?}", e);
-            vec![]
+            PaginatedResult::new(vec![], 0, 1, per_page)
         },
     };
 
-    // Get backups data
+    // Get backups data (keeping non-paginated for now as it's a smaller dataset)
     let backups = match db::get_backups(pool) {
         Ok(backups) => {
             tracing::info!("Successfully retrieved {} backups", backups.len());
@@ -39,7 +49,8 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         },
     };
 
-    tracing::debug!("Rendering template with {} domains and {} backups", domains.len(), backups.len());
+    tracing::debug!("Rendering template with {} domains and {} backups", 
+        paginated_domains.items.len(), backups.len());
     
     // Get all translations
     let title = get_translation(&state, &locale, "domains-title").await;
@@ -51,6 +62,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
     let status_active = get_translation(&state, &locale, "status-active").await;
     let status_inactive = get_translation(&state, &locale, "status-inactive").await;
+    let action_view = get_translation(&state, &locale, "action-view").await;
     let action_enable = get_translation(&state, &locale, "action-enable").await;
     let action_disable = get_translation(&state, &locale, "action-disable").await;
     let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
@@ -65,27 +77,33 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let backups_table_header_enabled = get_translation(&state, &locale, "backups-table-header-enabled").await;
     let backups_table_header_actions = get_translation(&state, &locale, "backups-table-header-actions").await;
     let backups_view = get_translation(&state, &locale, "backups-view").await;
-    let backups_disable = get_translation(&state, &locale, "backups-disable").await;
     let backups_enable = get_translation(&state, &locale, "backups-enable").await;
+    let backups_disable = get_translation(&state, &locale, "backups-disable").await;
     let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
     let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
-    
-    let content_template = DomainListTemplate {
+
+    let paginated = PaginatedResult::new(paginated_domains.items.clone(), paginated_domains.total_count, paginated_domains.current_page, paginated_domains.per_page);
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+    let content_template = DomainsListTemplate {
         title: &title,
         description: &description,
         add_domain: &add_domain,
         table_header_domain: &table_header_domain,
-        table_header_transport: &table_header_transport,
         table_header_enabled: &table_header_enabled,
         table_header_actions: &table_header_actions,
+        table_header_transport: &table_header_transport,
         status_active: &status_active,
         status_inactive: &status_inactive,
-        action_view: "",
+        action_view: &action_view,
         action_enable: &action_enable,
         action_disable: &action_disable,
         empty_title: &empty_title,
         empty_description: &empty_description,
-        domains,
+        domains: &paginated_domains.items,
+        pagination: &paginated,
+        page_range: &page_range,
+        max_item,
         backups_title: &backups_title,
         backups_description: &backups_description,
         add_backup: &add_backup,
@@ -93,26 +111,17 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         backups_table_header_transport: &backups_table_header_transport,
         backups_table_header_enabled: &backups_table_header_enabled,
         backups_table_header_actions: &backups_table_header_actions,
-        backups,
+        backups: &backups,
         backups_view: &backups_view,
-        backups_disable: &backups_disable,
         backups_enable: &backups_enable,
+        backups_disable: &backups_disable,
         backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
         backups_empty_get_started: &backups_empty_get_started,
     };
-    let content = match content_template.render() {
-        Ok(content) => {
-            tracing::debug!("Template rendered successfully, content length: {}", content.len());
-            content
-        },
-        Err(e) => {
-            tracing::error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
+    let content = content_template.render().unwrap();
 
     let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "domains-title").await,
+        title,
         content,
         &state,
         &locale,
@@ -254,7 +263,7 @@ pub async fn show(State(state): State<AppState>, Path(id): Path<i32>, headers: H
         disable_domain: &disable_domain,
         delete_domain: &delete_domain,
         delete_confirm: &delete_confirm,
-        alias_report: alias_report.as_ref(),
+        alias_report: alias_report,
         catch_all_header: &catch_all_header,
         destination_header: &destination_header,
         required_aliases_header: &required_aliases_header,
@@ -434,7 +443,10 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
             let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
             let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
             
-            let template = DomainListTemplate {
+            let paginated = PaginatedResult::new(domains.clone(), 0, 1, 20);
+            let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let template = DomainsListTemplate {
                 title: &title,
                 description: &description,
                 add_domain: &add_domain,
@@ -449,7 +461,10 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 action_disable: &action_disable,
                 empty_title: &empty_title,
                 empty_description: &empty_description,
-                domains,
+                domains: &domains,
+                pagination: &paginated,
+                page_range: &page_range,
+                max_item,
                 backups_title: &backups_title,
                 backups_description: &backups_description,
                 add_backup: &add_backup,
@@ -457,7 +472,7 @@ pub async fn create(State(state): State<AppState>, headers: HeaderMap, Form(form
                 backups_table_header_transport: &backups_table_header_transport,
                 backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
-                backups,
+                backups: &backups,
                 backups_view: &backups_view,
                 backups_disable: &backups_disable,
                 backups_enable: &backups_enable,
@@ -739,7 +754,10 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
             let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
             let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
             
-            let template = DomainListTemplate {
+            let paginated = PaginatedResult::new(domains.clone(), 0, 1, 20);
+            let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let template = DomainsListTemplate {
                 title: &title,
                 description: &description,
                 add_domain: &add_domain,
@@ -754,7 +772,10 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 action_disable: &action_disable,
                 empty_title: &empty_title,
                 empty_description: &empty_description,
-                domains,
+                domains: &domains,
+                pagination: &paginated,
+                page_range: &page_range,
+                max_item,
                 backups_title: &backups_title,
                 backups_description: &backups_description,
                 add_backup: &add_backup,
@@ -762,7 +783,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
                 backups_table_header_transport: &backups_table_header_transport,
                 backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
-                backups,
+                backups: &backups,
                 backups_view: &backups_view,
                 backups_disable: &backups_disable,
                 backups_enable: &backups_enable,
@@ -914,7 +935,10 @@ pub async fn toggle_enabled_list(
             let backups_empty_no_backup_servers = get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
             let backups_empty_get_started = get_translation(&state, &locale, "backups-empty-get-started").await;
             
-            let template = DomainListTemplate {
+            let paginated = PaginatedResult::new(domains.clone(), 0, 1, 20);
+            let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let template = DomainsListTemplate {
                 title: &title,
                 description: &description,
                 add_domain: &add_domain,
@@ -929,7 +953,10 @@ pub async fn toggle_enabled_list(
                 action_disable: &action_disable,
                 empty_title: &empty_title,
                 empty_description: &empty_description,
-                domains,
+                domains: &domains,
+                pagination: &paginated,
+                page_range: &page_range,
+                max_item,
                 backups_title: &backups_title,
                 backups_description: &backups_description,
                 add_backup: &add_backup,
@@ -937,7 +964,7 @@ pub async fn toggle_enabled_list(
                 backups_table_header_transport: &backups_table_header_transport,
                 backups_table_header_enabled: &backups_table_header_enabled,
                 backups_table_header_actions: &backups_table_header_actions,
-                backups,
+                backups: &backups,
                 backups_view: &backups_view,
                 backups_disable: &backups_disable,
                 backups_enable: &backups_enable,

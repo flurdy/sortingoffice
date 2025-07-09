@@ -1075,3 +1075,124 @@ pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Al
         .order(aliases::mail.asc())
         .load::<Alias>(&mut conn)
 }
+
+// Paginated functions
+pub fn get_domains_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Domain>, Error> {
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!("Failed to get connection from pool: {:?}", e);
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = domains::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let domains = domains::table
+        .select(Domain::as_select())
+        .order(domains::domain.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Domain>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(domains, total_count, page, per_page))
+}
+
+pub fn get_aliases_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = aliases::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let aliases = aliases::table
+        .select(Alias::as_select())
+        .order(aliases::mail.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Alias>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(aliases, total_count, page, per_page))
+}
+
+pub fn get_users_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<User>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = users::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let users = users::table
+        .select(User::as_select())
+        .order(users::id.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<User>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(users, total_count, page, per_page))
+}
+
+pub fn get_clients_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Client>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = clients::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let clients = clients::table
+        .select(Client::as_select())
+        .order(clients::client.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Client>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(clients, total_count, page, per_page))
+}
+
+pub fn get_relays_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Relay>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = relays::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let relays = relays::table
+        .select(Relay::as_select())
+        .order(relays::recipient.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Relay>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(relays, total_count, page, per_page))
+}
+
+pub fn get_relocated_paginated(pool: &DbPool, page: i64, per_page: i64) -> Result<PaginatedResult<Relocated>, Error> {
+    let mut conn = pool.get().unwrap();
+    
+    let offset = (page - 1) * per_page;
+    
+    // Get total count
+    let total_count: i64 = relocated::table.count().get_result(&mut conn)?;
+    
+    // Get paginated results
+    let relocated = relocated::table
+        .select(Relocated::as_select())
+        .order(relocated::old_address.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Relocated>(&mut conn)?;
+    
+    Ok(PaginatedResult::new(relocated, total_count, page, per_page))
+}

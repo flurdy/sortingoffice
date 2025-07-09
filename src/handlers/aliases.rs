@@ -20,12 +20,20 @@ pub struct AliasPrefill {
     pub alias: Option<String>,
 }
 
-pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn list(
+    State(state): State<AppState>, 
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> Html<String> {
     let pool = &state.pool;
 
-    let aliases = match db::get_aliases(pool) {
+    // Parse pagination parameters
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+
+    let paginated_aliases = match db::get_aliases_paginated(pool, page, per_page) {
         Ok(aliases) => aliases,
-        Err(_) => vec![],
+        Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
     };
 
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -44,9 +52,15 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
     let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
 
-    let content_template = AliasListTemplate {
+    let paginated = PaginatedResult::new(paginated_aliases.items.clone(), paginated_aliases.total_count, paginated_aliases.current_page, paginated_aliases.per_page);
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+    let content_template = AliasesListTemplate {
         title: &title,
-        aliases,
+        aliases: &paginated_aliases.items,
+        pagination: &paginated,
+        page_range: &page_range,
+        max_item,
         description: &description,
         add_alias: &add_alias,
         table_header_mail: &table_header_mail,
@@ -63,19 +77,14 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     };
     let content = content_template.render().unwrap();
 
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let locale = crate::handlers::language::get_user_locale(&headers);
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "aliases-title").await,
-            content,
-            &state,
-            &locale,
-        ).await.unwrap();
-        
-        Html(template.render().unwrap())
-    }
+    let template = BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+    ).await.unwrap();
+    
+    Html(template.render().unwrap())
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap, Query(prefill): Query<AliasPrefill>) -> Html<String> {
@@ -120,7 +129,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap, Query(prefil
         alias: None,
         form,
         error: None,
-        return_url: return_url.as_deref(),
+        return_url: return_url,
         edit_alias: &edit_alias,
         new_alias: &new_alias,
         form_error: &form_error,
@@ -392,7 +401,7 @@ pub async fn create(
                         disable_domain: &disable_domain,
                         delete_domain: &delete_domain,
                         delete_confirm: &delete_confirm,
-                        alias_report: alias_report.as_ref(),
+                        alias_report: alias_report,
                         catch_all_header: &catch_all_header,
                         destination_header: &destination_header,
                         required_aliases_header: &required_aliases_header,
@@ -458,9 +467,15 @@ pub async fn create(
                     let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
                     let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
                     let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
-                    let content_template = AliasListTemplate {
+                    let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
+                    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+                    let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+                    let content_template = AliasesListTemplate {
                         title: &title,
-                        aliases,
+                        aliases: &aliases,
+                        pagination: &paginated,
+                        page_range: &page_range,
+                        max_item,
                         description: &description,
                         add_alias: &add_alias,
                         table_header_mail: &table_header_mail,
@@ -748,9 +763,15 @@ pub async fn delete(
             let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
             let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
             let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
-            let content_template = AliasListTemplate {
+            let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
+            let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let content_template = AliasesListTemplate {
                 title: &title,
-                aliases,
+                aliases: &aliases,
+                pagination: &paginated,
+                page_range: &page_range,
+                max_item,
                 description: &description,
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
@@ -885,9 +906,15 @@ pub async fn toggle_enabled_list(
             let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
             let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
             let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
-            let content_template = AliasListTemplate {
+            let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
+            let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+            let max_item = std::cmp::min(paginated.current_page * paginated.per_page, paginated.total_count);
+            let content_template = AliasesListTemplate {
                 title: &title,
-                aliases,
+                aliases: &aliases,
+                pagination: &paginated,
+                page_range: &page_range,
+                max_item,
                 description: &description,
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
@@ -1093,7 +1120,7 @@ pub async fn toggle_enabled_domain_show(
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
-                alias_report: alias_report.as_ref(),
+                alias_report: alias_report,
                 catch_all_header: &catch_all_header,
                 destination_header: &destination_header,
                 required_aliases_header: &required_aliases_header,

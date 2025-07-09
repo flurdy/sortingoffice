@@ -1,11 +1,14 @@
-use crate::models::{Alias, AliasForm};
+use crate::models::{Alias, AliasForm, PaginatedResult};
 use askama::Template;
 
 #[derive(Template)]
 #[template(path = "aliases/list.html", escape = "html")]
-pub struct AliasListTemplate<'a> {
+pub struct AliasesListTemplate<'a> {
     pub title: &'a str,
-    pub aliases: Vec<Alias>,
+    pub aliases: &'a [Alias],
+    pub pagination: &'a PaginatedResult<Alias>,
+    pub page_range: &'a [i64],
+    pub max_item: i64,
     pub description: &'a str,
     pub add_alias: &'a str,
     pub table_header_mail: &'a str,
@@ -51,7 +54,7 @@ pub struct AliasFormTemplate<'a> {
     pub alias: Option<Alias>,
     pub form: AliasForm,
     pub error: Option<String>,
-    pub return_url: Option<&'a str>,
+    pub return_url: Option<String>,
     pub edit_alias: &'a str,
     pub new_alias: &'a str,
     pub form_error: &'a str,
