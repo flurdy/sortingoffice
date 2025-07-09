@@ -19,7 +19,7 @@ pub async fn set_language(
 ) -> Response {
     // Validate the language
     let locale = match form.language.as_str() {
-        "en-US" | "es-ES" | "fr-FR" => &form.language,
+        "en-US" | "es-ES" | "fr-FR" | "nb-NO" => &form.language,
         _ => "en-US", // Default fallback
     };
 
@@ -53,7 +53,7 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
                 if cookie.starts_with("language=") {
                     let language = cookie.strip_prefix("language=").unwrap_or("en-US");
                     // Validate the language
-                    if language == "en-US" || language == "es-ES" || language == "fr-FR" {
+                    if language == "en-US" || language == "es-ES" || language == "fr-FR" || language == "nb-NO" {
                         return language.to_string();
                     }
                 }

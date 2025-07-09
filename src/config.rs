@@ -61,9 +61,11 @@ impl Config {
     /// Load configuration from the default config file
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
         let config_paths = [
-            "config/required_aliases.toml",
-            "/etc/sortingoffice/required_aliases.toml",
-            "./required_aliases.toml",
+            // "config/required_aliases.toml",
+            "config/config.toml",
+            // "/etc/sortingoffice/required_aliases.toml",
+            "/etc/sortingoffice/config.toml",
+            "./config.toml",
         ];
         
         for path in &config_paths {
@@ -139,13 +141,37 @@ impl Config {
     
     /// Verify admin credentials and return role if valid
     pub fn verify_admin_credentials(&self, username: &str, password: &str) -> Option<AdminRole> {
-        self.admins.iter().find_map(|admin| {
-            if admin.username == username && bcrypt::verify(password, &admin.password_hash).unwrap_or(false) {
-                Some(admin.role.clone())
+        println!("🔐 [AUTH DEBUG] Attempting to verify credentials for username: '{}'", username);
+        println!("🔐 [AUTH DEBUG] Password length: {} characters", password.len());
+        println!("🔐 [AUTH DEBUG] Number of configured admins: {}", self.admins.len());
+        
+        for (i, admin) in self.admins.iter().enumerate() {
+            println!("🔐 [AUTH DEBUG] Checking admin #{}: username='{}', role='{:?}'", i + 1, admin.username, admin.role);
+            println!("🔐 [AUTH DEBUG] Stored password hash: {}", admin.password_hash);
+            
+            if admin.username == username {
+                println!("🔐 [AUTH DEBUG] Username matches! Verifying password...");
+                match bcrypt::verify(password, &admin.password_hash) {
+                    Ok(is_valid) => {
+                        println!("🔐 [AUTH DEBUG] Password verification result: {}", is_valid);
+                        if is_valid {
+                            println!("🔐 [AUTH DEBUG] ✅ Authentication successful! Role: {:?}", admin.role);
+                            return Some(admin.role.clone());
+                        } else {
+                            println!("🔐 [AUTH DEBUG] ❌ Password verification failed");
+                        }
+                    }
+                    Err(e) => {
+                        println!("🔐 [AUTH DEBUG] ❌ Password verification error: {}", e);
+                    }
+                }
             } else {
-                None
+                println!("🔐 [AUTH DEBUG] Username does not match");
             }
-        })
+        }
+        
+        println!("🔐 [AUTH DEBUG] ❌ No valid credentials found");
+        None
     }
 }
 
@@ -179,7 +205,8 @@ impl Default for Config {
             domain_overrides: HashMap::new(),
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
-                password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(), // "admin123"
+                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO".to_string(), // "admin123"
+                // password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(), // "admin123"
                 role: AdminRole::Edit,
             }],
             admin: None,

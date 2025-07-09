@@ -56,6 +56,10 @@ async fn main() {
     let i18n = i18n::I18n::new("en-US").expect("Failed to initialize i18n");
     // Preload Spanish locale
     i18n.load_locale("es-ES").await.expect("Failed to load Spanish locale");
+    // Preload Norwegian locale
+    i18n.load_locale("nb-NO").await.expect("Failed to load Norwegian locale");
+    // Preload French locale
+    i18n.load_locale("fr-FR").await.expect("Failed to load French locale");
     
     // Load configuration
     let config = config::Config::load().expect("Failed to load configuration");
@@ -92,11 +96,6 @@ async fn main() {
         .route("/reports/matrix", get(handlers::reports::matrix_report))
         // Configuration
         .route("/config", get(handlers::config::view_config))
-        // Theme and language
-        .route("/theme/toggle", post(handlers::theme::toggle_theme))
-        .route("/language/set", post(handlers::language::set_language))
-        // Serve static files at /static from the ./static directory
-        .nest_service("/static", tower_http::services::ServeDir::new("./static"))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(app_state.clone(), handlers::auth::require_auth));
 
@@ -165,6 +164,11 @@ async fn main() {
             get(handlers::auth::login_form).post(handlers::auth::login),
         )
         .route("/logout", post(handlers::auth::logout))
+        // Theme and language
+        .route("/theme/toggle", post(handlers::theme::toggle_theme))
+        .route("/language/set", post(handlers::language::set_language))
+        // Serve static files at /static from the ./static directory
+        .nest_service("/static", tower_http::services::ServeDir::new("./static"))
         // Merge read-only and edit routes
         .merge(read_only_routes)
         .merge(edit_routes)

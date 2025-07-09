@@ -1,0 +1,48 @@
+# Sorting Office Configuration
+
+# Required aliases that must exist for all domains
+required_aliases = [
+    "postmaster",
+    "abuse", 
+    "hostmaster"
+]
+
+# Common aliases that are typically useful
+common_aliases = [
+    "webmaster",
+    "admin",
+    "support",
+    "info",
+    "noreply",
+    "no-reply",
+    "security",
+    "help",
+    "contact",
+    "sales",
+    "marketing",
+    "hr",
+    "finance",
+    "legal",
+    "privacy",
+    "dmca",
+    "spam"
+]
+
+# Admin users configuration
+# You can have multiple admin users with different roles
+[[admins]]
+username = "admin"
+# This is the bcrypt hash for "admin123" - CHANGE THIS!
+password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
+role = "edit"  # Can be "edit" or "read-only"
+
+# Example of a read-only admin
+# [[admins]]
+# username = "viewer"
+# password_hash = "$2a$12$..."  # Generate this with bcrypt
+# role = "read-only"
+
+# Domain-specific overrides (optional)
+# [domain_overrides."example.com"]
+# required = ["postmaster", "abuse", "hostmaster", "custom"]
+# common = ["webmaster", "admin", "support", "custom-common"]

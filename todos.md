@@ -45,3 +45,11 @@ please add support for multiple databases as this will manage several servers
 Lets discuss how we can support different databases with different field names.
 
 Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates.
+
+Add Dutch translation
+
+Add German translation
+
+Should we still use a CDN for HTMX and Tailwind?
+
+Put inline css style and scripts in the header into separate files where suitable

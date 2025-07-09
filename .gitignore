@@ -24,3 +24,7 @@ dist
 .vscode/
 
 app.log
+
+config/config.toml
+
+cookies.txt

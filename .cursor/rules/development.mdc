@@ -6,7 +6,7 @@ alwaysApply: false
 
 Please always check compilation with `cargo check` if any Rust code is changed.
 
-The last step is alwys to run `cargo check` to make sure everything is ok.
+The last step is alwys to run `cargo check --test` to make sure everything is ok.
 
 Please format code frequently.
 

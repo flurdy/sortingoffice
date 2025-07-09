@@ -23,6 +23,7 @@ language-selector = Language
 language-english = English
 language-spanish = Español
 language-french = Français
+language-norwegian = Norsk
 
 # About Page
 about-title = About Sorting Office
