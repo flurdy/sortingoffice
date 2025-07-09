@@ -62,18 +62,14 @@ pub async fn login(
     headers: HeaderMap,
     Form(request): Form<LoginRequest>,
 ) -> Result<Response, Html<String>> {
-    println!("🔐 [LOGIN DEBUG] Login attempt received");
-    println!("🔐 [LOGIN DEBUG] Request ID: '{}'", request.id);
-    println!("🔐 [LOGIN DEBUG] Password length: {} characters", request.password.len());
-    println!("🔐 [LOGIN DEBUG] Is HTMX request: {}", headers.get("hx-request").is_some());
+    println!("🔐 [AUTH] Login attempt for user: '{}'", request.id);
     
     let locale = crate::handlers::language::get_user_locale(&headers);
     let is_htmx = headers.get("hx-request").is_some();
     
     // Validate input
     if request.id.trim().is_empty() || request.password.trim().is_empty() {
-        println!("🔐 [LOGIN DEBUG] ❌ Empty fields detected - ID empty: {}, Password empty: {}", 
-                 request.id.trim().is_empty(), request.password.trim().is_empty());
+        println!("🔐 [AUTH] ❌ Login failed: Empty fields for user '{}'", request.id);
         let error = crate::i18n::get_translation(&state, &locale, "login-error-empty-fields").await;
         
         if is_htmx {
@@ -135,9 +131,8 @@ pub async fn login(
     }
     
     // Verify admin credentials from config
-    println!("🔐 [LOGIN DEBUG] Calling verify_admin_credentials with trimmed ID: '{}'", request.id.trim());
     if let Some(role) = state.config.verify_admin_credentials(&request.id.trim(), &request.password) {
-        println!("🔐 [LOGIN DEBUG] ✅ Authentication successful! Role: {:?}", role);
+        println!("🔐 [AUTH] ✅ Login successful for user '{}' with role: {:?}", request.id, role);
         // Set authentication cookie with role
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -149,7 +144,6 @@ pub async fn login(
             AdminRole::Edit => "edit",
         };
         let cookie_value = format!("authenticated={}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax", expiry, role_str);
-        println!("🔐 [LOGIN DEBUG] Setting authentication cookie: {}", cookie_value);
         if is_htmx {
             // For htmx, use HX-Redirect header to force a full page reload
             return Ok(Response::builder()
@@ -169,7 +163,7 @@ pub async fn login(
         }
     }
 
-    println!("🔐 [LOGIN DEBUG] ❌ Authentication failed - no valid credentials found");
+    println!("🔐 [AUTH] ❌ Login failed: Invalid credentials for user '{}'", request.id);
 
     let error = crate::i18n::get_translation(&state, &locale, "login-error-invalid-credentials").await;
     
@@ -245,24 +239,16 @@ pub async fn logout() -> Response {
 
 /// Check if user is authenticated and return their role
 pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
-    println!("🔐 [COOKIE DEBUG] Checking authentication cookie");
-    
     if let Some(cookie_header) = headers.get("cookie") {
         if let Ok(cookie_str) = cookie_header.to_str() {
-            println!("🔐 [COOKIE DEBUG] Raw cookie header: '{}'", cookie_str);
-            
             for cookie in cookie_str.split(';') {
                 let cookie = cookie.trim();
-                println!("🔐 [COOKIE DEBUG] Processing cookie: '{}'", cookie);
                 
                 if cookie.starts_with("authenticated=") {
-                    println!("🔐 [COOKIE DEBUG] Found authenticated cookie!");
                     // Correctly extract the value after 'authenticated='
                     let value_part = &cookie[14..].split(';').next().unwrap_or("");
-                    println!("🔐 [COOKIE DEBUG] Cookie value part: '{}'", value_part);
                     
                     let parts: Vec<&str> = value_part.split(':').collect();
-                    println!("🔐 [COOKIE DEBUG] Cookie parts: {:?}", parts);
                     
                     if parts.len() >= 2 {
                         if let Ok(expiry) = parts[0].parse::<u64>() {
@@ -271,59 +257,32 @@ pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
                                 .unwrap()
                                 .as_secs();
                             
-                            println!("🔐 [COOKIE DEBUG] Cookie expiry: {}, Current time: {}", expiry, now);
-                            
                             if expiry > now {
-                                println!("🔐 [COOKIE DEBUG] Cookie is valid, parsing role: '{}'", parts[1]);
                                 // Parse role
                                 match parts[1] {
-                                    "read-only" => {
-                                        println!("🔐 [COOKIE DEBUG] ✅ Returning ReadOnly role");
-                                        return Some(AdminRole::ReadOnly);
-                                    }
-                                    "edit" => {
-                                        println!("🔐 [COOKIE DEBUG] ✅ Returning Edit role");
-                                        return Some(AdminRole::Edit);
-                                    }
-                                    _ => {
-                                        println!("🔐 [COOKIE DEBUG] ❌ Unknown role: '{}'", parts[1]);
-                                        return None;
-                                    }
+                                    "read-only" => return Some(AdminRole::ReadOnly),
+                                    "edit" => return Some(AdminRole::Edit),
+                                    _ => return None,
                                 }
-                            } else {
-                                println!("🔐 [COOKIE DEBUG] ❌ Cookie has expired");
                             }
-                        } else {
-                            println!("🔐 [COOKIE DEBUG] ❌ Failed to parse expiry: '{}'", parts[0]);
                         }
-                    } else {
-                        println!("🔐 [COOKIE DEBUG] ❌ Invalid cookie format - not enough parts");
                     }
                 }
             }
-        } else {
-            println!("🔐 [COOKIE DEBUG] ❌ Failed to convert cookie header to string");
         }
-    } else {
-        println!("🔐 [COOKIE DEBUG] ❌ No cookie header found");
     }
     
-    println!("🔐 [COOKIE DEBUG] ❌ No valid authentication found");
     None
 }
 
 /// Check if user is authenticated
 pub fn is_authenticated(headers: &HeaderMap) -> bool {
-    let result = get_user_role(headers).is_some();
-    println!("🔐 [AUTH DEBUG] is_authenticated: {}", result);
-    result
+    get_user_role(headers).is_some()
 }
 
 /// Check if user has edit permissions
 pub fn has_edit_permissions(headers: &HeaderMap) -> bool {
-    let result = matches!(get_user_role(headers), Some(AdminRole::Edit));
-    println!("🔐 [AUTH DEBUG] has_edit_permissions: {}", result);
-    result
+    matches!(get_user_role(headers), Some(AdminRole::Edit))
 }
 
 /// Authentication middleware
@@ -334,13 +293,11 @@ pub async fn require_auth(
     next: axum::middleware::Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
-    println!("🔐 [MIDDLEWARE DEBUG] require_auth checking path: {}", path);
     
     if is_authenticated(&headers) {
-        println!("🔐 [MIDDLEWARE DEBUG] ✅ User is authenticated, allowing access to: {}", path);
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [MIDDLEWARE DEBUG] ❌ User not authenticated, redirecting to login from: {}", path);
+        println!("🔐 [AUTH] ❌ Unauthenticated access attempt to: {}", path);
         // Redirect to login
         Ok(Response::builder()
             .status(StatusCode::FOUND)
@@ -358,13 +315,11 @@ pub async fn require_edit_permissions(
     next: axum::middleware::Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
-    println!("🔐 [MIDDLEWARE DEBUG] require_edit_permissions checking path: {}", path);
     
     if has_edit_permissions(&headers) {
-        println!("🔐 [MIDDLEWARE DEBUG] ✅ User has edit permissions, allowing access to: {}", path);
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [MIDDLEWARE DEBUG] ❌ User lacks edit permissions, denying access to: {}", path);
+        println!("🔐 [AUTH] ❌ Insufficient permissions for access to: {}", path);
         // Return 403 Forbidden
         Ok(Response::builder()
             .status(StatusCode::FORBIDDEN)

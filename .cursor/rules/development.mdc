@@ -9,6 +9,7 @@ Please always check compilation with `cargo check` if any Rust code is changed.
 The last step is alwys to run `cargo check --test` to make sure everything is ok.
 
 Please format code frequently.
+- run `cargo fmt --all -- --check` before any task is finished
 
 Please add and update unit tests when applicable.
 

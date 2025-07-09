@@ -141,36 +141,21 @@ impl Config {
     
     /// Verify admin credentials and return role if valid
     pub fn verify_admin_credentials(&self, username: &str, password: &str) -> Option<AdminRole> {
-        println!("🔐 [AUTH DEBUG] Attempting to verify credentials for username: '{}'", username);
-        println!("🔐 [AUTH DEBUG] Password length: {} characters", password.len());
-        println!("🔐 [AUTH DEBUG] Number of configured admins: {}", self.admins.len());
-        
-        for (i, admin) in self.admins.iter().enumerate() {
-            println!("🔐 [AUTH DEBUG] Checking admin #{}: username='{}', role='{:?}'", i + 1, admin.username, admin.role);
-            println!("🔐 [AUTH DEBUG] Stored password hash: {}", admin.password_hash);
-            
+        for admin in &self.admins {
             if admin.username == username {
-                println!("🔐 [AUTH DEBUG] Username matches! Verifying password...");
                 match bcrypt::verify(password, &admin.password_hash) {
                     Ok(is_valid) => {
-                        println!("🔐 [AUTH DEBUG] Password verification result: {}", is_valid);
                         if is_valid {
-                            println!("🔐 [AUTH DEBUG] ✅ Authentication successful! Role: {:?}", admin.role);
                             return Some(admin.role.clone());
-                        } else {
-                            println!("🔐 [AUTH DEBUG] ❌ Password verification failed");
                         }
                     }
-                    Err(e) => {
-                        println!("🔐 [AUTH DEBUG] ❌ Password verification error: {}", e);
+                    Err(_) => {
+                        // Password verification error - continue to next admin
                     }
                 }
-            } else {
-                println!("🔐 [AUTH DEBUG] Username does not match");
             }
         }
         
-        println!("🔐 [AUTH DEBUG] ❌ No valid credentials found");
         None
     }
 }
