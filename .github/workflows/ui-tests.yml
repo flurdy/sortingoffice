@@ -10,6 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  DOCKER_HOST: unix:///var/run/docker.sock
 
 jobs:
   ui-tests:
@@ -36,6 +37,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Start Docker daemon
+      run: |
+        sudo systemctl start docker
+        sudo systemctl status docker
+
+    - name: Verify Docker is working
+      run: |
+        docker --version
+        docker ps
+        sudo usermod -a -G docker $USER || true
 
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
@@ -73,6 +88,9 @@ jobs:
         DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
       run: diesel migration run
 
+    - name: Build application
+      run: cargo build --release
+
     - name: Start application
       env:
         DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
@@ -80,14 +98,19 @@ jobs:
         HOST: 0.0.0.0
         PORT: 3000
       run: |
-        cargo build --release
-        timeout 30s cargo run --release &
-        sleep 10
+        nohup cargo run --release > app.log 2>&1 &
+        echo $! > app.pid
+        sleep 5
 
     - name: Wait for application
       run: |
-        while ! curl -s http://localhost:3000/ > /dev/null; do
-          sleep 1
+        for i in {1..30}; do
+          if curl -s http://localhost:3000/ > /dev/null; then
+            echo "Application is ready"
+            break
+          fi
+          echo "Waiting for application... ($i/30)"
+          sleep 2
         done
 
     - name: Run headless UI tests
@@ -97,6 +120,14 @@ jobs:
       run: |
         cargo test --test ui_headless -- --nocapture --test-threads=1
 
+    - name: Stop application
+      if: always()
+      run: |
+        if [ -f app.pid ]; then
+          kill $(cat app.pid) || true
+          rm app.pid
+        fi
+
     - name: Upload test artifacts
       if: failure()
       uses: actions/upload-artifact@v4
@@ -105,4 +136,5 @@ jobs:
         path: |
           screenshots/
           test-results/
+          app.log
         retention-days: 7 
