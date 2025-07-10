@@ -35,6 +35,7 @@
 ✅ Cleaned up UI tests to use only headless testcontainers approach - IMPLEMENTED
 
 On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
+The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 Update the statistics page with more metrics.
 
@@ -64,5 +65,3 @@ The dashboard stats should be changed to
   - an enabled users total
 
 The dashboard should have descriptive link to further stats and reports
-
-The current dashboard quick actions are a bit repetitive, perhaps invert it.
