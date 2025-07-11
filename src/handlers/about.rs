@@ -119,11 +119,23 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     };
     let content = content_template.render().unwrap();
 
+    // Get current database id from session/cookie or default
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    // Get current database label from db_manager
+    let current_db_label = state.db_manager.get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
     let template = BaseTemplate::with_i18n(
         get_translation(&state, &locale, "about-title").await,
         content,
         &state,
         &locale,
+        current_db_label,
+        current_db_id,
     )
     .await
     .unwrap();

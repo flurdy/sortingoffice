@@ -7,6 +7,7 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::mysql::MysqlConnection;
 use diesel::r2d2::{self, ConnectionManager};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -68,6 +69,62 @@ impl DatabaseManager {
     pub async fn has_database(&self, db_id: &str) -> bool {
         let pools = self.pools.read().await;
         pools.contains_key(db_id)
+    }
+
+        /// Run migrations on all configured databases
+    pub async fn run_migrations_on_all_databases(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+
+        let pools = self.pools.read().await;
+
+        for config in &self.configs {
+            if let Some(pool) = pools.get(&config.id) {
+                tracing::info!("Running migrations on database: {}", config.id);
+
+                match pool.get() {
+                    Ok(mut conn) => {
+                        match conn.run_pending_migrations(MIGRATIONS) {
+                            Ok(_) => tracing::info!("✅ Migrations completed successfully for database: {}", config.id),
+                            Err(e) => {
+                                tracing::error!("❌ Failed to run migrations on database {}: {}", config.id, e);
+                                return Err(format!("Failed to run migrations on database {}: {}", config.id, e).into());
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("❌ Failed to get connection for database {}: {}", config.id, e);
+                        return Err(format!("Failed to get connection for database {}: {}", config.id, e).into());
+                    }
+                }
+            } else {
+                tracing::warn!("⚠️  No pool found for database: {}", config.id);
+            }
+        }
+
+        tracing::info!("✅ Migrations completed on all databases");
+        Ok(())
+    }
+
+    /// Run migrations on a specific database
+    pub async fn run_migrations_on_database(&self, db_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+
+        let pools = self.pools.read().await;
+
+        if let Some(pool) = pools.get(db_id) {
+            tracing::info!("Running migrations on database: {}", db_id);
+
+            let mut conn = pool.get()
+                .map_err(|e| format!("Failed to get connection for database {db_id}: {e}"))?;
+
+            conn.run_pending_migrations(MIGRATIONS)
+                .map_err(|e| format!("Failed to run migrations on database {db_id}: {e}"))?;
+
+            tracing::info!("✅ Migrations completed successfully for database: {}", db_id);
+            Ok(())
+        } else {
+            Err(format!("No pool found for database: {db_id}").into())
+        }
     }
 }
 
@@ -779,7 +836,7 @@ pub fn get_catch_all_report(pool: &DbPool) -> Result<Vec<CatchAllReport>, Error>
 
         // Get all other aliases for this domain (excluding the catch-all)
         let required_aliases = aliases::table
-            .filter(aliases::mail.like(format!("%@{}", domain)))
+            .filter(aliases::mail.like(format!("%@{domain}")))
             .filter(aliases::mail.ne(&catch_all_alias.mail))
             .filter(aliases::enabled.eq(true))
             .select(Alias::as_select())
@@ -992,7 +1049,7 @@ pub fn get_domain_alias_report(
 
     // Check if this domain has a catch-all alias
     let catch_all_alias = aliases::table
-        .filter(aliases::mail.eq(format!("@{}", domain_name)))
+        .filter(aliases::mail.eq(format!("@{domain_name}")))
         .filter(aliases::enabled.eq(true))
         .select(Alias::as_select())
         .first::<Alias>(&mut conn)
@@ -1000,7 +1057,7 @@ pub fn get_domain_alias_report(
 
     // Get all aliases for this domain
     let domain_aliases = aliases::table
-        .filter(aliases::mail.like(format!("%@{}", domain_name)))
+        .filter(aliases::mail.like(format!("%@{domain_name}")))
         .filter(aliases::enabled.eq(true))
         .select(Alias::as_select())
         .load::<Alias>(&mut conn)?;
@@ -1159,9 +1216,9 @@ pub fn create_domain_aliases(
 
     for (local_part, destination) in aliases {
         let mail = if local_part == "@" {
-            format!("@{}", domain)
+            format!("@{domain}")
         } else {
-            format!("{}@{}", local_part, domain)
+            format!("{local_part}@{domain}")
         };
 
         // Check if alias already exists
@@ -1198,7 +1255,7 @@ pub fn create_domain_aliases(
 pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
     aliases::table
-        .filter(aliases::mail.like(format!("%@{}", domain_name)))
+        .filter(aliases::mail.like(format!("%@{domain_name}")))
         .select(Alias::as_select())
         .order(aliases::mail.asc())
         .load::<Alias>(&mut conn)

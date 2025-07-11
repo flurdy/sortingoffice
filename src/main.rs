@@ -5,7 +5,7 @@ use axum::{
 };
 use diesel::mysql::MysqlConnection;
 use diesel::r2d2::{self, ConnectionManager};
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -58,11 +58,10 @@ async fn main() {
         db::DatabaseManager::new(config.databases.clone()).await.expect("Failed to create database manager")
     };
 
-    // Run database migrations on the default database
-    if let Some(default_pool) = db_manager.get_default_pool().await {
-        let mut conn = default_pool.get().expect("Failed to get db connection from pool");
-        conn.run_pending_migrations(MIGRATIONS)
-            .expect("Failed to run db migrations");
+    // Run database migrations on all configured databases
+    if let Err(e) = db_manager.run_migrations_on_all_databases().await {
+        tracing::error!("Failed to run migrations on all databases: {}", e);
+        std::process::exit(1);
     }
 
     // Initialize i18n
@@ -115,6 +114,7 @@ async fn main() {
         // Database selection
         .route("/database", get(handlers::database::index))
         .route("/database/select", post(handlers::database::select))
+        .route("/database/migrate", post(handlers::database::run_migrations))
         .route("/api/databases", get(handlers::database::list_databases))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(

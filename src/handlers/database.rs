@@ -14,6 +14,11 @@ pub struct DatabaseSelectionForm {
     database_id: String,
 }
 
+#[derive(Deserialize)]
+pub struct MigrationForm {
+    database_id: Option<String>, // If None, run on all databases
+}
+
 /// Show the database selection page
 pub async fn index(
     State(state): State<AppState>,
@@ -60,6 +65,53 @@ pub async fn select(
             .header("Location", "/")
             .body("".into())
             .unwrap())
+    }
+}
+
+/// Run migrations on databases
+pub async fn run_migrations(
+    State(state): State<AppState>,
+    Form(form): Form<MigrationForm>,
+) -> Result<axum::response::Response, StatusCode> {
+    match form.database_id {
+        Some(db_id) => {
+            // Run migrations on specific database
+            if !state.db_manager.has_database(&db_id).await {
+                return Err(StatusCode::BAD_REQUEST);
+            }
+
+            match state.db_manager.run_migrations_on_database(&db_id).await {
+                Ok(_) => {
+                    tracing::info!("Migrations completed successfully for database: {}", db_id);
+                    Ok(axum::response::Response::builder()
+                        .status(axum::http::StatusCode::FOUND)
+                        .header("Location", "/database")
+                        .body("".into())
+                        .unwrap())
+                }
+                Err(e) => {
+                    tracing::error!("Failed to run migrations on database {}: {}", db_id, e);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+                }
+            }
+        }
+        None => {
+            // Run migrations on all databases
+            match state.db_manager.run_migrations_on_all_databases().await {
+                Ok(_) => {
+                    tracing::info!("Migrations completed successfully on all databases");
+                    Ok(axum::response::Response::builder()
+                        .status(axum::http::StatusCode::FOUND)
+                        .header("Location", "/database")
+                        .body("".into())
+                        .unwrap())
+                }
+                Err(e) => {
+                    tracing::error!("Failed to run migrations on all databases: {}", e);
+                    Err(StatusCode::INTERNAL_SERVER_ERROR)
+                }
+            }
+        }
     }
 }
 

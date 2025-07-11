@@ -8,7 +8,7 @@ mod tests {
     use tower::ServiceExt;
 
     use crate::handlers;
-    use crate::tests::common::{cleanup_test_db, setup_test_db};
+    use crate::tests::common::cleanup_test_db;
     use crate::AppState;
     use crate::config::DatabaseConfig;
 

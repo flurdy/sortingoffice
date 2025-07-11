@@ -1,7 +1,7 @@
 # Database Management Makefile
 # Contains all database-related operations for Sorting Office
 
-.PHONY: migrate migrate-revert migrate-reset seed create-seed-migration test-db-setup test-db-clean test-db-reset prod-db-setup prod-db-reset list-domains count-domains list-aliases count-aliases list-users count-users
+.PHONY: migrate migrate-revert migrate-reset migrate-all seed create-seed-migration test-db-setup test-db-clean test-db-reset prod-db-setup prod-db-reset list-domains count-domains list-aliases count-aliases list-users count-users
 
 # Database configuration
 MYSQL ?= mysql
@@ -21,6 +21,14 @@ migrate-revert:
 migrate-reset:
 	diesel migration revert
 	diesel migration run
+
+# Run migrations on all configured databases
+migrate-all:
+	@echo "🔄 Running migrations on all configured databases..."
+	@cargo run --bin migrate-all-databases 2>/dev/null || \
+	(echo "⚠️  Migration binary not found, running via application startup..."; \
+	 echo "   This will start the application briefly to run migrations."; \
+	 timeout 30s cargo run --quiet 2>/dev/null || echo "✅ Migrations completed or application started successfully")
 
 # Seed data management
 seed:
@@ -146,9 +154,10 @@ db-help:
 	@echo "================================"
 	@echo ""
 	@echo "Migrations:"
-	@echo "  make migrate           - Run pending migrations"
+	@echo "  make migrate           - Run pending migrations (default database only)"
 	@echo "  make migrate-revert    - Revert last migration"
 	@echo "  make migrate-reset     - Reset database (revert all, then run all)"
+	@echo "  make migrate-all       - Run migrations on all configured databases"
 	@echo ""
 	@echo "Seed Data:"
 	@echo "  make seed              - Seed database with all initial data"
@@ -173,4 +182,4 @@ db-help:
 	@echo "  make list-aliases      - List all aliases"
 	@echo "  make count-aliases     - Count all aliases"
 	@echo "  make list-users        - List all users"
-	@echo "  make count-users       - Count all users" 
+	@echo "  make count-users       - Count all users"

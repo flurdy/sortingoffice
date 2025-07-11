@@ -4,7 +4,7 @@
       Database Selection
     </h1>
 
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
       <p class="text-gray-600 dark:text-gray-300 mb-6">
         Select the database you want to manage. Each database represents a
         different mail server.
@@ -39,6 +39,61 @@
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- Migration Management Section -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Database Migration Management
+      </h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-6">
+        Run database migrations to ensure all databases have the latest schema.
+      </p>
+
+      <div class="space-y-4">
+        <!-- Run migrations on all databases -->
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Run Migrations on All Databases
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            This will run pending migrations on all configured databases.
+          </p>
+          <form method="POST" action="/database/migrate" class="inline">
+            <button
+              type="submit"
+              class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+              onclick="return confirm('Are you sure you want to run migrations on all databases?')"
+            >
+              Run Migrations on All Databases
+            </button>
+          </form>
+        </div>
+
+        <!-- Run migrations on specific databases -->
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Run Migrations on Specific Database
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Run migrations on a specific database only.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for database in databases %}
+            <form method="POST" action="/database/migrate" class="inline">
+              <input type="hidden" name="database_id" value="{{ database.id }}">
+              <button
+                type="submit"
+                class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 text-sm"
+                onclick="return confirm('Are you sure you want to run migrations on {{ database.label }}?')"
+              >
+                {{ database.label }}
+              </button>
+            </form>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

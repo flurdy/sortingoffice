@@ -11,10 +11,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     // Use the new macro for SystemStats retrieval
     let system_stats = get_system_stats_or_default!(db::get_system_stats(&pool));
 
-    let domain_stats = match db::get_domain_stats(&pool) {
-        Ok(stats) => stats,
-        Err(_) => vec![],
-    };
+    let domain_stats = db::get_domain_stats(&pool).unwrap_or_default();
 
     // Use the batch translation fetcher for all statistics translations
     let translations = crate::handlers::utils::get_translations_batch(
@@ -89,7 +86,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         recent_relocated: &translations["stats-recent-relocated"],
         recent_clients: &translations["stats-recent-clients"],
         system_stats,
-        domain_stats: domain_stats,
+        domain_stats,
     };
 
     // Use the new render template macro

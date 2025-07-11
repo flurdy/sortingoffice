@@ -12,7 +12,7 @@ use diesel::result::Error;
 use tracing::{debug, error, info};
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").map_or(false, |v| v == "true")
+    headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 // List all relays
@@ -90,11 +90,20 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relays-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -177,11 +186,20 @@ pub async fn show_relay(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relays-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -219,7 +237,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
 
     let content_template = RelayFormTemplate {
         title: &title,
-        action: &action,
+        action,
         form,
         field_recipient: &field_recipient,
         field_status: &field_status,
@@ -244,11 +262,20 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relays-add-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -312,7 +339,7 @@ pub async fn edit_form(
     };
 
     let title = get_translation(&state, &locale, "relays-edit-relay").await;
-    let action = format!("/relays/{}", relay_id);
+    let action = format!("/relays/{relay_id}");
     let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
     let field_status = get_translation(&state, &locale, "relays-field-status").await;
     let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
@@ -353,11 +380,20 @@ pub async fn edit_form(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relays-edit-relay").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -471,13 +507,11 @@ pub async fn toggle_enabled(
                     .contains("relay-show-status")
                 {
                     format!(
-                        "<span class=\"{}\">{}</span><script>document.getElementById('relay-show-button-{}').textContent = '{}';</script>",
-                        badge_class, enabled_text, relay_id, button_text
+                        "<span class=\"{badge_class}\">{enabled_text}</span><script>document.getElementById('relay-show-button-{relay_id}').textContent = '{button_text}';</script>"
                     )
                 } else {
                     format!(
-                        "<span class=\"{}\">{}</span><script>document.getElementById('relay-button-{}').textContent = '{}';</script>",
-                        badge_class, enabled_text, relay_id, button_text
+                        "<span class=\"{badge_class}\">{enabled_text}</span><script>document.getElementById('relay-button-{relay_id}').textContent = '{button_text}';</script>"
                     )
                 };
                 Html(script)
@@ -487,17 +521,16 @@ pub async fn toggle_enabled(
                 let status_disabled = get_translation(&state, &locale, "status-disabled").await;
 
                 if relay.enabled {
-                    Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{}</span>", status_enabled))
+                    Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{status_enabled}</span>"))
                 } else {
-                    Html(format!("<span class=\"inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200\">{}</span>", status_disabled))
+                    Html(format!("<span class=\"inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200\">{status_disabled}</span>"))
                 }
             }
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
             Html(format!(
-                "<span class=\"text-danger\">{}</span>",
-                not_found_msg
+                "<span class=\"text-danger\">{not_found_msg}</span>"
             ))
         }
         Err(e) => {
@@ -506,7 +539,7 @@ pub async fn toggle_enabled(
                 relay_id, e
             );
             let error_msg = get_translation(&state, &locale, "relays-toggle-error").await;
-            Html(format!("<span class=\"text-danger\">{}</span>", error_msg))
+            Html(format!("<span class=\"text-danger\">{error_msg}</span>"))
         }
     }
 }

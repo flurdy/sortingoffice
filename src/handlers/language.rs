@@ -41,8 +41,7 @@ pub async fn set_language(
         .header(
             "Set-Cookie",
             format!(
-                "language={}; Path=/; Max-Age=31536000; SameSite=Lax",
-                locale
+                "language={locale}; Path=/; Max-Age=31536000; SameSite=Lax"
             ),
         )
         .body("".into())

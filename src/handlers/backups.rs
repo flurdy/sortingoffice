@@ -77,11 +77,23 @@ pub async fn show(
     };
     let content = content_template.render().unwrap();
 
+    // Get current database id from session/cookie or default
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    // Get current database label from db_manager
+    let current_db_label = state.db_manager.get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
     let template = BaseTemplate::with_i18n(
         get_translation(&state, &locale, "backups-title").await,
         content,
         &state,
         &locale,
+        current_db_label,
+        current_db_id,
     )
     .await
     .unwrap();
@@ -182,7 +194,7 @@ pub async fn create(
     match db::create_backup(&pool, new_backup) {
         Ok(_) => {
             // Redirect to domains page after creating backup
-            return Html("<script>window.location.href='/domains';</script>".to_string());
+            Html("<script>window.location.href='/domains';</script>".to_string())
         }
         Err(e) => {
             let error_message = match e {
@@ -229,11 +241,23 @@ pub async fn create(
             };
             let content = content_template.render().unwrap();
 
+            // Get current database id from session/cookie or default
+            let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+            // Get current database label from db_manager
+            let current_db_label = state.db_manager.get_configs()
+                .iter()
+                .find(|db| db.id == current_db_id)
+                .map(|db| db.label.clone())
+                .unwrap_or_else(|| current_db_id.clone());
+
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "backups-title").await,
                 content,
                 &state,
                 &locale,
+                current_db_label,
+                current_db_id,
             )
             .await
             .unwrap();
@@ -357,7 +381,7 @@ pub async fn update(
                 form,
                 error: Some(error_message),
             };
-            return Html(content_template.render().unwrap());
+            Html(content_template.render().unwrap())
         }
     }
 }
@@ -369,7 +393,7 @@ pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers:
     match db::delete_backup(&pool, id) {
         Ok(_) => {
             // Redirect to domains page after deleting backup
-            return Html("<script>window.location.href='/domains';</script>".to_string());
+            Html("<script>window.location.href='/domains';</script>".to_string())
         }
         Err(_) => Html("Error deleting backup".to_string()),
     }

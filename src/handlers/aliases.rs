@@ -98,9 +98,9 @@ pub async fn new(
         .filter(|r| r.contains("/domains/"))
         .map(|r| r.to_string());
     let mail = match (&prefill.alias, &prefill.domain) {
-        (Some(alias), Some(domain)) => format!("{}@{}", alias, domain),
+        (Some(alias), Some(domain)) => format!("{alias}@{domain}"),
         (Some(alias), None) => alias.clone(),
-        (None, Some(domain)) => format!("{}", domain),
+        (None, Some(domain)) => domain.to_string(),
         (None, None) => "".to_string(),
     };
     let form = AliasForm {
@@ -136,7 +136,7 @@ pub async fn new(
         alias: None,
         form,
         error: None,
-        return_url: return_url,
+        return_url,
         edit_alias: &translations["aliases-edit-alias"],
         new_alias: &translations["aliases-new-alias"],
         form_error: &translations["aliases-form-error"],
@@ -274,12 +274,20 @@ pub async fn edit(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let locale = crate::handlers::language::get_user_locale(&headers);
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "aliases-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -368,7 +376,7 @@ pub async fn create(
                     let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
                         Ok(report) => Some(report),
                         Err(e) => {
-                            eprintln!("Error getting domain alias report: {:?}", e);
+                            eprintln!("Error getting domain alias report: {e:?}");
                             None
                         }
                     };
@@ -377,7 +385,7 @@ pub async fn create(
                     let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
                         Ok(aliases) => aliases,
                         Err(e) => {
-                            eprintln!("Error getting aliases for domain: {:?}", e);
+                            eprintln!("Error getting aliases for domain: {e:?}");
                             vec![]
                         }
                     };
@@ -422,7 +430,7 @@ pub async fn create(
                         disable_domain: &disable_domain,
                         delete_domain: &delete_domain,
                         delete_confirm: &delete_confirm,
-                        alias_report: alias_report,
+                        alias_report,
                         catch_all_header: &catch_all_header,
                         destination_header: &destination_header,
                         required_aliases_header: &required_aliases_header,
@@ -454,11 +462,20 @@ pub async fn create(
                         Html(content)
                     } else {
                         let locale = crate::handlers::language::get_user_locale(&headers);
+                        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                        let current_db_label = state.db_manager.get_configs()
+                            .iter()
+                            .find(|db| db.id == current_db_id)
+                            .map(|db| db.label.clone())
+                            .unwrap_or_else(|| current_db_id.clone());
                         let template = BaseTemplate::with_i18n(
                             get_translation(&state, &locale, "domains-show-title").await,
                             content,
                             &state,
                             &locale,
+                            current_db_label,
+                            current_db_id,
                         )
                         .await
                         .unwrap();
@@ -466,12 +483,12 @@ pub async fn create(
                     }
                 }
                 Err(e) => {
-                    eprintln!("Error finding domain by name: {:?}", e);
+                    eprintln!("Error finding domain by name: {e:?}");
                     // Fallback to aliases list if domain not found
                     let aliases = match db::get_aliases(&pool) {
                         Ok(aliases) => aliases,
                         Err(e) => {
-                            eprintln!("Error getting aliases: {:?}", e);
+                            eprintln!("Error getting aliases: {e:?}");
                             vec![]
                         }
                     };
@@ -529,11 +546,20 @@ pub async fn create(
                         Html(content)
                     } else {
                         let locale = crate::handlers::language::get_user_locale(&headers);
+                        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                        let current_db_label = state.db_manager.get_configs()
+                            .iter()
+                            .find(|db| db.id == current_db_id)
+                            .map(|db| db.label.clone())
+                            .unwrap_or_else(|| current_db_id.clone());
                         let template = BaseTemplate::with_i18n(
                             get_translation(&state, &locale, "aliases-title").await,
                             content,
                             &state,
                             &locale,
+                            current_db_label,
+                            current_db_id,
                         )
                         .await
                         .unwrap();
@@ -543,7 +569,7 @@ pub async fn create(
             }
         }
         Err(e) => {
-            eprintln!("Error creating alias: {:?}", e);
+            eprintln!("Error creating alias: {e:?}");
 
             // Handle specific database errors with user-friendly messages
             let error_message = match e {
@@ -606,11 +632,20 @@ pub async fn create(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-add-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -686,11 +721,20 @@ pub async fn update(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-show-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -698,7 +742,7 @@ pub async fn update(
             }
         }
         Err(e) => {
-            eprintln!("Error updating alias: {:?}", e);
+            eprintln!("Error updating alias: {e:?}");
 
             // Handle specific database errors with user-friendly messages
             let error_message = match e {
@@ -718,10 +762,7 @@ pub async fn update(
             };
 
             // Get the original alias for the form
-            let original_alias = match db::get_alias(&pool, id) {
-                Ok(alias) => Some(alias),
-                Err(_) => None,
-            };
+            let original_alias = db::get_alias(&pool, id).ok();
 
             // Return to form with error message
             let locale = crate::handlers::language::get_user_locale(&headers);
@@ -771,11 +812,20 @@ pub async fn update(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-edit-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -798,7 +848,7 @@ pub async fn delete(
             let aliases = match db::get_aliases(&pool) {
                 Ok(aliases) => aliases,
                 Err(e) => {
-                    eprintln!("Error getting aliases: {:?}", e);
+                    eprintln!("Error getting aliases: {e:?}");
                     vec![]
                 }
             };
@@ -854,11 +904,20 @@ pub async fn delete(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -933,11 +992,20 @@ pub async fn toggle_enabled(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-show-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -960,7 +1028,7 @@ pub async fn toggle_enabled_list(
             let aliases = match db::get_aliases(&pool) {
                 Ok(aliases) => aliases,
                 Err(e) => {
-                    eprintln!("Error getting aliases: {:?}", e);
+                    eprintln!("Error getting aliases: {e:?}");
                     vec![]
                 }
             };
@@ -1016,11 +1084,20 @@ pub async fn toggle_enabled_list(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -1095,11 +1172,20 @@ pub async fn toggle_enabled_show(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "aliases-show-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();
@@ -1128,7 +1214,7 @@ pub async fn toggle_enabled_domain_show(
             };
 
             // Extract domain from alias mail (e.g., "user@domain.com" -> "domain.com")
-            let domain_name = alias.mail.split('@').last().unwrap_or("");
+            let domain_name = alias.mail.split('@').next_back().unwrap_or("");
 
             // Find the domain by name
             let domain = match db::get_domain_by_name(&pool, domain_name) {
@@ -1160,16 +1246,10 @@ pub async fn toggle_enabled_domain_show(
             let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
 
             // Get alias report for the domain
-            let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
-                Ok(report) => Some(report),
-                Err(_) => None,
-            };
+            let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
 
             // Get existing aliases for the domain
-            let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
-                Ok(aliases) => aliases,
-                Err(_) => vec![],
-            };
+            let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
 
             let catch_all_header =
                 get_translation(&state, &locale, "reports-catch-all-header").await;
@@ -1231,7 +1311,7 @@ pub async fn toggle_enabled_domain_show(
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
-                alias_report: alias_report,
+                alias_report,
                 catch_all_header: &catch_all_header,
                 destination_header: &destination_header,
                 required_aliases_header: &required_aliases_header,
@@ -1263,11 +1343,20 @@ pub async fn toggle_enabled_domain_show(
                 Html(content)
             } else {
                 let locale = crate::handlers::language::get_user_locale(&headers);
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                let current_db_label = state.db_manager.get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "domains-title").await,
                     content,
                     &state,
                     &locale,
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
                 .unwrap();

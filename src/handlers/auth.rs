@@ -88,12 +88,11 @@ pub async fn login(
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <p class="text-sm">{}</p>
+                                    <p class="text-sm">{error}</p>
                                 </div>
                             </div>
                         </div>
-                    </div>"#,
-                    error
+                    </div>"#
                 ).into())
                 .unwrap());
         } else {
@@ -140,7 +139,7 @@ pub async fn login(
     // Verify admin credentials from config
     if let Some(role) = state
         .config
-        .verify_admin_credentials(&request.id.trim(), &request.password)
+        .verify_admin_credentials(request.id.trim(), &request.password)
     {
         println!(
             "🔐 [AUTH] ✅ Login successful for user '{}' with role: {:?}",
@@ -159,8 +158,7 @@ pub async fn login(
         // Set default database to the first available database
         let default_db = state.db_manager.get_default_db_id();
         let cookie_value = format!(
-            "authenticated={}:{}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
-            expiry, role_str, default_db
+            "authenticated={expiry}:{role_str}:{default_db}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax"
         );
         if is_htmx {
             // For htmx, use HX-Redirect header to force a full page reload
@@ -203,12 +201,11 @@ pub async fn login(
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm">{}</p>
+                                <p class="text-sm">{error}</p>
                             </div>
                         </div>
                     </div>
-                </div>"#,
-                error
+                </div>"#
             ).into())
             .unwrap())
     } else {
@@ -271,9 +268,9 @@ pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
             for cookie in cookie_str.split(';') {
                 let cookie = cookie.trim();
 
-                if cookie.starts_with("authenticated=") {
+                if let Some(stripped) = cookie.strip_prefix("authenticated=") {
                     // Correctly extract the value after 'authenticated='
-                    let value_part = &cookie[14..].split(';').next().unwrap_or("");
+                    let value_part = &stripped.split(';').next().unwrap_or("");
 
                     let parts: Vec<&str> = value_part.split(':').collect();
 
@@ -309,9 +306,9 @@ pub fn update_session_database(headers: &HeaderMap, new_database: &str) -> Optio
             for cookie in cookie_str.split(';') {
                 let cookie = cookie.trim();
 
-                if cookie.starts_with("authenticated=") {
+                if let Some(stripped) = cookie.strip_prefix("authenticated=") {
                     // Correctly extract the value after 'authenticated='
-                    let value_part = &cookie[14..].split(';').next().unwrap_or("");
+                    let value_part = &stripped.split(';').next().unwrap_or("");
 
                     let parts: Vec<&str> = value_part.split(':').collect();
 
@@ -326,8 +323,7 @@ pub fn update_session_database(headers: &HeaderMap, new_database: &str) -> Optio
                                 // Create new cookie with updated database
                                 let role_str = parts[1];
                                 return Some(format!(
-                                    "authenticated={}:{}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
-                                    expiry, role_str, new_database
+                                    "authenticated={expiry}:{role_str}:{new_database}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax"
                                 ));
                             }
                         }
@@ -357,9 +353,9 @@ pub fn get_selected_database(headers: &HeaderMap) -> Option<String> {
             for cookie in cookie_str.split(';') {
                 let cookie = cookie.trim();
 
-                if cookie.starts_with("authenticated=") {
+                if let Some(stripped) = cookie.strip_prefix("authenticated=") {
                     // Correctly extract the value after 'authenticated='
-                    let value_part = &cookie[14..].split(';').next().unwrap_or("");
+                    let value_part = &stripped.split(';').next().unwrap_or("");
 
                     let parts: Vec<&str> = value_part.split(':').collect();
 
@@ -408,7 +404,7 @@ pub async fn require_auth(
     if is_authenticated(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [AUTH] ❌ Unauthenticated access attempt to: {}", path);
+        println!("🔐 [AUTH] ❌ Unauthenticated access attempt to: {path}");
         // Redirect to login
         Ok(Response::builder()
             .status(StatusCode::FOUND)
@@ -431,8 +427,7 @@ pub async fn require_edit_permissions(
         Ok(next.run(request).await)
     } else {
         println!(
-            "🔐 [AUTH] ❌ Insufficient permissions for access to: {}",
-            path
+            "🔐 [AUTH] ❌ Insufficient permissions for access to: {path}"
         );
         // Return 403 Forbidden
         Ok(Response::builder()

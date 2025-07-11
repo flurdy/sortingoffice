@@ -71,8 +71,7 @@ The dashboard stats should be changed to
   - a combined enabled domains and backups total
   - an enabled aliases total
   - an enabled users total
-
-The dashboard should have descriptive link to further stats and reports
+  - The other stats belong and are already in thes stats page
 
 In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
 Lets discuss how we can support different databases with different field names.

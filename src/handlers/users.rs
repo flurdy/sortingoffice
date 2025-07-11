@@ -9,6 +9,18 @@ use axum::{
     Form,
 };
 
+// Helper function to get current database info
+async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (String, String) {
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state.db_manager.get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+    (current_db_label, current_db_id)
+}
+
 async fn build_user_list_template(
     state: &AppState,
     locale: &str,
@@ -183,7 +195,7 @@ pub async fn list(
         empty_description: translations["users-empty-description"].to_string(),
         users: paginated_users.items,
         pagination: paginated,
-        page_range: page_range,
+        page_range,
         max_item,
     };
     render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
@@ -329,11 +341,14 @@ pub async fn edit(
     if crate::handlers::utils::is_htmx_request(&headers) {
         Html(content)
     } else {
+        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "users-edit-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -360,11 +375,14 @@ pub async fn create(
         if crate::handlers::utils::is_htmx_request(&headers) {
             Html(content)
         } else {
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "users-add-title").await,
                 content,
                 &state,
                 &locale,
+                current_db_label,
+                current_db_id,
             )
             .await
             .unwrap();
@@ -377,7 +395,7 @@ pub async fn create(
                 let users = match db::get_users(&pool) {
                     Ok(users) => users,
                     Err(e) => {
-                        eprintln!("Error getting users: {:?}", e);
+                        eprintln!("Error getting users: {e:?}");
                         vec![]
                     }
                 };
@@ -389,11 +407,14 @@ pub async fn create(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
+                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-title").await,
                         content,
                         &state,
                         &locale,
+                        current_db_label,
+                        current_db_id,
                     )
                     .await
                     .unwrap();
@@ -415,11 +436,14 @@ pub async fn create(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
+                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-add-title").await,
                         content,
                         &state,
                         &locale,
+                        current_db_label,
+                        current_db_id,
                     )
                     .await
                     .unwrap();
@@ -462,11 +486,14 @@ pub async fn update(
         if crate::handlers::utils::is_htmx_request(&headers) {
             Html(content)
         } else {
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "users-edit-title").await,
                 content,
                 &state,
                 &locale,
+                current_db_label,
+                current_db_id,
             )
             .await
             .unwrap();
@@ -486,11 +513,14 @@ pub async fn update(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
+                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-show-title").await,
                         content,
                         &state,
                         &locale,
+                        current_db_label,
+                        current_db_id,
                     )
                     .await
                     .unwrap();
@@ -517,11 +547,14 @@ pub async fn update(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
+                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-edit-title").await,
                         content,
                         &state,
                         &locale,
+                        current_db_label,
+                        current_db_id,
                     )
                     .await
                     .unwrap();
@@ -543,10 +576,7 @@ pub async fn delete(
 
     match db::delete_user(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(_) => vec![],
-            };
+            let users = db::get_users(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;
@@ -567,10 +597,7 @@ pub async fn toggle_enabled(
 
     match db::toggle_user_enabled(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(_) => vec![],
-            };
+            let users = db::get_users(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;
@@ -591,10 +618,7 @@ pub async fn toggle_enabled_list(
 
     match db::toggle_user_enabled(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(_) => vec![],
-            };
+            let users = db::get_users(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;

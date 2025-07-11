@@ -14,7 +14,7 @@ macro_rules! get_translations {
     ($state:expr, $locale:expr, [$($key:expr),*]) => {{
         let mut translations = std::collections::HashMap::new();
         $(
-            let value = crate::i18n::get_translation($state, $locale, $key).await;
+            let value = $crate::i18n::get_translation($state, $locale, $key).await;
             translations.insert($key.to_string(), value);
         )*
         translations
@@ -34,14 +34,26 @@ macro_rules! render_template {
             }
         };
 
-        if crate::handlers::utils::is_htmx_request($headers) {
+        if $crate::handlers::utils::is_htmx_request($headers) {
             Html(content)
         } else {
-            let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+            // Get current database id from session/cookie or default
+            let current_db_id = $crate::handlers::auth::get_selected_database($headers)
+                .unwrap_or_else(|| $state.db_manager.get_default_db_id().to_string());
+            // Get current database label from db_manager
+            let current_db_label = $state.db_manager.get_configs()
+                .iter()
+                .find(|db| db.id == current_db_id)
+                .map(|db| db.label.clone())
+                .unwrap_or_else(|| current_db_id.clone());
+
+            let base_template = match $crate::templates::layout::BaseTemplate::with_i18n(
                 "".to_string(), // Title will be set by the template
                 content,
                 $state,
                 $locale,
+                current_db_label,
+                current_db_id,
             ).await {
                 Ok(template) => template,
                 Err(e) => {
@@ -74,14 +86,26 @@ macro_rules! render_template_with_title {
             }
         };
 
-        if crate::handlers::utils::is_htmx_request($headers) {
+        if $crate::handlers::utils::is_htmx_request($headers) {
             Html(content)
         } else {
-            let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+            // Get current database id from session/cookie or default
+            let current_db_id = $crate::handlers::auth::get_selected_database($headers)
+                .unwrap_or_else(|| $state.db_manager.get_default_db_id().to_string());
+            // Get current database label from db_manager
+            let current_db_label = $state.db_manager.get_configs()
+                .iter()
+                .find(|db| db.id == current_db_id)
+                .map(|db| db.label.clone())
+                .unwrap_or_else(|| current_db_id.clone());
+
+            let base_template = match $crate::templates::layout::BaseTemplate::with_i18n(
                 $title.to_string(),
                 content,
                 $state,
                 $locale,
+                current_db_label,
+                current_db_id,
             ).await {
                 Ok(template) => template,
                 Err(e) => {
@@ -109,7 +133,7 @@ macro_rules! get_entity_or_not_found {
         match $db_call {
             Ok(entity) => entity,
             Err(_) => {
-                let not_found_msg = crate::i18n::get_translation($state, $locale, $not_found_key).await;
+                let not_found_msg = $crate::i18n::get_translation($state, $locale, $not_found_key).await;
                 return Html(not_found_msg);
             }
         }
@@ -139,7 +163,7 @@ macro_rules! db_operation {
 #[macro_export]
 macro_rules! default_system_stats {
     () => {{
-        crate::models::SystemStats {
+        $crate::models::SystemStats {
             total_domains: 0,
             enabled_domains: 0,
             disabled_domains: 0,
@@ -182,14 +206,14 @@ macro_rules! get_system_stats_or_default {
     ($db_call:expr) => {{
         match $db_call {
             Ok(stats) => stats,
-            Err(_) => crate::default_system_stats!(),
+            Err(_) => $crate::default_system_stats!(),
         }
     }};
 }
 
 /// Check if the request is an HTMX request
 pub fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").map_or(false, |v| v == "true")
+    headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 /// Get user locale from headers
@@ -205,7 +229,7 @@ pub async fn get_current_db_pool(state: &AppState, headers: &HeaderMap) -> Resul
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     state.db_manager.get_pool(&selected_db).await
-        .ok_or_else(|| format!("No database pool available for '{}'", selected_db).into())
+        .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
 }
 
 /// Batch translation fetcher
@@ -292,11 +316,23 @@ where
     if is_htmx_request(headers) {
         Html(content)
     } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
         let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
             "".to_string(), // Title will be set by the template
             content,
             state,
             locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         {

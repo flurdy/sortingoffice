@@ -12,7 +12,7 @@ use diesel::result::Error;
 use tracing::{debug, error, info};
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").map_or(false, |v| v == "true")
+    headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 // List all relocated entries
@@ -95,11 +95,23 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-        let template = BaseTemplate::with_i18n(
+                  // Get current database id from session/cookie or default
+          let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+              .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+          // Get current database label from db_manager
+          let current_db_label = state.db_manager.get_configs()
+              .iter()
+              .find(|db| db.id == current_db_id)
+              .map(|db| db.label.clone())
+              .unwrap_or_else(|| current_db_id.clone());
+
+          let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relocated-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -214,7 +226,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
 
     let content_template = RelocatedFormTemplate {
         title: &title,
-        action: &action,
+        action,
         form,
         field_old_address: &field_old_address,
         field_new_address: &field_new_address,
@@ -239,11 +251,23 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relocated-add-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -313,7 +337,7 @@ pub async fn edit_form(
     };
 
     let title = get_translation(&state, &locale, "relocated-edit-relocated").await;
-    let action = format!("/relocated/{}", relocated_id);
+    let action = format!("/relocated/{relocated_id}");
     let field_old_address = get_translation(&state, &locale, "relocated-field-old-address").await;
     let field_new_address = get_translation(&state, &locale, "relocated-field-new-address").await;
     let field_enabled = get_translation(&state, &locale, "relocated-field-enabled").await;
@@ -356,11 +380,23 @@ pub async fn edit_form(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
         let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relocated-edit-title").await,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -480,13 +516,11 @@ pub async fn toggle_enabled(
                     .contains("relocated-show-status")
                 {
                     format!(
-                        "<span class=\"{}\">{}</span><script>document.getElementById('relocated-show-button-{}').textContent = '{}';</script>",
-                        badge_class, enabled_text, relocated_id, button_text
+                        "<span class=\"{badge_class}\">{enabled_text}</span><script>document.getElementById('relocated-show-button-{relocated_id}').textContent = '{button_text}';</script>"
                     )
                 } else {
                     format!(
-                        "<span class=\"{}\">{}</span><script>document.getElementById('relocated-button-{}').textContent = '{}';</script>",
-                        badge_class, enabled_text, relocated_id, button_text
+                        "<span class=\"{badge_class}\">{enabled_text}</span><script>document.getElementById('relocated-button-{relocated_id}').textContent = '{button_text}';</script>"
                     )
                 };
                 Html(script)
@@ -496,23 +530,22 @@ pub async fn toggle_enabled(
                 let status_disabled = get_translation(&state, &locale, "status-disabled").await;
 
                 if relocated.enabled {
-                    Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{}</span>", status_enabled))
+                    Html(format!("<span class=\"inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200\">{status_enabled}</span>"))
                 } else {
-                    Html(format!("<span class=\"inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200\">{}</span>", status_disabled))
+                    Html(format!("<span class=\"inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200\">{status_disabled}</span>"))
                 }
             }
         }
         Err(Error::NotFound) => {
             let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
             Html(format!(
-                "<span class=\"text-danger\">{}</span>",
-                not_found_msg
+                "<span class=\"text-danger\">{not_found_msg}</span>"
             ))
         }
         Err(e) => {
             error!("Failed to toggle relocated entry {}: {:?}", relocated_id, e);
             let error_msg = get_translation(&state, &locale, "relocated-toggle-error").await;
-            Html(format!("<span class=\"text-danger\">{}</span>", error_msg))
+            Html(format!("<span class=\"text-danger\">{error_msg}</span>"))
         }
     }
 }

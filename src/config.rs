@@ -5,18 +5,15 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Default)]
 pub enum AdminRole {
     #[serde(rename = "read-only")]
     ReadOnly,
     #[serde(rename = "edit")]
+    #[default]
     Edit,
 }
 
-impl Default for AdminRole {
-    fn default() -> Self {
-        AdminRole::Edit
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DomainOverride {

@@ -17,7 +17,7 @@ pub struct ToggleClientRedirectQuery {
 }
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").map_or(false, |v| v == "true")
+    headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 pub async fn list_clients(
@@ -114,11 +114,29 @@ pub async fn list_clients(
 
     let content = content_template.render().unwrap();
 
-    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
+    if is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+        let template = BaseTemplate::with_i18n(
+            title,
+            content,
+            &state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
         .await
         .unwrap();
 
-    Html(template.render().unwrap())
+        Html(template.render().unwrap())
+    }
 }
 
 pub async fn show_client(
@@ -196,11 +214,20 @@ pub async fn show_client(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "clients-show-title").await,
+            title,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -263,11 +290,20 @@ pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMa
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "clients-add-title").await,
+            title,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -344,11 +380,20 @@ pub async fn edit_client_form(
     if is_htmx_request(&headers) {
         Html(content)
     } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state.db_manager.get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "clients-edit-title").await,
+            title,
             content,
             &state,
             &locale,
+            current_db_label,
+            current_db_id,
         )
         .await
         .unwrap();
@@ -446,8 +491,8 @@ pub async fn toggle_client(
 
     let redirect_url = match redirect_query.redirect.as_deref() {
         Some("list") => "/clients".to_string(),
-        Some("show") | None => format!("/clients/{}", client_id),
-        Some(_) => format!("/clients/{}", client_id),
+        Some("show") | None => format!("/clients/{client_id}"),
+        Some(_) => format!("/clients/{client_id}"),
     };
 
     Ok(Redirect::to(&redirect_url))

@@ -24,7 +24,7 @@ impl I18n {
     }
 
     fn load_messages(locale: &str) -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
-        let resource_path = format!("resources/locales/{}/messages.ftl", locale);
+        let resource_path = format!("resources/locales/{locale}/messages.ftl");
         let resource_str = fs::read_to_string(&resource_path)?;
 
         let mut messages = HashMap::new();
@@ -83,7 +83,7 @@ impl I18n {
 
         // Simple variable substitution: { $variable }
         for (key, value) in args {
-            let placeholder = format!("{{ ${{{}}} }}", key);
+            let placeholder = format!("{{ ${{{key}}} }}");
             message = message.replace(&placeholder, &value);
         }
 
@@ -153,5 +153,13 @@ pub async fn create_base_template(
     content: String,
 ) -> Result<crate::templates::layout::BaseTemplate, Box<dyn std::error::Error>> {
     let title = get_translation(state, locale, title_key).await;
-    crate::templates::layout::BaseTemplate::with_i18n(title, content, state, locale).await
+    // For i18n functions, we don't have access to headers, so we'll use default database
+    let current_db_id = state.db_manager.get_default_db_id().to_string();
+    let current_db_label = state.db_manager.get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    crate::templates::layout::BaseTemplate::with_i18n(title, content, state, locale, current_db_label, current_db_id).await
 }

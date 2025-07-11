@@ -28,6 +28,8 @@ pub struct BaseTemplate {
     pub language_french: String,
     pub language_norwegian: String,
     pub current_locale: String,
+    pub current_db_label: String,
+    pub current_db_id: String,
 }
 
 #[derive(Template)]
@@ -58,6 +60,8 @@ pub struct LayoutTemplate<'a> {
     pub language_french: &'a str,
     pub language_norwegian: &'a str,
     pub current_locale: &'a str,
+    pub current_db_label: &'a str,
+    pub current_db_id: &'a str,
 }
 
 impl BaseTemplate {
@@ -66,6 +70,8 @@ impl BaseTemplate {
         content: String,
         state: &crate::AppState,
         locale: &str,
+        current_db_label: String,
+        current_db_id: String,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(BaseTemplate {
             title,
@@ -94,6 +100,8 @@ impl BaseTemplate {
             language_norwegian: crate::i18n::get_translation(state, locale, "language-norwegian")
                 .await,
             current_locale: locale.to_string(),
+            current_db_label,
+            current_db_id,
         })
     }
 }

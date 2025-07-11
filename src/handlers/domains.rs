@@ -169,14 +169,8 @@ pub async fn show(
         .expect("Failed to get database pool");
     let domain = get_entity_or_not_found!(db::get_domain(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
-        Ok(report) => Some(report),
-        Err(_) => None,
-    };
-    let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
-        Ok(aliases) => aliases,
-        Err(_) => vec![],
-    };
+    let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
+    let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
         &locale,
@@ -385,10 +379,7 @@ pub async fn create(
 
     match db::create_domain(&pool, new_domain) {
         Ok(_) => {
-            let domains = match db::get_domains(&pool) {
-                Ok(domains) => domains,
-                Err(_) => vec![],
-            };
+            let domains = db::get_domains(&pool).unwrap_or_default();
 
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "domains-title").await;
@@ -665,7 +656,7 @@ pub async fn update(
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::UniqueViolation,
                     _,
-                ) => format!("A domain with the name '{}' already exists.", domain_name),
+                ) => format!("A domain with the name '{domain_name}' already exists."),
                 diesel::result::Error::DatabaseError(
                     diesel::result::DatabaseErrorKind::CheckViolation,
                     _,
@@ -730,10 +721,7 @@ pub async fn delete(
 
     match db::delete_domain(&pool, id) {
         Ok(_) => {
-            let domains = match db::get_domains(&pool) {
-                Ok(domains) => domains,
-                Err(_) => vec![],
-            };
+            let domains = db::get_domains(&pool).unwrap_or_default();
 
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "domains-title").await;
@@ -912,11 +900,23 @@ pub async fn toggle_enabled(
             };
             let content = content_template.render().unwrap();
 
-            let template = BaseTemplate::with_i18n(
+                          // Get current database id from session/cookie or default
+              let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                  .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+              // Get current database label from db_manager
+              let current_db_label = state.db_manager.get_configs()
+                  .iter()
+                  .find(|db| db.id == current_db_id)
+                  .map(|db| db.label.clone())
+                  .unwrap_or_else(|| current_db_id.clone());
+
+              let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "domains-title").await,
                 content,
                 &state,
                 &locale,
+                current_db_label,
+                current_db_id,
             )
             .await
             .unwrap();
@@ -936,10 +936,7 @@ pub async fn toggle_enabled_list(
         .expect("Failed to get database pool");
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
-            let domains = match db::get_domains(&pool) {
-                Ok(domains) => domains,
-                Err(_) => vec![],
-            };
+            let domains = db::get_domains(&pool).unwrap_or_default();
 
             let locale = crate::handlers::language::get_user_locale(&headers);
             let title = get_translation(&state, &locale, "domains-title").await;
@@ -1193,8 +1190,7 @@ pub async fn add_missing_required_aliases(
     // Redirect back to the domain show page
     let redirect_url = format!("/domains/{}", domain.pkid);
     Html(format!(
-        "<script>window.location.href = '{}';</script>",
-        redirect_url
+        "<script>window.location.href = '{redirect_url}';</script>"
     ))
 }
 
@@ -1244,7 +1240,6 @@ pub async fn add_missing_required_alias(
     // Redirect back to the domain show page
     let redirect_url = format!("/domains/{}", domain.pkid);
     Html(format!(
-        "<script>window.location.href = '{}';</script>",
-        redirect_url
+        "<script>window.location.href = '{redirect_url}';</script>"
     ))
 }

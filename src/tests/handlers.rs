@@ -16,7 +16,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     async fn create_test_app() -> (Router, AppState) {
-        let pool = setup_test_db();
+        let _pool = setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
 
@@ -1284,7 +1284,7 @@ mod tests {
         use axum::http::HeaderMap;
         use axum::Form;
 
-        let pool = crate::tests::common::setup_test_db();
+        let _pool = crate::tests::common::setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config {
             admins: vec![AdminCredentials {
@@ -1332,7 +1332,7 @@ mod tests {
         use axum::http::HeaderMap;
         use axum::Form;
 
-        let pool = crate::tests::common::setup_test_db();
+        let _pool = crate::tests::common::setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
         let db_config = vec![DatabaseConfig {
