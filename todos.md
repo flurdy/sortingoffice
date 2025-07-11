@@ -63,9 +63,7 @@ Multi-database support - remaining steps:
 
 ⚠️ Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates. - CONFIG-BASED ONLY
 
-Add German translation
-
-Should we still use a CDN for HTMX and Tailwind?
+✅ Add German translation - IMPLEMENTED with full i18n support
 
 Put inline css style and scripts in the header into separate files where suitable
 
@@ -76,8 +74,6 @@ The dashboard stats should be changed to
   - The other stats belong and are already in thes stats page
 
 In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
-
-Lets discuss how we can support different databases with different field names.
 
 Add some more reports
    - orphaned alias / users
@@ -91,4 +87,8 @@ Can the database info in the header be a link to database selection
 
 In the show domain page can the existing aliases be shown above the missing ones.
 
-☐ Show per-database feature toggles (read-only, visible to admins) on the config page
+✅ Show per-database feature toggles (read-only, visible to admins) on the config page - IMPLEMENTED with full i18n support
+
+Should we still use a CDN for HTMX and Tailwind?
+
+Lets discuss how we can support different databases with different field names.
