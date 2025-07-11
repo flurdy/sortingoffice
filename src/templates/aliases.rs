@@ -70,3 +70,11 @@ pub struct AliasFormTemplate<'a> {
     pub update_alias: &'a str,
     pub create_alias: &'a str,
 }
+
+#[derive(Template)]
+#[template(path = "aliases/search_results.html", escape = "html")]
+pub struct AliasSearchResultsTemplate<'a> {
+    pub aliases: &'a [crate::models::Alias],
+    pub no_results: &'a str,
+    pub select_text: &'a str,
+}

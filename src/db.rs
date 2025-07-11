@@ -327,6 +327,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::enabled.eq(user_data.enabled),
+                users::change_password.eq(user_data.change_password),
                 users::modified.eq(Utc::now().naive_utc()),
                 users::crypt.eq(hashed_password),
             ))
@@ -337,6 +338,7 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
                 users::id.eq(user_data.id),
                 users::name.eq(user_data.name),
                 users::enabled.eq(user_data.enabled),
+                users::change_password.eq(user_data.change_password),
                 users::modified.eq(Utc::now().naive_utc()),
             ))
             .execute(&mut conn)?;
@@ -1348,6 +1350,21 @@ pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Al
         .filter(aliases::mail.like(format!("%@{domain_name}")))
         .select(Alias::as_select())
         .order(aliases::mail.asc())
+        .load::<Alias>(&mut conn)
+}
+
+pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+    let search_pattern = format!("%{}%", query);
+
+    aliases::table
+        .filter(
+            aliases::destination.like(&search_pattern)
+                .or(aliases::mail.like(&search_pattern))
+        )
+        .select(Alias::as_select())
+        .order(aliases::destination.asc())
+        .limit(limit)
         .load::<Alias>(&mut conn)
 }
 

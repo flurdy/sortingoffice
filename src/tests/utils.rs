@@ -38,6 +38,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
 
         assert!(!valid_user_form.id.is_empty());

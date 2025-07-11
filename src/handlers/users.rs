@@ -221,10 +221,11 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         password: "".to_string(),
         name: "".to_string(),
         enabled: true,
+        change_password: false,
     };
     let translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
+            &state,
+            &locale,
         &[
             "users-new-user",
             "form-error",
@@ -246,7 +247,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
             "form-tooltip-domain",
             "form-tooltip-enable",
         ],
-    )
+        )
     .await;
     let content_template = UserFormTemplate {
         title: translations["users-new-user"].to_string(),
@@ -288,8 +289,8 @@ pub async fn show(
     );
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
+            &state,
+            &locale,
         &[
             "users-show-title",
             "users-view-edit-settings",
@@ -310,7 +311,7 @@ pub async fn show(
             "users-delete-user",
             "users-delete-confirm",
         ],
-    )
+        )
     .await;
     let content_template = UserShowTemplate {
         title: translations["users-show-title"].to_string(),
@@ -355,6 +356,7 @@ pub async fn edit(
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
         enabled: user.enabled,
+        change_password: user.change_password,
     };
 
     let content_template = build_user_form_template(&state, &locale, Some(user), form, None).await;

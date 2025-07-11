@@ -22,6 +22,12 @@ pub struct AliasPrefill {
     pub alias: Option<String>,
 }
 
+#[derive(serde::Deserialize)]
+pub struct AliasSearchQuery {
+    pub destination: Option<String>,
+    pub limit: Option<i64>,
+}
+
 pub async fn list(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -1415,4 +1421,53 @@ pub async fn toggle_enabled_domain_show(
         }
         Err(_) => Html("Error toggling alias status".to_string()),
     }
+}
+
+pub async fn search(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<AliasSearchQuery>,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
+        .expect("Failed to get database pool");
+
+    // Handle empty or missing query
+    let query_string = match &query.destination {
+        Some(q) if q.len() >= 2 => q,
+        _ => {
+            let locale = crate::handlers::utils::get_user_locale(&headers);
+            let translations = crate::handlers::utils::get_translations_batch(
+                &state,
+                &locale,
+                &["aliases-search-no-results", "aliases-search-select"],
+            )
+            .await;
+            let content_template = AliasSearchResultsTemplate {
+                aliases: &[],
+                no_results: &translations["aliases-search-no-results"],
+                select_text: &translations["aliases-search-select"],
+            };
+            return Html(content_template.render().unwrap());
+        }
+    };
+
+    let limit = query.limit.unwrap_or(10);
+    let search_results = match db::search_aliases(&pool, query_string, limit) {
+        Ok(aliases) => aliases,
+        Err(_) => vec![],
+    };
+    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &["aliases-search-no-results", "aliases-search-select"],
+    )
+    .await;
+    let content_template = AliasSearchResultsTemplate {
+        aliases: &search_results,
+        no_results: &translations["aliases-search-no-results"],
+        select_text: &translations["aliases-search-select"],
+    };
+    Html(content_template.render().unwrap())
 }

@@ -47,6 +47,10 @@ mod tests {
             .route("/users", axum::routing::get(handlers::users::list))
             .route("/users/{id}", axum::routing::get(handlers::users::show))
             .route("/aliases", axum::routing::get(handlers::aliases::list))
+            .route(
+                "/aliases/search",
+                axum::routing::get(handlers::aliases::search),
+            )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
             .route("/about", axum::routing::get(handlers::about::index))
@@ -449,6 +453,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -553,6 +558,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -606,6 +612,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -660,6 +667,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -722,6 +730,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -872,6 +881,7 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
+            change_password: false,
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -1668,5 +1678,145 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains("404"));
+    }
+
+    #[tokio::test]
+    async fn test_aliases_search_handler() {
+        let (app, state) = create_test_app().await;
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
+
+        // Clean up before test
+        cleanup_test_db(&pool);
+
+        // Create test domain
+        let unique_id = crate::tests::common::unique_test_id();
+        let new_domain = crate::models::NewDomain {
+            domain: format!("search-test-{}.com", unique_id),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
+
+        // Create test aliases for search
+        let alias1 = crate::models::AliasForm {
+            mail: format!("admin@search-test-{}.com", unique_id),
+            destination: "user@company.com".to_string(),
+            enabled: true,
+            return_url: None,
+        };
+        let _alias1 = crate::db::create_alias(&pool, alias1).unwrap();
+
+        let alias2 = crate::models::AliasForm {
+            mail: format!("support@search-test-{}.com", unique_id),
+            destination: "helpdesk@company.com".to_string(),
+            enabled: true,
+            return_url: None,
+        };
+        let _alias2 = crate::db::create_alias(&pool, alias2).unwrap();
+
+        // Test 1: Search with valid query
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/aliases/search?destination=user"))
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain search results
+        assert!(body_str.contains("user@company.com"));
+
+        // Test 2: Search with short query (should return empty results, not error)
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/aliases/search?destination=a")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should not contain search results for short query
+        assert!(!body_str.contains("user@company.com"));
+
+        // Test 3: Search with empty query (should not cause 400 error)
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/aliases/search?destination=")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        // Test 4: Search without query parameter (should not cause 400 error)
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/aliases/search")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        // Test 5: Search in mail field (should find results)
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/aliases/search?destination=admin"))
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain search results from mail field
+        assert!(body_str.contains("admin@search-test-"));
+
+        cleanup_test_db(&pool);
     }
 }

@@ -62,6 +62,10 @@ impl TestContainer {
     pub fn get_pool(&self) -> &DbPool {
         &self.pool
     }
+
+    pub fn get_mysql_port(&self) -> u16 {
+        self._container.get_host_port_ipv4(3306)
+    }
 }
 
 impl Default for TestContainer {

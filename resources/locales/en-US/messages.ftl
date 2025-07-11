@@ -285,6 +285,8 @@ aliases-tooltip-active = Enable this alias for mail forwarding
 aliases-cancel = Cancel
 aliases-update-alias = Update Alias
 aliases-create-alias = Create Alias
+aliases-search-no-results = No matching aliases found
+aliases-search-select = Click to select
 
 # Users
 users-title = Users

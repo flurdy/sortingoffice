@@ -102,6 +102,7 @@ async fn main() {
         // Read-only alias operations
         .route("/aliases", get(handlers::aliases::list))
         .route("/aliases/{id}", get(handlers::aliases::show))
+        .route("/aliases/search", get(handlers::aliases::search))
         // Read-only backup operations
         .route("/backups/{id}", get(handlers::backups::show))
         // Read-only relay operations

@@ -117,6 +117,9 @@ pub struct UserForm {
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub change_password: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]

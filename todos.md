@@ -41,9 +41,11 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Go over the Rust code to see if there is any duplication we can make cleaner.
 
-When filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations.
+✅ Fix Rust code warnings and clippy issues - IMPLEMENTED (88 warnings fixed, build now clean)
 
-Create a few longer functional testing journeys
+✅ When filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations. - IMPLEMENTED with HTMX-powered search and comprehensive testing
+
+✅ Create a few longer functional testing journeys
 
 ✅ please add support for multiple databases as this will manage several servers - IMPLEMENTED (basic UI and infrastructure)
 
@@ -82,3 +84,9 @@ Add some more reports
    - Externally forwarders
    - Domains missing required aliases and no catch-all
    - Check on an alias across all domains
+
+When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions?
+
+Can the database info in the header be a link to database selection
+
+In the show domain page can the existing aliases be shown above the missing ones.
