@@ -1,6 +1,6 @@
 use crate::templates::domains::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState};
+use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -8,6 +8,7 @@ use axum::{
     response::Html,
     Form,
 };
+use crate::handlers::utils::is_htmx_request;
 
 pub async fn list(
     State(state): State<AppState>,
@@ -15,90 +16,56 @@ pub async fn list(
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
-
-    // Parse pagination parameters
+    let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-
-    tracing::debug!(
-        "Handling domains list request with pagination: page={}, per_page={}",
-        page,
-        per_page
-    );
-
     let paginated_domains = match db::get_domains_paginated(pool, page, per_page) {
-        Ok(domains) => {
-            tracing::info!(
-                "Successfully retrieved {} domains (page {} of {})",
-                domains.items.len(),
-                domains.current_page,
-                domains.total_pages
-            );
-            domains
-        }
+        Ok(domains) => domains,
         Err(e) => {
             tracing::error!("Failed to retrieve domains: {:?}", e);
             PaginatedResult::new(vec![], 0, 1, per_page)
         }
     };
-
-    // Get backups data (keeping non-paginated for now as it's a smaller dataset)
     let backups = match db::get_backups(pool) {
-        Ok(backups) => {
-            tracing::info!("Successfully retrieved {} backups", backups.len());
-            backups
-        }
+        Ok(backups) => backups,
         Err(e) => {
             tracing::error!("Failed to retrieve backups: {:?}", e);
             vec![]
         }
     };
-
-    tracing::debug!(
-        "Rendering template with {} domains and {} backups",
-        paginated_domains.items.len(),
-        backups.len()
-    );
-
-    // Get all translations
-    let title = get_translation(&state, &locale, "domains-title").await;
-    let description = get_translation(&state, &locale, "domains-description").await;
-    let add_domain = get_translation(&state, &locale, "domains-add").await;
-    let table_header_domain = get_translation(&state, &locale, "domains-table-header-domain").await;
-    let table_header_enabled =
-        get_translation(&state, &locale, "domains-table-header-enabled").await;
-    let table_header_actions =
-        get_translation(&state, &locale, "domains-table-header-actions").await;
-    let table_header_transport = get_translation(&state, &locale, "domains-transport").await;
-    let status_active = get_translation(&state, &locale, "status-active").await;
-    let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-    let action_view = get_translation(&state, &locale, "action-view").await;
-    let action_enable = get_translation(&state, &locale, "action-enable").await;
-    let action_disable = get_translation(&state, &locale, "action-disable").await;
-    let empty_title = get_translation(&state, &locale, "domains-empty-title").await;
-    let empty_description = get_translation(&state, &locale, "domains-empty-description").await;
-
-    // Backup translations
-    let backups_title = get_translation(&state, &locale, "backups-title").await;
-    let backups_description = get_translation(&state, &locale, "backups-description").await;
-    let add_backup = get_translation(&state, &locale, "backups-add").await;
-    let backups_table_header_domain =
-        get_translation(&state, &locale, "backups-table-header-domain").await;
-    let backups_table_header_transport =
-        get_translation(&state, &locale, "backups-table-header-transport").await;
-    let backups_table_header_enabled =
-        get_translation(&state, &locale, "backups-table-header-enabled").await;
-    let backups_table_header_actions =
-        get_translation(&state, &locale, "backups-table-header-actions").await;
-    let backups_view = get_translation(&state, &locale, "backups-view").await;
-    let backups_enable = get_translation(&state, &locale, "backups-enable").await;
-    let backups_disable = get_translation(&state, &locale, "backups-disable").await;
-    let backups_empty_no_backup_servers =
-        get_translation(&state, &locale, "backups-empty-no-backup-servers").await;
-    let backups_empty_get_started =
-        get_translation(&state, &locale, "backups-empty-get-started").await;
-
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "domains-title",
+            "domains-description",
+            "domains-add",
+            "domains-table-header-domain",
+            "domains-table-header-enabled",
+            "domains-table-header-actions",
+            "domains-transport",
+            "status-active",
+            "status-inactive",
+            "action-view",
+            "action-enable",
+            "action-disable",
+            "domains-empty-title",
+            "domains-empty-description",
+            // Backups
+            "backups-title",
+            "backups-description",
+            "backups-add",
+            "backups-table-header-domain",
+            "backups-table-header-transport",
+            "backups-table-header-enabled",
+            "backups-table-header-actions",
+            "backups-view",
+            "backups-enable",
+            "backups-disable",
+            "backups-empty-no-backup-servers",
+            "backups-empty-get-started",
+        ],
+    ).await;
     let paginated = PaginatedResult::new(
         paginated_domains.items.clone(),
         paginated_domains.total_count,
@@ -111,90 +78,86 @@ pub async fn list(
         paginated.total_count,
     );
     let content_template = DomainsListTemplate {
-        title: &title,
-        description: &description,
-        add_domain: &add_domain,
-        table_header_domain: &table_header_domain,
-        table_header_enabled: &table_header_enabled,
-        table_header_actions: &table_header_actions,
-        table_header_transport: &table_header_transport,
-        status_active: &status_active,
-        status_inactive: &status_inactive,
-        action_view: &action_view,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        empty_title: &empty_title,
-        empty_description: &empty_description,
+        title: &translations["domains-title"],
+        description: &translations["domains-description"],
+        add_domain: &translations["domains-add"],
+        table_header_domain: &translations["domains-table-header-domain"],
+        table_header_enabled: &translations["domains-table-header-enabled"],
+        table_header_actions: &translations["domains-table-header-actions"],
+        table_header_transport: &translations["domains-transport"],
+        status_active: &translations["status-active"],
+        status_inactive: &translations["status-inactive"],
+        action_view: &translations["action-view"],
+        action_enable: &translations["action-enable"],
+        action_disable: &translations["action-disable"],
+        empty_title: &translations["domains-empty-title"],
+        empty_description: &translations["domains-empty-description"],
         domains: &paginated_domains.items,
         pagination: &paginated,
         page_range: &page_range,
         max_item,
-        backups_title: &backups_title,
-        backups_description: &backups_description,
-        add_backup: &add_backup,
-        backups_table_header_domain: &backups_table_header_domain,
-        backups_table_header_transport: &backups_table_header_transport,
-        backups_table_header_enabled: &backups_table_header_enabled,
-        backups_table_header_actions: &backups_table_header_actions,
+        backups_title: &translations["backups-title"],
+        backups_description: &translations["backups-description"],
+        add_backup: &translations["backups-add"],
+        backups_table_header_domain: &translations["backups-table-header-domain"],
+        backups_table_header_transport: &translations["backups-table-header-transport"],
+        backups_table_header_enabled: &translations["backups-table-header-enabled"],
+        backups_table_header_actions: &translations["backups-table-header-actions"],
         backups: &backups,
-        backups_view: &backups_view,
-        backups_enable: &backups_enable,
-        backups_disable: &backups_disable,
-        backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
-        backups_empty_get_started: &backups_empty_get_started,
+        backups_view: &translations["backups-view"],
+        backups_enable: &translations["backups-enable"],
+        backups_disable: &translations["backups-disable"],
+        backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
+        backups_empty_get_started: &translations["backups-empty-get-started"],
     };
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
-        .await
-        .unwrap();
-
-    Html(template.render().unwrap())
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = crate::handlers::language::get_user_locale(&headers);
-
+    let locale = crate::handlers::utils::get_user_locale(&headers);
     let form = DomainForm {
         domain: "".to_string(),
         transport: "virtual".to_string(),
         enabled: true,
     };
-
-    let title = get_translation(&state, &locale, "domains-new-domain").await;
-    let form_error = get_translation(&state, &locale, "form-error").await;
-    let form_domain = get_translation(&state, &locale, "form-domain").await;
-    let form_transport = get_translation(&state, &locale, "form-transport").await;
-    let form_active = get_translation(&state, &locale, "form-active").await;
-    let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-    let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-    let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-    let form_placeholder_domain = get_translation(&state, &locale, "form-placeholder-domain").await;
-    let form_placeholder_transport =
-        get_translation(&state, &locale, "form-placeholder-transport").await;
-    let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-    let form_tooltip_transport = get_translation(&state, &locale, "form-tooltip-transport").await;
-    let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
-
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "domains-new-domain",
+            "form-error",
+            "form-domain",
+            "form-transport",
+            "form-active",
+            "form-cancel",
+            "form-create-domain",
+            "form-update-domain",
+            "form-placeholder-domain",
+            "form-placeholder-transport",
+            "form-tooltip-domain",
+            "form-tooltip-transport",
+            "form-tooltip-enable",
+        ],
+    ).await;
     let content_template = DomainFormTemplate {
-        title: &title,
+        title: &translations["domains-new-domain"],
         domain: None,
         form,
         error: None,
-        form_error: &form_error,
-        form_domain: &form_domain,
-        form_transport: &form_transport,
-        form_active: &form_active,
-        form_cancel: &form_cancel,
-        form_create_domain: &form_create_domain,
-        form_update_domain: &form_update_domain,
-        form_placeholder_domain: &form_placeholder_domain,
-        form_placeholder_transport: &form_placeholder_transport,
-        form_tooltip_domain: &form_tooltip_domain,
-        form_tooltip_transport: &form_tooltip_transport,
-        form_tooltip_enable: &form_tooltip_enable,
+        form_error: &translations["form-error"],
+        form_domain: &translations["form-domain"],
+        form_transport: &translations["form-transport"],
+        form_active: &translations["form-active"],
+        form_cancel: &translations["form-cancel"],
+        form_create_domain: &translations["form-create-domain"],
+        form_update_domain: &translations["form-update-domain"],
+        form_placeholder_domain: &translations["form-placeholder-domain"],
+        form_placeholder_transport: &translations["form-placeholder-transport"],
+        form_tooltip_domain: &translations["form-tooltip-domain"],
+        form_tooltip_transport: &translations["form-tooltip-transport"],
+        form_tooltip_enable: &translations["form-tooltip-enable"],
     };
-    Html(content_template.render().unwrap())
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn show(
@@ -203,149 +166,109 @@ pub async fn show(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
-
-    let domain = match db::get_domain(pool, id) {
-        Ok(domain) => domain,
-        Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-            return Html(not_found_msg);
-        }
-    };
-
-    // Get alias report for this domain
+    let domain = get_entity_or_not_found!(db::get_domain(pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
+    let locale = crate::handlers::utils::get_user_locale(&headers);
     let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
         Ok(report) => Some(report),
-        Err(e) => {
-            tracing::warn!(
-                "Failed to get alias report for domain {}: {:?}",
-                domain.domain,
-                e
-            );
-            None
-        }
+        Err(_) => None,
     };
-
-    // Get all aliases for this domain
     let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
         Ok(aliases) => aliases,
         Err(_) => vec![],
     };
-
-    let title = get_translation(&state, &locale, "domains-title").await;
-    let view_edit_settings = get_translation(&state, &locale, "domains-view-edit-settings").await;
-    let back_to_domains = get_translation(&state, &locale, "domains-back-to-domains").await;
-    let domain_information = get_translation(&state, &locale, "domains-domain-information").await;
-    let domain_details = get_translation(&state, &locale, "domains-domain-details").await;
-    let domain_name = get_translation(&state, &locale, "domains-domain-name").await;
-    let transport = get_translation(&state, &locale, "domains-transport").await;
-    let status = get_translation(&state, &locale, "domains-status").await;
-    let status_active = get_translation(&state, &locale, "status-active").await;
-    let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-    let created = get_translation(&state, &locale, "domains-created").await;
-    let modified = get_translation(&state, &locale, "domains-modified").await;
-    let edit_domain_button = get_translation(&state, &locale, "domains-edit-domain-button").await;
-    let enable_domain = get_translation(&state, &locale, "domains-enable-domain").await;
-    let disable_domain = get_translation(&state, &locale, "domains-disable-domain").await;
-    let delete_domain = get_translation(&state, &locale, "domains-delete-domain").await;
-    let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
-
-    // Alias report translations
-    let alias_report_title = get_translation(&state, &locale, "domains-alias-report-title").await;
-    let alias_report_description =
-        get_translation(&state, &locale, "domains-alias-report-description").await;
-    let existing_aliases_header =
-        get_translation(&state, &locale, "domains-existing-aliases-header").await;
-    let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
-    let destination_header = get_translation(&state, &locale, "reports-destination-header").await;
-    let required_aliases_header =
-        get_translation(&state, &locale, "reports-required-aliases-header").await;
-    let missing_aliases_header =
-        get_translation(&state, &locale, "reports-missing-aliases-header").await;
-    let missing_required_aliases_header =
-        get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
-    let missing_common_aliases_header =
-        get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
-    let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
-    let status_header = get_translation(&state, &locale, "reports-status-header").await;
-    let enabled_header = get_translation(&state, &locale, "reports-enabled-header").await;
-    let actions_header = get_translation(&state, &locale, "reports-actions-header").await;
-    let no_required_aliases = get_translation(&state, &locale, "reports-no-required-aliases").await;
-    let no_missing_aliases = get_translation(&state, &locale, "reports-no-missing-aliases").await;
-
-    // New button translations
-    let add_missing_required_alias_button = get_translation(
+    let translations = crate::handlers::utils::get_translations_batch(
         &state,
         &locale,
-        "domains-add-missing-required-aliases-button",
-    )
-    .await;
-    let add_catch_all_button =
-        get_translation(&state, &locale, "domains-add-catch-all-button").await;
-    let add_alias_button = get_translation(&state, &locale, "domains-add-alias-button").await;
-    let no_catch_all_message =
-        get_translation(&state, &locale, "domains-no-catch-all-message").await;
-
-    let add_common_alias_button =
-        get_translation(&state, &locale, "reports-add-common-alias-button").await;
-
+        &[
+            "domains-title",
+            "domains-view-edit-settings",
+            "domains-back-to-domains",
+            "domains-domain-information",
+            "domains-domain-details",
+            "domains-domain-name",
+            "domains-transport",
+            "domains-status",
+            "status-active",
+            "status-inactive",
+            "domains-created",
+            "domains-modified",
+            "domains-edit-domain-button",
+            "domains-enable-domain",
+            "domains-disable-domain",
+            "domains-delete-domain",
+            "domains-delete-confirm",
+            // Alias report/related
+            "domains-alias-report-title",
+            "domains-alias-report-description",
+            "domains-existing-aliases-header",
+            "reports-catch-all-header",
+            "reports-destination-header",
+            "reports-required-aliases-header",
+            "reports-missing-aliases-header",
+            "reports-missing-required-aliases-header",
+            "reports-missing-common-aliases-header",
+            "reports-mail-header",
+            "reports-status-header",
+            "reports-enabled-header",
+            "reports-actions-header",
+            "reports-no-required-aliases",
+            "reports-no-missing-aliases",
+            "domains-add-missing-required-aliases-button",
+            "reports-add-common-alias-button",
+            "domains-add-catch-all-button",
+            "domains-add-alias-button",
+            "domains-no-catch-all-message",
+            "action-view",
+            "aliases-enable-alias",
+            "aliases-disable-alias",
+        ],
+    ).await;
     let content_template = DomainShowTemplate {
-        title: &title,
+        title: &translations["domains-title"],
         domain,
-        view_edit_settings: &view_edit_settings,
-        back_to_domains: &back_to_domains,
-        domain_information: &domain_information,
-        domain_details: &domain_details,
-        domain_name: &domain_name,
-        transport: &transport,
-        status: &status,
-        status_active: &status_active,
-        status_inactive: &status_inactive,
-        created: &created,
-        modified: &modified,
-        edit_domain_button: &edit_domain_button,
-        enable_domain: &enable_domain,
-        disable_domain: &disable_domain,
-        delete_domain: &delete_domain,
-        delete_confirm: &delete_confirm,
-        alias_report: alias_report,
-        catch_all_header: &catch_all_header,
-        destination_header: &destination_header,
-        required_aliases_header: &required_aliases_header,
-        missing_aliases_header: &missing_aliases_header,
-        missing_required_alias_header: &missing_required_aliases_header,
-        missing_common_aliases_header: &missing_common_aliases_header,
-        mail_header: &mail_header,
-        status_header: &status_header,
-        enabled_header: &enabled_header,
-        actions_header: &actions_header,
-        no_required_aliases: &no_required_aliases,
-        no_missing_aliases: &no_missing_aliases,
-        alias_report_title: &alias_report_title,
-        alias_report_description: &alias_report_description,
-        existing_aliases_header: &existing_aliases_header,
-        add_missing_required_alias_button: &add_missing_required_alias_button,
-        add_common_alias_button: &add_common_alias_button,
-        add_catch_all_button: &add_catch_all_button,
-        add_alias_button: &add_alias_button,
-        no_catch_all_message: &no_catch_all_message,
+        view_edit_settings: &translations["domains-view-edit-settings"],
+        back_to_domains: &translations["domains-back-to-domains"],
+        domain_information: &translations["domains-domain-information"],
+        domain_details: &translations["domains-domain-details"],
+        domain_name: &translations["domains-domain-name"],
+        transport: &translations["domains-transport"],
+        status: &translations["domains-status"],
+        status_active: &translations["status-active"],
+        status_inactive: &translations["status-inactive"],
+        created: &translations["domains-created"],
+        modified: &translations["domains-modified"],
+        edit_domain_button: &translations["domains-edit-domain-button"],
+        enable_domain: &translations["domains-enable-domain"],
+        disable_domain: &translations["domains-disable-domain"],
+        delete_domain: &translations["domains-delete-domain"],
+        delete_confirm: &translations["domains-delete-confirm"],
+        alias_report,
+        catch_all_header: &translations["reports-catch-all-header"],
+        destination_header: &translations["reports-destination-header"],
+        required_aliases_header: &translations["reports-required-aliases-header"],
+        missing_aliases_header: &translations["reports-missing-aliases-header"],
+        missing_required_alias_header: &translations["reports-missing-required-aliases-header"],
+        missing_common_aliases_header: &translations["reports-missing-common-aliases-header"],
+        mail_header: &translations["reports-mail-header"],
+        status_header: &translations["reports-status-header"],
+        enabled_header: &translations["reports-enabled-header"],
+        actions_header: &translations["reports-actions-header"],
+        no_required_aliases: &translations["reports-no-required-aliases"],
+        no_missing_aliases: &translations["reports-no-missing-aliases"],
+        alias_report_title: &translations["domains-alias-report-title"],
+        alias_report_description: &translations["domains-alias-report-description"],
+        existing_aliases_header: &translations["domains-existing-aliases-header"],
+        add_missing_required_alias_button: &translations["domains-add-missing-required-aliases-button"],
+        add_common_alias_button: &translations["reports-add-common-alias-button"],
+        add_catch_all_button: &translations["domains-add-catch-all-button"],
+        add_alias_button: &translations["domains-add-alias-button"],
+        no_catch_all_message: &translations["domains-no-catch-all-message"],
         existing_aliases: &existing_aliases,
-        action_view: "",
-        enable_alias: "",
-        disable_alias: "",
+        action_view: &translations["action-view"],
+        enable_alias: &translations["aliases-enable-alias"],
+        disable_alias: &translations["aliases-disable-alias"],
     };
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "domains-title").await,
-        content,
-        &state,
-        &locale,
-    )
-    .await
-    .unwrap();
-
-    Html(template.render().unwrap())
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn edit(

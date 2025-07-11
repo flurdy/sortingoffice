@@ -105,6 +105,9 @@ dashboard-total-relays = Total de Relés
 dashboard-total-relocated = Total de Reubicados
 dashboard-total-clients = Total de Clientes
 dashboard-quick-actions = Acciones Rápidas
+dashboard-primary-actions = Acciones Principales
+dashboard-advanced-management = Gestión Avanzada
+dashboard-analytics-reports = Análisis y Reportes
 dashboard-help-resources = Ayuda y Recursos
 
 # Quick action cards
@@ -112,12 +115,33 @@ quick-action-manage-domains = Gestionar Dominios
 quick-action-manage-domains-desc = Agregar, editar o eliminar dominios
 quick-action-manage-backups = Gestionar Copias de Seguridad
 quick-action-manage-backups-desc = Agregar, editar o eliminar copias de seguridad
+quick-action-manage-domains-and-backups = Dominios y Copias de Seguridad
+quick-action-manage-domains-and-backups-desc = Gestionar dominios y servidores de respaldo
+quick-action-manage-email = Gestión de Correo
+quick-action-manage-email-desc = Gestionar alias de correo y reenvío
 quick-action-manage-aliases = Gestionar Alias
 quick-action-manage-aliases-desc = Agregar, editar o eliminar alias de correo
 quick-action-manage-users = Gestionar Usuarios
 quick-action-manage-users-desc = Agregar, editar o eliminar usuarios
 quick-action-manage-clients = Gestionar Clientes
 quick-action-manage-clients-desc = Agregar, editar o eliminar controles de acceso de clientes
+quick-action-manage-relays = Gestionar Relés
+quick-action-manage-relocated = Gestionar Reubicados
+quick-action-manage-config = Configuración
+quick-action-manage-config-desc = Configuración del sistema y preferencias
+quick-action-view-statistics = Ver Estadísticas
+quick-action-view-statistics-desc = Métricas y análisis del sistema
+quick-action-view-reports = Ver Reportes
+quick-action-view-reports-desc = Reportes detallados y análisis
+
+# Resource labels
+resource-domains = dominios
+resource-backups = copias de seguridad
+resource-aliases = alias
+resource-users = usuarios
+resource-relays = relés
+resource-relocated = reubicados
+resource-clients = clientes
 
 # Help section
 help-title = ¿Necesita ayuda para configurar su servidor de correo?
@@ -323,12 +347,27 @@ stats-total-aliases = Total de Alias
 stats-total-users = Total de Usuarios
 stats-total-relays = Total de Relés
 stats-total-relocated = Total de Reubicados
+stats-total-clients = Total de Clientes
 stats-domain-statistics = Estadísticas por Dominio
 stats-table-header-domain = Dominio
 stats-table-header-users = Usuarios
 stats-table-header-aliases = Alias
 stats-table-header-total-quota = Cuota Total
 stats-table-header-used-quota = Cuota Utilizada
+stats-quota-usage-title = Uso de Cuota
+stats-quota-usage-overview = Resumen de Uso de Almacenamiento
+stats-quota-usage-description = Monitorear el uso de espacio en disco en todos los dominios y usuarios
+stats-quota-usage-percentage = Porcentaje de Uso
+stats-quota-total = Cuota Total
+stats-quota-used = Cuota Utilizada
+stats-recent-activity-title = Actividad Reciente
+stats-recent-domains = Dominios Recientes
+stats-recent-users = Usuarios Recientes
+stats-recent-aliases = Alias Recientes
+stats-recent-backups = Copias de Seguridad Recientes
+stats-recent-relays = Relés Recientes
+stats-recent-relocated = Reubicados Recientes
+stats-recent-clients = Clientes Recientes
 
 # Forms
 form-domain = Dominio

@@ -101,5 +101,11 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    aliases, backups, clients, domains, relays, relocated, users,
+    aliases,
+    backups,
+    clients,
+    domains,
+    relays,
+    relocated,
+    users,
 );

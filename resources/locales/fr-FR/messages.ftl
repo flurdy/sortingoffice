@@ -96,15 +96,18 @@ status-disabled = Désactivé
 
 # Dashboard
 dashboard-title = Tableau de Bord
-dashboard-description = Aperçu des statistiques de votre serveur de courrier et actions rapides.
+dashboard-description = Aperçu des statistiques de votre serveur de messagerie et actions rapides.
 dashboard-total-domains = Total des Domaines
 dashboard-total-backups = Total des Sauvegardes
 dashboard-total-aliases = Total des Alias
 dashboard-total-users = Total des Utilisateurs
 dashboard-total-relays = Total des Relais
-dashboard-total-relocated = Total des Réacheminés
+dashboard-total-relocated = Total des Relocalisés
 dashboard-total-clients = Total des Clients
 dashboard-quick-actions = Actions Rapides
+dashboard-primary-actions = Actions Principales
+dashboard-advanced-management = Gestion Avancée
+dashboard-analytics-reports = Analyses et Rapports
 dashboard-help-resources = Aide et Ressources
 
 # Quick action cards
@@ -112,12 +115,33 @@ quick-action-manage-domains = Gérer les Domaines
 quick-action-manage-domains-desc = Ajouter, modifier ou supprimer des domaines
 quick-action-manage-backups = Gérer les Sauvegardes
 quick-action-manage-backups-desc = Ajouter, modifier ou supprimer des sauvegardes
+quick-action-manage-domains-and-backups = Domaines et Sauvegardes
+quick-action-manage-domains-and-backups-desc = Gérer les domaines et serveurs de sauvegarde
+quick-action-manage-email = Gestion des Emails
+quick-action-manage-email-desc = Gérer les alias email et le transfert
 quick-action-manage-aliases = Gérer les Alias
-quick-action-manage-aliases-desc = Ajouter, modifier ou supprimer des alias de courrier
+quick-action-manage-aliases-desc = Ajouter, modifier ou supprimer des alias email
 quick-action-manage-users = Gérer les Utilisateurs
 quick-action-manage-users-desc = Ajouter, modifier ou supprimer des utilisateurs
 quick-action-manage-clients = Gérer les Clients
-quick-action-manage-clients-desc = Ajouter, modifier ou supprimer les contrôles d'accès des clients
+quick-action-manage-clients-desc = Ajouter, modifier ou supprimer les contrôles d'accès clients
+quick-action-manage-relays = Gérer les Relais
+quick-action-manage-relocated = Gérer les Relocalisés
+quick-action-manage-config = Configuration
+quick-action-manage-config-desc = Paramètres système et préférences
+quick-action-view-statistics = Voir les Statistiques
+quick-action-view-statistics-desc = Métriques et analyses système
+quick-action-view-reports = Voir les Rapports
+quick-action-view-reports-desc = Rapports détaillés et analyses
+
+# Resource labels
+resource-domains = domaines
+resource-backups = sauvegardes
+resource-aliases = alias
+resource-users = utilisateurs
+resource-relays = relais
+resource-relocated = relocalisés
+resource-clients = clients
 
 # Help section
 help-title = Besoin d'aide pour configurer votre serveur de courrier ?
@@ -433,6 +457,8 @@ clients-action-disable = Désactiver
 # Statistics
 stats-title = Statistiques
 stats-description = Aperçu des statistiques de votre serveur de courrier.
+stats-system-overview = Aperçu du Système
+stats-system-description = Statistiques système et par domaine pour votre serveur de courrier.
 stats-total-domains = Total des Domaines
 stats-total-backups = Total des Sauvegardes
 stats-total-aliases = Total des Alias
@@ -440,6 +466,26 @@ stats-total-users = Total des Utilisateurs
 stats-total-relays = Total des Relais
 stats-total-relocated = Total des Réacheminés
 stats-total-clients = Total des Clients
+stats-domain-statistics = Statistiques par Domaine
+stats-table-header-domain = Domaine
+stats-table-header-users = Utilisateurs
+stats-table-header-aliases = Alias
+stats-table-header-total-quota = Quota Total
+stats-table-header-used-quota = Quota Utilisé
+stats-quota-usage-title = Utilisation du Quota
+stats-quota-usage-overview = Aperçu de l'Utilisation du Stockage
+stats-quota-usage-description = Surveiller l'utilisation de l'espace disque sur tous les domaines et utilisateurs
+stats-quota-usage-percentage = Pourcentage d'Utilisation
+stats-quota-total = Quota Total
+stats-quota-used = Quota Utilisé
+stats-recent-activity-title = Activité Récente
+stats-recent-domains = Domaines Récents
+stats-recent-users = Utilisateurs Récents
+stats-recent-aliases = Alias Récents
+stats-recent-backups = Sauvegardes Récentes
+stats-recent-relays = Relais Récents
+stats-recent-relocated = Réacheminés Récents
+stats-recent-clients = Clients Récents
 
 # Reports
 reports-title = Rapports
@@ -888,4 +934,4 @@ role-admin = Administrateur
 permission-insufficient = Permissions insuffisantes
 permission-read-only = Vous avez un accès en lecture seule à cette ressource.
 permission-edit-required = Des permissions de modification sont requises pour effectuer cette action.
-permission-admin-required = Des permissions d'administrateur sont requises pour effectuer cette action. 
+permission-admin-required = Des permissions d'administrateur sont requises pour effectuer cette action.

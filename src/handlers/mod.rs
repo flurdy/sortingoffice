@@ -13,6 +13,7 @@ pub mod reports;
 pub mod stats;
 pub mod theme;
 pub mod users;
+pub mod utils;
 
 use axum::{
     http::{HeaderMap, StatusCode},

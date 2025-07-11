@@ -106,6 +106,9 @@ dashboard-total-relays = Total Relays
 dashboard-total-relocated = Total Relocated
 dashboard-total-clients = Total Clients
 dashboard-quick-actions = Quick Actions
+dashboard-primary-actions = Primary Actions
+dashboard-advanced-management = Advanced Management
+dashboard-analytics-reports = Analytics & Reports
 dashboard-help-resources = Help & Resources
 
 # Quick action cards
@@ -113,12 +116,33 @@ quick-action-manage-domains = Manage Domains
 quick-action-manage-domains-desc = Add, edit, or remove domains
 quick-action-manage-backups = Manage Backups
 quick-action-manage-backups-desc = Add, edit, or remove backups
+quick-action-manage-domains-and-backups = Domains & Backups
+quick-action-manage-domains-and-backups-desc = Manage domains and backup servers
+quick-action-manage-email = Email Management
+quick-action-manage-email-desc = Manage email aliases and forwarding
 quick-action-manage-aliases = Manage Aliases
 quick-action-manage-aliases-desc = Add, edit, or remove email aliases
 quick-action-manage-users = Manage Users
 quick-action-manage-users-desc = Add, edit, or remove users
 quick-action-manage-clients = Manage Clients
 quick-action-manage-clients-desc = Add, edit, or remove client access controls
+quick-action-manage-relays = Manage Relays
+quick-action-manage-relocated = Manage Relocated
+quick-action-manage-config = Configuration
+quick-action-manage-config-desc = System settings and preferences
+quick-action-view-statistics = View Statistics
+quick-action-view-statistics-desc = System metrics and analytics
+quick-action-view-reports = View Reports
+quick-action-view-reports-desc = Detailed reports and analysis
+
+# Resource labels
+resource-domains = domains
+resource-backups = backups
+resource-aliases = aliases
+resource-users = users
+resource-relays = relays
+resource-relocated = relocated
+resource-clients = clients
 
 # Help section
 help-title = Need help setting up your mail server?
@@ -324,12 +348,27 @@ stats-total-aliases = Total Aliases
 stats-total-users = Total Users
 stats-total-relays = Total Relays
 stats-total-relocated = Total Relocated
+stats-total-clients = Total Clients
 stats-domain-statistics = Domain Statistics
 stats-table-header-domain = Domain
 stats-table-header-users = Users
 stats-table-header-aliases = Aliases
 stats-table-header-total-quota = Total Quota
 stats-table-header-used-quota = Used Quota
+stats-quota-usage-title = Quota Usage
+stats-quota-usage-overview = Storage Usage Overview
+stats-quota-usage-description = Monitor disk space usage across all domains and users
+stats-quota-usage-percentage = Usage Percentage
+stats-quota-total = Total Quota
+stats-quota-used = Used Quota
+stats-recent-activity-title = Recent Activity
+stats-recent-domains = Recent Domains
+stats-recent-users = Recent Users
+stats-recent-aliases = Recent Aliases
+stats-recent-backups = Recent Backups
+stats-recent-relays = Recent Relays
+stats-recent-relocated = Recent Relocated
+stats-recent-clients = Recent Clients
 
 # Forms
 form-domain = Domain

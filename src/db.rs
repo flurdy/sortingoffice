@@ -310,28 +310,91 @@ pub fn toggle_alias_enabled(pool: &DbPool, alias_id: i32) -> Result<Alias, Error
 
 // Statistics functions
 pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
+    use chrono::Duration;
+    use chrono::Utc;
     let mut conn = pool.get().unwrap();
+    let now = Utc::now().naive_utc();
+    let week_ago = now - Duration::days(7);
 
+    // Domains
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
-    let total_users: i64 = users::table.count().get_result(&mut conn)?;
-    let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
-    let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
-    let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
-    let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
-    let total_clients: i64 = clients::table.count().get_result(&mut conn)?;
+    let enabled_domains: i64 = domains::table.filter(domains::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_domains: i64 = domains::table.filter(domains::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_domains: i64 = domains::table.filter(domains::created.ge(week_ago)).count().get_result(&mut conn)?;
 
-    let total_quota: i64 = 0; // Quota field removed from users table
+    // Users
+    let total_users: i64 = users::table.count().get_result(&mut conn)?;
+    let enabled_users: i64 = users::table.filter(users::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_users: i64 = users::table.filter(users::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_users: i64 = users::table.filter(users::created.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Aliases
+    let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
+    let enabled_aliases: i64 = aliases::table.filter(aliases::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_aliases: i64 = aliases::table.filter(aliases::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_aliases: i64 = aliases::table.filter(aliases::created.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Backups
+    let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
+    let enabled_backups: i64 = backups::table.filter(backups::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_backups: i64 = backups::table.filter(backups::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_backups: i64 = backups::table.filter(backups::created.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Relays
+    let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
+    let enabled_relays: i64 = relays::table.filter(relays::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_relays: i64 = relays::table.filter(relays::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_relays: i64 = relays::table.filter(relays::created.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Relocated
+    let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
+    let enabled_relocated: i64 = relocated::table.filter(relocated::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_relocated: i64 = relocated::table.filter(relocated::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_relocated: i64 = relocated::table.filter(relocated::created.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Clients
+    let total_clients: i64 = clients::table.count().get_result(&mut conn)?;
+    let enabled_clients: i64 = clients::table.filter(clients::enabled.eq(true)).count().get_result(&mut conn)?;
+    let disabled_clients: i64 = clients::table.filter(clients::enabled.eq(false)).count().get_result(&mut conn)?;
+    let recent_clients: i64 = clients::table.filter(clients::created_at.ge(week_ago)).count().get_result(&mut conn)?;
+
+    // Quota (still 0, as not implemented)
+    let total_quota: i64 = 0;
+    let used_quota: i64 = 0;
+    let quota_usage_percent: f64 = 0.0;
 
     Ok(SystemStats {
         total_domains,
+        enabled_domains,
+        disabled_domains,
+        recent_domains,
         total_users,
+        enabled_users,
+        disabled_users,
+        recent_users,
         total_aliases,
+        enabled_aliases,
+        disabled_aliases,
+        recent_aliases,
         total_backups,
+        enabled_backups,
+        disabled_backups,
+        recent_backups,
         total_relays,
+        enabled_relays,
+        disabled_relays,
+        recent_relays,
         total_relocated,
+        enabled_relocated,
+        disabled_relocated,
+        recent_relocated,
         total_clients,
+        enabled_clients,
+        disabled_clients,
+        recent_clients,
         total_quota,
-        used_quota: 0, // This would need to be calculated from actual disk usage
+        used_quota,
+        quota_usage_percent,
     })
 }
 

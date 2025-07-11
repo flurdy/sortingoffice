@@ -134,71 +134,195 @@
     <!-- Quick Actions -->
     <div class="mt-8">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ quick_actions }}</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <a href="/domains" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ manage_domains }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ manage_domains_desc }}</p>
-                </div>
-            </a>
 
-            <a href="/backups" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ manage_backups }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ manage_backups_desc }}</p>
-                </div>
-            </a>
+        <!-- Primary Actions - Most Common Tasks -->
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{{ primary_actions }}</h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- Combined Domain & Backup Management -->
+                <a href="/domains" class="group relative rounded-xl border border-gray-300 dark:border-gray-600 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-400 dark:hover:border-blue-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800/60 transition-colors">
+                                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300">{{ manage_domains_and_backups }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ manage_domains_and_backups_desc }}</p>
+                            <div class="mt-2 flex space-x-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200">
+                                    {{ stats.total_domains }} {{ domains }}
+                                </span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200">
+                                    {{ stats.total_backups }} {{ backups }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
 
-            <a href="/aliases" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ manage_aliases }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ manage_aliases_desc }}</p>
-                </div>
-            </a>
+                <!-- Email Management -->
+                <a href="/aliases" class="group relative rounded-xl border border-gray-300 dark:border-gray-600 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center group-hover:bg-purple-200 dark:group-hover:bg-purple-800/60 transition-colors">
+                                <svg class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-300">{{ manage_email }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ manage_email_desc }}</p>
+                            <div class="mt-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200">
+                                    {{ stats.total_aliases }} {{ aliases }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
 
-            <a href="/users" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ manage_users }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ manage_users_desc }}</p>
-                </div>
-            </a>
+                <!-- User Management -->
+                <a href="/users" class="group relative rounded-xl border border-gray-300 dark:border-gray-600 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-400 dark:hover:border-orange-500">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/40 rounded-lg flex items-center justify-center group-hover:bg-orange-200 dark:group-hover:bg-orange-800/60 transition-colors">
+                                <svg class="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-700 dark:group-hover:text-orange-300">{{ manage_users }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ manage_users_desc }}</p>
+                            <div class="mt-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200">
+                                    {{ stats.total_users }} {{ users }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
 
-            <a href="/clients" class="relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 dark:hover:border-gray-500 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <span class="absolute inset-0" aria-hidden="true"></span>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ manage_clients }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ manage_clients_desc }}</p>
-                </div>
-            </a>
+        <!-- Secondary Actions - Advanced Management -->
+        <div class="mb-6">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{{ advanced_management }}</h3>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Relay Management -->
+                <a href="/relays" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-teal-400 dark:hover:border-teal-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-teal-100 dark:bg-teal-900/40 rounded-lg flex items-center justify-center group-hover:bg-teal-200 dark:group-hover:bg-teal-800/60 transition-colors">
+                                <svg class="h-4 w-4 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-300">{{ manage_relays }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ stats.total_relays }} {{ relays }}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Relocated Management -->
+                <a href="/relocated" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-red-400 dark:hover:border-red-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-lg flex items-center justify-center group-hover:bg-red-200 dark:group-hover:bg-red-800/60 transition-colors">
+                                <svg class="h-4 w-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-red-700 dark:group-hover:text-red-300">{{ manage_relocated }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ stats.total_relocated }} {{ relocated }}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Client Management -->
+                <a href="/clients" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-yellow-400 dark:hover:border-yellow-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/40 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/60 transition-colors">
+                                <svg class="h-4 w-4 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-yellow-700 dark:group-hover:text-yellow-300">{{ manage_clients }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ stats.total_clients }} {{ clients }}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Configuration -->
+                <a href="/config" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                                <svg class="h-4 w-4 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-300">{{ manage_config }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ manage_config_desc }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Analytics & Reports -->
+        <div>
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{{ analytics_reports }}</h3>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <!-- Statistics -->
+                <a href="/stats" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-indigo-400 dark:hover:border-indigo-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800/60 transition-colors">
+                                <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{{ view_statistics }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">{{ view_statistics_desc }}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Reports -->
+                <a href="/reports" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-emerald-400 dark:hover:border-emerald-500">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/60 transition-colors">
+                                <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300">{{ view_reports }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">{{ view_reports_desc }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -226,4 +350,4 @@
             </div>
         </div>
     </div>
-</div> 
+</div>

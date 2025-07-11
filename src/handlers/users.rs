@@ -1,6 +1,6 @@
-use crate::templates::layout::BaseTemplate;
 use crate::templates::users::*;
-use crate::{db, i18n::get_translation, models::*, AppState};
+use crate::templates::layout::BaseTemplate;
+use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -8,10 +8,6 @@ use axum::{
     response::Html,
     Form,
 };
-
-fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").map_or(false, |v| v == "true")
-}
 
 async fn build_user_list_template(
     state: &AppState,
@@ -131,77 +127,122 @@ pub async fn list(
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
     let pool = &state.pool;
-
-    // Parse pagination parameters
+    let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-
     let paginated_users = match db::get_users_paginated(pool, page, per_page) {
         Ok(users) => users,
         Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
     };
-
-    let locale = crate::handlers::language::get_user_locale(&headers);
-    let title = get_translation(&state, &locale, "users-title").await;
-    let _description = get_translation(&state, &locale, "users-description").await;
-    let _add_user = get_translation(&state, &locale, "users-add").await;
-    let _table_header_username =
-        get_translation(&state, &locale, "users-table-header-username").await;
-    let _table_header_domain = get_translation(&state, &locale, "users-table-header-domain").await;
-    let _table_header_enabled =
-        get_translation(&state, &locale, "users-table-header-enabled").await;
-    let _table_header_actions =
-        get_translation(&state, &locale, "users-table-header-actions").await;
-    let _status_active = get_translation(&state, &locale, "status-active").await;
-    let _status_inactive = get_translation(&state, &locale, "status-inactive").await;
-    let _action_view = get_translation(&state, &locale, "action-view").await;
-    let _enable_user = get_translation(&state, &locale, "users-enable-user").await;
-    let _disable_user = get_translation(&state, &locale, "users-disable-user").await;
-    let _empty_title = get_translation(&state, &locale, "users-empty-title").await;
-    let _empty_description = get_translation(&state, &locale, "users-empty-description").await;
-
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "users-title",
+            "users-description",
+            "users-add",
+            "users-table-header-username",
+            "users-table-header-domain",
+            "users-table-header-enabled",
+            "users-table-header-actions",
+            "status-active",
+            "status-inactive",
+            "action-view",
+            "users-enable-user",
+            "users-disable-user",
+            "users-empty-title",
+            "users-empty-description",
+        ],
+    ).await;
     let paginated = PaginatedResult::new(
         paginated_users.items.clone(),
         paginated_users.total_count,
         paginated_users.current_page,
         paginated_users.per_page,
     );
-    let content_template =
-        build_user_list_template(&state, &locale, paginated_users.items, paginated).await;
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(title, content, &state, &locale)
-        .await
-        .unwrap();
-
-    Html(template.render().unwrap())
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
+    let content_template = UsersListTemplate {
+        title: translations["users-title"].to_string(),
+        description: translations["users-description"].to_string(),
+        add_user: translations["users-add"].to_string(),
+        table_header_username: translations["users-table-header-username"].to_string(),
+        table_header_domain: translations["users-table-header-domain"].to_string(),
+        table_header_enabled: translations["users-table-header-enabled"].to_string(),
+        table_header_actions: translations["users-table-header-actions"].to_string(),
+        status_active: translations["status-active"].to_string(),
+        status_inactive: translations["status-inactive"].to_string(),
+        action_view: translations["action-view"].to_string(),
+        enable_user: translations["users-enable-user"].to_string(),
+        disable_user: translations["users-disable-user"].to_string(),
+        empty_title: translations["users-empty-title"].to_string(),
+        empty_description: translations["users-empty-description"].to_string(),
+        users: paginated_users.items,
+        pagination: paginated,
+        page_range: page_range,
+        max_item,
+    };
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    let locale = crate::handlers::utils::get_user_locale(&headers);
     let form = UserForm {
         id: "".to_string(),
         password: "".to_string(),
         name: "".to_string(),
         enabled: true,
     };
-
-    let content_template = build_user_form_template(&state, &locale, None, form, None).await;
-    let content = content_template.render().unwrap();
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "users-add-title").await,
-            content,
-            &state,
-            &locale,
-        )
-        .await
-        .unwrap();
-        Html(template.render().unwrap())
-    }
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "users-new-user",
+            "form-error",
+            "form-username",
+            "form-password",
+            "form-name",
+            "form-domain",
+            "form-active",
+            "form-cancel",
+            "form-create-user",
+            "form-update-user",
+            "form-placeholder-username",
+            "form-placeholder-password",
+            "form-placeholder-name",
+            "form-placeholder-domain",
+            "form-tooltip-username",
+            "form-tooltip-password",
+            "form-tooltip-name",
+            "form-tooltip-domain",
+            "form-tooltip-enable",
+        ],
+    ).await;
+    let content_template = UserFormTemplate {
+        title: translations["users-new-user"].to_string(),
+        form_user_id: translations["form-username"].to_string(),
+        form_password: translations["form-password"].to_string(),
+        form_name: translations["form-name"].to_string(),
+        form_active: translations["form-active"].to_string(),
+        placeholder_user_email: translations["form-placeholder-username"].to_string(),
+        placeholder_name: translations["form-placeholder-name"].to_string(),
+        tooltip_user_id: translations["form-tooltip-username"].to_string(),
+        tooltip_password: translations["form-tooltip-password"].to_string(),
+        tooltip_name: translations["form-tooltip-name"].to_string(),
+        tooltip_active: translations["form-tooltip-enable"].to_string(),
+        cancel: translations["form-cancel"].to_string(),
+        create_user: translations["form-create-user"].to_string(),
+        update_user: translations["form-update-user"].to_string(),
+        new_user: translations["users-new-user"].to_string(),
+        edit_user_title: "".to_string(),
+        user: None,
+        form,
+        error: None,
+    };
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn show(
@@ -210,29 +251,53 @@ pub async fn show(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
-
-    let user = match db::get_user(pool, id) {
-        Ok(user) => user,
-        Err(_) => return Html("User not found".to_string()),
+    let user = get_entity_or_not_found!(db::get_user(pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "users-not-found");
+    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "users-show-title",
+            "users-view-edit-settings",
+            "users-back-to-users",
+            "users-user-information",
+            "users-user-details",
+            "users-username",
+            "users-name",
+            "users-domain",
+            "users-status",
+            "status-active",
+            "status-inactive",
+            "users-created",
+            "users-modified",
+            "users-edit-user-button",
+            "users-enable-user-button",
+            "users-disable-user-button",
+            "users-delete-user",
+            "users-delete-confirm",
+        ],
+    ).await;
+    let content_template = UserShowTemplate {
+        title: translations["users-show-title"].to_string(),
+        view_edit_settings: translations["users-view-edit-settings"].to_string(),
+        back_to_users: translations["users-back-to-users"].to_string(),
+        user_information: translations["users-user-information"].to_string(),
+        user_details: translations["users-user-details"].to_string(),
+        user_id: translations["users-username"].to_string(),
+        full_name: translations["users-name"].to_string(),
+        status: translations["users-status"].to_string(),
+        created: translations["users-created"].to_string(),
+        modified: translations["users-modified"].to_string(),
+        status_active: translations["status-active"].to_string(),
+        status_inactive: translations["status-inactive"].to_string(),
+        edit_user: translations["users-edit-user-button"].to_string(),
+        enable_user: translations["users-enable-user-button"].to_string(),
+        disable_user: translations["users-disable-user-button"].to_string(),
+        delete_user: translations["users-delete-user"].to_string(),
+        delete_confirm: translations["users-delete-confirm"].to_string(),
+        user,
     };
-
-    let content_template = build_user_show_template(&state, &locale, user).await;
-    let content = content_template.render().unwrap();
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "users-show-title").await,
-            content,
-            &state,
-            &locale,
-        )
-        .await
-        .unwrap();
-        Html(template.render().unwrap())
-    }
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 pub async fn edit(
@@ -258,7 +323,7 @@ pub async fn edit(
     let content_template = build_user_form_template(&state, &locale, Some(user), form, None).await;
     let content = content_template.render().unwrap();
 
-    if is_htmx_request(&headers) {
+    if crate::handlers::utils::is_htmx_request(&headers) {
         Html(content)
     } else {
         let template = BaseTemplate::with_i18n(
@@ -288,7 +353,7 @@ pub async fn create(
             build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
         let content = form_template.render().unwrap();
 
-        if is_htmx_request(&headers) {
+        if crate::handlers::utils::is_htmx_request(&headers) {
             Html(content)
         } else {
             let template = BaseTemplate::with_i18n(
@@ -317,7 +382,7 @@ pub async fn create(
                     build_user_list_template(&state, &locale, users, paginated).await;
                 let content = content_template.render().unwrap();
 
-                if is_htmx_request(&headers) {
+                if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
@@ -343,7 +408,7 @@ pub async fn create(
                         .await;
                 let content = form_template.render().unwrap();
 
-                if is_htmx_request(&headers) {
+                if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
@@ -389,7 +454,7 @@ pub async fn update(
         .await;
         let content = form_template.render().unwrap();
 
-        if is_htmx_request(&headers) {
+        if crate::handlers::utils::is_htmx_request(&headers) {
             Html(content)
         } else {
             let template = BaseTemplate::with_i18n(
@@ -413,7 +478,7 @@ pub async fn update(
                 let content_template = build_user_show_template(&state, &locale, user).await;
                 let content = content_template.render().unwrap();
 
-                if is_htmx_request(&headers) {
+                if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(
@@ -444,7 +509,7 @@ pub async fn update(
                 .await;
                 let content = form_template.render().unwrap();
 
-                if is_htmx_request(&headers) {
+                if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let template = BaseTemplate::with_i18n(

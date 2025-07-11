@@ -14,6 +14,41 @@ where
     ))
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SystemStats {
+    pub total_domains: i64,
+    pub enabled_domains: i64,
+    pub disabled_domains: i64,
+    pub recent_domains: i64,
+    pub total_users: i64,
+    pub enabled_users: i64,
+    pub disabled_users: i64,
+    pub recent_users: i64,
+    pub total_aliases: i64,
+    pub enabled_aliases: i64,
+    pub disabled_aliases: i64,
+    pub recent_aliases: i64,
+    pub total_backups: i64,
+    pub enabled_backups: i64,
+    pub disabled_backups: i64,
+    pub recent_backups: i64,
+    pub total_relays: i64,
+    pub enabled_relays: i64,
+    pub disabled_relays: i64,
+    pub recent_relays: i64,
+    pub total_relocated: i64,
+    pub enabled_relocated: i64,
+    pub disabled_relocated: i64,
+    pub recent_relocated: i64,
+    pub total_clients: i64,
+    pub enabled_clients: i64,
+    pub disabled_clients: i64,
+    pub recent_clients: i64,
+    pub total_quota: i64,
+    pub used_quota: i64,
+    pub quota_usage_percent: f64,
+}
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = domains)]
 #[diesel(primary_key(pkid))]
@@ -137,19 +172,6 @@ pub struct DomainStats {
     pub domain: String,
     pub user_count: i64,
     pub alias_count: i64,
-    pub total_quota: i64,
-    pub used_quota: i64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SystemStats {
-    pub total_domains: i64,
-    pub total_users: i64,
-    pub total_aliases: i64,
-    pub total_backups: i64,
-    pub total_relays: i64,
-    pub total_relocated: i64,
-    pub total_clients: i64,
     pub total_quota: i64,
     pub used_quota: i64,
 }

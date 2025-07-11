@@ -1,83 +1,97 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::stats::StatsTemplate;
-use crate::{db, i18n::get_translation, AppState};
+use crate::{db, i18n::get_translation, AppState, get_system_stats_or_default, render_template};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    let locale = crate::handlers::utils::get_user_locale(&headers);
 
-    let system_stats = match db::get_system_stats(pool) {
-        Ok(stats) => stats,
-        Err(_) => crate::models::SystemStats {
-            total_domains: 0,
-            total_users: 0,
-            total_aliases: 0,
-            total_backups: 0,
-            total_relays: 0,
-            total_relocated: 0,
-            total_clients: 0,
-            total_quota: 0,
-            used_quota: 0,
-        },
-    };
+    // Use the new macro for SystemStats retrieval
+    let system_stats = get_system_stats_or_default!(db::get_system_stats(pool));
 
     let domain_stats = match db::get_domain_stats(pool) {
         Ok(stats) => stats,
         Err(_) => vec![],
     };
 
-    // Get all translations
-    let title = get_translation(&state, &locale, "stats-title").await;
-    let description = get_translation(&state, &locale, "stats-description").await;
-    let system_overview = get_translation(&state, &locale, "stats-system-overview").await;
-    let system_description = get_translation(&state, &locale, "stats-system-description").await;
-    let total_domains = get_translation(&state, &locale, "stats-total-domains").await;
-    let total_backups = get_translation(&state, &locale, "stats-total-backups").await;
-    let total_aliases = get_translation(&state, &locale, "stats-total-aliases").await;
-    let total_users = get_translation(&state, &locale, "stats-total-users").await;
-    let total_relays = get_translation(&state, &locale, "stats-total-relays").await;
-    let total_relocated = get_translation(&state, &locale, "stats-total-relocated").await;
-    let domain_statistics = get_translation(&state, &locale, "stats-domain-statistics").await;
-    let table_header_domain = get_translation(&state, &locale, "stats-table-header-domain").await;
-    let table_header_users = get_translation(&state, &locale, "stats-table-header-users").await;
-    let table_header_aliases = get_translation(&state, &locale, "stats-table-header-aliases").await;
-    let table_header_total_quota =
-        get_translation(&state, &locale, "stats-table-header-total-quota").await;
-    let table_header_used_quota =
-        get_translation(&state, &locale, "stats-table-header-used-quota").await;
-
-    let content_template = StatsTemplate {
-        title: &title,
-        description: &description,
-        system_overview: &system_overview,
-        system_description: &system_description,
-        total_domains: &total_domains,
-        total_backups: &total_backups,
-        total_aliases: &total_aliases,
-        total_users: &total_users,
-        total_relays: &total_relays,
-        total_relocated: &total_relocated,
-        domain_statistics: &domain_statistics,
-        table_header_domain: &table_header_domain,
-        table_header_users: &table_header_users,
-        table_header_aliases: &table_header_aliases,
-        table_header_total_quota: &table_header_total_quota,
-        table_header_used_quota: &table_header_used_quota,
-        system_stats,
-        domain_stats,
-    };
-    let content = content_template.render().unwrap();
-
-    let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "stats-title").await,
-        content,
+    // Use the batch translation fetcher for all statistics translations
+    let translations = crate::handlers::utils::get_translations_batch(
         &state,
         &locale,
+        &[
+            "stats-title",
+            "stats-description",
+            "stats-system-overview",
+            "stats-system-description",
+            "stats-total-domains",
+            "stats-total-backups",
+            "stats-total-aliases",
+            "stats-total-users",
+            "stats-total-relays",
+            "stats-total-relocated",
+            "stats-total-clients",
+            "stats-domain-statistics",
+            "stats-table-header-domain",
+            "stats-table-header-users",
+            "stats-table-header-aliases",
+            "stats-table-header-total-quota",
+            "stats-table-header-used-quota",
+            "stats-quota-usage-title",
+            "stats-quota-usage-overview",
+            "stats-quota-usage-description",
+            "stats-quota-usage-percentage",
+            "stats-quota-total",
+            "stats-quota-used",
+            "stats-recent-activity-title",
+            "stats-recent-domains",
+            "stats-recent-users",
+            "stats-recent-aliases",
+            "stats-recent-backups",
+            "stats-recent-relays",
+            "stats-recent-relocated",
+            "stats-recent-clients",
+        ],
     )
-    .await
-    .unwrap();
+    .await;
 
-    Html(template.render().unwrap())
+    let content_template = StatsTemplate {
+        title: &translations["stats-title"],
+        description: &translations["stats-description"],
+        system_overview: &translations["stats-system-overview"],
+        system_description: &translations["stats-system-description"],
+        total_domains: &translations["stats-total-domains"],
+        total_backups: &translations["stats-total-backups"],
+        total_aliases: &translations["stats-total-aliases"],
+        total_users: &translations["stats-total-users"],
+        total_relays: &translations["stats-total-relays"],
+        total_relocated: &translations["stats-total-relocated"],
+        total_clients: &translations["stats-total-clients"],
+        domain_statistics: &translations["stats-domain-statistics"],
+        table_header_domain: &translations["stats-table-header-domain"],
+        table_header_users: &translations["stats-table-header-users"],
+        table_header_aliases: &translations["stats-table-header-aliases"],
+        table_header_total_quota: &translations["stats-table-header-total-quota"],
+        table_header_used_quota: &translations["stats-table-header-used-quota"],
+        quota_usage_title: &translations["stats-quota-usage-title"],
+        quota_usage_overview: &translations["stats-quota-usage-overview"],
+        quota_usage_description: &translations["stats-quota-usage-description"],
+        quota_usage_percentage: &translations["stats-quota-usage-percentage"],
+        quota_total: &translations["stats-quota-total"],
+        quota_used: &translations["stats-quota-used"],
+        recent_activity_title: &translations["stats-recent-activity-title"],
+        recent_domains: &translations["stats-recent-domains"],
+        recent_users: &translations["stats-recent-users"],
+        recent_aliases: &translations["stats-recent-aliases"],
+        recent_backups: &translations["stats-recent-backups"],
+        recent_relays: &translations["stats-recent-relays"],
+        recent_relocated: &translations["stats-recent-relocated"],
+        recent_clients: &translations["stats-recent-clients"],
+        system_stats,
+        domain_stats: domain_stats,
+    };
+
+    // Use the new render template macro
+    render_template!(content_template, &state, &locale, &headers)
 }

@@ -1,6 +1,6 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::relocated::*;
-use crate::{db, i18n::get_translation, models::*, AppState};
+use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -114,84 +114,71 @@ pub async fn show_relocated(
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = &state.pool;
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    let locale = crate::handlers::utils::get_user_locale(&headers);
 
     debug!("Handling relocated show request for ID: {}", relocated_id);
 
-    let relocated = match db::get_relocated_by_id(pool, relocated_id) {
-        Ok(relocated) => relocated,
-        Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            return Html(not_found_msg);
-        }
-    };
+    // Use the new macro for "not found" error handling
+    let relocated = get_entity_or_not_found!(
+        db::get_relocated_by_id(pool, relocated_id),
+        &state,
+        &locale,
+        "relocated-not-found"
+    );
 
-    let title = get_translation(&state, &locale, "relocated-title").await;
-    let action_edit = get_translation(&state, &locale, "action-edit").await;
-    let action_enable = get_translation(&state, &locale, "action-enable").await;
-    let action_disable = get_translation(&state, &locale, "action-disable").await;
-    let action_delete = get_translation(&state, &locale, "action-delete").await;
-    let delete_confirm = get_translation(&state, &locale, "relocated-delete-confirm").await;
-    let back_to_list = get_translation(&state, &locale, "relocated-back-to-list").await;
-    let field_id = get_translation(&state, &locale, "relocated-field-id").await;
-    let field_old_address = get_translation(&state, &locale, "relocated-field-old-address").await;
-    let field_new_address = get_translation(&state, &locale, "relocated-field-new-address").await;
-    let field_enabled = get_translation(&state, &locale, "relocated-field-enabled").await;
-    let field_created = get_translation(&state, &locale, "relocated-field-created").await;
-    let field_modified = get_translation(&state, &locale, "relocated-field-modified").await;
-    let status_enabled = get_translation(&state, &locale, "status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-    let view_edit_settings = get_translation(&state, &locale, "relocated-view-edit-settings").await;
-    let relocated_show_title = get_translation(&state, &locale, "relocated-show-title").await;
-    let relocated_info_title = get_translation(&state, &locale, "relocated-info-title").await;
-    let relocated_info_description =
-        get_translation(&state, &locale, "relocated-info-description").await;
+    // Use the batch translation fetcher for common translations
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "relocated-title",
+            "action-edit",
+            "action-enable",
+            "action-disable",
+            "action-delete",
+            "relocated-delete-confirm",
+            "relocated-back-to-list",
+            "relocated-field-id",
+            "relocated-field-old-address",
+            "relocated-field-new-address",
+            "relocated-field-enabled",
+            "relocated-field-created",
+            "relocated-field-modified",
+            "status-enabled",
+            "status-disabled",
+            "relocated-view-edit-settings",
+            "relocated-show-title",
+            "relocated-info-title",
+            "relocated-info-description",
+        ],
+    )
+    .await;
 
     let content_template = RelocatedShowTemplate {
-        title: &title,
-        action_edit: &action_edit,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        action_delete: &action_delete,
-        delete_confirm: &delete_confirm,
-        back_to_list: &back_to_list,
-        field_id: &field_id,
-        field_old_address: &field_old_address,
-        field_new_address: &field_new_address,
-        field_enabled: &field_enabled,
-        field_created: &field_created,
-        field_modified: &field_modified,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        view_edit_settings: &view_edit_settings,
-        relocated_show_title: &relocated_show_title,
-        relocated_info_title: &relocated_info_title,
-        relocated_info_description: &relocated_info_description,
+        title: &translations["relocated-title"],
+        action_edit: &translations["action-edit"],
+        action_enable: &translations["action-enable"],
+        action_disable: &translations["action-disable"],
+        action_delete: &translations["action-delete"],
+        delete_confirm: &translations["relocated-delete-confirm"],
+        back_to_list: &translations["relocated-back-to-list"],
+        field_id: &translations["relocated-field-id"],
+        field_old_address: &translations["relocated-field-old-address"],
+        field_new_address: &translations["relocated-field-new-address"],
+        field_enabled: &translations["relocated-field-enabled"],
+        field_created: &translations["relocated-field-created"],
+        field_modified: &translations["relocated-field-modified"],
+        status_enabled: &translations["status-enabled"],
+        status_disabled: &translations["status-disabled"],
+        view_edit_settings: &translations["relocated-view-edit-settings"],
+        relocated_show_title: &translations["relocated-show-title"],
+        relocated_info_title: &translations["relocated-info-title"],
+        relocated_info_description: &translations["relocated-info-description"],
         relocated,
     };
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relocated-show-title").await,
-            content,
-            &state,
-            &locale,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use the new render template macro
+    render_template!(content_template, &state, &locale, &headers)
 }
 
 // Show form for creating a new relocated entry

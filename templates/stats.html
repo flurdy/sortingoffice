@@ -8,10 +8,11 @@
         </div>
     </div>
 
-    <!-- System Statistics -->
+    <!-- System Overview -->
     <div class="mt-8">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ system_overview }}</h2>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Domains -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="p-6">
                     <div class="flex items-center">
@@ -25,44 +26,21 @@
                         <div class="ml-4 flex-1">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_domains }}</dt>
                             <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_domains }}</dd>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                                <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                </svg>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_domains }} enabled</span>
+                                {% if system_stats.disabled_domains > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_domains }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_domains > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_domains }} recent</span>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="ml-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_backups }}</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_backups }}</dd>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                                <svg class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_aliases }}</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_aliases }}</dd>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+            <!-- Users -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="p-6">
                     <div class="flex items-center">
@@ -76,10 +54,77 @@
                         <div class="ml-4 flex-1">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_users }}</dt>
                             <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_users }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_users }} enabled</span>
+                                {% if system_stats.disabled_users > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_users }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_users > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_users }} recent</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Aliases -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_aliases }}</dt>
+                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_aliases }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_aliases }} enabled</span>
+                                {% if system_stats.disabled_aliases > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_aliases }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_aliases > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_aliases }} recent</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backups -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_backups }}</dt>
+                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_backups }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_backups }} enabled</span>
+                                {% if system_stats.disabled_backups > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_backups }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_backups > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_backups }} recent</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relays -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="p-6">
                     <div class="flex items-center">
@@ -93,10 +138,21 @@
                         <div class="ml-4 flex-1">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_relays }}</dt>
                             <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_relays }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_relays }} enabled</span>
+                                {% if system_stats.disabled_relays > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_relays }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_relays > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_relays }} recent</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Relocated -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="p-6">
                     <div class="flex items-center">
@@ -110,12 +166,139 @@
                         <div class="ml-4 flex-1">
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_relocated }}</dt>
                             <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_relocated }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_relocated }} enabled</span>
+                                {% if system_stats.disabled_relocated > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_relocated }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_relocated > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_relocated }} recent</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                                <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ total_clients }}</dt>
+                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.total_clients }}</dd>
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span class="text-green-600 dark:text-green-400">{{ system_stats.enabled_clients }} enabled</span>
+                                {% if system_stats.disabled_clients > 0 %}
+                                <span class="text-red-600 dark:text-red-400 ml-2">{{ system_stats.disabled_clients }} disabled</span>
+                                {% endif %}
+                                {% if system_stats.recent_clients > 0 %}
+                                <span class="text-blue-600 dark:text-blue-400 ml-2">{{ system_stats.recent_clients }} recent</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Quota Usage -->
+    {% if system_stats.total_quota > 0 %}
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ quota_usage_title }}</h2>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ quota_usage_overview }}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ quota_usage_description }}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ system_stats.quota_usage_percent }}%</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ quota_usage_percentage }}</div>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                    <div class="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                         data-width="{{ system_stats.quota_usage_percent }}"></div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">{{ quota_total }}:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ system_stats.total_quota }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">{{ quota_used }}:</span>
+                        <span class="font-medium text-gray-900 dark:text-white">{{ system_stats.used_quota }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activity -->
+    {% if system_stats.recent_domains > 0 %}
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ recent_activity_title }}</h2>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="p-6">
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                    {% if system_stats.recent_domains > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ system_stats.recent_domains }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_domains }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_users > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ system_stats.recent_users }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_users }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_aliases > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ system_stats.recent_aliases }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_aliases }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_backups > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ system_stats.recent_backups }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_backups }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_relays > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ system_stats.recent_relays }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_relays }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_relocated > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ system_stats.recent_relocated }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_relocated }}</div>
+                    </div>
+                    {% endif %}
+                    {% if system_stats.recent_clients > 0 %}
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ system_stats.recent_clients }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ recent_clients }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Domain Statistics -->
     <div class="mt-8">
@@ -130,7 +313,6 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_domain }}</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_users }}</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_aliases }}</th>
-    
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_total_quota }}</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_used_quota }}</th>
                                 </tr>
@@ -147,7 +329,6 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         {{ stat.alias_count }}
                                     </td>
-                                    
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         {{ stat.total_quota }}
                                     </td>
@@ -163,4 +344,14 @@
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.querySelector('[data-width]');
+    if (progressBar) {
+        const width = progressBar.getAttribute('data-width');
+        progressBar.style.width = width + '%';
+    }
+});
+</script>
