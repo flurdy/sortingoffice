@@ -1,5 +1,12 @@
 # Sorting Office Configuration
 
+# Global feature toggles (apply to all databases unless overridden)
+[global_features]
+read_only = false           # Set to true to make all databases read-only
+no_new_users = false        # Set to true to prevent new user creation on all databases
+no_new_domains = false      # Set to true to prevent new domain creation on all databases
+no_password_updates = false # Set to true to prevent password changes on all databases
+
 # Required aliases that must exist for all domains
 required_aliases = [
     "postmaster",
@@ -35,11 +42,37 @@ common_aliases = [
 id = "primary"
 label = "Main Server"
 url = "mysql://sortingoffice:password@localhost:3306/sortingoffice"
+# Optional: Database-specific feature restrictions (override global settings)
+[databases.features]
+read_only = false           # Set to true to make this database read-only
+no_new_users = false        # Set to true to prevent new user creation
+no_new_domains = false      # Set to true to prevent new domain creation
+no_password_updates = false # Set to true to prevent password changes
+disabled = false            # Set to true to completely disable this database
 
 [[databases]]
 id = "backup"
 label = "Backup Server"
 url = "mysql://backupuser:password@backuphost:3306/backupdb"
+# Example: Read-only backup server
+[databases.features]
+read_only = true            # Backup server is read-only
+no_new_users = true         # No new users on backup
+no_new_domains = true       # No new domains on backup
+no_password_updates = true  # No password updates on backup
+disabled = false            # Database is enabled but restricted
+
+# Example: Completely disabled staging server
+# [[databases]]
+# id = "staging"
+# label = "Staging Server (Disabled)"
+# url = "mysql://staginguser:password@staginghost:3306/stagingdb"
+# [databases.features]
+# read_only = false         # Not relevant when disabled
+# no_new_users = false      # Not relevant when disabled
+# no_new_domains = false    # Not relevant when disabled
+# no_password_updates = false # Not relevant when disabled
+# disabled = true           # Database is completely disabled
 
 # Admin users configuration
 # You can have multiple admin users with different roles

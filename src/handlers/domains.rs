@@ -360,6 +360,55 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
+    // Get current database ID for restriction checks
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check database restrictions
+    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "create_domain",
+    ) {
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
+        let title = get_translation(&state, &locale, "domains-new-domain").await;
+        let form_error = get_translation(&state, &locale, "form-error").await;
+        let form_domain = get_translation(&state, &locale, "form-domain").await;
+        let form_transport = get_translation(&state, &locale, "form-transport").await;
+        let form_active = get_translation(&state, &locale, "form-active").await;
+        let form_cancel = get_translation(&state, &locale, "form-cancel").await;
+        let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
+        let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
+        let form_placeholder_domain =
+            get_translation(&state, &locale, "form-placeholder-domain").await;
+        let form_placeholder_transport =
+            get_translation(&state, &locale, "form-placeholder-transport").await;
+        let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
+        let form_tooltip_transport =
+            get_translation(&state, &locale, "form-tooltip-transport").await;
+        let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+        let content_template = DomainFormTemplate {
+            title: &title,
+            domain: None,
+            form,
+            error: Some(error_msg),
+            form_error: &form_error,
+            form_domain: &form_domain,
+            form_transport: &form_transport,
+            form_active: &form_active,
+            form_cancel: &form_cancel,
+            form_create_domain: &form_create_domain,
+            form_update_domain: &form_update_domain,
+            form_placeholder_domain: &form_placeholder_domain,
+            form_placeholder_transport: &form_placeholder_transport,
+            form_tooltip_domain: &form_tooltip_domain,
+            form_tooltip_transport: &form_tooltip_transport,
+            form_tooltip_enable: &form_tooltip_enable,
+        };
+        return Html(content_template.render().unwrap());
+    }
+
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
@@ -566,6 +615,55 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
+    // Get current database ID for restriction checks
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check database restrictions
+    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "update_domain",
+    ) {
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
+        let title = get_translation(&state, &locale, "domains-edit-domain").await;
+        let form_error = get_translation(&state, &locale, "form-error").await;
+        let form_domain = get_translation(&state, &locale, "form-domain").await;
+        let form_transport = get_translation(&state, &locale, "form-transport").await;
+        let form_active = get_translation(&state, &locale, "form-active").await;
+        let form_cancel = get_translation(&state, &locale, "form-cancel").await;
+        let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
+        let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
+        let form_placeholder_domain =
+            get_translation(&state, &locale, "form-placeholder-domain").await;
+        let form_placeholder_transport =
+            get_translation(&state, &locale, "form-placeholder-transport").await;
+        let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
+        let form_tooltip_transport =
+            get_translation(&state, &locale, "form-tooltip-transport").await;
+        let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+        let content_template = DomainFormTemplate {
+            title: &title,
+            domain: None,
+            form,
+            error: Some(error_msg),
+            form_error: &form_error,
+            form_domain: &form_domain,
+            form_transport: &form_transport,
+            form_active: &form_active,
+            form_cancel: &form_cancel,
+            form_create_domain: &form_create_domain,
+            form_update_domain: &form_update_domain,
+            form_placeholder_domain: &form_placeholder_domain,
+            form_placeholder_transport: &form_placeholder_transport,
+            form_tooltip_domain: &form_tooltip_domain,
+            form_tooltip_transport: &form_tooltip_transport,
+            form_tooltip_enable: &form_tooltip_enable,
+        };
+        return Html(content_template.render().unwrap());
+    }
+
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");

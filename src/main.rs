@@ -52,6 +52,7 @@ async fn main() {
             id: "primary".to_string(),
             label: "Primary Database".to_string(),
             url: db_url,
+            features: config::DatabaseFeatures::default(),
         }];
         db::DatabaseManager::new(fallback_config)
             .await

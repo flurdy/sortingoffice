@@ -32,6 +32,57 @@ pub struct DatabaseConfig {
     pub id: String,
     pub label: String,
     pub url: String,
+    #[serde(default)]
+    pub features: DatabaseFeatures,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DatabaseFeatures {
+    #[serde(default)]
+    pub read_only: bool,
+    #[serde(default)]
+    pub no_new_users: bool,
+    #[serde(default)]
+    pub no_new_domains: bool,
+    #[serde(default)]
+    pub no_password_updates: bool,
+    #[serde(default)]
+    pub disabled: bool,
+}
+
+impl Default for DatabaseFeatures {
+    fn default() -> Self {
+        DatabaseFeatures {
+            read_only: false,
+            no_new_users: false,
+            no_new_domains: false,
+            no_password_updates: false,
+            disabled: false,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct GlobalFeatures {
+    #[serde(default)]
+    pub read_only: bool,
+    #[serde(default)]
+    pub no_new_users: bool,
+    #[serde(default)]
+    pub no_new_domains: bool,
+    #[serde(default)]
+    pub no_password_updates: bool,
+}
+
+impl Default for GlobalFeatures {
+    fn default() -> Self {
+        GlobalFeatures {
+            read_only: false,
+            no_new_users: false,
+            no_new_domains: false,
+            no_password_updates: false,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -46,6 +97,8 @@ pub struct Config {
     pub admin: Option<AdminCredentials>,
     #[serde(default)]
     pub databases: Vec<DatabaseConfig>,
+    #[serde(default)]
+    pub global_features: GlobalFeatures,
 }
 
 impl Config {
@@ -108,6 +161,7 @@ impl Config {
             admins: vec![],
             admin: None,
             databases: vec![],
+            global_features: GlobalFeatures::default(),
         })
     }
 
@@ -163,6 +217,110 @@ impl Config {
 
         None
     }
+
+    /// Get database features for a specific database ID
+    pub fn get_database_features(&self, database_id: &str) -> Option<&DatabaseFeatures> {
+        self.databases
+            .iter()
+            .find(|db| db.id == database_id)
+            .map(|db| &db.features)
+    }
+
+    /// Check if a database is read-only (global or database-specific)
+    pub fn is_database_read_only(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return true; // Disabled databases are effectively read-only
+            }
+        }
+
+        // Check global read-only setting
+        if self.global_features.read_only {
+            return true;
+        }
+
+        // Check database-specific read-only setting
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.read_only;
+        }
+
+        false
+    }
+
+    /// Check if new users are blocked (global or database-specific)
+    pub fn is_new_users_blocked(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return true; // Disabled databases block all operations
+            }
+        }
+
+        // Check global setting
+        if self.global_features.no_new_users {
+            return true;
+        }
+
+        // Check database-specific setting
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.no_new_users;
+        }
+
+        false
+    }
+
+    /// Check if new domains are blocked (global or database-specific)
+    pub fn is_new_domains_blocked(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return true; // Disabled databases block all operations
+            }
+        }
+
+        // Check global setting
+        if self.global_features.no_new_domains {
+            return true;
+        }
+
+        // Check database-specific setting
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.no_new_domains;
+        }
+
+        false
+    }
+
+    /// Check if password updates are blocked (global or database-specific)
+    pub fn is_password_updates_blocked(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return true; // Disabled databases block all operations
+            }
+        }
+
+        // Check global setting
+        if self.global_features.no_password_updates {
+            return true;
+        }
+
+        // Check database-specific setting
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.no_password_updates;
+        }
+
+        false
+    }
+
+    /// Check if a database is completely disabled
+    pub fn is_database_disabled(&self, database_id: &str) -> bool {
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.disabled;
+        }
+        false
+    }
 }
 
 impl Default for Config {
@@ -201,6 +359,7 @@ impl Default for Config {
             }],
             admin: None,
             databases: vec![],
+            global_features: GlobalFeatures::default(),
         }
     }
 }

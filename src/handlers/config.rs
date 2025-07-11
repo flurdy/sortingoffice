@@ -56,6 +56,22 @@ pub async fn view_config(
     let placeholder_domain_alias =
         get_translation(&state, &locale, "config-placeholder-domain-alias").await;
 
+    // Global Feature Toggles translations
+    let global_features_header = get_translation(&state, &locale, "config-global-features-header").await;
+    let global_features_description = get_translation(&state, &locale, "config-global-features-description").await;
+    let feature_read_only = get_translation(&state, &locale, "config-feature-read-only").await;
+    let feature_no_new_users = get_translation(&state, &locale, "config-feature-no-new-users").await;
+    let feature_no_new_domains = get_translation(&state, &locale, "config-feature-no-new-domains").await;
+    let feature_no_password_updates = get_translation(&state, &locale, "config-feature-no-password-updates").await;
+    let feature_database_disabled = get_translation(&state, &locale, "config-feature-database-disabled").await;
+    let status_enabled = get_translation(&state, &locale, "config-status-enabled").await;
+    let status_disabled = get_translation(&state, &locale, "config-status-disabled").await;
+
+    // Database Feature Toggles translations
+    let database_features_header = get_translation(&state, &locale, "config-database-features-header").await;
+    let database_features_description = get_translation(&state, &locale, "config-database-features-description").await;
+    let database_disabled_badge = get_translation(&state, &locale, "config-database-disabled-badge").await;
+
     // Load current configuration
     let config = match Config::load() {
         Ok(config) => config,
@@ -94,6 +110,20 @@ pub async fn view_config(
         placeholder_common_alias: &placeholder_common_alias,
         placeholder_domain: &placeholder_domain,
         placeholder_domain_alias: &placeholder_domain_alias,
+        // Global Feature Toggles
+        global_features_header: &global_features_header,
+        global_features_description: &global_features_description,
+        feature_read_only: &feature_read_only,
+        feature_no_new_users: &feature_no_new_users,
+        feature_no_new_domains: &feature_no_new_domains,
+        feature_no_password_updates: &feature_no_password_updates,
+        feature_database_disabled: &feature_database_disabled,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        // Database Feature Toggles
+        database_features_header: &database_features_header,
+        database_features_description: &database_features_description,
+        database_disabled_badge: &database_disabled_badge,
         config: &config,
         domain_overrides_vec,
     };

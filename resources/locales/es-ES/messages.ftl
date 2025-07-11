@@ -396,6 +396,7 @@ error-duplicate-backup = Ya existe un servidor de respaldo para el dominio '{ $d
 error-duplicate-alias = Ya existe un alias con este origen.
 error-duplicate-user = Ya existe un usuario con este nombre de usuario.
 error-constraint-violation = Los datos no cumplen con las restricciones requeridas. Por favor verifique su entrada.
+error-operation-not-allowed = Esta operación no está permitida en la base de datos actual debido a restricciones.
 
 # Success messages
 success-created = Creado exitosamente.
@@ -538,6 +539,22 @@ config-placeholder-required-alias = "Ingrese nuevo alias requerido (ej., postmas
 config-placeholder-common-alias = "Ingrese nuevo alias común (ej., admin)"
 config-placeholder-domain = "Ingrese dominio (ej., ejemplo.com)"
 config-placeholder-domain-alias = "Ingrese alias para {domain}"
+
+# Global Feature Toggles
+config-global-features-header = "Interruptores de Características Globales"
+config-global-features-description = "Estos ajustes se aplican a todas las bases de datos a menos que sean anulados por ajustes específicos de la base de datos."
+config-feature-read-only = "Solo Lectura"
+config-feature-no-new-users = "Sin Nuevos Usuarios"
+config-feature-no-new-domains = "Sin Nuevos Dominios"
+config-feature-no-password-updates = "Sin Actualizaciones de Contraseña"
+config-feature-database-disabled = "Base de Datos Deshabilitada"
+config-status-enabled = "Habilitado"
+config-status-disabled = "Deshabilitado"
+
+# Database Feature Toggles
+config-database-features-header = "Interruptores de Características de Base de Datos"
+config-database-features-description = "Restricciones de características específicas de la base de datos. Estos anulan los ajustes globales cuando están habilitados."
+config-database-disabled-badge = "Deshabilitado"
 
 # Matrix Report
 reports-matrix-title = "Reporte de Matriz de Alias de Dominios"

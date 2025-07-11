@@ -522,6 +522,22 @@ config-description = Gérer la configuration du système.
 config-required-aliases = Alias Requis
 config-required-aliases-description = Configurer les alias requis pour chaque domaine.
 
+# Global Feature Toggles
+config-global-features-header = "Interrupteurs de Fonctionnalités Globales"
+config-global-features-description = "Ces paramètres s'appliquent à toutes les bases de données sauf s'ils sont remplacés par des paramètres spécifiques à la base de données."
+config-feature-read-only = "Lecture Seule"
+config-feature-no-new-users = "Pas de Nouveaux Utilisateurs"
+config-feature-no-new-domains = "Pas de Nouveaux Domaines"
+config-feature-no-password-updates = "Pas de Mises à Jour de Mot de Passe"
+config-feature-database-disabled = "Base de Données Désactivée"
+config-status-enabled = "Activé"
+config-status-disabled = "Désactivé"
+
+# Database Feature Toggles
+config-database-features-header = "Interrupteurs de Fonctionnalités de Base de Données"
+config-database-features-description = "Restrictions de fonctionnalités spécifiques à la base de données. Celles-ci remplacent les paramètres globaux lorsqu'elles sont activées."
+config-database-disabled-badge = "Désactivé"
+
 # Forms
 form-error = Erreur
 form-cancel = Annuler
@@ -573,6 +589,7 @@ error-validation-title = Erreur de Validation
 error-validation-description = Les données fournies ne sont pas valides.
 error-permission-title = Erreur de Permission
 error-permission-description = Vous n'avez pas les permissions nécessaires pour effectuer cette action.
+error-operation-not-allowed = Cette opération n'est pas autorisée sur la base de données actuelle en raison de restrictions.
 
 # Common
 common-yes = Oui

@@ -520,6 +520,22 @@ config-placeholder-common-alias = "Skriv inn nytt vanlig alias (f.eks. admin)"
 config-placeholder-domain = "Skriv inn domene (f.eks. eksempel.no)"
 config-placeholder-domain-alias = "Skriv inn alias for {domain}"
 
+# Global Feature Toggles
+config-global-features-header = "Globale Funksjonsbrytere"
+config-global-features-description = "Disse innstillingene gjelder for alle databaser med mindre de overstyres av databasespesifikke innstillinger."
+config-feature-read-only = "Kun Lesing"
+config-feature-no-new-users = "Ingen Nye Brukere"
+config-feature-no-new-domains = "Ingen Nye Domener"
+config-feature-no-password-updates = "Ingen Passordoppdateringer"
+config-feature-database-disabled = "Database Deaktivert"
+config-status-enabled = "Aktivert"
+config-status-disabled = "Deaktivert"
+
+# Database Feature Toggles
+config-database-features-header = "Database Funksjonsbrytere"
+config-database-features-description = "Databasespesifikke funksjonsrestriksjoner. Disse overstyrer globale innstillinger når de er aktivert."
+config-database-disabled-badge = "Deaktivert"
+
 # Error messages
 error-not-found = Side ikke funnet
 error-internal-server = Intern serverfeil
@@ -528,6 +544,7 @@ error-unauthorized = Ikke autorisert
 error-forbidden = Forbudt
 error-database-error = Databasefeil
 error-validation-error = Valideringsfeil
+error-operation-not-allowed = Denne operasjonen er ikke tillatt på den nåværende databasen på grunn av begrensninger.
 
 # Success messages
 success-created = Opprettet

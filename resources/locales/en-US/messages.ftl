@@ -399,6 +399,7 @@ error-duplicate-backup = A backup server for domain '{ $domain }' already exists
 error-duplicate-alias = An alias with this source already exists.
 error-duplicate-user = A user with this username already exists.
 error-constraint-violation = The data does not meet the required constraints. Please check your input.
+error-operation-not-allowed = This operation is not allowed on the current database due to restrictions.
 
 # Success messages
 success-created = Successfully created.
@@ -546,6 +547,22 @@ config-placeholder-required-alias = "Enter new required alias (e.g., postmaster)
 config-placeholder-common-alias = "Enter new common alias (e.g., admin)"
 config-placeholder-domain = "Enter domain (e.g., example.com)"
 config-placeholder-domain-alias = "Enter alias for {domain}"
+
+# Global Feature Toggles
+config-global-features-header = "Global Feature Toggles"
+config-global-features-description = "These settings apply to all databases unless overridden by database-specific settings."
+config-feature-read-only = "Read Only"
+config-feature-no-new-users = "No New Users"
+config-feature-no-new-domains = "No New Domains"
+config-feature-no-password-updates = "No Password Updates"
+config-feature-database-disabled = "Database Disabled"
+config-status-enabled = "Enabled"
+config-status-disabled = "Disabled"
+
+# Database Feature Toggles
+config-database-features-header = "Database Feature Toggles"
+config-database-features-description = "Database-specific feature restrictions. These override global settings when enabled."
+config-database-disabled-badge = "Disabled"
 
 # Matrix Report
 reports-matrix-title = "Domain Alias Matrix Report"

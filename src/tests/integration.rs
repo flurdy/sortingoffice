@@ -8,6 +8,7 @@ mod tests {
     use tower::ServiceExt;
 
     use crate::config::DatabaseConfig;
+    use crate::config::DatabaseFeatures;
     use crate::handlers;
     use crate::tests::testcontainers_setup::{cleanup_test_db, setup_test_db};
     use crate::AppState;
@@ -28,6 +29,7 @@ mod tests {
                 "mysql://root@127.0.0.1:{}/mysql",
                 container.get_mysql_port()
             ),
+            features: DatabaseFeatures::default(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await

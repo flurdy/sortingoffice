@@ -385,6 +385,40 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
+    // Get current database ID for restriction checks
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check database restrictions
+    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "create_user",
+    ) {
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
+        let form_template =
+            build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
+        let content = form_template.render().unwrap();
+
+        if crate::handlers::utils::is_htmx_request(&headers) {
+            return Html(content);
+        } else {
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, &locale, "users-add-title").await,
+                content,
+                &state,
+                &locale,
+                current_db_label,
+                current_db_id,
+            )
+            .await
+            .unwrap();
+            return Html(template.render().unwrap());
+        }
+    }
+
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
@@ -487,6 +521,56 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
+    // Get current database ID for restriction checks
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check database restrictions
+    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "update_user",
+    ) {
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
+
+        // Get existing user for form display
+        let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+            .await
+            .expect("Failed to get database pool");
+        let existing_user = match db::get_user(&pool, id) {
+            Ok(user) => user,
+            Err(_) => return Html("User not found".to_string()),
+        };
+
+        let form_template = build_user_form_template(
+            &state,
+            &locale,
+            Some(existing_user),
+            form.clone(),
+            Some(error_msg),
+        )
+        .await;
+        let content = form_template.render().unwrap();
+
+        if crate::handlers::utils::is_htmx_request(&headers) {
+            return Html(content);
+        } else {
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, &locale, "users-edit-title").await,
+                content,
+                &state,
+                &locale,
+                current_db_label,
+                current_db_id,
+            )
+            .await
+            .unwrap();
+            return Html(template.render().unwrap());
+        }
+    }
+
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");

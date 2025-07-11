@@ -55,13 +55,13 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
   - Database selection UI and handler
   - Database selection persistence in session cookies
 
-⚠️ Multi-database support - remaining steps:
+Multi-database support - remaining steps:
   - Database migration management (run migrations on all configured databases)
   - Show current selected database in navigation/header
   - Add database connection health checks
   - Add database-specific configuration
 
-Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates.
+⚠️ Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates. - CONFIG-BASED ONLY
 
 Add German translation
 
@@ -90,3 +90,5 @@ When filling in an alias mail field or a user id field when entering a @ should 
 Can the database info in the header be a link to database selection
 
 In the show domain page can the existing aliases be shown above the missing ones.
+
+☐ Show per-database feature toggles (read-only, visible to admins) on the config page

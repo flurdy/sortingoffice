@@ -8,7 +8,7 @@ mod tests {
 
     use tower::ServiceExt;
 
-    use crate::config::{AdminRole, Config, DatabaseConfig};
+    use crate::config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures};
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
@@ -29,6 +29,7 @@ mod tests {
                 .unwrap_or_else(|_| {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
+            features: DatabaseFeatures::default(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -1433,6 +1434,7 @@ mod tests {
                 .unwrap_or_else(|_| {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
+            features: DatabaseFeatures::default(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -1481,6 +1483,7 @@ mod tests {
                 .unwrap_or_else(|_| {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
+            features: DatabaseFeatures::default(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
