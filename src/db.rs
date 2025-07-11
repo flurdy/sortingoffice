@@ -1,9 +1,75 @@
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
+use crate::config::DatabaseConfig;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::result::Error;
+use diesel::mysql::MysqlConnection;
+use diesel::r2d2::{self, ConnectionManager};
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+/// Manages multiple database connections
+#[derive(Clone)]
+pub struct DatabaseManager {
+    pools: Arc<RwLock<HashMap<String, DbPool>>>,
+    configs: Vec<DatabaseConfig>,
+    default_db: String,
+}
+
+impl DatabaseManager {
+    /// Create a new database manager with multiple database connections
+    pub async fn new(configs: Vec<DatabaseConfig>) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut pools = HashMap::new();
+        let default_db = configs.first()
+            .map(|c| c.id.clone())
+            .unwrap_or_else(|| "primary".to_string());
+
+        for config in &configs {
+            let manager = ConnectionManager::<MysqlConnection>::new(&config.url);
+            let pool = r2d2::Pool::builder()
+                .build(manager)
+                .map_err(|e| format!("Failed to create pool for {}: {}", config.id, e))?;
+
+            pools.insert(config.id.clone(), pool);
+        }
+
+        Ok(DatabaseManager {
+            pools: Arc::new(RwLock::new(pools)),
+            configs,
+            default_db,
+        })
+    }
+
+    /// Get a database pool by ID
+    pub async fn get_pool(&self, db_id: &str) -> Option<DbPool> {
+        let pools = self.pools.read().await;
+        pools.get(db_id).cloned()
+    }
+
+    /// Get the default database pool
+    pub async fn get_default_pool(&self) -> Option<DbPool> {
+        self.get_pool(&self.default_db).await
+    }
+
+    /// Get all available database configurations
+    pub fn get_configs(&self) -> &[DatabaseConfig] {
+        &self.configs
+    }
+
+    /// Get the default database ID
+    pub fn get_default_db_id(&self) -> &str {
+        &self.default_db
+    }
+
+    /// Check if a database ID exists
+    pub async fn has_database(&self, db_id: &str) -> bool {
+        let pools = self.pools.read().await;
+        pools.contains_key(db_id)
+    }
+}
 
 pub fn get_domains(pool: &DbPool) -> Result<Vec<Domain>, Error> {
     let mut conn = pool.get().map_err(|e| {

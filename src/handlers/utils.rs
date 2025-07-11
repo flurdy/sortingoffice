@@ -102,7 +102,7 @@ macro_rules! render_template_with_title {
 }
 
 /// Macro to handle common "not found" error patterns
-/// Usage: let entity = get_entity_or_not_found!(db::get_entity(pool, id), &state, &locale, "entity-not-found").await?;
+/// Usage: let entity = get_entity_or_not_found!(db::get_entity(&pool, id), &state, &locale, "entity-not-found").await?;
 #[macro_export]
 macro_rules! get_entity_or_not_found {
     ($db_call:expr, $state:expr, $locale:expr, $not_found_key:expr) => {{
@@ -176,7 +176,7 @@ macro_rules! default_system_stats {
 }
 
 /// Macro to handle SystemStats retrieval with fallback to defaults
-/// Usage: let stats = get_system_stats_or_default!(db::get_system_stats(pool));
+/// Usage: let stats = get_system_stats_or_default!(db::get_system_stats(&pool));
 #[macro_export]
 macro_rules! get_system_stats_or_default {
     ($db_call:expr) => {{
@@ -195,6 +195,14 @@ pub fn is_htmx_request(headers: &HeaderMap) -> bool {
 /// Get user locale from headers
 pub fn get_user_locale(headers: &HeaderMap) -> String {
     crate::handlers::language::get_user_locale(headers)
+}
+
+/// Get the current database pool from the state
+/// For now, this returns the default database pool
+/// In the future, this could be enhanced to support per-session database selection
+pub async fn get_current_db_pool(state: &AppState) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
+    state.db_manager.get_default_pool().await
+        .ok_or_else(|| "No database pool available".into())
 }
 
 /// Batch translation fetcher

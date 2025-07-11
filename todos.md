@@ -34,18 +34,26 @@
 
 ✅ Cleaned up UI tests to use only headless testcontainers approach - IMPLEMENTED
 
-On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
+✅  On the dashboard the quick actions needs updating, the domain and backup can merge, some resources are missing etc.
 The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
-Update the statistics page with more metrics.
+✅ Update the statistics page with more metrics.
 
-Go over the Rust code to see if there is any duplication we can make cleaner.
+✅ Go over the Rust code to see if there is any duplication we can make cleaner.
 
 when filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations.
 
 create a few longer functional testing journeys
 
-please add support for multiple databases as this will manage several servers
+✅ please add support for multiple databases as this will manage several servers - IMPLEMENTED (basic UI and infrastructure)
+
+⚠️ Multi-database support - remaining critical steps:
+  - Session-based database selection (store selected database in user session)
+  - Update all handlers to use selected database instead of default pool
+  - Database migration management (run migrations on all configured databases)
+  - Show current selected database in navigation/header
+  - Add database connection health checks
+  - Add database-specific configuration and feature toggles
 
 Lets discuss how we can support different databases with different field names.
 

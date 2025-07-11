@@ -4,10 +4,12 @@ use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = &state.pool;
+    // Get the current database pool (for now, use default)
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
     // Use the new macro for SystemStats retrieval
-    let stats = get_system_stats_or_default!(db::get_system_stats(pool));
+    let stats = get_system_stats_or_default!(db::get_system_stats(&pool));
 
     // Get user's preferred locale
     let locale = crate::handlers::utils::get_user_locale(&headers);

@@ -14,18 +14,19 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-    let paginated_domains = match db::get_domains_paginated(pool, page, per_page) {
+    let paginated_domains = match db::get_domains_paginated(&pool, page, per_page) {
         Ok(domains) => domains,
         Err(e) => {
             tracing::error!("Failed to retrieve domains: {:?}", e);
             PaginatedResult::new(vec![], 0, 1, per_page)
         }
     };
-    let backups = match db::get_backups(pool) {
+    let backups = match db::get_backups(&pool) {
         Ok(backups) => backups,
         Err(e) => {
             tracing::error!("Failed to retrieve backups: {:?}", e);
@@ -164,14 +165,15 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    let domain = get_entity_or_not_found!(db::get_domain(pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let domain = get_entity_or_not_found!(db::get_domain(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+    let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
         Ok(report) => Some(report),
         Err(_) => None,
     };
-    let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
+    let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
         Ok(aliases) => aliases,
         Err(_) => vec![],
     };
@@ -275,10 +277,11 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let domain = match db::get_domain(pool, id) {
+    let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => return Html("Domain not found".to_string()),
     };
@@ -330,7 +333,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
     // Validate form data
     if form.domain.trim().is_empty() {
@@ -379,9 +383,9 @@ pub async fn create(
         enabled: form.enabled,
     };
 
-    match db::create_domain(pool, new_domain) {
+    match db::create_domain(&pool, new_domain) {
         Ok(_) => {
-            let domains = match db::get_domains(pool) {
+            let domains = match db::get_domains(&pool) {
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
@@ -407,7 +411,7 @@ pub async fn create(
                 get_translation(&state, &locale, "domains-empty-description").await;
 
             // Get backups data
-            let backups = match db::get_backups(pool) {
+            let backups = match db::get_backups(&pool) {
                 Ok(backups) => backups,
                 Err(e) => {
                     tracing::error!("Failed to retrieve backups: {:?}", e);
@@ -537,7 +541,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
     // Validate form data
     if form.domain.trim().is_empty() {
@@ -581,9 +586,9 @@ pub async fn update(
     }
 
     let domain_name = form.domain.clone();
-    match db::update_domain(pool, id, form) {
+    match db::update_domain(&pool, id, form) {
         Ok(_) => {
-            let domain = match db::get_domain(pool, id) {
+            let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
@@ -720,11 +725,12 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::delete_domain(pool, id) {
+    match db::delete_domain(&pool, id) {
         Ok(_) => {
-            let domains = match db::get_domains(pool) {
+            let domains = match db::get_domains(&pool) {
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
@@ -750,7 +756,7 @@ pub async fn delete(
                 get_translation(&state, &locale, "domains-empty-description").await;
 
             // Get backups data
-            let backups = match db::get_backups(pool) {
+            let backups = match db::get_backups(&pool) {
                 Ok(backups) => backups,
                 Err(e) => {
                     tracing::error!("Failed to retrieve backups: {:?}", e);
@@ -828,12 +834,13 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_domain_enabled(pool, id) {
+    match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
-            let domain = match db::get_domain(pool, id) {
+            let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
@@ -925,10 +932,11 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    match db::toggle_domain_enabled(pool, id) {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
-            let domains = match db::get_domains(pool) {
+            let domains = match db::get_domains(&pool) {
                 Ok(domains) => domains,
                 Err(_) => vec![],
             };
@@ -954,7 +962,7 @@ pub async fn toggle_enabled_list(
                 get_translation(&state, &locale, "domains-empty-description").await;
 
             // Get backups data
-            let backups = match db::get_backups(pool) {
+            let backups = match db::get_backups(&pool) {
                 Ok(backups) => backups,
                 Err(e) => {
                     tracing::error!("Failed to retrieve backups: {:?}", e);
@@ -1032,10 +1040,11 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    match db::toggle_domain_enabled(pool, id) {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
-            let domain = match db::get_domain(pool, id) {
+            let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
@@ -1117,10 +1126,11 @@ pub async fn add_missing_required_aliases(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let domain = match db::get_domain(pool, id) {
+    let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
@@ -1138,7 +1148,7 @@ pub async fn add_missing_required_aliases(
     };
 
     // Get current alias report to see what's missing
-    let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+    let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
         Ok(report) => report,
         Err(e) => {
             tracing::error!(
@@ -1159,7 +1169,7 @@ pub async fn add_missing_required_aliases(
         .collect();
 
     if !aliases_to_create.is_empty() {
-        match db::create_domain_aliases(pool, &domain.domain, aliases_to_create) {
+        match db::create_domain_aliases(&pool, &domain.domain, aliases_to_create) {
             Ok(created_aliases) => {
                 tracing::info!(
                     "Created {} missing required aliases for domain {}",
@@ -1194,10 +1204,11 @@ pub async fn add_missing_required_alias(
     Path((id, alias)): Path<(i32, String)>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let domain = match db::get_domain(pool, id) {
+    let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
@@ -1209,7 +1220,7 @@ pub async fn add_missing_required_alias(
     let destination = format!("admin@{}", domain.domain);
     let aliases_to_create = vec![(alias.clone(), destination)];
 
-    match db::create_domain_aliases(pool, &domain.domain, aliases_to_create) {
+    match db::create_domain_aliases(&pool, &domain.domain, aliases_to_create) {
         Ok(_created_aliases) => {
             tracing::info!(
                 "Created missing required alias {} for domain {}",

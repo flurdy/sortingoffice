@@ -14,6 +14,7 @@ nav-clients = Clients
 nav-statistics = Statistics
 nav-reports = Reports
 nav-config = Configuration
+nav-database = Database Selection
 nav-about = About
 nav-logout = Logout
 

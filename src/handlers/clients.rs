@@ -25,7 +25,8 @@ pub async fn list_clients(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Parse pagination parameters
@@ -37,7 +38,7 @@ pub async fn list_clients(
         page, per_page
     );
 
-    let paginated_clients = match db::get_clients_paginated(pool, page, per_page) {
+    let paginated_clients = match db::get_clients_paginated(&pool, page, per_page) {
         Ok(clients) => {
             info!(
                 "Successfully retrieved {} clients (page {} of {})",
@@ -125,12 +126,13 @@ pub async fn show_client(
     Path(client_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     info!("Handling client show request for ID: {}", client_id);
 
-    let client = match db::get_client(pool, client_id) {
+    let client = match db::get_client(&pool, client_id) {
         Ok(client) => client,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "clients-not-found").await;
@@ -279,12 +281,13 @@ pub async fn edit_client_form(
     Path(client_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     info!("Handling client edit form request for ID: {}", client_id);
 
-    let client = match db::get_client(pool, client_id) {
+    let client = match db::get_client(&pool, client_id) {
         Ok(client) => client,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "clients-not-found").await;
@@ -360,7 +363,9 @@ pub async fn create_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client creation request");
 
-    let client = db::create_client(&state.pool, client_data).map_err(|e| {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let client = db::create_client(&pool, client_data).map_err(|e| {
         warn!("Failed to create client: {:?}", e);
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -380,7 +385,9 @@ pub async fn update_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client update request for ID: {}", client_id);
 
-    let client = db::update_client(&state.pool, client_id, client_data).map_err(|e| {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let client = db::update_client(&pool, client_id, client_data).map_err(|e| {
         warn!("Failed to update client {}: {:?}", client_id, e);
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -399,7 +406,9 @@ pub async fn delete_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client deletion request for ID: {}", client_id);
 
-    db::delete_client(&state.pool, client_id).map_err(|e| {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    db::delete_client(&pool, client_id).map_err(|e| {
         warn!("Failed to delete client {}: {:?}", client_id, e);
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -419,7 +428,9 @@ pub async fn toggle_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client toggle request for ID: {}", client_id);
 
-    let client = db::toggle_client_enabled(&state.pool, client_id).map_err(|e| {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let client = db::toggle_client_enabled(&pool, client_id).map_err(|e| {
         warn!("Failed to toggle client {}: {:?}", client_id, e);
         (
             StatusCode::INTERNAL_SERVER_ERROR,

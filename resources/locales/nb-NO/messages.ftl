@@ -14,6 +14,7 @@ nav-clients = Klienter
 nav-statistics = Statistikk
 nav-reports = Rapporter
 nav-config = Konfigurasjon
+nav-database = Databasevalg
 nav-about = Om
 nav-logout = Logg ut
 

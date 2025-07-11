@@ -17,12 +17,13 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relocated entries
 pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated list request");
 
-    let relocated = match db::get_relocated(pool) {
+    let relocated = match db::get_relocated(&pool) {
         Ok(relocated) => {
             info!(
                 "Successfully retrieved {} relocated entries",
@@ -113,14 +114,15 @@ pub async fn show_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
     debug!("Handling relocated show request for ID: {}", relocated_id);
 
     // Use the new macro for "not found" error handling
     let relocated = get_entity_or_not_found!(
-        db::get_relocated_by_id(pool, relocated_id),
+        db::get_relocated_by_id(&pool, relocated_id),
         &state,
         &locale,
         "relocated-not-found"
@@ -256,12 +258,13 @@ pub async fn create_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated create request");
 
-    match db::create_relocated(pool, form) {
+    match db::create_relocated(&pool, form) {
         Ok(relocated) => {
             info!(
                 "Successfully created relocated entry: {}",
@@ -286,7 +289,8 @@ pub async fn edit_form(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!(
@@ -294,7 +298,7 @@ pub async fn edit_form(
         relocated_id
     );
 
-    let relocated = match db::get_relocated_by_id(pool, relocated_id) {
+    let relocated = match db::get_relocated_by_id(&pool, relocated_id) {
         Ok(relocated) => relocated,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
@@ -372,12 +376,13 @@ pub async fn update_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated update request for ID: {}", relocated_id);
 
-    match db::update_relocated(pool, relocated_id, form) {
+    match db::update_relocated(&pool, relocated_id, form) {
         Ok(relocated) => {
             info!(
                 "Successfully updated relocated entry: {}",
@@ -406,12 +411,13 @@ pub async fn delete_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated delete request for ID: {}", relocated_id);
 
-    match db::delete_relocated(pool, relocated_id) {
+    match db::delete_relocated(&pool, relocated_id) {
         Ok(_) => {
             info!("Successfully deleted relocated entry ID: {}", relocated_id);
             Html("<script>window.location.href='/relocated';</script>".to_string())
@@ -434,7 +440,8 @@ pub async fn toggle_enabled(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!(
@@ -442,7 +449,7 @@ pub async fn toggle_enabled(
         relocated_id
     );
 
-    match db::toggle_relocated_enabled(pool, relocated_id) {
+    match db::toggle_relocated_enabled(&pool, relocated_id) {
         Ok(relocated) => {
             let enabled_text = if relocated.enabled {
                 get_translation(&state, &locale, "status-enabled").await

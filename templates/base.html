@@ -39,7 +39,7 @@
         #sidebar[data-sidebar-open="true"] {
             transform: translateX(0) !important;
         }
-        
+
         /* Ensure sidebar is always visible on large screens by default */
         @media (min-width: 1024px) {
             #sidebar {
@@ -52,23 +52,23 @@
         function getTheme() {
             return localStorage.getItem('theme') || 'light';
         }
-        
+
         function setTheme(theme) {
             localStorage.setItem('theme', theme);
             document.documentElement.classList.toggle('dark', theme === 'dark');
         }
-        
+
         // Initialize theme on page load
         document.addEventListener('DOMContentLoaded', function() {
             const theme = getTheme();
             setTheme(theme);
         });
-        
+
         // Theme toggle function
         function toggleTheme() {
             const currentTheme = getTheme();
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             // Send request to server
             fetch('/theme/toggle', {
                 method: 'POST',
@@ -98,7 +98,7 @@
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('language-dropdown');
             const button = event.target.closest('button[onclick="toggleLanguageDropdown()"]');
-            
+
             if (!button && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
             }
@@ -110,12 +110,12 @@
             const isOpen = sidebar.getAttribute('data-sidebar-open') === 'true';
             sidebar.setAttribute('data-sidebar-open', !isOpen);
         }
-        
+
         // Handle window resize to ensure proper sidebar state
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
             const isLargeScreen = window.innerWidth >= 1024;
-            
+
             if (isLargeScreen) {
                 // On large screens, ensure sidebar is visible
                 sidebar.setAttribute('data-sidebar-open', 'true');
@@ -126,12 +126,12 @@
                 }
             }
         });
-        
+
         // Initialize sidebar state on page load
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
             const isLargeScreen = window.innerWidth >= 1024;
-            
+
             if (isLargeScreen) {
                 sidebar.setAttribute('data-sidebar-open', 'true');
             } else {
@@ -151,7 +151,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <!-- Sidebar Navigation -->
             <nav class="mt-8 px-4">
                 <div class="space-y-2">
@@ -204,7 +204,7 @@
                             </a>
                         </div>
                     </div>
-                    
+
                     <!-- Secondary Navigation -->
                     <div class="mb-6">
                         <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Tools</h3>
@@ -227,6 +227,12 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
                                 {{ nav_config }}
+                            </a>
+                            <a href="/database" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                                </svg>
+                                {{ nav_database }}
                             </a>
                             <a href="/about" class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-200">
                                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +265,7 @@
                                 <h1 class="text-lg font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center space-x-4">
                             <!-- Language Selector -->
                             <div class="relative inline-block text-left">
@@ -325,7 +331,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Theme Toggle Button -->
                             <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md transition-colors duration-200" title="{{ theme_toggle }}">
                                 <!-- Sun icon for dark mode -->
@@ -351,7 +357,7 @@
             <main id="main-content" class="flex-1 py-6 px-4 sm:px-6 lg:px-8">
                 {{ content }}
             </main>
-            
+
             <!-- Footer -->
             <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                 <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
@@ -378,4 +384,4 @@
         </div>
     </div>
 </body>
-</html> 
+</html>

@@ -33,6 +33,13 @@ pub struct AdminCredentials {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DatabaseConfig {
+    pub id: String,
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub required_aliases: Vec<String>,
     pub common_aliases: Vec<String>,
@@ -42,6 +49,8 @@ pub struct Config {
     pub admins: Vec<AdminCredentials>,
     #[serde(default)]
     pub admin: Option<AdminCredentials>,
+    #[serde(default)]
+    pub databases: Vec<DatabaseConfig>,
 }
 
 impl Config {
@@ -103,6 +112,7 @@ impl Config {
             domain_overrides: HashMap::new(),
             admins: vec![],
             admin: None,
+            databases: vec![],
         })
     }
 
@@ -190,12 +200,11 @@ impl Default for Config {
             domain_overrides: HashMap::new(),
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
-                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
-                    .to_string(), // "admin123"
-                // password_hash: "$2b$12$KGfzf4xNi5FgHBN0/h2aLukhHgOIKz.mG1pavh4bgAkZpZJvyeBYO".to_string(), // "admin123"
+                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO".to_string(),
                 role: AdminRole::Edit,
             }],
             admin: None,
+            databases: vec![],
         }
     }
 }

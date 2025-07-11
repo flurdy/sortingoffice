@@ -126,11 +126,12 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-    let paginated_users = match db::get_users_paginated(pool, page, per_page) {
+    let paginated_users = match db::get_users_paginated(&pool, page, per_page) {
         Ok(users) => users,
         Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
     };
@@ -250,8 +251,9 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    let user = get_entity_or_not_found!(db::get_user(pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "users-not-found");
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let user = get_entity_or_not_found!(db::get_user(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "users-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
@@ -305,10 +307,11 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let user = match db::get_user(pool, id) {
+    let user = match db::get_user(&pool, id) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -343,7 +346,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate required fields
@@ -368,9 +372,9 @@ pub async fn create(
         }
     } else {
         // Create user directly (no domain validation needed)
-        match db::create_user(pool, form.clone()) {
+        match db::create_user(&pool, form.clone()) {
             Ok(_) => {
-                let users = match db::get_users(pool) {
+                let users = match db::get_users(&pool) {
                     Ok(users) => users,
                     Err(e) => {
                         eprintln!("Error getting users: {:?}", e);
@@ -432,11 +436,12 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // First get the existing user
-    let existing_user = match db::get_user(pool, id) {
+    let existing_user = match db::get_user(&pool, id) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -468,9 +473,9 @@ pub async fn update(
             Html(template.render().unwrap())
         }
     } else {
-        match db::update_user(pool, id, form.clone()) {
+        match db::update_user(&pool, id, form.clone()) {
             Ok(_) => {
-                let user = match db::get_user(pool, id) {
+                let user = match db::get_user(&pool, id) {
                     Ok(user) => user,
                     Err(_) => return Html("User not found".to_string()),
                 };
@@ -532,12 +537,13 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::delete_user(pool, id) {
+    match db::delete_user(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(pool) {
+            let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(_) => vec![],
             };
@@ -555,12 +561,13 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(pool, id) {
+    match db::toggle_user_enabled(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(pool) {
+            let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(_) => vec![],
             };
@@ -578,12 +585,13 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(pool, id) {
+    match db::toggle_user_enabled(&pool, id) {
         Ok(_) => {
-            let users = match db::get_users(pool) {
+            let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(_) => vec![],
             };
@@ -601,12 +609,13 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(pool, id) {
+    match db::toggle_user_enabled(&pool, id) {
         Ok(_) => {
-            let user = match db::get_user(pool, id) {
+            let user = match db::get_user(&pool, id) {
                 Ok(user) => user,
                 Err(_) => return Html("User not found".to_string()),
             };

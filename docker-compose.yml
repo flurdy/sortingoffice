@@ -1,5 +1,5 @@
 services:
-  # MySQL Database
+  # Primary MySQL Database
   db:
     image: mysql:8.0
     container_name: sortingoffice-db
@@ -14,6 +14,50 @@ services:
       - ./migrations:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
+    networks:
+      - sortingoffice-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Secondary MySQL Database (Backup Server)
+  db-backup:
+    image: mysql:8.0
+    container_name: sortingoffice-db-backup
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sortingoffice_backup
+      MYSQL_USER: sortingoffice
+      MYSQL_PASSWORD: sortingoffice
+    volumes:
+      - mysql_backup_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    networks:
+      - sortingoffice-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Tertiary MySQL Database (Development Server)
+  db-dev:
+    image: mysql:8.0
+    container_name: sortingoffice-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sortingoffice_dev
+      MYSQL_USER: sortingoffice
+      MYSQL_PASSWORD: sortingoffice
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3308:3306"
     networks:
       - sortingoffice-network
     healthcheck:
@@ -38,17 +82,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-backup:
+        condition: service_healthy
+      db-dev:
+        condition: service_healthy
     networks:
       - sortingoffice-network
     volumes:
       - ./templates:/app/templates:ro
+      - ./config:/app/config:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Optional: phpMyAdmin for database management
+  # phpMyAdmin for Primary Database
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: sortingoffice-phpmyadmin
@@ -63,6 +112,44 @@ services:
       - "8080:80"
     depends_on:
       db:
+        condition: service_healthy
+    networks:
+      - sortingoffice-network
+
+  # phpMyAdmin for Backup Database
+  phpmyadmin-backup:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: sortingoffice-phpmyadmin-backup
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db-backup
+      PMA_PORT: 3306
+      PMA_USER: sortingoffice
+      PMA_PASSWORD: sortingoffice
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8081:80"
+    depends_on:
+      db-backup:
+        condition: service_healthy
+    networks:
+      - sortingoffice-network
+
+  # phpMyAdmin for Development Database
+  phpmyadmin-dev:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: sortingoffice-phpmyadmin-dev
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db-dev
+      PMA_PORT: 3306
+      PMA_USER: sortingoffice
+      PMA_PASSWORD: sortingoffice
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8082:80"
+    depends_on:
+      db-dev:
         condition: service_healthy
     networks:
       - sortingoffice-network
@@ -91,9 +178,13 @@ services:
 volumes:
   mysql_data:
     driver: local
+  mysql_backup_data:
+    driver: local
+  mysql_dev_data:
+    driver: local
   selenium_data:
     driver: local
 
 networks:
   sortingoffice-network:
-    driver: bridge 
+    driver: bridge

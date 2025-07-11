@@ -14,6 +14,7 @@ nav-clients = "Clientes"
 nav-statistics = "Estadísticas"
 nav-reports = "Informes"
 nav-config = "Configuración"
+nav-database = "Selección de Base de Datos"
 nav-about = "Acerca de"
 nav-logout = "Cerrar Sesión"
 

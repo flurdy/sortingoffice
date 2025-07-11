@@ -27,7 +27,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 #[derive(Clone)]
 pub struct AppState {
-    pool: DbPool,
+    db_manager: db::DatabaseManager,
     i18n: i18n::I18n,
     config: config::Config,
 }
@@ -41,16 +41,29 @@ async fn main() {
         .with(tracing_subscriber::filter::EnvFilter::from_default_env())
         .init();
 
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::<MysqlConnection>::new(db_url);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+    // Load configuration first
+    let config = config::Config::load().expect("Failed to load configuration");
 
-    // Run database migrations
-    let mut conn = pool.get().expect("Failed to get db connection from pool");
-    conn.run_pending_migrations(MIGRATIONS)
-        .expect("Failed to run db migrations");
+    // Create database manager with multiple databases
+    let db_manager = if config.databases.is_empty() {
+        // Fallback to single database from environment variable
+        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let fallback_config = vec![config::DatabaseConfig {
+            id: "primary".to_string(),
+            label: "Primary Database".to_string(),
+            url: db_url,
+        }];
+        db::DatabaseManager::new(fallback_config).await.expect("Failed to create database manager")
+    } else {
+        db::DatabaseManager::new(config.databases.clone()).await.expect("Failed to create database manager")
+    };
+
+    // Run database migrations on the default database
+    if let Some(default_pool) = db_manager.get_default_pool().await {
+        let mut conn = default_pool.get().expect("Failed to get db connection from pool");
+        conn.run_pending_migrations(MIGRATIONS)
+            .expect("Failed to run db migrations");
+    }
 
     // Initialize i18n
     let i18n = i18n::I18n::new("en-US").expect("Failed to initialize i18n");
@@ -67,10 +80,7 @@ async fn main() {
         .await
         .expect("Failed to load French locale");
 
-    // Load configuration
-    let config = config::Config::load().expect("Failed to load configuration");
-
-    let app_state = AppState { pool, i18n, config };
+    let app_state = AppState { db_manager, i18n, config };
 
     // Create read-only routes (require authentication but not edit permissions)
     let read_only_routes = Router::new()
@@ -102,6 +112,10 @@ async fn main() {
         .route("/reports/matrix", get(handlers::reports::matrix_report))
         // Configuration
         .route("/config", get(handlers::config::view_config))
+        // Database selection
+        .route("/database", get(handlers::database::index))
+        .route("/database/select", post(handlers::database::select))
+        .route("/api/databases", get(handlers::database::list_databases))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),

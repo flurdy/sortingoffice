@@ -24,10 +24,11 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-    let paginated_aliases = match db::get_aliases_paginated(pool, page, per_page) {
+    let paginated_aliases = match db::get_aliases_paginated(&pool, page, per_page) {
         Ok(aliases) => aliases,
         Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
     };
@@ -159,8 +160,9 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    let alias = get_entity_or_not_found!(db::get_alias(pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "aliases-not-found");
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let alias = get_entity_or_not_found!(db::get_alias(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "aliases-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
@@ -213,9 +215,10 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    let alias = match db::get_alias(pool, id) {
+    let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
         Err(_) => return Html("Alias not found".to_string()),
     };
@@ -290,15 +293,16 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::create_alias(pool, form.clone()) {
+    match db::create_alias(&pool, form.clone()) {
         Ok(created_alias) => {
             // Extract domain from the created alias and redirect to domain show page
             let domain_name = created_alias.domain();
 
             // Try to find the domain by name
-            match db::get_domain_by_name(pool, &domain_name) {
+            match db::get_domain_by_name(&pool, &domain_name) {
                 Ok(domain) => {
                     // Redirect to the domain show page
                     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -361,7 +365,7 @@ pub async fn create(
                         get_translation(&state, &locale, "reports-no-missing-aliases").await;
 
                     // Get alias report for the domain
-                    let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+                    let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
                         Ok(report) => Some(report),
                         Err(e) => {
                             eprintln!("Error getting domain alias report: {:?}", e);
@@ -370,7 +374,7 @@ pub async fn create(
                     };
 
                     // Get existing aliases for the domain
-                    let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
+                    let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
                         Ok(aliases) => aliases,
                         Err(e) => {
                             eprintln!("Error getting aliases for domain: {:?}", e);
@@ -464,7 +468,7 @@ pub async fn create(
                 Err(e) => {
                     eprintln!("Error finding domain by name: {:?}", e);
                     // Fallback to aliases list if domain not found
-                    let aliases = match db::get_aliases(pool) {
+                    let aliases = match db::get_aliases(&pool) {
                         Ok(aliases) => aliases,
                         Err(e) => {
                             eprintln!("Error getting aliases: {:?}", e);
@@ -622,11 +626,12 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::update_alias(pool, id, form.clone()) {
+    match db::update_alias(&pool, id, form.clone()) {
         Ok(_) => {
-            let alias = match db::get_alias(pool, id) {
+            let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
@@ -713,7 +718,7 @@ pub async fn update(
             };
 
             // Get the original alias for the form
-            let original_alias = match db::get_alias(pool, id) {
+            let original_alias = match db::get_alias(&pool, id) {
                 Ok(alias) => Some(alias),
                 Err(_) => None,
             };
@@ -785,11 +790,12 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::delete_alias(pool, id) {
+    match db::delete_alias(&pool, id) {
         Ok(_) => {
-            let aliases = match db::get_aliases(pool) {
+            let aliases = match db::get_aliases(&pool) {
                 Ok(aliases) => aliases,
                 Err(e) => {
                     eprintln!("Error getting aliases: {:?}", e);
@@ -868,11 +874,12 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::toggle_alias_enabled(pool, id) {
+    match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
-            let alias = match db::get_alias(pool, id) {
+            let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
@@ -946,10 +953,11 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    match db::toggle_alias_enabled(pool, id) {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
-            let aliases = match db::get_aliases(pool) {
+            let aliases = match db::get_aliases(&pool) {
                 Ok(aliases) => aliases,
                 Err(e) => {
                     eprintln!("Error getting aliases: {:?}", e);
@@ -1028,10 +1036,11 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
-    match db::toggle_alias_enabled(pool, id) {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
-            let alias = match db::get_alias(pool, id) {
+            let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
@@ -1106,13 +1115,14 @@ pub async fn toggle_enabled_domain_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
     // First toggle the alias
-    match db::toggle_alias_enabled(pool, id) {
+    match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
             // Get the alias to find its domain
-            let alias = match db::get_alias(pool, id) {
+            let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => return Html("Alias not found".to_string()),
             };
@@ -1121,7 +1131,7 @@ pub async fn toggle_enabled_domain_show(
             let domain_name = alias.mail.split('@').last().unwrap_or("");
 
             // Find the domain by name
-            let domain = match db::get_domain_by_name(pool, domain_name) {
+            let domain = match db::get_domain_by_name(&pool, domain_name) {
                 Ok(domain) => domain,
                 Err(_) => return Html("Domain not found".to_string()),
             };
@@ -1150,13 +1160,13 @@ pub async fn toggle_enabled_domain_show(
             let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
 
             // Get alias report for the domain
-            let alias_report = match db::get_domain_alias_report(pool, &domain.domain) {
+            let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
                 Ok(report) => Some(report),
                 Err(_) => None,
             };
 
             // Get existing aliases for the domain
-            let existing_aliases = match db::get_aliases_for_domain(pool, &domain.domain) {
+            let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
                 Ok(aliases) => aliases,
                 Err(_) => vec![],
             };

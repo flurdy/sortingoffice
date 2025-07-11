@@ -46,10 +46,11 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let backup = match db::get_backup(pool, id) {
+    let backup = match db::get_backup(&pool, id) {
         Ok(backup) => backup,
         Err(_) => return Html("Backup not found".to_string()),
     };
@@ -93,10 +94,11 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let backup = match db::get_backup(pool, id) {
+    let backup = match db::get_backup(&pool, id) {
         Ok(backup) => backup,
         Err(_) => return Html("Backup not found".to_string()),
     };
@@ -136,7 +138,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -176,7 +179,7 @@ pub async fn create(
         enabled: form.enabled,
     };
 
-    match db::create_backup(pool, new_backup) {
+    match db::create_backup(&pool, new_backup) {
         Ok(_) => {
             // Redirect to domains page after creating backup
             return Html("<script>window.location.href='/domains';</script>".to_string());
@@ -246,7 +249,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -280,9 +284,9 @@ pub async fn update(
         return Html(content_template.render().unwrap());
     }
 
-    match db::update_backup(pool, id, form.clone()) {
+    match db::update_backup(&pool, id, form.clone()) {
         Ok(_) => {
-            let backup = match db::get_backup(pool, id) {
+            let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
                 Err(_) => return Html("Backup not found".to_string()),
             };
@@ -359,9 +363,10 @@ pub async fn update(
 }
 
 pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
 
-    match db::delete_backup(pool, id) {
+    match db::delete_backup(&pool, id) {
         Ok(_) => {
             // Redirect to domains page after deleting backup
             return Html("<script>window.location.href='/domains';</script>".to_string());
@@ -375,12 +380,13 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_backup_enabled(pool, id) {
+    match db::toggle_backup_enabled(&pool, id) {
         Ok(_) => {
-            let backup = match db::get_backup(pool, id) {
+            let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
                 Err(_) => return Html("Backup not found".to_string()),
             };
@@ -418,11 +424,12 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
-    match db::toggle_backup_enabled(pool, id) {
+    match db::toggle_backup_enabled(&pool, id) {
         Ok(_) => {
-            let backup = match db::get_backup(pool, id) {
+            let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
                 Err(_) => return Html("Backup not found".to_string()),
             };

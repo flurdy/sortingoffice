@@ -30,7 +30,9 @@ pub async fn matrix_report(
         get_translation(&state, &locale, "reports-no-domains-description").await;
 
     // Get matrix report data
-    let report = match db::get_domain_alias_matrix_report(&state.pool) {
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
+    let report = match db::get_domain_alias_matrix_report(&pool) {
         Ok(report) => report,
         Err(e) => {
             tracing::error!("Error generating matrix report: {:?}", e);

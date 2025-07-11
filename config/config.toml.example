@@ -3,7 +3,7 @@
 # Required aliases that must exist for all domains
 required_aliases = [
     "postmaster",
-    "abuse", 
+    "abuse",
     "hostmaster"
 ]
 
@@ -27,6 +27,19 @@ common_aliases = [
     "dmca",
     "spam"
 ]
+
+# Database connections
+# Define one or more database servers this instance can manage
+# Each entry must have a unique id, a label for the UI, and a connection url
+[[databases]]
+id = "primary"
+label = "Main Server"
+url = "mysql://sortingoffice:password@localhost:3306/sortingoffice"
+
+[[databases]]
+id = "backup"
+label = "Backup Server"
+url = "mysql://backupuser:password@backuphost:3306/backupdb"
 
 # Admin users configuration
 # You can have multiple admin users with different roles

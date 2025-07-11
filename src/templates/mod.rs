@@ -5,6 +5,7 @@ pub mod backups;
 pub mod clients;
 pub mod config;
 pub mod dashboard;
+pub mod database;
 pub mod domains;
 pub mod layout;
 pub mod relays;

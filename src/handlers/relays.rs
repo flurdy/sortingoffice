@@ -17,12 +17,13 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relays
 pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relays list request");
 
-    let relays = match db::get_relays(pool) {
+    let relays = match db::get_relays(&pool) {
         Ok(relays) => {
             info!("Successfully retrieved {} relays", relays.len());
             relays
@@ -108,12 +109,13 @@ pub async fn show_relay(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay show request for ID: {}", relay_id);
 
-    let relay = match db::get_relay(pool, relay_id) {
+    let relay = match db::get_relay(&pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
@@ -261,12 +263,13 @@ pub async fn create_relay(
     headers: HeaderMap,
     Form(form): Form<RelayForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay create request");
 
-    match db::create_relay(pool, form) {
+    match db::create_relay(&pool, form) {
         Ok(relay) => {
             info!("Successfully created relay: {}", relay.recipient);
             Html(format!(
@@ -288,12 +291,13 @@ pub async fn edit_form(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay edit form request for ID: {}", relay_id);
 
-    let relay = match db::get_relay(pool, relay_id) {
+    let relay = match db::get_relay(&pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
             let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
@@ -369,12 +373,13 @@ pub async fn update_relay(
     headers: HeaderMap,
     Form(form): Form<RelayForm>,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay update request for ID: {}", relay_id);
 
-    match db::update_relay(pool, relay_id, form) {
+    match db::update_relay(&pool, relay_id, form) {
         Ok(relay) => {
             info!("Successfully updated relay: {}", relay.recipient);
             Html(format!(
@@ -400,12 +405,13 @@ pub async fn delete_relay(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay delete request for ID: {}", relay_id);
 
-    match db::delete_relay(pool, relay_id) {
+    match db::delete_relay(&pool, relay_id) {
         Ok(_) => {
             info!("Successfully deleted relay ID: {}", relay_id);
             Html("<script>window.location.href='/relays';</script>".to_string())
@@ -428,12 +434,13 @@ pub async fn toggle_enabled(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = &state.pool;
+    let pool = state.db_manager.get_default_pool().await
+        .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay toggle enabled request for ID: {}", relay_id);
 
-    match db::toggle_relay_enabled(pool, relay_id) {
+    match db::toggle_relay_enabled(&pool, relay_id) {
         Ok(relay) => {
             let enabled_text = if relay.enabled {
                 get_translation(&state, &locale, "status-enabled").await
