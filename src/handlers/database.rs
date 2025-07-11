@@ -1,13 +1,8 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::Html,
-    Form,
-};
-use serde::Deserialize;
 use askama::Template;
+use axum::{extract::State, http::StatusCode, response::Html, Form};
+use serde::Deserialize;
 
-use crate::{AppState, render_template_with_title};
+use crate::{render_template_with_title, AppState};
 
 #[derive(Deserialize)]
 pub struct DatabaseSelectionForm {
@@ -20,10 +15,7 @@ pub struct MigrationForm {
 }
 
 /// Show the database selection page
-pub async fn index(
-    State(state): State<AppState>,
-    headers: axum::http::HeaderMap,
-) -> Html<String> {
+pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap) -> Html<String> {
     let databases = state.db_manager.get_configs();
 
     // Get the currently selected database from the session, or fall back to default
@@ -35,7 +27,13 @@ pub async fn index(
         current_db: &current_db,
     };
 
-    render_template_with_title!(content_template, "Database Selection".to_string(), &state, &"en-US", &headers)
+    render_template_with_title!(
+        content_template,
+        "Database Selection".to_string(),
+        &state,
+        &"en-US",
+        &headers
+    )
 }
 
 /// Handle database selection
@@ -50,7 +48,9 @@ pub async fn select(
     }
 
     // Update the session with the new database selection
-    if let Some(new_cookie) = crate::handlers::auth::update_session_database(&headers, &form.database_id) {
+    if let Some(new_cookie) =
+        crate::handlers::auth::update_session_database(&headers, &form.database_id)
+    {
         // Redirect back to the dashboard with the updated cookie
         Ok(axum::response::Response::builder()
             .status(axum::http::StatusCode::FOUND)

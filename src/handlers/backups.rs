@@ -46,7 +46,8 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -81,7 +82,9 @@ pub async fn show(
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     // Get current database label from db_manager
-    let current_db_label = state.db_manager.get_configs()
+    let current_db_label = state
+        .db_manager
+        .get_configs()
         .iter()
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
@@ -106,7 +109,8 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -150,7 +154,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -245,7 +250,9 @@ pub async fn create(
             let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                 .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
             // Get current database label from db_manager
-            let current_db_label = state.db_manager.get_configs()
+            let current_db_label = state
+                .db_manager
+                .get_configs()
                 .iter()
                 .find(|db| db.id == current_db_id)
                 .map(|db| db.label.clone())
@@ -273,7 +280,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -386,8 +394,13 @@ pub async fn update(
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+pub async fn delete(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::delete_backup(&pool, id) {
@@ -404,7 +417,8 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -448,7 +462,8 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
     match db::toggle_backup_enabled(&pool, id) {

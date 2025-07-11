@@ -426,9 +426,7 @@ pub async fn require_edit_permissions(
     if has_edit_permissions(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!(
-            "🔐 [AUTH] ❌ Insufficient permissions for access to: {path}"
-        );
+        println!("🔐 [AUTH] ❌ Insufficient permissions for access to: {path}");
         // Return 403 Forbidden
         Ok(Response::builder()
             .status(StatusCode::FORBIDDEN)

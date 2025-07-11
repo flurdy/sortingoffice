@@ -53,9 +53,13 @@ async fn main() {
             label: "Primary Database".to_string(),
             url: db_url,
         }];
-        db::DatabaseManager::new(fallback_config).await.expect("Failed to create database manager")
+        db::DatabaseManager::new(fallback_config)
+            .await
+            .expect("Failed to create database manager")
     } else {
-        db::DatabaseManager::new(config.databases.clone()).await.expect("Failed to create database manager")
+        db::DatabaseManager::new(config.databases.clone())
+            .await
+            .expect("Failed to create database manager")
     };
 
     // Run database migrations on all configured databases
@@ -79,7 +83,11 @@ async fn main() {
         .await
         .expect("Failed to load French locale");
 
-    let app_state = AppState { db_manager, i18n, config };
+    let app_state = AppState {
+        db_manager,
+        i18n,
+        config,
+    };
 
     // Create read-only routes (require authentication but not edit permissions)
     let read_only_routes = Router::new()
@@ -114,7 +122,10 @@ async fn main() {
         // Database selection
         .route("/database", get(handlers::database::index))
         .route("/database/select", post(handlers::database::select))
-        .route("/database/migrate", post(handlers::database::run_migrations))
+        .route(
+            "/database/migrate",
+            post(handlers::database::run_migrations),
+        )
         .route("/api/databases", get(handlers::database::list_databases))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(

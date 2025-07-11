@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::config::DatabaseConfig;
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "database/selection.html", escape = "html")]

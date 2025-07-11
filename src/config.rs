@@ -4,8 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Default)]
 pub enum AdminRole {
     #[serde(rename = "read-only")]
     ReadOnly,
@@ -13,7 +12,6 @@ pub enum AdminRole {
     #[default]
     Edit,
 }
-
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DomainOverride {
@@ -197,7 +195,8 @@ impl Default for Config {
             domain_overrides: HashMap::new(),
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
-                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO".to_string(),
+                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
+                    .to_string(),
                 role: AdminRole::Edit,
             }],
             admin: None,

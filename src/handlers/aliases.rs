@@ -1,6 +1,9 @@
 use crate::templates::aliases::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template, render_template_with_title};
+use crate::{
+    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template,
+    render_template_with_title, AppState,
+};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -24,7 +27,8 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
@@ -52,7 +56,8 @@ pub async fn list(
             "aliases-empty-title",
             "aliases-empty-description",
         ],
-    ).await;
+    )
+    .await;
     let paginated = PaginatedResult::new(
         paginated_aliases.items.clone(),
         paginated_aliases.total_count,
@@ -84,7 +89,13 @@ pub async fn list(
         empty_title: &translations["aliases-empty-title"],
         empty_description: &translations["aliases-empty-description"],
     };
-    render_template_with_title!(content_template, content_template.title.to_string(), &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title.to_string(),
+        &state,
+        &locale,
+        &headers
+    )
 }
 
 pub async fn new(
@@ -130,7 +141,8 @@ pub async fn new(
             "aliases-update-alias",
             "aliases-create-alias",
         ],
-    ).await;
+    )
+    .await;
     let content_template = AliasFormTemplate {
         title: &translations["aliases-add-title"],
         alias: None,
@@ -160,9 +172,15 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
-    let alias = get_entity_or_not_found!(db::get_alias(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "aliases-not-found");
+    let alias = get_entity_or_not_found!(
+        db::get_alias(&pool, id),
+        &state,
+        &crate::handlers::utils::get_user_locale(&headers),
+        "aliases-not-found"
+    );
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
@@ -186,7 +204,8 @@ pub async fn show(
             "aliases-delete-alias",
             "aliases-delete-confirm",
         ],
-    ).await;
+    )
+    .await;
     let content_template = AliasShowTemplate {
         title: &translations["aliases-show-title"],
         view_edit_settings: &translations["aliases-view-edit-settings"],
@@ -215,7 +234,8 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     let alias = match db::get_alias(&pool, id) {
@@ -276,7 +296,9 @@ pub async fn edit(
     } else {
         let current_db_id = crate::handlers::auth::get_selected_database(&headers)
             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state.db_manager.get_configs()
+        let current_db_label = state
+            .db_manager
+            .get_configs()
             .iter()
             .find(|db| db.id == current_db_id)
             .map(|db| db.label.clone())
@@ -301,7 +323,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::create_alias(&pool, form.clone()) {
@@ -464,7 +487,9 @@ pub async fn create(
                         let locale = crate::handlers::language::get_user_locale(&headers);
                         let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                        let current_db_label = state.db_manager.get_configs()
+                        let current_db_label = state
+                            .db_manager
+                            .get_configs()
                             .iter()
                             .find(|db| db.id == current_db_id)
                             .map(|db| db.label.clone())
@@ -548,7 +573,9 @@ pub async fn create(
                         let locale = crate::handlers::language::get_user_locale(&headers);
                         let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                        let current_db_label = state.db_manager.get_configs()
+                        let current_db_label = state
+                            .db_manager
+                            .get_configs()
                             .iter()
                             .find(|db| db.id == current_db_id)
                             .map(|db| db.label.clone())
@@ -634,7 +661,9 @@ pub async fn create(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -661,7 +690,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::update_alias(&pool, id, form.clone()) {
@@ -723,7 +753,9 @@ pub async fn update(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -814,7 +846,9 @@ pub async fn update(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -840,7 +874,8 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::delete_alias(&pool, id) {
@@ -906,7 +941,9 @@ pub async fn delete(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -933,7 +970,8 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::toggle_alias_enabled(&pool, id) {
@@ -994,7 +1032,9 @@ pub async fn toggle_enabled(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -1021,7 +1061,8 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
@@ -1086,7 +1127,9 @@ pub async fn toggle_enabled_list(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -1113,7 +1156,8 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
@@ -1174,7 +1218,9 @@ pub async fn toggle_enabled_show(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())
@@ -1201,7 +1247,8 @@ pub async fn toggle_enabled_domain_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     // First toggle the alias
@@ -1249,7 +1296,8 @@ pub async fn toggle_enabled_domain_show(
             let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
 
             // Get existing aliases for the domain
-            let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+            let existing_aliases =
+                db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
 
             let catch_all_header =
                 get_translation(&state, &locale, "reports-catch-all-header").await;
@@ -1345,7 +1393,9 @@ pub async fn toggle_enabled_domain_show(
                 let locale = crate::handlers::language::get_user_locale(&headers);
                 let current_db_id = crate::handlers::auth::get_selected_database(&headers)
                     .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state.db_manager.get_configs()
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
                     .iter()
                     .find(|db| db.id == current_db_id)
                     .map(|db| db.label.clone())

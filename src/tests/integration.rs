@@ -7,10 +7,10 @@ mod tests {
     };
     use tower::ServiceExt;
 
+    use crate::config::DatabaseConfig;
     use crate::handlers;
     use crate::tests::common::cleanup_test_db;
     use crate::AppState;
-    use crate::config::DatabaseConfig;
 
     async fn create_test_app() -> (Router, AppState) {
         let db_config = vec![DatabaseConfig {
@@ -18,12 +18,20 @@ mod tests {
             label: "Test Database".to_string(),
             url: std::env::var("TEST_DATABASE_URL")
                 .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+                .unwrap_or_else(|_| {
+                    "mysql://root:password@localhost/sortingoffice_test".to_string()
+                }),
         }];
-        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
+        let db_manager = crate::db::DatabaseManager::new(db_config)
+            .await
+            .expect("Failed to create database manager");
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = crate::config::Config::default();
-        let state = AppState { db_manager, i18n, config };
+        let state = AppState {
+            db_manager,
+            i18n,
+            config,
+        };
         let app = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
             .route("/domains", axum::routing::post(handlers::domains::create))
@@ -91,7 +99,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Step 1: Create a domain via HTTP POST
@@ -223,7 +235,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Step 1: Create a domain first (required for users)
@@ -341,7 +357,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Step 1: Create a domain first (required for aliases)
@@ -460,7 +480,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Step 1: Create test data

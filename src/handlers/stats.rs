@@ -1,10 +1,11 @@
 use crate::templates::stats::StatsTemplate;
-use crate::{db, AppState, get_system_stats_or_default, render_template};
+use crate::{db, get_system_stats_or_default, render_template, AppState};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
 

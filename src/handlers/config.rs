@@ -111,13 +111,24 @@ pub async fn view_config(
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     // Get current database label from db_manager
-    let current_db_label = state.db_manager.get_configs()
+    let current_db_label = state
+        .db_manager
+        .get_configs()
         .iter()
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
         .unwrap_or_else(|| current_db_id.clone());
 
-    let template = match BaseTemplate::with_i18n(title, content, &state, &locale, current_db_label, current_db_id).await {
+    let template = match BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
         Ok(template) => template,
         Err(e) => {
             tracing::error!("Error creating base template: {:?}", e);

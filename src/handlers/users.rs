@@ -1,6 +1,9 @@
-use crate::templates::users::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template, render_template_with_title};
+use crate::templates::users::*;
+use crate::{
+    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template,
+    render_template_with_title, AppState,
+};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -13,7 +16,9 @@ use axum::{
 async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (String, String) {
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    let current_db_label = state.db_manager.get_configs()
+    let current_db_label = state
+        .db_manager
+        .get_configs()
         .iter()
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
@@ -138,7 +143,8 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
@@ -166,7 +172,8 @@ pub async fn list(
             "users-empty-title",
             "users-empty-description",
         ],
-    ).await;
+    )
+    .await;
     let paginated = PaginatedResult::new(
         paginated_users.items.clone(),
         paginated_users.total_count,
@@ -198,7 +205,13 @@ pub async fn list(
         page_range,
         max_item,
     };
-    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title,
+        &state,
+        &locale,
+        &headers
+    )
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
@@ -233,7 +246,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
             "form-tooltip-domain",
             "form-tooltip-enable",
         ],
-    ).await;
+    )
+    .await;
     let content_template = UserFormTemplate {
         title: translations["users-new-user"].to_string(),
         form_user_id: translations["form-username"].to_string(),
@@ -263,9 +277,15 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
-    let user = get_entity_or_not_found!(db::get_user(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "users-not-found");
+    let user = get_entity_or_not_found!(
+        db::get_user(&pool, id),
+        &state,
+        &crate::handlers::utils::get_user_locale(&headers),
+        "users-not-found"
+    );
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
@@ -290,7 +310,8 @@ pub async fn show(
             "users-delete-user",
             "users-delete-confirm",
         ],
-    ).await;
+    )
+    .await;
     let content_template = UserShowTemplate {
         title: translations["users-show-title"].to_string(),
         view_edit_settings: translations["users-view-edit-settings"].to_string(),
@@ -319,7 +340,8 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -361,7 +383,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -407,7 +430,8 @@ pub async fn create(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+                    let (current_db_label, current_db_id) =
+                        get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-title").await,
                         content,
@@ -436,7 +460,8 @@ pub async fn create(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+                    let (current_db_label, current_db_id) =
+                        get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-add-title").await,
                         content,
@@ -460,7 +485,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -513,7 +539,8 @@ pub async fn update(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+                    let (current_db_label, current_db_id) =
+                        get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-show-title").await,
                         content,
@@ -547,7 +574,8 @@ pub async fn update(
                 if crate::handlers::utils::is_htmx_request(&headers) {
                     Html(content)
                 } else {
-                    let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+                    let (current_db_label, current_db_id) =
+                        get_current_db_info(&state, &headers).await;
                     let template = BaseTemplate::with_i18n(
                         get_translation(&state, &locale, "users-edit-title").await,
                         content,
@@ -570,7 +598,8 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -591,7 +620,8 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -612,7 +642,8 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -633,7 +664,8 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 

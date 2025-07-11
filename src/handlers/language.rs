@@ -40,9 +40,7 @@ pub async fn set_language(
         .header("Location", redirect_url)
         .header(
             "Set-Cookie",
-            format!(
-                "language={locale}; Path=/; Max-Age=31536000; SameSite=Lax"
-            ),
+            format!("language={locale}; Path=/; Max-Age=31536000; SameSite=Lax"),
         )
         .body("".into())
         .unwrap()

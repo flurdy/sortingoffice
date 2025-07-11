@@ -5,6 +5,7 @@ pub mod backups;
 pub mod clients;
 pub mod config;
 pub mod dashboard;
+pub mod database;
 pub mod domains;
 pub mod language;
 pub mod relays;
@@ -13,7 +14,6 @@ pub mod reports;
 pub mod stats;
 pub mod theme;
 pub mod users;
-pub mod database;
 pub mod utils;
 
 use axum::{

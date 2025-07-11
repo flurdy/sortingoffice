@@ -74,4 +74,11 @@ The dashboard stats should be changed to
   - The other stats belong and are already in thes stats page
 
 In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
+
 Lets discuss how we can support different databases with different field names.
+
+Add some more reports
+   - orphaned alias / users
+   - Externally forwarders
+   - Domains missing required aliases and no catch-all
+   - Check on an alias across all domains

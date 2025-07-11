@@ -1,11 +1,12 @@
 use crate::templates::dashboard::DashboardTemplate;
-use crate::{db, AppState, get_system_stats_or_default, render_template_with_title};
+use crate::{db, get_system_stats_or_default, render_template_with_title, AppState};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     // Get the current database pool based on session selection
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     // Use the new macro for SystemStats retrieval
@@ -84,7 +85,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         advanced_management: &common_translations["dashboard-advanced-management"],
         analytics_reports: &common_translations["dashboard-analytics-reports"],
         manage_domains_and_backups: &common_translations["quick-action-manage-domains-and-backups"],
-        manage_domains_and_backups_desc: &common_translations["quick-action-manage-domains-and-backups-desc"],
+        manage_domains_and_backups_desc: &common_translations
+            ["quick-action-manage-domains-and-backups-desc"],
         manage_email: &common_translations["quick-action-manage-email"],
         manage_email_desc: &common_translations["quick-action-manage-email-desc"],
         manage_users: &common_translations["quick-action-manage-users"],
@@ -120,5 +122,11 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     };
 
     // Use the new render template macro with title
-    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title,
+        &state,
+        &locale,
+        &headers
+    )
 }

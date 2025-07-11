@@ -123,7 +123,9 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     // Get current database label from db_manager
-    let current_db_label = state.db_manager.get_configs()
+    let current_db_label = state
+        .db_manager
+        .get_configs()
         .iter()
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())

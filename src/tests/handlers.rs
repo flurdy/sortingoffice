@@ -26,11 +26,19 @@ mod tests {
             label: "Test Database".to_string(),
             url: std::env::var("TEST_DATABASE_URL")
                 .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+                .unwrap_or_else(|_| {
+                    "mysql://root:password@localhost/sortingoffice_test".to_string()
+                }),
         }];
-        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
+        let db_manager = crate::db::DatabaseManager::new(db_config)
+            .await
+            .expect("Failed to create database manager");
 
-        let state = AppState { db_manager, i18n, config };
+        let state = AppState {
+            db_manager,
+            i18n,
+            config,
+        };
 
         // Create read-only routes
         let read_only_routes = Router::new()
@@ -142,7 +150,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain with unique name
@@ -182,7 +194,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         let unique_id = crate::tests::common::unique_test_id();
@@ -207,7 +223,11 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was created
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         let domains = crate::db::get_domains(&pool).unwrap();
         assert!(!domains.is_empty());
         assert!(domains
@@ -222,7 +242,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain
@@ -262,7 +286,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain
@@ -303,7 +331,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain
@@ -351,7 +383,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain
@@ -391,7 +427,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -440,7 +480,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -487,7 +531,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -536,7 +584,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -586,7 +638,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -644,7 +700,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -693,7 +753,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain and alias
@@ -741,7 +805,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain first
@@ -784,7 +852,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test data
@@ -860,7 +932,13 @@ mod tests {
         // Should contain dashboard content
         assert!(body_str.contains("Dashboard") || body_str.contains("dashboard"));
 
-        cleanup_test_db(&state.db_manager.get_default_pool().await.expect("Failed to get database pool"));
+        cleanup_test_db(
+            &state
+                .db_manager
+                .get_default_pool()
+                .await
+                .expect("Failed to get database pool"),
+        );
     }
 
     #[tokio::test]
@@ -906,7 +984,13 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::FORBIDDEN);
 
-        cleanup_test_db(&state.db_manager.get_default_pool().await.expect("Failed to get database pool"));
+        cleanup_test_db(
+            &state
+                .db_manager
+                .get_default_pool()
+                .await
+                .expect("Failed to get database pool"),
+        );
     }
 
     #[tokio::test]
@@ -914,7 +998,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         let form_data = "domain=backup-create-test.com&transport=smtp%3Alocalhost&enabled=on";
@@ -947,7 +1035,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -986,7 +1078,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -1026,7 +1122,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -1067,7 +1167,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -1106,7 +1210,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         let form_data = "domain=backup-redirect-test.com&transport=smtp%3Alocalhost&enabled=on";
@@ -1142,7 +1250,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -1189,7 +1301,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test backup
@@ -1230,7 +1346,11 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         // Create test domain
@@ -1300,10 +1420,18 @@ mod tests {
             label: "Test Database".to_string(),
             url: std::env::var("TEST_DATABASE_URL")
                 .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+                .unwrap_or_else(|_| {
+                    "mysql://root:password@localhost/sortingoffice_test".to_string()
+                }),
         }];
-        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
-        let state = AppState { db_manager, i18n, config };
+        let db_manager = crate::db::DatabaseManager::new(db_config)
+            .await
+            .expect("Failed to create database manager");
+        let state = AppState {
+            db_manager,
+            i18n,
+            config,
+        };
         let headers = HeaderMap::new();
         let req = LoginRequest {
             id: "admin".to_string(),
@@ -1340,10 +1468,18 @@ mod tests {
             label: "Test Database".to_string(),
             url: std::env::var("TEST_DATABASE_URL")
                 .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+                .unwrap_or_else(|_| {
+                    "mysql://root:password@localhost/sortingoffice_test".to_string()
+                }),
         }];
-        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
-        let state = AppState { db_manager, i18n, config };
+        let db_manager = crate::db::DatabaseManager::new(db_config)
+            .await
+            .expect("Failed to create database manager");
+        let state = AppState {
+            db_manager,
+            i18n,
+            config,
+        };
         let headers = HeaderMap::new();
         let req = LoginRequest {
             id: "admin".to_string(),
@@ -1434,7 +1570,11 @@ mod tests {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         let (app, state) = create_test_app().await;
-        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
         let now = SystemTime::now()

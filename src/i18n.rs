@@ -155,11 +155,21 @@ pub async fn create_base_template(
     let title = get_translation(state, locale, title_key).await;
     // For i18n functions, we don't have access to headers, so we'll use default database
     let current_db_id = state.db_manager.get_default_db_id().to_string();
-    let current_db_label = state.db_manager.get_configs()
+    let current_db_label = state
+        .db_manager
+        .get_configs()
         .iter()
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
         .unwrap_or_else(|| current_db_id.clone());
 
-    crate::templates::layout::BaseTemplate::with_i18n(title, content, state, locale, current_db_label, current_db_id).await
+    crate::templates::layout::BaseTemplate::with_i18n(
+        title,
+        content,
+        state,
+        locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
 }

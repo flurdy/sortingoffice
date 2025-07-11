@@ -1,6 +1,8 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::relocated::*;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
+use crate::{
+    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template, AppState,
+};
 use askama::Template;
 use axum::{
     extract::{Path, State},
@@ -17,7 +19,8 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relocated entries
 pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -95,17 +98,19 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
     if is_htmx_request(&headers) {
         Html(content)
     } else {
-                  // Get current database id from session/cookie or default
-          let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-              .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-          // Get current database label from db_manager
-          let current_db_label = state.db_manager.get_configs()
-              .iter()
-              .find(|db| db.id == current_db_id)
-              .map(|db| db.label.clone())
-              .unwrap_or_else(|| current_db_id.clone());
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
 
-          let template = BaseTemplate::with_i18n(
+        let template = BaseTemplate::with_i18n(
             get_translation(&state, &locale, "relocated-title").await,
             content,
             &state,
@@ -126,7 +131,8 @@ pub async fn show_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
@@ -255,7 +261,9 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         let current_db_id = crate::handlers::auth::get_selected_database(&headers)
             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
         // Get current database label from db_manager
-        let current_db_label = state.db_manager.get_configs()
+        let current_db_label = state
+            .db_manager
+            .get_configs()
             .iter()
             .find(|db| db.id == current_db_id)
             .map(|db| db.label.clone())
@@ -282,7 +290,8 @@ pub async fn create_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -313,7 +322,8 @@ pub async fn edit_form(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -384,7 +394,9 @@ pub async fn edit_form(
         let current_db_id = crate::handlers::auth::get_selected_database(&headers)
             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
         // Get current database label from db_manager
-        let current_db_label = state.db_manager.get_configs()
+        let current_db_label = state
+            .db_manager
+            .get_configs()
             .iter()
             .find(|db| db.id == current_db_id)
             .map(|db| db.label.clone())
@@ -412,7 +424,8 @@ pub async fn update_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -447,7 +460,8 @@ pub async fn delete_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -476,7 +490,8 @@ pub async fn toggle_enabled(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 

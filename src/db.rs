@@ -1,12 +1,12 @@
+use crate::config::DatabaseConfig;
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
-use crate::config::DatabaseConfig;
 use chrono::Utc;
-use diesel::prelude::*;
-use diesel::result::Error;
 use diesel::mysql::MysqlConnection;
+use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
+use diesel::result::Error;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -24,7 +24,8 @@ impl DatabaseManager {
     /// Create a new database manager with multiple database connections
     pub async fn new(configs: Vec<DatabaseConfig>) -> Result<Self, Box<dyn std::error::Error>> {
         let mut pools = HashMap::new();
-        let default_db = configs.first()
+        let default_db = configs
+            .first()
             .map(|c| c.id.clone())
             .unwrap_or_else(|| "primary".to_string());
 
@@ -71,8 +72,10 @@ impl DatabaseManager {
         pools.contains_key(db_id)
     }
 
-        /// Run migrations on all configured databases
-    pub async fn run_migrations_on_all_databases(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// Run migrations on all configured databases
+    pub async fn run_migrations_on_all_databases(
+        &self,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
         let pools = self.pools.read().await;
@@ -82,18 +85,35 @@ impl DatabaseManager {
                 tracing::info!("Running migrations on database: {}", config.id);
 
                 match pool.get() {
-                    Ok(mut conn) => {
-                        match conn.run_pending_migrations(MIGRATIONS) {
-                            Ok(_) => tracing::info!("✅ Migrations completed successfully for database: {}", config.id),
-                            Err(e) => {
-                                tracing::error!("❌ Failed to run migrations on database {}: {}", config.id, e);
-                                return Err(format!("Failed to run migrations on database {}: {}", config.id, e).into());
-                            }
+                    Ok(mut conn) => match conn.run_pending_migrations(MIGRATIONS) {
+                        Ok(_) => tracing::info!(
+                            "✅ Migrations completed successfully for database: {}",
+                            config.id
+                        ),
+                        Err(e) => {
+                            tracing::error!(
+                                "❌ Failed to run migrations on database {}: {}",
+                                config.id,
+                                e
+                            );
+                            return Err(format!(
+                                "Failed to run migrations on database {}: {}",
+                                config.id, e
+                            )
+                            .into());
                         }
-                    }
+                    },
                     Err(e) => {
-                        tracing::error!("❌ Failed to get connection for database {}: {}", config.id, e);
-                        return Err(format!("Failed to get connection for database {}: {}", config.id, e).into());
+                        tracing::error!(
+                            "❌ Failed to get connection for database {}: {}",
+                            config.id,
+                            e
+                        );
+                        return Err(format!(
+                            "Failed to get connection for database {}: {}",
+                            config.id, e
+                        )
+                        .into());
                     }
                 }
             } else {
@@ -106,7 +126,10 @@ impl DatabaseManager {
     }
 
     /// Run migrations on a specific database
-    pub async fn run_migrations_on_database(&self, db_id: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn run_migrations_on_database(
+        &self,
+        db_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
         let pools = self.pools.read().await;
@@ -114,13 +137,17 @@ impl DatabaseManager {
         if let Some(pool) = pools.get(db_id) {
             tracing::info!("Running migrations on database: {}", db_id);
 
-            let mut conn = pool.get()
+            let mut conn = pool
+                .get()
                 .map_err(|e| format!("Failed to get connection for database {db_id}: {e}"))?;
 
             conn.run_pending_migrations(MIGRATIONS)
                 .map_err(|e| format!("Failed to run migrations on database {db_id}: {e}"))?;
 
-            tracing::info!("✅ Migrations completed successfully for database: {}", db_id);
+            tracing::info!(
+                "✅ Migrations completed successfully for database: {}",
+                db_id
+            );
             Ok(())
         } else {
             Err(format!("No pool found for database: {db_id}").into())
@@ -441,45 +468,108 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
 
     // Domains
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
-    let enabled_domains: i64 = domains::table.filter(domains::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_domains: i64 = domains::table.filter(domains::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_domains: i64 = domains::table.filter(domains::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_domains: i64 = domains::table
+        .filter(domains::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_domains: i64 = domains::table
+        .filter(domains::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_domains: i64 = domains::table
+        .filter(domains::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Users
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
-    let enabled_users: i64 = users::table.filter(users::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_users: i64 = users::table.filter(users::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_users: i64 = users::table.filter(users::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_users: i64 = users::table
+        .filter(users::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_users: i64 = users::table
+        .filter(users::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_users: i64 = users::table
+        .filter(users::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Aliases
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
-    let enabled_aliases: i64 = aliases::table.filter(aliases::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_aliases: i64 = aliases::table.filter(aliases::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_aliases: i64 = aliases::table.filter(aliases::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_aliases: i64 = aliases::table
+        .filter(aliases::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_aliases: i64 = aliases::table
+        .filter(aliases::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_aliases: i64 = aliases::table
+        .filter(aliases::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Backups
     let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
-    let enabled_backups: i64 = backups::table.filter(backups::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_backups: i64 = backups::table.filter(backups::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_backups: i64 = backups::table.filter(backups::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_backups: i64 = backups::table
+        .filter(backups::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_backups: i64 = backups::table
+        .filter(backups::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_backups: i64 = backups::table
+        .filter(backups::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Relays
     let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
-    let enabled_relays: i64 = relays::table.filter(relays::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_relays: i64 = relays::table.filter(relays::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_relays: i64 = relays::table.filter(relays::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_relays: i64 = relays::table
+        .filter(relays::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_relays: i64 = relays::table
+        .filter(relays::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_relays: i64 = relays::table
+        .filter(relays::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Relocated
     let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
-    let enabled_relocated: i64 = relocated::table.filter(relocated::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_relocated: i64 = relocated::table.filter(relocated::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_relocated: i64 = relocated::table.filter(relocated::created.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_relocated: i64 = relocated::table
+        .filter(relocated::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_relocated: i64 = relocated::table
+        .filter(relocated::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_relocated: i64 = relocated::table
+        .filter(relocated::created.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Clients
     let total_clients: i64 = clients::table.count().get_result(&mut conn)?;
-    let enabled_clients: i64 = clients::table.filter(clients::enabled.eq(true)).count().get_result(&mut conn)?;
-    let disabled_clients: i64 = clients::table.filter(clients::enabled.eq(false)).count().get_result(&mut conn)?;
-    let recent_clients: i64 = clients::table.filter(clients::created_at.ge(week_ago)).count().get_result(&mut conn)?;
+    let enabled_clients: i64 = clients::table
+        .filter(clients::enabled.eq(true))
+        .count()
+        .get_result(&mut conn)?;
+    let disabled_clients: i64 = clients::table
+        .filter(clients::enabled.eq(false))
+        .count()
+        .get_result(&mut conn)?;
+    let recent_clients: i64 = clients::table
+        .filter(clients::created_at.ge(week_ago))
+        .count()
+        .get_result(&mut conn)?;
 
     // Quota (still 0, as not implemented)
     let total_quota: i64 = 0;

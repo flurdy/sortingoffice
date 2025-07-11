@@ -1,6 +1,9 @@
 use crate::templates::domains::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template_with_title};
+use crate::{
+    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template_with_title,
+    AppState,
+};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -14,7 +17,8 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
@@ -65,7 +69,8 @@ pub async fn list(
             "backups-empty-no-backup-servers",
             "backups-empty-get-started",
         ],
-    ).await;
+    )
+    .await;
     let paginated = PaginatedResult::new(
         paginated_domains.items.clone(),
         paginated_domains.total_count,
@@ -110,7 +115,13 @@ pub async fn list(
         backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
         backups_empty_get_started: &translations["backups-empty-get-started"],
     };
-    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title,
+        &state,
+        &locale,
+        &headers
+    )
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
@@ -138,7 +149,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
             "form-tooltip-transport",
             "form-tooltip-enable",
         ],
-    ).await;
+    )
+    .await;
     let content_template = DomainFormTemplate {
         title: &translations["domains-new-domain"],
         domain: None,
@@ -157,7 +169,13 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_tooltip_transport: &translations["form-tooltip-transport"],
         form_tooltip_enable: &translations["form-tooltip-enable"],
     };
-    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title,
+        &state,
+        &locale,
+        &headers
+    )
 }
 
 pub async fn show(
@@ -165,9 +183,15 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
-    let domain = get_entity_or_not_found!(db::get_domain(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
+    let domain = get_entity_or_not_found!(
+        db::get_domain(&pool, id),
+        &state,
+        &crate::handlers::utils::get_user_locale(&headers),
+        "domains-not-found"
+    );
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
     let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
@@ -217,7 +241,8 @@ pub async fn show(
             "aliases-enable-alias",
             "aliases-disable-alias",
         ],
-    ).await;
+    )
+    .await;
     let content_template = DomainShowTemplate {
         title: &translations["domains-title"],
         domain,
@@ -253,7 +278,8 @@ pub async fn show(
         alias_report_title: &translations["domains-alias-report-title"],
         alias_report_description: &translations["domains-alias-report-description"],
         existing_aliases_header: &translations["domains-existing-aliases-header"],
-        add_missing_required_alias_button: &translations["domains-add-missing-required-aliases-button"],
+        add_missing_required_alias_button: &translations
+            ["domains-add-missing-required-aliases-button"],
         add_common_alias_button: &translations["reports-add-common-alias-button"],
         add_catch_all_button: &translations["domains-add-catch-all-button"],
         add_alias_button: &translations["domains-add-alias-button"],
@@ -263,7 +289,13 @@ pub async fn show(
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
     };
-    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
+    render_template_with_title!(
+        content_template,
+        content_template.title,
+        &state,
+        &locale,
+        &headers
+    )
 }
 
 pub async fn edit(
@@ -271,7 +303,8 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -327,7 +360,8 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     // Validate form data
@@ -532,7 +566,8 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     // Validate form data
@@ -716,7 +751,8 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
 
     match db::delete_domain(&pool, id) {
@@ -822,7 +858,8 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -900,17 +937,19 @@ pub async fn toggle_enabled(
             };
             let content = content_template.render().unwrap();
 
-                          // Get current database id from session/cookie or default
-              let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-                  .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-              // Get current database label from db_manager
-              let current_db_label = state.db_manager.get_configs()
-                  .iter()
-                  .find(|db| db.id == current_db_id)
-                  .map(|db| db.label.clone())
-                  .unwrap_or_else(|| current_db_id.clone());
+            // Get current database id from session/cookie or default
+            let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+            // Get current database label from db_manager
+            let current_db_label = state
+                .db_manager
+                .get_configs()
+                .iter()
+                .find(|db| db.id == current_db_id)
+                .map(|db| db.label.clone())
+                .unwrap_or_else(|| current_db_id.clone());
 
-              let template = BaseTemplate::with_i18n(
+            let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "domains-title").await,
                 content,
                 &state,
@@ -932,7 +971,8 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -1037,7 +1077,8 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -1123,7 +1164,8 @@ pub async fn add_missing_required_aliases(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -1200,7 +1242,8 @@ pub async fn add_missing_required_alias(
     Path((id, alias)): Path<(i32, String)>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 

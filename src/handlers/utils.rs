@@ -1,7 +1,7 @@
-use crate::{AppState, i18n::get_translation};
+use crate::{i18n::get_translation, AppState};
+use askama::Template;
 use axum::http::HeaderMap;
 use axum::response::Html;
-use askama::Template;
 use std::collections::HashMap;
 use tracing::error;
 
@@ -41,7 +41,9 @@ macro_rules! render_template {
             let current_db_id = $crate::handlers::auth::get_selected_database($headers)
                 .unwrap_or_else(|| $state.db_manager.get_default_db_id().to_string());
             // Get current database label from db_manager
-            let current_db_label = $state.db_manager.get_configs()
+            let current_db_label = $state
+                .db_manager
+                .get_configs()
                 .iter()
                 .find(|db| db.id == current_db_id)
                 .map(|db| db.label.clone())
@@ -54,7 +56,9 @@ macro_rules! render_template {
                 $locale,
                 current_db_label,
                 current_db_id,
-            ).await {
+            )
+            .await
+            {
                 Ok(template) => template,
                 Err(e) => {
                     tracing::error!("Failed to create base template: {:?}", e);
@@ -93,7 +97,9 @@ macro_rules! render_template_with_title {
             let current_db_id = $crate::handlers::auth::get_selected_database($headers)
                 .unwrap_or_else(|| $state.db_manager.get_default_db_id().to_string());
             // Get current database label from db_manager
-            let current_db_label = $state.db_manager.get_configs()
+            let current_db_label = $state
+                .db_manager
+                .get_configs()
                 .iter()
                 .find(|db| db.id == current_db_id)
                 .map(|db| db.label.clone())
@@ -106,7 +112,9 @@ macro_rules! render_template_with_title {
                 $locale,
                 current_db_label,
                 current_db_id,
-            ).await {
+            )
+            .await
+            {
                 Ok(template) => template,
                 Err(e) => {
                     tracing::error!("Failed to create base template: {:?}", e);
@@ -133,7 +141,8 @@ macro_rules! get_entity_or_not_found {
         match $db_call {
             Ok(entity) => entity,
             Err(_) => {
-                let not_found_msg = $crate::i18n::get_translation($state, $locale, $not_found_key).await;
+                let not_found_msg =
+                    $crate::i18n::get_translation($state, $locale, $not_found_key).await;
                 return Html(not_found_msg);
             }
         }
@@ -223,12 +232,18 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
 
 /// Get the current database pool from the state
 /// This gets the database pool based on the user's session selection
-pub async fn get_current_db_pool(state: &AppState, headers: &HeaderMap) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
+pub async fn get_current_db_pool(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
     // Get the selected database from the session, or fall back to default
     let selected_db = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
-    state.db_manager.get_pool(&selected_db).await
+    state
+        .db_manager
+        .get_pool(&selected_db)
+        .await
         .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
 }
 
@@ -247,10 +262,7 @@ pub async fn get_translations_batch(
 }
 
 /// Common translation keys for forms
-pub async fn get_form_translations(
-    state: &AppState,
-    locale: &str,
-) -> HashMap<String, String> {
+pub async fn get_form_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
     get_translations_batch(
         state,
         locale,
@@ -273,10 +285,7 @@ pub async fn get_form_translations(
 }
 
 /// Common translation keys for table headers
-pub async fn get_table_translations(
-    state: &AppState,
-    locale: &str,
-) -> HashMap<String, String> {
+pub async fn get_table_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
     get_translations_batch(
         state,
         locale,
@@ -320,7 +329,9 @@ where
         let current_db_id = crate::handlers::auth::get_selected_database(headers)
             .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
         // Get current database label from db_manager
-        let current_db_label = state.db_manager.get_configs()
+        let current_db_label = state
+            .db_manager
+            .get_configs()
             .iter()
             .find(|db| db.id == current_db_id)
             .map(|db| db.label.clone())
@@ -354,11 +365,7 @@ where
 }
 
 /// Helper function to handle "not found" errors consistently
-pub async fn handle_not_found(
-    state: &AppState,
-    locale: &str,
-    not_found_key: &str,
-) -> Html<String> {
+pub async fn handle_not_found(state: &AppState, locale: &str, not_found_key: &str) -> Html<String> {
     let not_found_msg = get_translation(state, locale, not_found_key).await;
     Html(not_found_msg)
 }
