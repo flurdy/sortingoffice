@@ -4,7 +4,7 @@ use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
 

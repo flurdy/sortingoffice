@@ -10,12 +10,20 @@ mod tests {
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
+    use crate::config::DatabaseConfig;
 
     async fn create_test_app() -> (Router, AppState) {
-        let pool = setup_test_db();
+        let db_config = vec![DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test Database".to_string(),
+            url: std::env::var("TEST_DATABASE_URL")
+                .or_else(|_| std::env::var("DATABASE_URL"))
+                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+        }];
+        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = crate::config::Config::default();
-        let state = AppState { pool, i18n, config };
+        let state = AppState { db_manager, i18n, config };
         let app = Router::new()
             .route("/domains", axum::routing::get(handlers::domains::list))
             .route("/domains", axum::routing::post(handlers::domains::create))
@@ -83,7 +91,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Step 1: Create a domain via HTTP POST
         let form_data = "domain=integration-domain.com&transport=smtp%3Aintegration&enabled=on";
@@ -124,7 +133,7 @@ mod tests {
         assert!(body_str.contains("integration-domain.com"));
 
         // Step 3: Get the domain ID from the database
-        let domains = crate::db::get_domains(&state.pool).unwrap();
+        let domains = crate::db::get_domains(&pool).unwrap();
         let domain = domains
             .iter()
             .find(|d| d.domain == "integration-domain.com")
@@ -164,7 +173,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
+        let updated_domain = crate::db::get_domain(&pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
         assert_eq!(updated_domain.enabled, false);
 
@@ -184,7 +193,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_domain = crate::db::get_domain(&state.pool, domain.pkid).unwrap();
+        let toggled_domain = crate::db::get_domain(&pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, true);
 
         // Step 9: Delete the domain
@@ -203,10 +212,10 @@ mod tests {
         assert_eq!(delete_response.status(), StatusCode::OK);
 
         // Step 10: Verify deletion
-        let deleted_domain = crate::db::get_domain(&state.pool, domain.pkid);
+        let deleted_domain = crate::db::get_domain(&pool, domain.pkid);
         assert!(deleted_domain.is_err());
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -214,7 +223,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Step 1: Create a domain first (required for users)
         let domain_form_data =
@@ -272,7 +282,7 @@ mod tests {
         assert!(body_str.contains("integrationuser@integration-user-test.com"));
 
         // Step 4: Get the user ID from the database
-        let users = crate::db::get_users(&state.pool).unwrap();
+        let users = crate::db::get_users(&pool).unwrap();
         let user = users
             .iter()
             .find(|u| u.id == "integrationuser@integration-user-test.com")
@@ -297,7 +307,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
+        let updated_user = crate::db::get_user(&pool, user.pkid).unwrap();
         assert_eq!(updated_user.id, "updateduser@integration-user-test.com");
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, false);
@@ -319,11 +329,11 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_user = crate::db::get_user(&state.pool, user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(&pool, user.pkid).unwrap();
         assert_eq!(toggled_user.enabled, true);
         assert_eq!(toggled_user.change_password, false);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -331,7 +341,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Step 1: Create a domain first (required for aliases)
         let domain_form_data =
@@ -389,7 +400,7 @@ mod tests {
         assert!(body_str.contains("test@integration-alias-test.com"));
 
         // Step 4: Get the alias ID from the database
-        let aliases = crate::db::get_aliases(&state.pool).unwrap();
+        let aliases = crate::db::get_aliases(&pool).unwrap();
         let alias = aliases
             .iter()
             .find(|a| a.mail == "test@integration-alias-test.com")
@@ -414,7 +425,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_alias = crate::db::get_alias(&state.pool, alias.pkid).unwrap();
+        let updated_alias = crate::db::get_alias(&pool, alias.pkid).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
         assert_eq!(
             updated_alias.destination,
@@ -438,10 +449,10 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_alias = crate::db::get_alias(&state.pool, alias.pkid).unwrap();
+        let toggled_alias = crate::db::get_alias(&pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias.enabled, true);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -449,7 +460,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Step 1: Create test data
         let domain_form_data =
@@ -521,11 +533,11 @@ mod tests {
         assert!(body_str.contains("Statistics") || body_str.contains("stats"));
 
         // Step 3: Verify database stats match
-        let system_stats = crate::db::get_system_stats(&state.pool).unwrap();
+        let system_stats = crate::db::get_system_stats(&pool).unwrap();
         assert_eq!(system_stats.total_domains, 1);
         assert_eq!(system_stats.total_users, 1);
         assert_eq!(system_stats.total_aliases, 1);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 }

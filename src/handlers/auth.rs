@@ -156,9 +156,11 @@ pub async fn login(
             AdminRole::ReadOnly => "read-only",
             AdminRole::Edit => "edit",
         };
+        // Set default database to the first available database
+        let default_db = state.db_manager.get_default_db_id();
         let cookie_value = format!(
-            "authenticated={}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
-            expiry, role_str
+            "authenticated={}:{}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
+            expiry, role_str, default_db
         );
         if is_htmx {
             // For htmx, use HX-Redirect header to force a full page reload
@@ -283,12 +285,50 @@ pub fn get_user_role(headers: &HeaderMap) -> Option<AdminRole> {
                                 .as_secs();
 
                             if expiry > now {
-                                // Parse role
+                                // Parse role (handle both old format with 2 parts and new format with 3 parts)
                                 match parts[1] {
                                     "read-only" => return Some(AdminRole::ReadOnly),
                                     "edit" => return Some(AdminRole::Edit),
                                     _ => return None,
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// Update the session with a new database selection
+pub fn update_session_database(headers: &HeaderMap, new_database: &str) -> Option<String> {
+    if let Some(cookie_header) = headers.get("cookie") {
+        if let Ok(cookie_str) = cookie_header.to_str() {
+            for cookie in cookie_str.split(';') {
+                let cookie = cookie.trim();
+
+                if cookie.starts_with("authenticated=") {
+                    // Correctly extract the value after 'authenticated='
+                    let value_part = &cookie[14..].split(';').next().unwrap_or("");
+
+                    let parts: Vec<&str> = value_part.split(':').collect();
+
+                    if parts.len() >= 2 {
+                        if let Ok(expiry) = parts[0].parse::<u64>() {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs();
+
+                            if expiry > now {
+                                // Create new cookie with updated database
+                                let role_str = parts[1];
+                                return Some(format!(
+                                    "authenticated={}:{}:{}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax",
+                                    expiry, role_str, new_database
+                                ));
                             }
                         }
                     }
@@ -308,6 +348,52 @@ pub fn is_authenticated(headers: &HeaderMap) -> bool {
 /// Check if user has edit permissions
 pub fn has_edit_permissions(headers: &HeaderMap) -> bool {
     matches!(get_user_role(headers), Some(AdminRole::Edit))
+}
+
+/// Get the selected database from the session
+pub fn get_selected_database(headers: &HeaderMap) -> Option<String> {
+    if let Some(cookie_header) = headers.get("cookie") {
+        if let Ok(cookie_str) = cookie_header.to_str() {
+            for cookie in cookie_str.split(';') {
+                let cookie = cookie.trim();
+
+                if cookie.starts_with("authenticated=") {
+                    // Correctly extract the value after 'authenticated='
+                    let value_part = &cookie[14..].split(';').next().unwrap_or("");
+
+                    let parts: Vec<&str> = value_part.split(':').collect();
+
+                    if parts.len() >= 3 {
+                        if let Ok(expiry) = parts[0].parse::<u64>() {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs();
+
+                            if expiry > now {
+                                // Return the database ID (third part)
+                                return Some(parts[2].to_string());
+                            }
+                        }
+                    } else if parts.len() == 2 {
+                        // Handle old format (no database selected) - return None
+                        if let Ok(expiry) = parts[0].parse::<u64>() {
+                            let now = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs();
+
+                            if expiry > now {
+                                return None;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
 }
 
 /// Authentication middleware

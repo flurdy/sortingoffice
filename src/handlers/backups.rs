@@ -46,7 +46,7 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -94,7 +94,7 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -138,7 +138,7 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -249,7 +249,7 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -362,8 +362,8 @@ pub async fn update(
     }
 }
 
-pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+pub async fn delete(State(state): State<AppState>, Path(id): Path<i32>, headers: HeaderMap) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::delete_backup(&pool, id) {
@@ -380,7 +380,7 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -424,7 +424,7 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
     match db::toggle_backup_enabled(&pool, id) {

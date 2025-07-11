@@ -198,11 +198,14 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
 }
 
 /// Get the current database pool from the state
-/// For now, this returns the default database pool
-/// In the future, this could be enhanced to support per-session database selection
-pub async fn get_current_db_pool(state: &AppState) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
-    state.db_manager.get_default_pool().await
-        .ok_or_else(|| "No database pool available".into())
+/// This gets the database pool based on the user's session selection
+pub async fn get_current_db_pool(state: &AppState, headers: &HeaderMap) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
+    // Get the selected database from the session, or fall back to default
+    let selected_db = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    state.db_manager.get_pool(&selected_db).await
+        .ok_or_else(|| format!("No database pool available for '{}'", selected_db).into())
 }
 
 /// Batch translation fetcher

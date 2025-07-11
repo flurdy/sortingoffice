@@ -14,7 +14,7 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
@@ -165,7 +165,7 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let domain = get_entity_or_not_found!(db::get_domain(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "domains-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
@@ -277,7 +277,7 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -333,7 +333,7 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     // Validate form data
@@ -541,7 +541,7 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     // Validate form data
@@ -725,7 +725,7 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::delete_domain(&pool, id) {
@@ -834,7 +834,7 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -932,7 +932,7 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -1040,7 +1040,7 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -1126,7 +1126,7 @@ pub async fn add_missing_required_aliases(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -1204,7 +1204,7 @@ pub async fn add_missing_required_alias(
     Path((id, alias)): Path<(i32, String)>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 

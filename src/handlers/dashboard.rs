@@ -4,8 +4,8 @@ use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    // Get the current database pool (for now, use default)
-    let pool = state.db_manager.get_default_pool().await
+    // Get the current database pool based on session selection
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     // Use the new macro for SystemStats retrieval

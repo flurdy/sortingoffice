@@ -25,7 +25,7 @@ pub async fn list_clients(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -126,7 +126,7 @@ pub async fn show_client(
     Path(client_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -281,7 +281,7 @@ pub async fn edit_client_form(
     Path(client_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -359,11 +359,12 @@ pub async fn edit_client_form(
 
 pub async fn create_client(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Form(client_data): Form<ClientForm>,
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client creation request");
 
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let client = db::create_client(&pool, client_data).map_err(|e| {
         warn!("Failed to create client: {:?}", e);
@@ -381,11 +382,12 @@ pub async fn create_client(
 pub async fn update_client(
     State(state): State<AppState>,
     Path(client_id): Path<i32>,
+    headers: HeaderMap,
     Form(client_data): Form<ClientForm>,
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client update request for ID: {}", client_id);
 
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let client = db::update_client(&pool, client_id, client_data).map_err(|e| {
         warn!("Failed to update client {}: {:?}", client_id, e);
@@ -403,10 +405,11 @@ pub async fn update_client(
 pub async fn delete_client(
     State(state): State<AppState>,
     Path(client_id): Path<i32>,
+    headers: HeaderMap,
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client deletion request for ID: {}", client_id);
 
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     db::delete_client(&pool, client_id).map_err(|e| {
         warn!("Failed to delete client {}: {:?}", client_id, e);
@@ -424,11 +427,12 @@ pub async fn delete_client(
 pub async fn toggle_client(
     State(state): State<AppState>,
     Path(client_id): Path<i32>,
+    headers: HeaderMap,
     Query(redirect_query): Query<ToggleClientRedirectQuery>,
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client toggle request for ID: {}", client_id);
 
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let client = db::toggle_client_enabled(&pool, client_id).map_err(|e| {
         warn!("Failed to toggle client {}: {:?}", client_id, e);

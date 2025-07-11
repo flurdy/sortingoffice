@@ -17,7 +17,7 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relocated entries
 pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -114,7 +114,7 @@ pub async fn show_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
@@ -258,7 +258,7 @@ pub async fn create_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -289,7 +289,7 @@ pub async fn edit_form(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -376,7 +376,7 @@ pub async fn update_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -411,7 +411,7 @@ pub async fn delete_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -440,7 +440,7 @@ pub async fn toggle_enabled(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 

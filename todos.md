@@ -41,21 +41,23 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Go over the Rust code to see if there is any duplication we can make cleaner.
 
-when filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations.
+When filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations.
 
-create a few longer functional testing journeys
+Create a few longer functional testing journeys
 
 ✅ please add support for multiple databases as this will manage several servers - IMPLEMENTED (basic UI and infrastructure)
 
-⚠️ Multi-database support - remaining critical steps:
+✅ Multi-database support - IMPLEMENTED:
   - Session-based database selection (store selected database in user session)
   - Update all handlers to use selected database instead of default pool
+  - Database selection UI and handler
+  - Database selection persistence in session cookies
+
+⚠️ Multi-database support - remaining steps:
   - Database migration management (run migrations on all configured databases)
   - Show current selected database in navigation/header
   - Add database connection health checks
-  - Add database-specific configuration and feature toggles
-
-Lets discuss how we can support different databases with different field names.
+  - Add database-specific configuration
 
 Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates.
 
@@ -71,3 +73,6 @@ The dashboard stats should be changed to
   - an enabled users total
 
 The dashboard should have descriptive link to further stats and reports
+
+In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
+Lets discuss how we can support different databases with different field names.

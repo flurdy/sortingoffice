@@ -24,7 +24,7 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
@@ -160,7 +160,7 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let alias = get_entity_or_not_found!(db::get_alias(&pool, id), &state, &crate::handlers::utils::get_user_locale(&headers), "aliases-not-found");
     let locale = crate::handlers::utils::get_user_locale(&headers);
@@ -215,7 +215,7 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     let alias = match db::get_alias(&pool, id) {
@@ -293,7 +293,7 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::create_alias(&pool, form.clone()) {
@@ -626,7 +626,7 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<AliasForm>,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::update_alias(&pool, id, form.clone()) {
@@ -790,7 +790,7 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::delete_alias(&pool, id) {
@@ -874,7 +874,7 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     match db::toggle_alias_enabled(&pool, id) {
@@ -953,7 +953,7 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
@@ -1036,7 +1036,7 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
@@ -1115,7 +1115,7 @@ pub async fn toggle_enabled_domain_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
 
     // First toggle the alias

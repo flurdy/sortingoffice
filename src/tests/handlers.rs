@@ -8,7 +8,7 @@ mod tests {
 
     use tower::ServiceExt;
 
-    use crate::config::{AdminRole, Config};
+    use crate::config::{AdminRole, Config, DatabaseConfig};
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
@@ -19,7 +19,18 @@ mod tests {
         let pool = setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
-        let state = AppState { pool, i18n, config };
+
+        // Create a database manager with the test pool
+        let db_config = vec![DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test Database".to_string(),
+            url: std::env::var("TEST_DATABASE_URL")
+                .or_else(|_| std::env::var("DATABASE_URL"))
+                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+        }];
+        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
+
+        let state = AppState { db_manager, i18n, config };
 
         // Create read-only routes
         let read_only_routes = Router::new()
@@ -131,7 +142,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain with unique name
         let unique_id = crate::tests::common::unique_test_id();
@@ -140,7 +152,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
@@ -162,7 +174,7 @@ mod tests {
 
         assert!(body_str.contains(&format!("list-test-{}.com", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -170,7 +182,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         let unique_id = crate::tests::common::unique_test_id();
         let form_data = format!(
@@ -194,13 +207,14 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was created
-        let domains = crate::db::get_domains(&state.pool).unwrap();
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        let domains = crate::db::get_domains(&pool).unwrap();
         assert!(!domains.is_empty());
         assert!(domains
             .iter()
             .any(|d| d.domain == format!("create-test-{}.com", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -208,7 +222,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain
         let unique_id = crate::tests::common::unique_test_id();
@@ -217,7 +232,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
@@ -239,7 +254,7 @@ mod tests {
 
         assert!(body_str.contains(&format!("show-test-{}.com", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -247,7 +262,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain
         let unique_id = crate::tests::common::unique_test_id();
@@ -256,7 +272,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
@@ -279,7 +295,7 @@ mod tests {
         assert!(body_str.contains(&format!("edit-test-{}.com", unique_id)));
         assert!(body_str.contains("Edit Domain"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -287,7 +303,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain
         let unique_id = crate::tests::common::unique_test_id();
@@ -296,7 +313,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
             "domain=updated-test-{}.com&transport=smtp%3Aupdated&enabled=on",
@@ -319,14 +336,14 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was updated
-        let updated_domain = crate::db::get_domain(&state.pool, _domain.pkid).unwrap();
+        let updated_domain = crate::db::get_domain(&pool, _domain.pkid).unwrap();
         assert_eq!(
             updated_domain.domain,
             format!("updated-test-{}.com", unique_id)
         );
         assert_eq!(updated_domain.transport, Some("smtp:updated".to_string()));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -334,7 +351,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain
         let unique_id = crate::tests::common::unique_test_id();
@@ -343,7 +361,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -362,10 +380,10 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was toggled
-        let toggled_domain = crate::db::get_domain(&state.pool, _domain.pkid).unwrap();
+        let toggled_domain = crate::db::get_domain(&pool, _domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -373,7 +391,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -382,7 +401,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user with unique name
         let user_form = crate::models::UserForm {
@@ -391,7 +410,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let response = app
             .oneshot(
@@ -413,7 +432,7 @@ mod tests {
 
         assert!(body_str.contains(&format!("list-test-{}", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -421,7 +440,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -430,7 +450,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
             "id=testuser@create-test-{}.com&password=password123&name=Test+User&enabled=on",
@@ -453,13 +473,13 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was created
-        let users = crate::db::get_users(&state.pool).unwrap();
+        let users = crate::db::get_users(&pool).unwrap();
         assert!(!users.is_empty());
         assert!(users
             .iter()
             .any(|u| u.id == format!("testuser@create-test-{}.com", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -467,7 +487,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -476,7 +497,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -485,7 +506,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let response = app
             .oneshot(
@@ -507,7 +528,7 @@ mod tests {
 
         assert!(body_str.contains(&format!("show-test-{}", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -515,7 +536,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -524,7 +546,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -533,7 +555,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let response = app
             .oneshot(
@@ -556,7 +578,7 @@ mod tests {
         assert!(body_str.contains(&format!("edit-test-{}", unique_id)));
         assert!(body_str.contains("Edit User"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -564,7 +586,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -573,7 +596,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -582,7 +605,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let form_data = format!(
             "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on",
@@ -605,7 +628,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was updated
-        let updated_user = crate::db::get_user(&state.pool, _user.pkid).unwrap();
+        let updated_user = crate::db::get_user(&pool, _user.pkid).unwrap();
         assert_eq!(
             updated_user.id,
             format!("updateduser@update-test-{}.com", unique_id)
@@ -613,7 +636,7 @@ mod tests {
         assert_eq!(updated_user.name, "Updated User");
         assert_eq!(updated_user.enabled, true);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -621,7 +644,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let unique_id = crate::tests::common::unique_test_id();
@@ -630,7 +654,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
         let user_form = crate::models::UserForm {
@@ -639,7 +663,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -658,10 +682,10 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was toggled
-        let toggled_user = crate::db::get_user(&state.pool, _user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(&pool, _user.pkid).unwrap();
         assert_eq!(toggled_user.enabled, false);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -669,7 +693,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain and alias
         let new_domain = crate::models::NewDomain {
@@ -677,7 +702,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let alias_form = crate::models::AliasForm {
             mail: "test@aliases-list-test.com".to_string(),
@@ -685,7 +710,7 @@ mod tests {
             enabled: true,
             return_url: None,
         };
-        let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
+        let _alias = crate::db::create_alias(&pool, alias_form).unwrap();
 
         let response = app
             .oneshot(
@@ -708,7 +733,7 @@ mod tests {
         assert!(body_str.contains("test@aliases-list-test.com"));
         assert!(body_str.contains("user@aliases-list-test.com"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -716,7 +741,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain first
         let new_domain = crate::models::NewDomain {
@@ -724,7 +750,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&enabled=on";
 
@@ -744,13 +770,13 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify alias was created
-        let aliases = crate::db::get_aliases(&state.pool).unwrap();
+        let aliases = crate::db::get_aliases(&pool).unwrap();
         assert!(!aliases.is_empty());
         assert!(aliases
             .iter()
             .any(|a| a.mail == "test@aliases-create-test.com"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -758,7 +784,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test data
         let new_domain = crate::models::NewDomain {
@@ -766,7 +793,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let user_form = crate::models::UserForm {
             id: "testuser@stats-test.com".to_string(),
@@ -774,7 +801,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
         };
-        let _user = crate::db::create_user(&state.pool, user_form).unwrap();
+        let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let alias_form = crate::models::AliasForm {
             mail: "test@test.com".to_string(),
@@ -782,7 +809,7 @@ mod tests {
             enabled: true,
             return_url: None,
         };
-        let _alias = crate::db::create_alias(&state.pool, alias_form).unwrap();
+        let _alias = crate::db::create_alias(&pool, alias_form).unwrap();
 
         let response = app
             .oneshot(
@@ -805,7 +832,7 @@ mod tests {
         // Should contain statistics information
         assert!(body_str.contains("Statistics") || body_str.contains("stats"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -833,7 +860,7 @@ mod tests {
         // Should contain dashboard content
         assert!(body_str.contains("Dashboard") || body_str.contains("dashboard"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&state.db_manager.get_default_pool().await.expect("Failed to get database pool"));
     }
 
     #[tokio::test]
@@ -879,7 +906,7 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::FORBIDDEN);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&state.db_manager.get_default_pool().await.expect("Failed to get database pool"));
     }
 
     #[tokio::test]
@@ -887,7 +914,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         let form_data = "domain=backup-create-test.com&transport=smtp%3Alocalhost&enabled=on";
 
@@ -907,11 +935,11 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify backup was created
-        let backups = crate::db::get_backups(&state.pool).unwrap();
+        let backups = crate::db::get_backups(&pool).unwrap();
         assert!(!backups.is_empty());
         assert!(backups.iter().any(|b| b.domain == "backup-create-test.com"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -919,7 +947,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -927,7 +956,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
@@ -949,7 +978,7 @@ mod tests {
 
         assert!(body_str.contains("backup-show-test.com"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -957,7 +986,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -965,7 +995,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
@@ -988,7 +1018,7 @@ mod tests {
         assert!(body_str.contains("backup-edit-test.com"));
         assert!(body_str.contains("Edit Backup"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -996,7 +1026,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -1004,7 +1035,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let form_data = "domain=backup-updated-test.com&transport=smtp%3Aupdated&enabled=on";
 
@@ -1024,11 +1055,11 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify backup was updated
-        let updated_backup = crate::db::get_backup(&state.pool, _backup.pkid).unwrap();
+        let updated_backup = crate::db::get_backup(&pool, _backup.pkid).unwrap();
         assert_eq!(updated_backup.domain, "backup-updated-test.com");
         assert_eq!(updated_backup.transport, Some("smtp:updated".to_string()));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1036,7 +1067,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -1044,7 +1076,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         // Toggle to disabled
         let response = app
@@ -1063,10 +1095,10 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify backup was toggled
-        let toggled_backup = crate::db::get_backup(&state.pool, _backup.pkid).unwrap();
+        let toggled_backup = crate::db::get_backup(&pool, _backup.pkid).unwrap();
         assert_eq!(toggled_backup.enabled, false);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1074,7 +1106,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         let form_data = "domain=backup-redirect-test.com&transport=smtp%3Alocalhost&enabled=on";
 
@@ -1101,7 +1134,7 @@ mod tests {
         // Should contain redirect script to domains page
         assert!(body_str.contains("window.location.href='/domains'"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1109,7 +1142,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -1117,7 +1151,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let form_data =
             "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
@@ -1147,7 +1181,7 @@ mod tests {
         assert!(!body_str.contains("<head>"));
         assert!(!body_str.contains("<body>"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1155,7 +1189,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -1163,7 +1198,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
@@ -1187,7 +1222,7 @@ mod tests {
         // Should contain redirect script to domains page
         assert!(body_str.contains("window.location.href='/domains'"));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1195,7 +1230,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         // Create test domain
         let unique_id = crate::tests::common::unique_test_id();
@@ -1204,7 +1240,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = crate::db::create_domain(&state.pool, new_domain).unwrap();
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         // Create test backup
         let new_backup = crate::models::NewBackup {
@@ -1212,7 +1248,7 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _backup = crate::db::create_backup(&state.pool, new_backup).unwrap();
+        let _backup = crate::db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
             .oneshot(
@@ -1236,7 +1272,7 @@ mod tests {
         assert!(body_str.contains(&format!("domain-backup-test-{}", unique_id)));
         assert!(body_str.contains(&format!("backup-domain-test-{}", unique_id)));
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]
@@ -1259,7 +1295,15 @@ mod tests {
             }],
             ..Config::default()
         };
-        let state = AppState { pool, i18n, config };
+        let db_config = vec![DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test Database".to_string(),
+            url: std::env::var("TEST_DATABASE_URL")
+                .or_else(|_| std::env::var("DATABASE_URL"))
+                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+        }];
+        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
+        let state = AppState { db_manager, i18n, config };
         let headers = HeaderMap::new();
         let req = LoginRequest {
             id: "admin".to_string(),
@@ -1291,7 +1335,15 @@ mod tests {
         let pool = crate::tests::common::setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
-        let state = AppState { pool, i18n, config };
+        let db_config = vec![DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test Database".to_string(),
+            url: std::env::var("TEST_DATABASE_URL")
+                .or_else(|_| std::env::var("DATABASE_URL"))
+                .unwrap_or_else(|_| "mysql://root:password@localhost/sortingoffice_test".to_string()),
+        }];
+        let db_manager = crate::db::DatabaseManager::new(db_config).await.expect("Failed to create database manager");
+        let state = AppState { db_manager, i18n, config };
         let headers = HeaderMap::new();
         let req = LoginRequest {
             id: "admin".to_string(),
@@ -1382,7 +1434,8 @@ mod tests {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         let (app, state) = create_test_app().await;
-        cleanup_test_db(&state.pool);
+        let pool = state.db_manager.get_default_pool().await.expect("Failed to get database pool");
+        cleanup_test_db(&pool);
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1450,7 +1503,7 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
 
-        cleanup_test_db(&state.pool);
+        cleanup_test_db(&pool);
     }
 
     #[tokio::test]

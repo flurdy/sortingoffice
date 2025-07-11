@@ -30,7 +30,7 @@ pub async fn matrix_report(
         get_translation(&state, &locale, "reports-no-domains-description").await;
 
     // Get matrix report data
-    let pool = state.db_manager.get_default_pool().await
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers).await
         .expect("Failed to get database pool");
     let report = match db::get_domain_alias_matrix_report(&pool) {
         Ok(report) => report,
