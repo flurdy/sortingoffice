@@ -12,7 +12,7 @@ mod tests {
     use crate::handlers;
     use crate::tests::common::{cleanup_test_db, setup_test_db};
     use crate::AppState;
-    use axum::http::{HeaderMap, HeaderValue};
+    use axum::http::HeaderValue;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     async fn create_test_app() -> (Router, AppState) {

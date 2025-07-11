@@ -1,6 +1,6 @@
 use crate::templates::domains::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
+use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template_with_title};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -8,7 +8,6 @@ use axum::{
     response::Html,
     Form,
 };
-use crate::handlers::utils::is_htmx_request;
 
 pub async fn list(
     State(state): State<AppState>,
@@ -110,7 +109,7 @@ pub async fn list(
         backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
         backups_empty_get_started: &translations["backups-empty-get-started"],
     };
-    render_template!(content_template, &state, &locale, &headers)
+    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
@@ -157,7 +156,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_tooltip_transport: &translations["form-tooltip-transport"],
         form_tooltip_enable: &translations["form-tooltip-enable"],
     };
-    render_template!(content_template, &state, &locale, &headers)
+    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
 }
 
 pub async fn show(
@@ -268,7 +267,7 @@ pub async fn show(
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
     };
-    render_template!(content_template, &state, &locale, &headers)
+    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
 }
 
 pub async fn edit(

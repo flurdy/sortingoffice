@@ -1,6 +1,6 @@
 use crate::templates::users::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template};
+use crate::{db, i18n::get_translation, models::*, AppState, get_entity_or_not_found, render_template, render_template_with_title};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -185,7 +185,7 @@ pub async fn list(
         page_range: page_range,
         max_item,
     };
-    render_template!(content_template, &state, &locale, &headers)
+    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {

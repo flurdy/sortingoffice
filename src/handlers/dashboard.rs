@@ -1,6 +1,5 @@
 use crate::templates::dashboard::DashboardTemplate;
-use crate::templates::layout::BaseTemplate;
-use crate::{db, AppState, get_system_stats_or_default, render_template};
+use crate::{db, AppState, get_system_stats_or_default, render_template_with_title};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
@@ -118,6 +117,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         stats,
     };
 
-    // Use the new render template macro
-    render_template!(content_template, &state, &locale, &headers)
+    // Use the new render template macro with title
+    render_template_with_title!(content_template, content_template.title, &state, &locale, &headers)
 }

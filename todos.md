@@ -43,15 +43,13 @@ Go over the Rust code to see if there is any duplication we can make cleaner.
 
 when filling in an alias destination we could have an inline search for an existing alias, whilst still support adding unknown destinations.
 
-create a few functional testing journeys
+create a few longer functional testing journeys
 
 please add support for multiple databases as this will manage several servers
 
 Lets discuss how we can support different databases with different field names.
 
 Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates.
-
-Add Dutch translation
 
 Add German translation
 

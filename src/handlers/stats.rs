@@ -1,6 +1,5 @@
-use crate::templates::layout::BaseTemplate;
 use crate::templates::stats::StatsTemplate;
-use crate::{db, i18n::get_translation, AppState, get_system_stats_or_default, render_template};
+use crate::{db, AppState, get_system_stats_or_default, render_template};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 

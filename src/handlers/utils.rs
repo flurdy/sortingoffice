@@ -1,4 +1,4 @@
-use crate::{AppState, i18n::get_translation, default_system_stats};
+use crate::{AppState, i18n::get_translation};
 use axum::http::HeaderMap;
 use axum::response::Html;
 use askama::Template;
@@ -39,6 +39,46 @@ macro_rules! render_template {
         } else {
             let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
                 "".to_string(), // Title will be set by the template
+                content,
+                $state,
+                $locale,
+            ).await {
+                Ok(template) => template,
+                Err(e) => {
+                    tracing::error!("Failed to create base template: {:?}", e);
+                    return Html("Error creating template".to_string());
+                }
+            };
+
+            match base_template.render() {
+                Ok(content) => Html(content),
+                Err(e) => {
+                    tracing::error!("Failed to render base template: {:?}", e);
+                    Html("Error rendering template".to_string())
+                }
+            }
+        }
+    }};
+}
+
+/// Macro to create a template with title support
+/// Usage: let html = render_template_with_title!(template_instance, title, &state, &locale, &headers);
+#[macro_export]
+macro_rules! render_template_with_title {
+    ($template:expr, $title:expr, $state:expr, $locale:expr, $headers:expr) => {{
+        let content = match $template.render() {
+            Ok(content) => content,
+            Err(e) => {
+                tracing::error!("Failed to render template: {:?}", e);
+                return Html("Error rendering template".to_string());
+            }
+        };
+
+        if crate::handlers::utils::is_htmx_request($headers) {
+            Html(content)
+        } else {
+            let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+                $title.to_string(),
                 content,
                 $state,
                 $locale,

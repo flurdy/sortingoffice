@@ -165,25 +165,69 @@ mod tests {
         // Test SystemStats creation
         let system_stats = SystemStats {
             total_domains: 5,
-            total_users: 25,
-            total_aliases: 50,
-            total_backups: 3,
-            total_relays: 2,
-            total_relocated: 1,
-            total_clients: 10,
-            total_quota: 10000000,
-            used_quota: 5000000,
+            enabled_domains: 3,
+            disabled_domains: 2,
+            recent_domains: 1,
+            total_users: 10,
+            enabled_users: 8,
+            disabled_users: 2,
+            recent_users: 3,
+            total_aliases: 15,
+            enabled_aliases: 12,
+            disabled_aliases: 3,
+            recent_aliases: 4,
+            total_backups: 2,
+            enabled_backups: 1,
+            disabled_backups: 1,
+            recent_backups: 0,
+            total_relays: 3,
+            enabled_relays: 2,
+            disabled_relays: 1,
+            recent_relays: 1,
+            total_relocated: 4,
+            enabled_relocated: 3,
+            disabled_relocated: 1,
+            recent_relocated: 2,
+            total_clients: 6,
+            enabled_clients: 5,
+            disabled_clients: 1,
+            recent_clients: 2,
+            total_quota: 1000000000,
+            used_quota: 250000000,
+            quota_usage_percent: 25.0,
         };
 
         assert_eq!(system_stats.total_domains, 5);
-        assert_eq!(system_stats.total_users, 25);
-        assert_eq!(system_stats.total_aliases, 50);
-        assert_eq!(system_stats.total_backups, 3);
-        assert_eq!(system_stats.total_relays, 2);
-        assert_eq!(system_stats.total_relocated, 1);
-        assert_eq!(system_stats.total_clients, 10);
-        assert_eq!(system_stats.total_quota, 10000000);
-        assert_eq!(system_stats.used_quota, 5000000);
+        assert_eq!(system_stats.enabled_domains, 3);
+        assert_eq!(system_stats.disabled_domains, 2);
+        assert_eq!(system_stats.recent_domains, 1);
+        assert_eq!(system_stats.total_users, 10);
+        assert_eq!(system_stats.enabled_users, 8);
+        assert_eq!(system_stats.disabled_users, 2);
+        assert_eq!(system_stats.recent_users, 3);
+        assert_eq!(system_stats.total_aliases, 15);
+        assert_eq!(system_stats.enabled_aliases, 12);
+        assert_eq!(system_stats.disabled_aliases, 3);
+        assert_eq!(system_stats.recent_aliases, 4);
+        assert_eq!(system_stats.total_backups, 2);
+        assert_eq!(system_stats.enabled_backups, 1);
+        assert_eq!(system_stats.disabled_backups, 1);
+        assert_eq!(system_stats.recent_backups, 0);
+        assert_eq!(system_stats.total_relays, 3);
+        assert_eq!(system_stats.enabled_relays, 2);
+        assert_eq!(system_stats.disabled_relays, 1);
+        assert_eq!(system_stats.recent_relays, 1);
+        assert_eq!(system_stats.total_relocated, 4);
+        assert_eq!(system_stats.enabled_relocated, 3);
+        assert_eq!(system_stats.disabled_relocated, 1);
+        assert_eq!(system_stats.recent_relocated, 2);
+        assert_eq!(system_stats.total_clients, 6);
+        assert_eq!(system_stats.enabled_clients, 5);
+        assert_eq!(system_stats.disabled_clients, 1);
+        assert_eq!(system_stats.recent_clients, 2);
+        assert_eq!(system_stats.total_quota, 1000000000);
+        assert_eq!(system_stats.used_quota, 250000000);
+        assert_eq!(system_stats.quota_usage_percent, 25.0);
 
         // Test DomainStats creation
         let domain_stats = DomainStats {
