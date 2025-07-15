@@ -130,6 +130,9 @@ async fn build_user_form_template(
         users_change_password: get_translation(state, locale, "users-change-password").await,
         users_change_password_tooltip: get_translation(state, locale, "users-change-password-tooltip").await,
         users_placeholder_password: get_translation(state, locale, "users-placeholder-password").await,
+        password_management_title: get_translation(state, locale, "password-management-title").await,
+        change_password_button: get_translation(state, locale, "change-password-button").await,
+        toggle_change_password_button: get_translation(state, locale, "toggle-change-password-button").await,
         cancel: get_translation(state, locale, "users-cancel").await,
         create_user: get_translation(state, locale, "users-create-user").await,
         update_user: get_translation(state, locale, "users-update-user").await,
@@ -267,6 +270,9 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         users_change_password: get_translation(&state, &locale, "users-change-password").await,
         users_change_password_tooltip: get_translation(&state, &locale, "users-change-password-tooltip").await,
         users_placeholder_password: get_translation(&state, &locale, "users-placeholder-password").await,
+        password_management_title: get_translation(&state, &locale, "password-management-title").await,
+        change_password_button: get_translation(&state, &locale, "change-password-button").await,
+        toggle_change_password_button: get_translation(&state, &locale, "toggle-change-password-button").await,
         cancel: translations["form-cancel"].to_string(),
         create_user: translations["form-create-user"].to_string(),
         update_user: translations["form-update-user"].to_string(),
@@ -772,5 +778,101 @@ pub async fn toggle_enabled_show(
             Html(content_template.render().unwrap())
         }
         Err(_) => Html("Failed to toggle user status".to_string()),
+    }
+}
+
+// --- Password management handlers ---
+
+pub async fn change_password(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
+        .expect("Failed to get database pool");
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    let user = match db::get_user(&pool, id) {
+        Ok(user) => user,
+        Err(_) => return Html("User not found".to_string()),
+    };
+
+    // For now, just reload the show page (future: show dedicated password form)
+    let content_template = build_user_show_template(&state, &locale, user).await;
+    let content = content_template.render().unwrap();
+
+    if crate::handlers::utils::is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, &locale, "users-show-title").await,
+            content,
+            &state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        .unwrap();
+        Html(template.render().unwrap())
+    }
+}
+
+pub async fn toggle_change_password(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
+        .expect("Failed to get database pool");
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    let user = match db::get_user(&pool, id) {
+        Ok(user) => user,
+        Err(_) => return Html("User not found".to_string()),
+    };
+
+    // Toggle the change_password field
+    let form = UserForm {
+        id: user.id.clone(),
+        password: "".to_string(),
+        name: user.name.clone(),
+        enabled: user.enabled,
+        change_password: !user.change_password, // Toggle the value
+    };
+
+    // Update the user with the toggled change_password field
+    match db::update_user(&pool, id, form) {
+        Ok(_) => {
+            // Get the updated user
+            let updated_user = match db::get_user(&pool, id) {
+                Ok(user) => user,
+                Err(_) => return Html("User not found".to_string()),
+            };
+
+            let content_template = build_user_show_template(&state, &locale, updated_user).await;
+            let content = content_template.render().unwrap();
+
+            if crate::handlers::utils::is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, &locale, "users-show-title").await,
+                    content,
+                    &state,
+                    &locale,
+                    current_db_label,
+                    current_db_id,
+                )
+                .await
+                .unwrap();
+                Html(template.render().unwrap())
+            }
+        }
+        Err(_) => Html("Failed to toggle change password field".to_string()),
     }
 }

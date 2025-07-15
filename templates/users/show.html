@@ -29,9 +29,15 @@
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ full_name }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ user.name }}</dd>
                 </div>
-
-                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Password Change Required</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
+                        {% if user.change_password %}
+                        <span class="inline-flex rounded-full bg-orange-100 dark:bg-orange-900 px-2 text-xs font-semibold leading-5 text-orange-800 dark:text-orange-200">Yes</span>
+                        {% else %}
+                        <span class="inline-flex rounded-full bg-gray-100 dark:bg-gray-900 px-2 text-xs font-semibold leading-5 text-gray-800 dark:text-gray-200">No</span>
+                        {% endif %}
+                    </dd>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ status }}</dt>
@@ -57,24 +63,45 @@
 
     <!-- Actions -->
     <div class="mt-6 flex space-x-3">
-        <button 
-            hx-get="/users/{{ user.pkid }}/edit" 
+        <button
+            hx-get="/users/{{ user.pkid }}/edit"
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
             {{ edit_user }}
         </button>
-        <button 
-            hx-post="/users/{{ user.pkid }}/toggle-show" 
+        <button
+            hx-post="/users/{{ user.pkid }}/toggle-show"
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             {% if user.enabled %}{{ disable_user }}{% else %}{{ enable_user }}{% endif %}
         </button>
-        <button 
-            hx-delete="/users/{{ user.pkid }}" 
-            hx-target="#main-content" 
+        <button
+            hx-delete="/users/{{ user.pkid }}"
+            hx-target="#main-content"
             hx-confirm="{{ delete_confirm }}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
             {{ delete_user }}
         </button>
     </div>
-</div> 
+
+    <!-- Password Management -->
+    <div class="mt-6 bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Password Management</h2>
+        <div class="flex space-x-3">
+            <button
+                type="button"
+                hx-get="/users/{{ user.pkid }}/change-password"
+                hx-target="#main-content"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                Change Password
+            </button>
+            <button
+                type="button"
+                hx-post="/users/{{ user.pkid }}/toggle-change-password"
+                hx-target="#main-content"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                Require Password Change
+            </button>
+        </div>
+    </div>
+</div>
