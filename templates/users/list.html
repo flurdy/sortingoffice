@@ -50,9 +50,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-3">
                                         <a href="/users/{{ user.pkid }}" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-primary-700 dark:text-blue-200 bg-primary-50 dark:bg-blue-900 hover:bg-primary-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">{{ action_view }}</a>
-                                        <button 
-                                            hx-post="/users/{{ user.pkid }}/toggle-list" 
-                                            hx-target="#main-content" 
+                                        <button
+                                            hx-post="/users/{{ user.pkid }}/toggle-list"
+                                            hx-target="#main-content"
                                             class="inline-flex items-center justify-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-16">
                                             {% if user.enabled %}{{ disable_user }}{% else %}{{ enable_user }}{% endif %}
                                         </button>
@@ -111,7 +111,7 @@
                         </svg>
                     </a>
                     {% endif %}
-                    
+
                     {% for page_num in page_range %}
                         {% if *page_num == pagination.current_page %}
                         <span class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ page_num }}</span>
@@ -121,7 +121,7 @@
                         <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
                         {% endif %}
                     {% endfor %}
-                    
+
                     {% if pagination.has_next %}
                     <a href="?page={{ pagination.current_page + 1 }}&per_page={{ pagination.per_page }}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                         <span class="sr-only">Next</span>
@@ -136,4 +136,4 @@
     </div>
     {% endif %}
     {% endif %}
-</div> 
+</div>

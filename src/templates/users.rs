@@ -65,6 +65,9 @@ pub struct UserFormTemplate {
     pub tooltip_name: String,
 
     pub tooltip_active: String,
+    pub users_change_password: String,
+    pub users_change_password_tooltip: String,
+    pub users_placeholder_password: String,
     pub cancel: String,
     pub create_user: String,
     pub update_user: String,

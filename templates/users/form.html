@@ -32,7 +32,7 @@
                     </svg>
                 </button>
             </div>
-            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" name="password" type="password">
+            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" name="password" type="password" placeholder="{{ users_placeholder_password }}">
         </div>
         <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
@@ -63,9 +63,9 @@
                 </button>
             </div>
             <div class="flex items-center mt-2">
-                <input class="mr-2 leading-tight" type="checkbox" id="change_password" name="change_password" title="Require password change on next login" placeholder="Require password change" {% if form.change_password %}checked{% endif %}>
+                <input class="mr-2 leading-tight" type="checkbox" id="change_password" name="change_password" title="{{ users_change_password_tooltip }}" {% if form.change_password %}checked{% endif %}>
                 <label class="text-sm text-gray-700 dark:text-gray-300" for="change_password">
-                    Require password change
+                    {{ users_change_password }}
                 </label>
             </div>
         </div>

@@ -323,10 +323,13 @@ users-status = Status
 users-created = Created
 users-modified = Modified
 users-edit-user = Edit User
-users-enable-user = Enable User
-users-disable-user = Disable User
+users-enable-user = Enable
+users-disable-user = Disable
 users-delete-user = Delete User
 users-delete-confirm = Are you sure you want to delete this user?
+users-edit-user-button = Edit User
+users-enable-user-button = Enable
+users-disable-user-button = Disable
 users-new-user = New User
 users-edit-user-title = Edit User
 users-form-user-id = User ID
@@ -342,6 +345,21 @@ users-tooltip-active = Enable this user account
 users-cancel = Cancel
 users-create-user = Create User
 users-update-user = Update User
+users-change-password = Require password change
+users-change-password-tooltip = Require password change on next login
+users-placeholder-password = Enter new password (leave empty to keep existing)
+
+# Form actions
+form-create-user = Create User
+form-update-user = Update User
+form-cancel = Cancel
+form-placeholder-username = user@example.com
+form-placeholder-password = Enter new password (leave empty to keep existing)
+form-placeholder-name = John Doe
+form-tooltip-username = The email address for the user account (e.g., user@example.com)
+form-tooltip-password = The password for the user account (leave empty to keep existing password when editing)
+form-tooltip-name = The display name for the user (e.g., John Doe)
+form-tooltip-enable = Enable this user account
 
 # Statistics
 stats-title = Statistics
