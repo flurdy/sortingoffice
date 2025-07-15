@@ -11,6 +11,13 @@ use axum::{
     response::Html,
     Form,
 };
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct ChangePasswordForm {
+    pub new_password: String,
+    pub confirm_password: String,
+}
 
 // Helper function to get current database info
 async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (String, String) {
@@ -783,7 +790,8 @@ pub async fn toggle_enabled_show(
 
 // --- Password management handlers ---
 
-pub async fn change_password(
+// GET handler for change password form
+pub async fn change_password_form(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     headers: HeaderMap,
@@ -791,33 +799,57 @@ pub async fn change_password(
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
-    let locale = crate::handlers::language::get_user_locale(&headers);
-
     let user = match db::get_user(&pool, id) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
+    let content = render_change_password_form(&user, None);
+    Html(content)
+}
 
-    // For now, just reload the show page (future: show dedicated password form)
-    let content_template = build_user_show_template(&state, &locale, user).await;
-    let content = content_template.render().unwrap();
-
-    if crate::handlers::utils::is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "users-show-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
+// POST handler for change password form
+pub async fn change_password_post(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+    Form(form): Form<ChangePasswordForm>,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
-        .unwrap();
-        Html(template.render().unwrap())
+        .expect("Failed to get database pool");
+    let locale = crate::handlers::language::get_user_locale(&headers);
+    let user = match db::get_user(&pool, id) {
+        Ok(user) => user,
+        Err(_) => return Html("User not found".to_string()),
+    };
+    if form.new_password != form.confirm_password {
+        let content = render_change_password_form(&user, Some("Passwords do not match".to_string()));
+        return Html(content);
     }
+    if form.new_password.len() < 8 {
+        let content = render_change_password_form(&user, Some("Password must be at least 8 characters".to_string()));
+        return Html(content);
+    }
+    match db::update_user_password(&pool, id, &form.new_password) {
+        Ok(_) => {
+            let content_template = build_user_show_template(&state, &locale, user).await;
+            let content = content_template.render().unwrap();
+            Html(content)
+        }
+        Err(_) => {
+            let content = render_change_password_form(&user, Some("Failed to update password".to_string()));
+            Html(content)
+        }
+    }
+}
+
+fn render_change_password_form(user: &User, error: Option<String>) -> String {
+    use crate::templates::users::ChangePasswordTemplate;
+    let template = ChangePasswordTemplate {
+        user: user.clone(),
+        error,
+    };
+    template.render().unwrap()
 }
 
 pub async fn toggle_change_password(

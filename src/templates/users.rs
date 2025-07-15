@@ -68,6 +68,9 @@ pub struct UserFormTemplate {
     pub users_change_password: String,
     pub users_change_password_tooltip: String,
     pub users_placeholder_password: String,
+    pub password_management_title: String,
+    pub change_password_button: String,
+    pub toggle_change_password_button: String,
     pub cancel: String,
     pub create_user: String,
     pub update_user: String,
@@ -75,5 +78,12 @@ pub struct UserFormTemplate {
     pub edit_user_title: String,
     pub user: Option<User>,
     pub form: UserForm,
+    pub error: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "users/change_password.html", escape = "html")]
+pub struct ChangePasswordTemplate {
+    pub user: User,
     pub error: Option<String>,
 }

@@ -348,6 +348,9 @@ users-update-user = Update User
 users-change-password = Require password change
 users-change-password-tooltip = Require password change on next login
 users-placeholder-password = Enter new password (leave empty to keep existing)
+password-management-title = Password Management
+change-password-button = Change Password
+toggle-change-password-button = Toggle
 
 # Form actions
 form-create-user = Create User

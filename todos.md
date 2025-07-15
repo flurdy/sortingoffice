@@ -86,6 +86,8 @@ In the add and edit user page the buttons have no text as well as some field pla
 
 editing users should not show the password field, instead we should add a separate change password form, and an alternative button to just toggle the change_password field
 
+There are missing translations for text, headers and buttons for all the user pages.
+
 Add some seed data for relocated, clients and relays as well.
 
 When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination.

@@ -347,6 +347,21 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
     get_user(pool, user_id)
 }
 
+pub fn update_user_password(pool: &DbPool, user_id: i32, new_password: &str) -> Result<(), Error> {
+    let mut conn = pool.get().unwrap();
+    let hashed_password = bcrypt::hash(new_password.as_bytes(), bcrypt::DEFAULT_COST)
+        .map_err(|e| {
+            Error::DatabaseError(
+                diesel::result::DatabaseErrorKind::Unknown,
+                Box::new(e.to_string()),
+            )
+        })?;
+    diesel::update(users::table.find(user_id))
+        .set((users::crypt.eq(hashed_password), users::modified.eq(Utc::now().naive_utc())))
+        .execute(&mut conn)?;
+    Ok(())
+}
+
 pub fn delete_user(pool: &DbPool, user_id: i32) -> Result<usize, Error> {
     let mut conn = pool.get().unwrap();
     diesel::delete(users::table.find(user_id)).execute(&mut conn)

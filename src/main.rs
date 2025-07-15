@@ -181,6 +181,9 @@ async fn main() {
             post(handlers::users::toggle_enabled_show),
         )
         .route("/users/{id}/toggle", post(handlers::users::toggle_enabled))
+        .route("/users/{id}/change-password", get(handlers::users::change_password_form))
+        .route("/users/{id}/change-password", post(handlers::users::change_password_post))
+        .route("/users/{id}/toggle-change-password", post(handlers::users::toggle_change_password))
         // Alias edit operations
         .route("/aliases", post(handlers::aliases::create))
         .route("/aliases/new", get(handlers::aliases::new))
