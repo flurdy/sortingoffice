@@ -32,4 +32,30 @@ INSERT INTO backups (domain, transport, enabled) VALUES
 ('mx2.example.org', 'smtp:relay.example.org', 1),
 ('fallback.example.net', 'smtp:backup.example.net', 0);
 
--- Note: The crypt field contains bcrypt hashes for 'password123' 
+-- Seed data for relocated (no foreign key constraints)
+INSERT INTO relocated (old_address, new_address, enabled) VALUES
+('olduser@example.com', 'newuser@example.org', 1),
+('former.employee@example.com', 'hr@example.com', 1),
+('support@oldcompany.com', 'help@newcompany.com', 1),
+('info@legacy-domain.com', 'contact@current-domain.com', 0),
+('admin@deprecated.com', 'administrator@active.com', 1);
+
+-- Seed data for relays (no foreign key constraints)
+INSERT INTO relays (recipient, status, enabled) VALUES
+('relay1@example.com', 'allowed', 1),
+('relay2@example.org', 'allowed', 1),
+('relay3@test.com', 'rejected', 0),
+('backup-relay@example.com', 'allowed', 1),
+('external-relay@partner.com', 'allowed', 1),
+('blocked-relay@spam.com', 'rejected', 1);
+
+-- Seed data for clients (no foreign key constraints)
+INSERT INTO clients (client, status) VALUES
+('192.168.1.100', 'allowed'),
+('192.168.1.101', 'allowed'),
+('10.0.0.50', 'allowed'),
+('172.16.0.25', 'rejected'),
+('203.0.113.10', 'allowed'),
+('198.51.100.5', 'rejected');
+
+-- Note: The crypt field contains bcrypt hashes for 'password123'

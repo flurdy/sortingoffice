@@ -11,7 +11,10 @@ seed_data/
 ├── domains.sql        # Domain seed data only
 ├── users.sql          # User seed data only
 ├── aliases.sql        # Alias seed data only
-└── backups.sql        # Backup MX seed data only
+├── backups.sql        # Backup MX seed data only
+├── relocated.sql      # Relocated email seed data only
+├── relays.sql         # Relay recipients seed data only
+└── clients.sql        # Client IP seed data only
 ```
 
 ## Usage
@@ -27,6 +30,9 @@ make seed-domains    # Load only domains
 make seed-users      # Load only users
 make seed-aliases    # Load only aliases
 make seed-backups    # Load only backups
+make seed-relocated  # Load only relocated
+make seed-relays     # Load only relays
+make seed-clients    # Load only clients
 ```
 
 ### Manual Loading
@@ -39,6 +45,9 @@ mysql -u root -p sortingoffice < seed_data/domains.sql
 mysql -u root -p sortingoffice < seed_data/users.sql
 mysql -u root -p sortingoffice < seed_data/aliases.sql
 mysql -u root -p sortingoffice < seed_data/backups.sql
+mysql -u root -p sortingoffice < seed_data/relocated.sql
+mysql -u root -p sortingoffice < seed_data/relays.sql
+mysql -u root -p sortingoffice < seed_data/clients.sql
 ```
 
 ## Data Dependencies
@@ -49,6 +58,9 @@ The seed data files respect foreign key constraints:
 2. **users.sql** - No foreign key constraints (domain field removed)
 3. **aliases.sql** - No foreign key constraints (domain derived from mail field)
 4. **backups.sql** - No foreign key constraints
+5. **relocated.sql** - No foreign key constraints
+6. **relays.sql** - No foreign key constraints
+7. **clients.sql** - No foreign key constraints
 
 The `all.sql` file loads data in the correct order automatically.
 
@@ -77,6 +89,29 @@ The seed data includes:
 - `backup.example.com` (enabled)
 - `mx2.example.org` (enabled)
 - `fallback.example.net` (disabled)
+
+### Relocated
+- `olduser@example.com` → `newuser@example.org` (enabled)
+- `former.employee@example.com` → `hr@example.com` (enabled)
+- `support@oldcompany.com` → `help@newcompany.com` (enabled)
+- `info@legacy-domain.com` → `contact@current-domain.com` (disabled)
+- `admin@deprecated.com` → `administrator@active.com` (enabled)
+
+### Relays
+- `relay1@example.com` (allowed, enabled)
+- `relay2@example.org` (allowed, enabled)
+- `relay3@test.com` (rejected, disabled)
+- `backup-relay@example.com` (allowed, enabled)
+- `external-relay@partner.com` (allowed, enabled)
+- `blocked-relay@spam.com` (rejected, enabled)
+
+### Clients
+- `192.168.1.100` (allowed)
+- `192.168.1.101` (allowed)
+- `10.0.0.50` (allowed)
+- `172.16.0.25` (rejected)
+- `203.0.113.10` (allowed)
+- `198.51.100.5` (rejected)
 
 ## Customization
 
@@ -108,4 +143,4 @@ make seed
 - **Seed data is NOT part of migrations** - it won't be run automatically
 - **Seed data can be run multiple times** - use `INSERT IGNORE` or `ON DUPLICATE KEY UPDATE` if needed
 - **Seed data is for development/testing** - don't use production data in seed files
-- **Backup your data** before running seed data on production databases 
+- **Backup your data** before running seed data on production databases

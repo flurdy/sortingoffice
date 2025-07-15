@@ -81,14 +81,14 @@ Add some more reports
    - Domains missing required aliases and no catch-all
    - Check on an alias across all domains
 
-The users list says "disable user" instead of just "disable" on each button row.
-In the add and edit user page the buttons have no text as well as some field placeholders
+✅ The users list says "disable user" instead of just "disable" on each button row.
+✅ In the add and edit user page the buttons have no text as well as some field placeholders - IMPLEMENTED
 
-editing users should not show the password field, instead we should add a separate change password form, and an alternative button to just toggle the change_password field
+✅ editing users should not show the password field, instead we should add a separate change password form, and an alternative button to just toggle the change_password field - IMPLEMENTED
 
 There are missing translations for text, headers and buttons for all the user pages.
 
-Add some seed data for relocated, clients and relays as well.
+✅ Add some seed data for relocated, clients and relays as well. - IMPLEMENTED
 
 When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination.
 

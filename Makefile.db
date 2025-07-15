@@ -78,6 +78,33 @@ seed-backups:
 		echo "❌ seed_data/backups.sql not found!"; \
 	fi
 
+seed-relocated:
+	@echo "🌱 Seeding relocated table..."
+	@if [ -f "seed_data/relocated.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/relocated.sql; \
+		echo "✅ Relocated seeded successfully!"; \
+	else \
+		echo "❌ seed_data/relocated.sql not found!"; \
+	fi
+
+seed-relays:
+	@echo "🌱 Seeding relays table..."
+	@if [ -f "seed_data/relays.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/relays.sql; \
+		echo "✅ Relays seeded successfully!"; \
+	else \
+		echo "❌ seed_data/relays.sql not found!"; \
+	fi
+
+seed-clients:
+	@echo "🌱 Seeding clients table..."
+	@if [ -f "seed_data/clients.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/clients.sql; \
+		echo "✅ Clients seeded successfully!"; \
+	else \
+		echo "❌ seed_data/clients.sql not found!"; \
+	fi
+
 create-seed-data:
 	@echo "📝 Creating default seed data files..."
 	@mkdir -p seed_data
@@ -148,6 +175,24 @@ list-users:
 count-users:
 	@$(MYSQL_CMD) "SELECT COUNT(*) FROM users;"
 
+list-relocated:
+	@$(MYSQL_CMD) "SELECT * FROM relocated;"
+
+count-relocated:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM relocated;"
+
+list-relays:
+	@$(MYSQL_CMD) "SELECT * FROM relays;"
+
+count-relays:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM relays;"
+
+list-clients:
+	@$(MYSQL_CMD) "SELECT * FROM clients;"
+
+count-clients:
+	@$(MYSQL_CMD) "SELECT COUNT(*) FROM clients;"
+
 # Help for database operations
 db-help:
 	@echo "🗄️  Database Management Commands"
@@ -165,6 +210,9 @@ db-help:
 	@echo "  make seed-users        - Seed only users table"
 	@echo "  make seed-aliases      - Seed only aliases table"
 	@echo "  make seed-backups      - Seed only backups table"
+	@echo "  make seed-relocated    - Seed only relocated table"
+	@echo "  make seed-relays       - Seed only relays table"
+	@echo "  make seed-clients      - Seed only clients table"
 	@echo "  make create-seed-data  - Create default seed data files"
 	@echo ""
 	@echo "Test Database:"
@@ -183,3 +231,9 @@ db-help:
 	@echo "  make count-aliases     - Count all aliases"
 	@echo "  make list-users        - List all users"
 	@echo "  make count-users       - Count all users"
+	@echo "  make list-relocated    - List all relocated"
+	@echo "  make count-relocated   - Count all relocated"
+	@echo "  make list-relays       - List all relays"
+	@echo "  make count-relays      - Count all relays"
+	@echo "  make list-clients      - List all clients"
+	@echo "  make count-clients     - Count all clients"
