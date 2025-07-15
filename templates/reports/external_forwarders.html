@@ -1,0 +1,76 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ title }}
+      </h1>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <a
+        href="/reports"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto"
+      >
+        Back to Reports
+      </a>
+    </div>
+  </div>
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
+    External Forwarders
+  </h2>
+  <table
+    class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+  >
+    <thead class="bg-gray-50 dark:bg-gray-700">
+      <tr>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Mail
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Destination
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Domain
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Enabled
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Created
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+    >
+      {% for fwd in report.external_forwarders %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ fwd.mail }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ fwd.destination }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ fwd.domain }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ fwd.enabled }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ fwd.created }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -25,6 +25,7 @@ pub struct AliasPrefill {
 #[derive(serde::Deserialize)]
 pub struct AliasSearchQuery {
     pub destination: Option<String>,
+    pub alias: Option<String>,
     pub limit: Option<i64>,
 }
 
@@ -1432,31 +1433,52 @@ pub async fn search(
         .await
         .expect("Failed to get database pool");
 
-    // Handle empty or missing query
-    let query_string = match &query.destination {
-        Some(q) if q.len() >= 2 => q,
-        _ => {
-            let locale = crate::handlers::utils::get_user_locale(&headers);
-            let translations = crate::handlers::utils::get_translations_batch(
-                &state,
-                &locale,
-                &["aliases-search-no-results", "aliases-search-select"],
-            )
-            .await;
-            let content_template = AliasSearchResultsTemplate {
-                aliases: &[],
-                no_results: &translations["aliases-search-no-results"],
-                select_text: &translations["aliases-search-select"],
-            };
-            return Html(content_template.render().unwrap());
+    // Determine which search type to use and get the query string
+    let (query_string, search_type) = if let Some(alias_query) = &query.alias {
+        if alias_query.len() >= 2 {
+            (alias_query.clone(), "alias")
+        } else {
+            (String::new(), "none")
         }
+    } else if let Some(dest_query) = &query.destination {
+        if dest_query.len() >= 2 {
+            (dest_query.clone(), "destination")
+        } else {
+            (String::new(), "none")
+        }
+    } else {
+        (String::new(), "none")
     };
 
+    // Handle empty or missing query
+    if query_string.is_empty() {
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["aliases-search-no-results", "aliases-search-select"],
+        )
+        .await;
+        let content_template = AliasSearchResultsTemplate {
+            aliases: &[],
+            no_results: &translations["aliases-search-no-results"],
+            select_text: &translations["aliases-search-select"],
+        };
+        return Html(content_template.render().unwrap());
+    }
+
     let limit = query.limit.unwrap_or(10);
-    let search_results = match db::search_aliases(&pool, query_string, limit) {
+    let search_results = match search_type {
+        "alias" => db::search_aliases_by_name(&pool, &query_string, limit),
+        "destination" => db::search_aliases(&pool, &query_string, limit),
+        _ => Ok(vec![]),
+    };
+
+    let aliases = match search_results {
         Ok(aliases) => aliases,
         Err(_) => vec![],
     };
+
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
@@ -1465,7 +1487,7 @@ pub async fn search(
     )
     .await;
     let content_template = AliasSearchResultsTemplate {
-        aliases: &search_results,
+        aliases: &aliases,
         no_results: &translations["aliases-search-no-results"],
         select_text: &translations["aliases-search-select"],
     };

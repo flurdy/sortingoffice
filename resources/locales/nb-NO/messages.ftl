@@ -491,6 +491,18 @@ reports-list-title = "Rapporter"
 reports-list-description = "Vis og analyser e-postserverdata med omfattende rapporter"
 reports-view-report = "Vis rapport"
 
+# Orphaned Aliases & Users Report
+reports-orphaned-aliases-title = "Foreldreløse aliaser og brukere rapport"
+reports-orphaned-aliases-description = "Finn aliaser som refererer til ikke-eksisterende brukere eller domener, og brukere som eksisterer men ikke har tilknyttede aliaser"
+
+# External Forwarders Report
+reports-external-forwarders-title = "Eksterne videresendinger rapport"
+reports-external-forwarders-description = "Finn aliaser som videresender til eksterne domener"
+
+# Alias Cross-Domain Report
+reports-alias-cross-domain-title = "Alias på tvers av domener rapport"
+reports-alias-cross-domain-description = "Søk etter et spesifikt alias på tvers av alle domener"
+
 # Domain Alias Report
 domains-alias-report-title = "Aliasrapport"
 domains-alias-report-description = "Oversikt over catch-all, påkrevde og vanlige aliaser for denne domenen"

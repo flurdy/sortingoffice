@@ -523,6 +523,8 @@ reports-actions-header = "Actions"
 reports-no-required-aliases = "No required aliases found for this domain"
 reports-no-missing-aliases = "No missing required aliases for this domain"
 reports-catch-all-header = Catch-All Alias
+reports-no-domains = "No domains found"
+reports-no-domains-description = "No domains are configured in the system"
 
 # Configuration
 config-title = "Configuration"
@@ -579,6 +581,26 @@ reports-legend-title = "Status Legend"
 reports-list-title = "Reports"
 reports-list-description = "View and analyze mail server data with comprehensive reports"
 reports-view-report = "View Report"
+
+# Matrix Report
+reports-matrix-title = "Domain Alias Matrix Report"
+reports-matrix-description = "Comprehensive overview of all domains and their alias status with visual indicators"
+
+# Orphaned Aliases & Users Report
+reports-orphaned-aliases-title = "Orphaned Aliases & Users Report"
+reports-orphaned-aliases-description = "Find aliases that reference non-existent users or domains, and users that exist but have no associated aliases"
+
+# External Forwarders Report
+reports-external-forwarders-title = "External Forwarders Report"
+reports-external-forwarders-description = "Find aliases that forward to external domains"
+
+# Missing Aliases Report
+reports-missing-aliases-title = "Missing Aliases Report"
+reports-missing-aliases-description = "Find domains missing required aliases and catch-all configurations"
+
+# Alias Cross-Domain Search Report
+reports-alias-cross-domain-title = "Alias Cross-Domain Search"
+reports-alias-cross-domain-description = "Search for aliases across all domains"
 
 # Domain Alias Report
 domains-alias-report-title = "Alias Report"

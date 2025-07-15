@@ -24,5 +24,34 @@ pub struct ReportsListTemplate<'a> {
     pub description: &'a str,
     pub matrix_report_title: &'a str,
     pub matrix_report_description: &'a str,
+    pub orphaned_aliases_report_title: &'a str,
+    pub orphaned_aliases_report_description: &'a str,
+    pub external_forwarders_report_title: &'a str,
+    pub external_forwarders_report_description: &'a str,
+    pub alias_cross_domain_report_title: &'a str,
+    pub alias_cross_domain_report_description: &'a str,
     pub view_report: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "reports/orphaned.html", escape = "html")]
+pub struct OrphanedReportTemplate<'a> {
+    pub title: &'a str,
+    pub report: &'a crate::models::OrphanedAliasReport,
+}
+
+#[derive(Template)]
+#[template(path = "reports/external_forwarders.html", escape = "html")]
+pub struct ExternalForwarderReportTemplate<'a> {
+    pub title: &'a str,
+    pub report: &'a crate::models::ExternalForwarderReport,
+}
+
+
+
+#[derive(Template)]
+#[template(path = "reports/alias_cross_domain.html", escape = "html")]
+pub struct AliasCrossDomainReportTemplate<'a> {
+    pub title: &'a str,
+    pub report: &'a crate::models::AliasCrossDomainReport,
 }

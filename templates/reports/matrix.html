@@ -1,7 +1,14 @@
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ title }}</h1>
-        <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ title }}</h1>
+            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">{{ description }}</p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="/reports" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
+                Back to Reports
+            </a>
+        </div>
     </div>
 
     <!-- Legend -->
@@ -67,14 +74,14 @@
                             {{ domain_row.domain }}
                         </a>
                     </td>
-                    
+
                     <!-- Catch-All Status -->
                     <td class="px-6 py-4 whitespace-nowrap text-center border-r border-gray-200 dark:border-gray-700">
                         <span class="text-2xl {{ domain_row.catch_all_status.css_class() }}" title="{{ domain_row.catch_all_status.tooltip() }}">
                             {{ domain_row.catch_all_status.symbol() }}
                         </span>
                     </td>
-                    
+
                     <!-- Required Aliases - Individual Columns -->
                     {% for required_alias in domain_row.required_aliases %}
                     <td class="px-3 py-4 whitespace-nowrap text-center border-r border-gray-200 dark:border-gray-700">
@@ -89,4 +96,4 @@
         </table>
     </div>
     {% endif %}
-</div> 
+</div>

@@ -119,6 +119,9 @@ async fn main() {
         .route("/stats", get(handlers::stats::index))
         .route("/reports", get(handlers::reports::reports_list))
         .route("/reports/matrix", get(handlers::reports::matrix_report))
+        .route("/reports/orphaned", get(handlers::reports::orphaned_report))
+        .route("/reports/external-forwarders", get(handlers::reports::external_forwarders_report))
+        .route("/reports/alias-cross-domain", get(handlers::reports::alias_cross_domain_report))
         // Configuration
         .route("/config", get(handlers::config::view_config))
         // Database selection

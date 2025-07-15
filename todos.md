@@ -67,13 +67,13 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Put inline css style and scripts in the header into separate files where suitable - IMPLEMENTED
 
-🔲 The dashboard stats should be changed to
+✅ The dashboard stats should be changed to
   - a combined enabled domains and backups total
   - an enabled aliases total
   - an enabled users total
   - The other stats belong and are already in the stats page
 
-In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
+✅ In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting - IMPLEMENTED
 
 Add some more reports
    - orphaned alias / users
@@ -81,9 +81,16 @@ Add some more reports
    - Domains missing required aliases and no catch-all
    - Check on an alias across all domains
 
-When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions?
+The users list says "disable user" instead of just "disable" on each button row.
+In the add and edit user page the buttons have no text as well as some field placeholders
 
-Can the database info in the header be a link to database selection
+editing users should not show the password field, instead we should add a separate change password form, and an alternative button to just toggle the change_password field
+
+Add some seed data for relocated, clients and relays as well.
+
+When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination.
+
+Can the database info in the header be a link to database selection, or even a drop down if not messy.
 
 In the show domain page can the existing aliases be shown above the missing ones.
 
@@ -92,3 +99,10 @@ In the show domain page can the existing aliases be shown above the missing ones
 Should we still use a CDN for HTMX and Tailwind?
 
 Lets discuss how we can support different databases with different field names.
+
+Document how we add remote prod databases
+  - add remote databases via SSH
+  - add remote databases running in AWS EC2 if the app is running in Kubernetes in DigitalOcean
+  - how we ensure no migration is run on those
+
+The /static folder should organise its content into "images" etc

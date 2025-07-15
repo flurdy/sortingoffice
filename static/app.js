@@ -8,11 +8,12 @@ function setTheme(theme) {
     document.documentElement.classList.toggle('dark', theme === 'dark');
 }
 
-// Initialize theme on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const theme = getTheme();
-    setTheme(theme);
-});
+// Theme is now initialized in the HTML head to prevent flash
+// This function is kept for compatibility but theme is already applied
+function initializeTheme() {
+  const theme = getTheme();
+  setTheme(theme);
+}
 
 // Theme toggle function
 function toggleTheme() {

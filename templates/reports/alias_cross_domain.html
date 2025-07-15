@@ -1,0 +1,156 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ title }}
+      </h1>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:flex-none">
+      <a
+        href="/reports"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto"
+      >
+        Back to Reports
+      </a>
+    </div>
+  </div>
+
+  <!-- Search Form -->
+  <div class="mt-6 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+    <form
+      method="GET"
+      action="/reports/alias-cross-domain"
+      class="flex gap-4 items-end"
+    >
+      <div class="flex-1">
+        <label
+          for="alias"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Search for Alias:
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            id="alias"
+            name="alias"
+            value="{{ report.alias }}"
+            placeholder="Enter alias name (e.g., admin, postmaster)"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
+            hx-get="/aliases/search"
+            hx-trigger="keyup changed delay:300ms"
+            hx-target="#alias-search-results"
+            hx-swap="innerHTML"
+            hx-indicator="#alias-search-indicator"
+            hx-include="[name='alias']"
+          />
+          <div
+            id="alias-search-indicator"
+            class="htmx-indicator absolute right-3 top-2"
+          >
+            <svg
+              class="animate-spin h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </div>
+          <div
+            id="alias-search-results"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto hidden"
+          ></div>
+        </div>
+      </div>
+      <button
+        type="submit"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
+        Search
+      </button>
+    </form>
+  </div>
+
+  {% if report.alias.len() > 0 %}
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
+    Alias Occurrences Across Domains for "{{ report.alias }}"
+  </h2>
+  {% else %}
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
+    Enter an alias name above to search for occurrences across domains
+  </h2>
+  {% endif %} {% if report.alias.len() > 0 %} {% if report.occurrences.len() > 0
+  %}
+  <table
+    class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+  >
+    <thead class="bg-gray-50 dark:bg-gray-700">
+      <tr>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Domain
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Mail
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Destination
+        </th>
+        <th
+          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+        >
+          Enabled
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+    >
+      {% for occ in report.occurrences %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ occ.domain }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ occ.mail }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ occ.destination }}
+        </td>
+        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {{ occ.enabled }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div
+    class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-md"
+  >
+    <p class="text-yellow-800 dark:text-yellow-200">
+      No occurrences found for alias "{{ report.alias }}" across any domains.
+    </p>
+  </div>
+  {% endif %} {% endif %}
+</div>
+
+<script src="/static/alias-cross-domain.js"></script>
