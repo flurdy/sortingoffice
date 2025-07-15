@@ -191,6 +191,7 @@ mod tests {
             total_quota: 1000000000,
             used_quota: 250000000,
             quota_usage_percent: 25.0,
+            enabled_domains_and_backups: 4,
         };
 
         let json = serde_json::to_string(&stats).unwrap();

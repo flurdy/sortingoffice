@@ -1,0 +1,48 @@
+/* Custom CSS for the application */
+
+/* Sidebar state management */
+#sidebar[data-sidebar-open="false"] {
+    transform: translateX(-100%) !important;
+}
+
+#sidebar[data-sidebar-open="true"] {
+    transform: translateX(0) !important;
+}
+
+/* Ensure sidebar is always visible on large screens by default */
+@media (min-width: 1024px) {
+    #sidebar {
+        transform: translateX(0) !important;
+    }
+}
+
+/* Logo styling */
+.logo-image {
+    object-fit: contain;
+    filter: drop-shadow(0 0 1px #222);
+}
+
+/* Footer logo styling */
+.footer-logo {
+    height: 1.15rem;
+    max-width: 120px;
+    object-fit: contain;
+}
+
+/* Progress bar animation */
+.progress-bar {
+    transition: width 0.3s ease-in-out;
+}
+
+/* HTMX indicator styling */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: block;
+}
+
+.htmx-request.htmx-indicator {
+    display: block;
+}

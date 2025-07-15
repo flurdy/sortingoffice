@@ -205,6 +205,7 @@ macro_rules! default_system_stats {
             total_quota: 0,
             used_quota: 0,
             quota_usage_percent: 0.0,
+            enabled_domains_and_backups: 0,
         }
     }};
 }

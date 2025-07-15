@@ -31,121 +31,15 @@
             }
         }
     </script>
-    <style>
-        /* Sidebar state management */
-        #sidebar[data-sidebar-open="false"] {
-            transform: translateX(-100%) !important;
-        }
-        #sidebar[data-sidebar-open="true"] {
-            transform: translateX(0) !important;
-        }
-
-        /* Ensure sidebar is always visible on large screens by default */
-        @media (min-width: 1024px) {
-            #sidebar {
-                transform: translateX(0) !important;
-            }
-        }
-    </style>
-    <script>
-        // Theme management
-        function getTheme() {
-            return localStorage.getItem('theme') || 'light';
-        }
-
-        function setTheme(theme) {
-            localStorage.setItem('theme', theme);
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-        }
-
-        // Initialize theme on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const theme = getTheme();
-            setTheme(theme);
-        });
-
-        // Theme toggle function
-        function toggleTheme() {
-            const currentTheme = getTheme();
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-            // Send request to server
-            fetch('/theme/toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `theme=${currentTheme}`
-            })
-            .then(response => response.text())
-            .then(newTheme => {
-                setTheme(newTheme);
-            })
-            .catch(error => {
-                console.error('Error toggling theme:', error);
-                // Fallback to client-side only
-                setTheme(newTheme);
-            });
-        }
-
-        // Language dropdown toggle function
-        function toggleLanguageDropdown() {
-            const dropdown = document.getElementById('language-dropdown');
-            dropdown.classList.toggle('hidden');
-        }
-
-        // Close language dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('language-dropdown');
-            const button = event.target.closest('button[onclick="toggleLanguageDropdown()"]');
-
-            if (!button && !dropdown.contains(event.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-
-        // Sidebar toggle function
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const isOpen = sidebar.getAttribute('data-sidebar-open') === 'true';
-            sidebar.setAttribute('data-sidebar-open', !isOpen);
-        }
-
-        // Handle window resize to ensure proper sidebar state
-        window.addEventListener('resize', function() {
-            const sidebar = document.getElementById('sidebar');
-            const isLargeScreen = window.innerWidth >= 1024;
-
-            if (isLargeScreen) {
-                // On large screens, ensure sidebar is visible
-                sidebar.setAttribute('data-sidebar-open', 'true');
-            } else {
-                // On small screens, keep current state or default to closed
-                if (sidebar.getAttribute('data-sidebar-open') === null) {
-                    sidebar.setAttribute('data-sidebar-open', 'false');
-                }
-            }
-        });
-
-        // Initialize sidebar state on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const isLargeScreen = window.innerWidth >= 1024;
-
-            if (isLargeScreen) {
-                sidebar.setAttribute('data-sidebar-open', 'true');
-            } else {
-                sidebar.setAttribute('data-sidebar-open', 'false');
-            }
-        });
-    </script>
+    <link rel="stylesheet" href="/static/app.css">
+    <script src="/static/app.js"></script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200 h-full">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform -translate-x-full lg:static lg:inset-0 transition-transform duration-300 ease-in-out" data-sidebar-open="true">
             <div class="flex items-center justify-end h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200">
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200" title="Close sidebar">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -254,14 +148,14 @@
                     <div class="flex justify-between h-16">
                         <div class="flex items-center">
                             <!-- Mobile menu button -->
-                            <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md">
+                            <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-md" title="Open sidebar">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                                 </svg>
                             </button>
                             <!-- Logo and Title -->
                             <div class="flex items-center lg:ml-0 ml-4">
-                                <img src="/static/trays-logo.png" alt="" class="h-8 w-8 mr-3" style="object-fit:contain; filter: drop-shadow(0 0 1px #222);" />
+                                <img src="/static/trays-logo.png" alt="" class="h-8 w-8 mr-3 logo-image" />
                                 <h1 class="text-lg font-semibold text-gray-900 dark:text-white">{{ app_title }}</h1>
                                 <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700" title="Current database">
                                     <svg class="w-4 h-4 mr-1 text-blue-500 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,9 +281,9 @@
                         <div class="flex items-center space-x-4">
                             <a href="https://flurdy.com/docs/postfix/" target="_blank" rel="noopener noreferrer">
                                 <!-- Black logo for light mode -->
-                                <img src="/static/flurdy-logo-black.png" alt="flurdy logo" class="h-5 block dark:hidden" style="height:1.15rem; max-width:120px; object-fit:contain;" />
+                                <img src="/static/flurdy-logo-black.png" alt="flurdy logo" class="h-5 block dark:hidden footer-logo" />
                                 <!-- Regular logo for dark mode -->
-                                <img src="/static/flurdy-logo-gray.png" alt="flurdy logo" class="h-5 hidden dark:block" style="height:1.15rem; max-width:120px; object-fit:contain;" />
+                                <img src="/static/flurdy-logo-gray.png" alt="flurdy logo" class="h-5 hidden dark:block footer-logo" />
                             </a>
                             <a href="https://github.com/flurdy/sortingoffice" target="_blank" rel="noopener noreferrer" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

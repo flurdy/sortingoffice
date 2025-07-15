@@ -2,7 +2,7 @@ use crate::config::DatabaseConfig;
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
-use chrono::Utc;
+use chrono::{NaiveDateTime, Utc};
 use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
@@ -578,6 +578,9 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let used_quota: i64 = 0;
     let quota_usage_percent: f64 = 0.0;
 
+    // Combined enabled stats for dashboard
+    let enabled_domains_and_backups = enabled_domains + enabled_backups;
+
     Ok(SystemStats {
         total_domains,
         enabled_domains,
@@ -610,6 +613,7 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         total_quota,
         used_quota,
         quota_usage_percent,
+        enabled_domains_and_backups,
     })
 }
 
@@ -1368,6 +1372,18 @@ pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alia
         .load::<Alias>(&mut conn)
 }
 
+pub fn search_aliases_by_name(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+    let search_pattern = format!("{}%@%", query);
+
+    aliases::table
+        .filter(aliases::mail.like(&search_pattern))
+        .select(Alias::as_select())
+        .order(aliases::mail.asc())
+        .limit(limit)
+        .load::<Alias>(&mut conn)
+}
+
 // Paginated functions
 pub fn get_domains_paginated(
     pool: &DbPool,
@@ -1511,4 +1527,267 @@ pub fn get_relocated_paginated(
         .load::<Relocated>(&mut conn)?;
 
     Ok(PaginatedResult::new(relocated, total_count, page, per_page))
+}
+
+// Additional report functions
+pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport, Error> {
+    let mut conn = pool.get().unwrap();
+
+    // Find aliases where the mail domain doesn't exist in the domains table
+    let orphaned_aliases: Vec<OrphanedAlias> = aliases::table
+        .select((
+            aliases::mail,
+            aliases::destination,
+            aliases::enabled,
+            aliases::created,
+        ))
+        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .into_iter()
+        .filter(|(mail, _, _, _)| {
+            // Extract the domain from the alias mail address
+            if let Some(at_pos) = mail.rfind('@') {
+                let mail_domain = &mail[at_pos + 1..];
+                // Check if this domain exists and is enabled in our domains table
+                let domain_exists: Option<(String, bool)> = domains::table
+                    .filter(domains::domain.eq(mail_domain))
+                    .select((domains::domain, domains::enabled))
+                    .first::<(String, bool)>(&mut conn)
+                    .optional()
+                    .unwrap_or(None);
+                // Consider orphaned if domain doesn't exist or is disabled
+                domain_exists.map_or(true, |(_, enabled)| !enabled)
+            } else {
+                false
+            }
+        })
+        .map(|(mail, destination, enabled, created)| {
+            let domain = mail.split('@').nth(1).unwrap_or("").to_string();
+            OrphanedAlias {
+                mail,
+                destination,
+                domain,
+                enabled,
+                created,
+            }
+        })
+        .collect();
+
+    // Find users where the domain doesn't exist or is disabled in the domains table
+    let orphaned_users: Vec<OrphanedUser> = users::table
+        .select((
+            users::id,
+            users::name,
+            users::enabled,
+            users::created,
+        ))
+        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .into_iter()
+        .filter(|(id, _, _, _)| {
+            // Extract the domain from the user ID
+            if let Some(at_pos) = id.rfind('@') {
+                let user_domain = &id[at_pos + 1..];
+                // Check if this domain exists and is enabled in our domains table
+                let domain_exists: Option<(String, bool)> = domains::table
+                    .filter(domains::domain.eq(user_domain))
+                    .select((domains::domain, domains::enabled))
+                    .first::<(String, bool)>(&mut conn)
+                    .optional()
+                    .unwrap_or(None);
+                // Consider orphaned if domain doesn't exist or is disabled
+                domain_exists.map_or(true, |(_, enabled)| !enabled)
+            } else {
+                false
+            }
+        })
+        .map(|(id, name, enabled, created)| {
+            let domain = id.split('@').nth(1).unwrap_or("").to_string();
+            OrphanedUser {
+                id,
+                name,
+                domain,
+                enabled,
+                created,
+            }
+        })
+        .collect();
+
+    // Find users who don't have a corresponding alias
+    let users_without_aliases: Vec<UserWithoutAlias> = users::table
+        .select((
+            users::id,
+            users::name,
+            users::enabled,
+            users::created,
+        ))
+        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .into_iter()
+        .filter(|(id, _, _, _)| {
+            // Check if there's an alias for this user
+            let alias_exists: Option<String> = aliases::table
+                .filter(aliases::mail.eq(id))
+                .select(aliases::mail)
+                .first::<String>(&mut conn)
+                .optional()
+                .unwrap_or(None);
+            alias_exists.is_none()
+        })
+        .map(|(id, name, enabled, created)| {
+            let domain = id.split('@').nth(1).unwrap_or("").to_string();
+            UserWithoutAlias {
+                id,
+                name,
+                domain,
+                enabled,
+                created,
+            }
+        })
+        .collect();
+
+    Ok(OrphanedAliasReport {
+        orphaned_aliases,
+        orphaned_users,
+        users_without_aliases,
+    })
+}
+
+pub fn get_external_forwarders_report(pool: &DbPool) -> Result<ExternalForwarderReport, Error> {
+    let mut conn = pool.get().unwrap();
+
+    // Find aliases where the destination is an external email address (contains @ and doesn't match any domain in the domains table)
+    let external_forwarders: Vec<ExternalForwarder> = aliases::table
+        .filter(aliases::destination.like("%@%"))
+        .select((
+            aliases::mail,
+            aliases::destination,
+            aliases::enabled,
+            aliases::created,
+        ))
+        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .into_iter()
+        .filter(|(_, destination, _, _)| {
+            // Extract the domain from the destination
+            if let Some(at_pos) = destination.rfind('@') {
+                let dest_domain = &destination[at_pos + 1..];
+                // Check if this domain exists in our domains table
+                let domain_exists: Option<String> = domains::table
+                    .filter(domains::domain.eq(dest_domain))
+                    .select(domains::domain)
+                    .first::<String>(&mut conn)
+                    .optional()
+                    .unwrap_or(None);
+                domain_exists.is_none()
+            } else {
+                false
+            }
+        })
+        .map(|(mail, destination, enabled, created)| {
+            let domain = mail.split('@').nth(1).unwrap_or("").to_string();
+            ExternalForwarder {
+                mail,
+                destination,
+                domain,
+                enabled,
+                created,
+            }
+        })
+        .collect();
+
+    Ok(ExternalForwarderReport {
+        external_forwarders,
+    })
+}
+
+pub fn get_missing_aliases_report(pool: &DbPool) -> Result<MissingAliasReport, Error> {
+    let mut conn = pool.get().unwrap();
+
+    // Get all domains
+    let all_domains = domains::table
+        .select(domains::domain)
+        .load::<String>(&mut conn)?;
+
+    let mut domains_missing_aliases = Vec::new();
+
+    for domain in all_domains {
+        // Check if domain has catch-all alias
+        let catch_all_alias: Option<String> = aliases::table
+            .filter(aliases::mail.eq(format!("@{}", domain)))
+            .select(aliases::mail)
+            .first::<String>(&mut conn)
+            .optional()?;
+
+        let has_catch_all = catch_all_alias.is_some();
+
+        // Get required aliases for this domain
+        let required_aliases = get_required_aliases_for_domain(&mut conn, &domain)?;
+
+        // Check which required aliases are missing
+        let mut missing_required_aliases = Vec::new();
+        for required_alias in required_aliases {
+            let alias_exists: Option<String> = aliases::table
+                .filter(aliases::mail.eq(format!("{}@{}", required_alias, domain)))
+                .select(aliases::mail)
+                .first::<String>(&mut conn)
+                .optional()?;
+
+            if alias_exists.is_none() {
+                missing_required_aliases.push(required_alias);
+            }
+        }
+
+        // Only include domains that are missing required aliases AND don't have a catch-all
+        if !missing_required_aliases.is_empty() && !has_catch_all {
+            domains_missing_aliases.push(DomainMissingAliases {
+                domain,
+                missing_required_aliases,
+                has_catch_all,
+                catch_all_alias,
+            });
+        }
+    }
+
+    Ok(MissingAliasReport {
+        domains_missing_aliases,
+    })
+}
+
+pub fn get_alias_cross_domain_report(pool: &DbPool, alias_name: &str) -> Result<AliasCrossDomainReport, Error> {
+    let mut conn = pool.get().unwrap();
+
+    // Find all occurrences of this alias across all domains
+    let occurrences: Vec<AliasOccurrence> = aliases::table
+        .filter(aliases::mail.like(format!("{}@%", alias_name)))
+        .select((
+            aliases::mail,
+            aliases::destination,
+            aliases::enabled,
+        ))
+        .load::<(String, String, bool)>(&mut conn)?
+        .into_iter()
+        .map(|(mail, destination, enabled)| {
+            let domain = mail.split('@').nth(1).unwrap_or("").to_string();
+            AliasOccurrence {
+                domain,
+                mail,
+                destination,
+                enabled,
+            }
+        })
+        .collect();
+
+    Ok(AliasCrossDomainReport {
+        alias: alias_name.to_string(),
+        occurrences,
+    })
+}
+
+// Helper function to get required aliases for a domain
+fn get_required_aliases_for_domain(_conn: &mut MysqlConnection, _domain: &str) -> Result<Vec<String>, Error> {
+    // This would typically come from configuration, but for now we'll use a default list
+    // In a real implementation, this would be configurable per domain
+    Ok(vec![
+        "postmaster".to_string(),
+        "abuse".to_string(),
+        "webmaster".to_string(),
+        "admin".to_string(),
+    ])
 }

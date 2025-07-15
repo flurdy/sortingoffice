@@ -13,6 +13,9 @@ pub struct DashboardTemplate<'a> {
     pub total_relays: &'a str,
     pub total_relocated: &'a str,
     pub total_clients: &'a str,
+    pub enabled_domains_and_backups: &'a str,
+    pub enabled_aliases: &'a str,
+    pub enabled_users: &'a str,
     pub quick_actions: &'a str,
 
     // New quick action sections

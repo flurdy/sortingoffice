@@ -47,6 +47,8 @@ pub struct SystemStats {
     pub total_quota: i64,
     pub used_quota: i64,
     pub quota_usage_percent: f64,
+    // Combined enabled stats for dashboard
+    pub enabled_domains_and_backups: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
@@ -582,6 +584,82 @@ pub struct PaginatedResult<T> {
     pub total_pages: i64,
     pub has_next: bool,
     pub has_prev: bool,
+}
+
+// Additional report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrphanedAliasReport {
+    pub orphaned_aliases: Vec<OrphanedAlias>,
+    pub orphaned_users: Vec<OrphanedUser>,
+    pub users_without_aliases: Vec<UserWithoutAlias>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrphanedAlias {
+    pub mail: String,
+    pub destination: String,
+    pub domain: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrphanedUser {
+    pub id: String,
+    pub name: String,
+    pub domain: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserWithoutAlias {
+    pub id: String,
+    pub name: String,
+    pub domain: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExternalForwarderReport {
+    pub external_forwarders: Vec<ExternalForwarder>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExternalForwarder {
+    pub mail: String,
+    pub destination: String,
+    pub domain: String,
+    pub enabled: bool,
+    pub created: NaiveDateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MissingAliasReport {
+    pub domains_missing_aliases: Vec<DomainMissingAliases>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DomainMissingAliases {
+    pub domain: String,
+    pub missing_required_aliases: Vec<String>,
+    pub has_catch_all: bool,
+    pub catch_all_alias: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AliasCrossDomainReport {
+    pub alias: String,
+    pub occurrences: Vec<AliasOccurrence>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AliasOccurrence {
+    pub domain: String,
+    pub mail: String,
+    pub destination: String,
+    pub enabled: bool,
 }
 
 impl<T> PaginatedResult<T> {

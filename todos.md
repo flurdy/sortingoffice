@@ -55,23 +55,23 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
   - Database selection UI and handler
   - Database selection persistence in session cookies
 
-Multi-database support - remaining steps:
+✅ Multi-database support - remaining steps:
   - Database migration management (run migrations on all configured databases)
   - Show current selected database in navigation/header
   - Add database connection health checks
   - Add database-specific configuration
 
-⚠️ Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates. - CONFIG-BASED ONLY
+✅ Add feature toggles, per database, for read only, for no new users, for no new domains. For no password updates. - CONFIG-BASED ONLY
 
 ✅ Add German translation - IMPLEMENTED with full i18n support
 
-Put inline css style and scripts in the header into separate files where suitable
+✅ Put inline css style and scripts in the header into separate files where suitable - IMPLEMENTED
 
-The dashboard stats should be changed to
+🔲 The dashboard stats should be changed to
   - a combined enabled domains and backups total
   - an enabled aliases total
   - an enabled users total
-  - The other stats belong and are already in thes stats page
+  - The other stats belong and are already in the stats page
 
 In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting
 

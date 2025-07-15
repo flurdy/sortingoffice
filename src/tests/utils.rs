@@ -196,6 +196,7 @@ mod tests {
             total_quota: 1000000000,
             used_quota: 250000000,
             quota_usage_percent: 25.0,
+            enabled_domains_and_backups: 4,
         };
 
         assert_eq!(system_stats.total_domains, 5);
@@ -229,6 +230,7 @@ mod tests {
         assert_eq!(system_stats.total_quota, 1000000000);
         assert_eq!(system_stats.used_quota, 250000000);
         assert_eq!(system_stats.quota_usage_percent, 25.0);
+        assert_eq!(system_stats.enabled_domains_and_backups, 4);
 
         // Test DomainStats creation
         let domain_stats = DomainStats {
