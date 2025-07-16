@@ -21,25 +21,26 @@
             </div>
             <div class="relative">
                 <input
-                    class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline domain-suggest-trigger"
                     id="id"
                     name="id"
                     type="text"
                     placeholder="{{ placeholder_user_email }}"
                     value="{{ form.id }}"
                     required
-                    hx-get="/aliases/domain-search"
-                    hx-trigger="keyup changed delay:300ms"
-                    hx-target="#user-domain-search-results"
+                >
+                <input
+                    type="hidden"
+                    id="user-id-destination"
+                    name="destination"
+                    hx-get="/aliases/search"
+                    hx-trigger="input changed"
+                    hx-target="#user-id-search-results"
                     hx-swap="innerHTML"
-                    hx-indicator="#user-domain-search-indicator">
-                <div id="user-domain-search-indicator" class="htmx-indicator absolute right-3 top-2">
-                    <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
-                <div id="user-domain-search-results" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto hidden"></div>
+                    hx-indicator="#user-id-search-indicator"
+                >
+                <div id="user-id-search-indicator" class="htmx-indicator hidden">Loading...</div>
+                <div id="user-id-search-results" class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded shadow-lg hidden"></div>
             </div>
         </div>
         {% if user.is_none() %}
@@ -84,4 +85,4 @@
     </form>
 </div>
 
-<script src="/static/user-form.js"></script>
+<script src="/static/user-form.js" defer></script>

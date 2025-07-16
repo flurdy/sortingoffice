@@ -128,16 +128,13 @@ async fn build_user_form_template(
         form_user_id: get_translation(state, locale, "users-form-user-id").await,
         form_password: get_translation(state, locale, "users-form-password").await,
         form_name: get_translation(state, locale, "users-form-name").await,
-
         form_active: get_translation(state, locale, "users-form-active").await,
         placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email")
             .await,
         placeholder_name: get_translation(state, locale, "users-placeholder-name").await,
-
         tooltip_user_id: get_translation(state, locale, "users-tooltip-user-id").await,
         tooltip_password: get_translation(state, locale, "users-tooltip-password").await,
         tooltip_name: get_translation(state, locale, "users-tooltip-name").await,
-
         tooltip_active: get_translation(state, locale, "users-tooltip-active").await,
         users_change_password: get_translation(state, locale, "users-change-password").await,
         users_change_password_tooltip: get_translation(state, locale, "users-change-password-tooltip").await,
