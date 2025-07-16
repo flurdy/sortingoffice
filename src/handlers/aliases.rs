@@ -29,6 +29,12 @@ pub struct AliasSearchQuery {
     pub limit: Option<i64>,
 }
 
+#[derive(serde::Deserialize)]
+pub struct DomainSearchQuery {
+    pub domain: Option<String>,
+    pub limit: Option<i64>,
+}
+
 pub async fn list(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -1490,6 +1496,62 @@ pub async fn search(
         aliases: &aliases,
         no_results: &translations["aliases-search-no-results"],
         select_text: &translations["aliases-search-select"],
+    };
+    Html(content_template.render().unwrap())
+}
+
+pub async fn domain_search(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<DomainSearchQuery>,
+) -> Html<String> {
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
+        .expect("Failed to get database pool");
+
+    // Get the query string
+    let query_string = query.domain.unwrap_or_default();
+
+    // Handle empty or missing query
+    if query_string.len() < 2 {
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["domains-search-no-results", "domains-search-select", "status-active", "status-inactive"],
+        )
+        .await;
+        let content_template = DomainSearchResultsTemplate {
+            domains: &[],
+            no_results: &translations["domains-search-no-results"],
+            select_text: &translations["domains-search-select"],
+            status_active: &translations["status-active"],
+            status_inactive: &translations["status-inactive"],
+        };
+        return Html(content_template.render().unwrap());
+    }
+
+    let limit = query.limit.unwrap_or(10);
+    let search_results = db::search_domains(&pool, &query_string, limit);
+
+    let domains = match search_results {
+        Ok(domains) => domains,
+        Err(_) => vec![],
+    };
+
+    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &["domains-search-no-results", "domains-search-select", "status-active", "status-inactive"],
+    )
+    .await;
+    let content_template = DomainSearchResultsTemplate {
+        domains: &domains,
+        no_results: &translations["domains-search-no-results"],
+        select_text: &translations["domains-search-select"],
+        status_active: &translations["status-active"],
+        status_inactive: &translations["status-inactive"],
     };
     Html(content_template.render().unwrap())
 }

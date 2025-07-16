@@ -766,3 +766,73 @@ async fn test_performance_metrics_headless() -> Result<()> {
     )
     .await
 }
+
+#[tokio::test]
+async fn test_add_alias_domain_search_headless() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let docker = clients::Cli::default();
+            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+
+            println!("🔎 Testing domain search in add alias form (headless)...");
+
+            // Authenticate first
+            authenticate_driver(&driver, app_port).await?;
+
+            // Navigate to add alias form
+            let add_alias_url = format!("http://172.17.0.1:{}/aliases/new", app_port);
+            println!("Navigating to add alias form: {}", add_alias_url);
+            timeout10s!(driver.get(&add_alias_url), "Navigate to add alias form");
+
+            // Find the mail input field
+            let mail_input = timeout10s!(driver.find(By::Css("input[name='mail']")), "Find mail input");
+            timeout10s!(mail_input.clear(), "Clear mail input");
+            // Type a domain fragment to trigger suggestions
+            timeout10s!(mail_input.send_keys("@exa"), "Type '@exa' in mail input");
+
+            // Wait for suggestions to appear
+            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+
+            // Print the page source for debugging
+            let debug_source = driver.source().await?;
+            println!("--- PAGE SOURCE AFTER TYPING ---\n{}\n--- END PAGE SOURCE ---", debug_source);
+
+            // Print browser console errors for debugging
+            let logs = driver.logs("browser").await;
+            match logs {
+                Ok(entries) => {
+                    for entry in entries {
+                        println!("[BROWSER LOG] {}: {}", entry.level, entry.message);
+                    }
+                }
+                Err(e) => println!("[BROWSER LOG] Could not fetch logs: {}", e),
+            }
+
+            // Look for the domain search results container
+            let results = driver.find_all(By::Css("[data-domain]"));
+            let results = timeout10s!(results, "Find domain suggestion items");
+            let count = results.len();
+            println!("Found {} domain suggestion(s)", count);
+            if count == 0 {
+                return Err(anyhow::anyhow!("No domain suggestions appeared in add alias form"));
+            }
+            // Optionally, check that one of the suggestions contains 'example.com'
+            let mut found_example = false;
+            for elem in results {
+                let text = elem.text().await?;
+                if text.contains("example.com") {
+                    found_example = true;
+                    break;
+                }
+            }
+            if !found_example {
+                return Err(anyhow::anyhow!("Domain suggestions did not include 'example.com'"));
+            }
+            println!("✅ Domain search suggestions appear in add alias form");
+            timeout10s!(driver.quit(), "Quit driver");
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}

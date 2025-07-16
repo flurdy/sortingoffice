@@ -52,6 +52,10 @@ mod tests {
                 "/aliases/search",
                 axum::routing::get(handlers::aliases::search),
             )
+            .route(
+                "/aliases/domain-search",
+                axum::routing::get(handlers::aliases::domain_search),
+            )
             .route("/stats", axum::routing::get(handlers::stats::index))
             .route("/dashboard", axum::routing::get(handlers::dashboard::index))
             .route("/about", axum::routing::get(handlers::about::index))
@@ -1819,6 +1823,52 @@ mod tests {
 
         // Should contain search results from mail field
         assert!(body_str.contains("admin@search-test-"));
+
+        cleanup_test_db(&pool);
+    }
+
+    #[tokio::test]
+    async fn test_domain_search_handler() {
+        let (app, state) = create_test_app().await;
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
+
+        // Clean up before test
+        cleanup_test_db(&pool);
+
+        // Create test domain
+        let unique_id = crate::tests::common::unique_test_id();
+        let new_domain = crate::models::NewDomain {
+            domain: format!("search-test-{}.com", unique_id),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
+
+        // Test domain search with a query
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri(format!("/aliases/domain-search?domain=search-test-{}", unique_id))
+                    .header("cookie", create_auth_cookie(AdminRole::Edit))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain domain search results
+        assert!(body_str.contains(&format!("search-test-{}", unique_id)));
 
         cleanup_test_db(&pool);
     }

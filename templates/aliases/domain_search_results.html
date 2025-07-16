@@ -1,0 +1,19 @@
+{% if domains.len() == 0 %}
+<div class="p-3 text-gray-500 dark:text-gray-400 text-sm">{{ no_results }}</div>
+{% else %}
+<ul class="divide-y divide-gray-200 dark:divide-gray-700">
+  {% for domain in domains %}
+  <li
+    class="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
+    data-domain="{{ domain.domain }}"
+  >
+    <div class="flex items-center justify-between">
+      <span class="font-mono text-gray-900 dark:text-gray-100 text-sm">{{ domain.domain }}</span>
+      <span class="text-gray-400 dark:text-gray-500 text-xs">
+        {% if domain.enabled %}{{ status_active }}{% else %}{{ status_inactive }}{% endif %}
+      </span>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

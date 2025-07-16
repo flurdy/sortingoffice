@@ -78,3 +78,13 @@ pub struct AliasSearchResultsTemplate<'a> {
     pub no_results: &'a str,
     pub select_text: &'a str,
 }
+
+#[derive(Template)]
+#[template(path = "aliases/domain_search_results.html", escape = "html")]
+pub struct DomainSearchResultsTemplate<'a> {
+    pub domains: &'a [crate::models::Domain],
+    pub no_results: &'a str,
+    pub select_text: &'a str,
+    pub status_active: &'a str,
+    pub status_inactive: &'a str,
+}

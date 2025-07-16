@@ -760,3 +760,7 @@ clients-action-enable = Enable
 clients-action-disable = Disable
 clients-status-enabled = Enabled
 clients-status-disabled = Disabled
+
+# Domain Search
+domains-search-no-results = No domains found
+domains-search-select = Select a domain

@@ -1399,6 +1399,18 @@ pub fn search_aliases_by_name(pool: &DbPool, query: &str, limit: i64) -> Result<
         .load::<Alias>(&mut conn)
 }
 
+pub fn search_domains(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Domain>, Error> {
+    let mut conn = pool.get().unwrap();
+    let search_pattern = format!("%{}%", query);
+
+    domains::table
+        .filter(domains::domain.like(&search_pattern))
+        .select(Domain::as_select())
+        .order(domains::domain.asc())
+        .limit(limit)
+        .load::<Domain>(&mut conn)
+}
+
 // Paginated functions
 pub fn get_domains_paginated(
     pool: &DbPool,
