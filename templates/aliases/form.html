@@ -36,18 +36,24 @@
             </div>
             <div class="relative">
                 <input
-                    class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline domain-suggest-trigger"
                     id="mail"
                     name="mail"
                     type="text"
                     placeholder="{{ placeholder_mail }}"
                     value="{{ form.mail }}"
                     required
+                >
+                <input
+                    type="hidden"
+                    id="mail-domain"
+                    name="domain"
                     hx-get="/aliases/domain-search"
-                    hx-trigger="keyup changed delay:300ms"
+                    hx-trigger="input changed"
                     hx-target="#domain-search-results"
                     hx-swap="innerHTML"
-                    hx-indicator="#domain-search-indicator">
+                    hx-indicator="#domain-search-indicator"
+                >
                 <div id="domain-search-indicator" class="htmx-indicator absolute right-3 top-2">
                     <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -118,4 +124,4 @@
     </form>
 </div>
 
-<script src="/static/alias-form.js"></script>
+<script src="/static/alias-form.js" defer></script>

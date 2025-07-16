@@ -1439,25 +1439,17 @@ pub async fn search(
         .await
         .expect("Failed to get database pool");
 
-    // Determine which search type to use and get the query string
-    let (query_string, search_type) = if let Some(alias_query) = &query.alias {
-        if alias_query.len() >= 2 {
-            (alias_query.clone(), "alias")
-        } else {
-            (String::new(), "none")
-        }
+    // Get the query string
+    let query_string = if let Some(alias_query) = &query.alias {
+        alias_query.clone()
     } else if let Some(dest_query) = &query.destination {
-        if dest_query.len() >= 2 {
-            (dest_query.clone(), "destination")
-        } else {
-            (String::new(), "none")
-        }
+        dest_query.clone()
     } else {
-        (String::new(), "none")
+        String::new()
     };
 
     // Handle empty or missing query
-    if query_string.is_empty() {
+    if query_string.len() < 2 {
         let locale = crate::handlers::utils::get_user_locale(&headers);
         let translations = crate::handlers::utils::get_translations_batch(
             &state,
@@ -1474,30 +1466,65 @@ pub async fn search(
     }
 
     let limit = query.limit.unwrap_or(10);
-    let search_results = match search_type {
-        "alias" => db::search_aliases_by_name(&pool, &query_string, limit),
-        "destination" => db::search_aliases(&pool, &query_string, limit),
-        _ => Ok(vec![]),
+
+    // --- Collect all matching values from aliases and users ---
+    let mut values = std::collections::HashSet::new();
+
+    // 1. Alias mail and destination
+    if let Ok(aliases) = db::search_aliases(&pool, &query_string, limit * 2) {
+        for alias in aliases {
+            if alias.mail.contains(&query_string) {
+                values.insert(alias.mail);
+            }
+            if alias.destination.contains(&query_string) {
+                values.insert(alias.destination);
+            }
+        }
+    }
+
+    // 2. User ids
+    use crate::schema::users::dsl as users_dsl;
+    use diesel::prelude::*;
+    if let Ok(mut conn) = pool.get() {
+        let search_pattern = format!("%{}%", query_string);
+        let user_ids: Vec<String> = users_dsl::users
+            .filter(users_dsl::id.like(&search_pattern))
+            .select(users_dsl::id)
+            .limit(limit * 2)
+            .load::<String>(&mut conn)
+            .unwrap_or_default();
+        for user_id in user_ids {
+            values.insert(user_id);
+        }
+    }
+
+    // 3. Sort and limit
+    let mut values: Vec<String> = values.into_iter().collect();
+    values.sort_by(|a, b| a.to_lowercase().cmp(&b.to_lowercase()));
+    values.truncate(limit as usize);
+
+    // 4. Render as a flat list of suggestions
+    let html = if values.is_empty() {
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["aliases-search-no-results", "aliases-search-select"],
+        )
+        .await;
+        format!(
+            "<ul><li class=\"text-gray-400\">{}</li></ul>",
+            translations["aliases-search-no-results"]
+        )
+    } else {
+        let items: String = values
+            .into_iter()
+            .map(|v| format!("<li class=\"cursor-pointer\">{}</li>", v))
+            .collect();
+        format!("<ul>{}</ul>", items)
     };
 
-    let aliases = match search_results {
-        Ok(aliases) => aliases,
-        Err(_) => vec![],
-    };
-
-    let locale = crate::handlers::utils::get_user_locale(&headers);
-    let translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
-        &["aliases-search-no-results", "aliases-search-select"],
-    )
-    .await;
-    let content_template = AliasSearchResultsTemplate {
-        aliases: &aliases,
-        no_results: &translations["aliases-search-no-results"],
-        select_text: &translations["aliases-search-select"],
-    };
-    Html(content_template.render().unwrap())
+    Html(html)
 }
 
 pub async fn domain_search(
