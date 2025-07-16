@@ -315,13 +315,13 @@ users-not-found = Utilisateur non trouvé
 users-form-error = Erreur
 users-form-user-id = ID Utilisateur
 users-form-password = Mot de Passe
-users-form-name = Nom
+users-form-name = Nom de la boîte aux lettres
 users-form-active = Actif
 users-placeholder-user-email = utilisateur@exemple.com
-users-placeholder-name = Nom Complet
+users-placeholder-name = nom de la boîte aux lettres
 users-tooltip-user-id = L'identifiant unique de l'utilisateur
 users-tooltip-password = Le mot de passe pour le compte
-users-tooltip-name = Le nom complet de l'utilisateur
+users-tooltip-name = Le nom du dossier de la boîte aux lettres de l'utilisateur
 users-tooltip-active = Activer cet utilisateur
 users-cancel = Annuler
 users-update-user = Mettre à Jour l'Utilisateur
@@ -344,6 +344,9 @@ users-cancel-button = Annuler
 error-passwords-do-not-match = Les mots de passe ne correspondent pas
 error-password-too-short = Le mot de passe doit comporter au moins 8 caractères
 error-failed-to-update-password = Échec de la mise à jour du mot de passe
+users-maildir = Chemin Maildir
+users-tooltip-maildir = Le dossier racine de la boîte aux lettres de cet utilisateur (relatif à la racine du stockage mail)
+users-placeholder-maildir = ex. example.com/utilisateur/
 
 # Relays
 relays-title = Relais

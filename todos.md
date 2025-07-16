@@ -113,3 +113,10 @@ Scan the codebase for tidy ups
   - any obvious duplications
   - any unnecessary, orphaned code
   - any clean refactoring that makes sense
+
+Improve theme slightly
+- maybe add a subtle background where applicable
+- maybe a different light mode colour scheme
+- still support the dark mode
+
+Verify the german link in the language drop down is translated, in english it just shows the id (language-german)

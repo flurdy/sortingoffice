@@ -311,6 +311,9 @@ users-new-password-placeholder = Skriv inn nytt passord
 users-confirm-password-label = Bekreft passord
 users-confirm-password-placeholder = Bekreft nytt passord
 users-cancel-button = Avbryt
+users-maildir = Maildir-sti
+users-tooltip-maildir = Rotmappen for denne brukerens postboks (relativ til e-postlagringsroten)
+users-placeholder-maildir = f.eks. example.com/bruker/
 
 # Relays
 relays-title = Videresendinger
@@ -432,7 +435,9 @@ clients-disable-client = Deaktiver klient
 clients-delete-client = Slett klient
 clients-delete-confirm = Er du sikker på at du vil slette denne klienten?
 clients-not-found = Klient ikke funnet
-clients-form-name = Navn
+clients-form-name = Postboksnavn
+clients-tooltip-name = Navnet på brukerens postboksmappe
+clients-placeholder-name = postboksnavn
 clients-form-ip = IP-adresse
 clients-form-enabled = Aktivert
 
