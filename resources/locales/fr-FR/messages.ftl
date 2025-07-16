@@ -329,6 +329,21 @@ users-create-user = Créer l'Utilisateur
 users-view = Voir
 users-enable = Activer
 users-disable = Désactiver
+users-password-change-required-label = Changement de mot de passe requis
+users-password-change-required-yes = Oui
+users-password-change-required-no = Non
+users-password-management-title = Gestion des mots de passe
+users-change-password-button = Changer le mot de passe
+users-require-password-change-button = Exiger le changement de mot de passe
+users-change-password-title = Changer le mot de passe pour { $name }
+users-new-password-label = Nouveau mot de passe
+users-new-password-placeholder = Entrez un nouveau mot de passe
+users-confirm-password-label = Confirmer le mot de passe
+users-confirm-password-placeholder = Confirmez le nouveau mot de passe
+users-cancel-button = Annuler
+error-passwords-do-not-match = Les mots de passe ne correspondent pas
+error-password-too-short = Le mot de passe doit comporter au moins 8 caractères
+error-failed-to-update-password = Échec de la mise à jour du mot de passe
 
 # Relays
 relays-title = Relais

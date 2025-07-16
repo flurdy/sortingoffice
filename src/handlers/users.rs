@@ -90,7 +90,6 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         user_details: get_translation(state, locale, "users-user-details").await,
         user_id: get_translation(state, locale, "users-user-id").await,
         full_name: get_translation(state, locale, "users-full-name").await,
-
         created: get_translation(state, locale, "users-created").await,
         modified: get_translation(state, locale, "users-modified").await,
         status_active: get_translation(state, locale, "status-active").await,
@@ -101,6 +100,12 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         delete_user: get_translation(state, locale, "users-delete-user").await,
         delete_confirm: get_translation(state, locale, "users-delete-confirm").await,
         status: get_translation(state, locale, "users-status").await,
+        password_change_required_label: get_translation(state, locale, "users-password-change-required-label").await,
+        password_change_required_yes: get_translation(state, locale, "users-password-change-required-yes").await,
+        password_change_required_no: get_translation(state, locale, "users-password-change-required-no").await,
+        password_management_title: get_translation(state, locale, "users-password-management-title").await,
+        change_password_button: get_translation(state, locale, "users-change-password-button").await,
+        require_password_change_button: get_translation(state, locale, "users-require-password-change-button").await,
         user,
     }
 }
@@ -307,51 +312,7 @@ pub async fn show(
         "users-not-found"
     );
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    let translations = crate::handlers::utils::get_translations_batch(
-            &state,
-            &locale,
-        &[
-            "users-show-title",
-            "users-view-edit-settings",
-            "users-back-to-users",
-            "users-user-information",
-            "users-user-details",
-            "users-username",
-            "users-name",
-            "users-domain",
-            "users-status",
-            "status-active",
-            "status-inactive",
-            "users-created",
-            "users-modified",
-            "users-edit-user-button",
-            "users-enable-user-button",
-            "users-disable-user-button",
-            "users-delete-user",
-            "users-delete-confirm",
-        ],
-        )
-    .await;
-    let content_template = UserShowTemplate {
-        title: translations["users-show-title"].to_string(),
-        view_edit_settings: translations["users-view-edit-settings"].to_string(),
-        back_to_users: translations["users-back-to-users"].to_string(),
-        user_information: translations["users-user-information"].to_string(),
-        user_details: translations["users-user-details"].to_string(),
-        user_id: translations["users-username"].to_string(),
-        full_name: translations["users-name"].to_string(),
-        status: translations["users-status"].to_string(),
-        created: translations["users-created"].to_string(),
-        modified: translations["users-modified"].to_string(),
-        status_active: translations["status-active"].to_string(),
-        status_inactive: translations["status-inactive"].to_string(),
-        edit_user: translations["users-edit-user-button"].to_string(),
-        enable_user: translations["users-enable-user-button"].to_string(),
-        disable_user: translations["users-disable-user-button"].to_string(),
-        delete_user: translations["users-delete-user"].to_string(),
-        delete_confirm: translations["users-delete-confirm"].to_string(),
-        user,
-    };
+    let content_template = build_user_show_template(&state, &locale, user).await;
     render_template!(content_template, &state, &locale, &headers)
 }
 
@@ -803,7 +764,8 @@ pub async fn change_password_form(
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
-    let content = render_change_password_form(&user, None);
+    let locale = crate::handlers::language::get_user_locale(&headers);
+    let content = render_change_password_form(&user, None, &state, &locale).await;
     Html(content)
 }
 
@@ -823,11 +785,13 @@ pub async fn change_password_post(
         Err(_) => return Html("User not found".to_string()),
     };
     if form.new_password != form.confirm_password {
-        let content = render_change_password_form(&user, Some("Passwords do not match".to_string()));
+        let error_msg = get_translation(&state, &locale, "error-passwords-do-not-match").await;
+        let content = render_change_password_form(&user, Some(error_msg), &state, &locale).await;
         return Html(content);
     }
     if form.new_password.len() < 8 {
-        let content = render_change_password_form(&user, Some("Password must be at least 8 characters".to_string()));
+        let error_msg = get_translation(&state, &locale, "error-password-too-short").await;
+        let content = render_change_password_form(&user, Some(error_msg), &state, &locale).await;
         return Html(content);
     }
     match db::update_user_password(&pool, id, &form.new_password) {
@@ -837,19 +801,26 @@ pub async fn change_password_post(
             Html(content)
         }
         Err(_) => {
-            let content = render_change_password_form(&user, Some("Failed to update password".to_string()));
+            let error_msg = get_translation(&state, &locale, "error-failed-to-update-password").await;
+            let content = render_change_password_form(&user, Some(error_msg), &state, &locale).await;
             Html(content)
         }
     }
 }
 
-fn render_change_password_form(user: &User, error: Option<String>) -> String {
+async fn render_change_password_form(user: &User, error: Option<String>, state: &AppState, locale: &str) -> String {
     use crate::templates::users::ChangePasswordTemplate;
-    let template = ChangePasswordTemplate {
+    ChangePasswordTemplate {
         user: user.clone(),
         error,
-    };
-    template.render().unwrap()
+        change_password_title: get_translation(state, locale, "users-change-password-title").await,
+        new_password_label: get_translation(state, locale, "users-new-password-label").await,
+        new_password_placeholder: get_translation(state, locale, "users-new-password-placeholder").await,
+        confirm_password_label: get_translation(state, locale, "users-confirm-password-label").await,
+        confirm_password_placeholder: get_translation(state, locale, "users-confirm-password-placeholder").await,
+        cancel_button: get_translation(state, locale, "users-cancel-button").await,
+        change_password_button: get_translation(state, locale, "users-change-password-button").await,
+    }.render().unwrap()
 }
 
 pub async fn toggle_change_password(

@@ -86,7 +86,7 @@ Add some more reports
 
 ✅ editing users should not show the password field, instead we should add a separate change password form, and an alternative button to just toggle the change_password field - IMPLEMENTED
 
-There are missing translations for text, headers and buttons for all the user pages.
+✅ There are missing translations for text, headers and buttons for all the user pages.
 
 ✅ Add some seed data for relocated, clients and relays as well. - IMPLEMENTED
 
@@ -98,13 +98,13 @@ In the show domain page can the existing aliases be shown above the missing ones
 
 ✅ Show per-database feature toggles (read-only, visible to admins) on the config page - IMPLEMENTED with full i18n support
 
-Should we still use a CDN for HTMX and Tailwind?
+The /static folder should organise its content into "images" etc
 
-Lets discuss how we can support different databases with different field names.
+Should we still use a CDN for HTMX and Tailwind?
 
 Document how we add remote prod databases
   - add remote databases via SSH
   - add remote databases running in AWS EC2 if the app is running in Kubernetes in DigitalOcean
   - how we ensure no migration is run on those
 
-The /static folder should organise its content into "images" etc
+Lets discuss how we can support different databases with different field names.

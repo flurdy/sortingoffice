@@ -46,6 +46,12 @@ pub struct UserShowTemplate {
     pub delete_user: String,
     pub delete_confirm: String,
     pub user: User,
+    pub password_change_required_label: String,
+    pub password_change_required_yes: String,
+    pub password_change_required_no: String,
+    pub password_management_title: String,
+    pub change_password_button: String,
+    pub require_password_change_button: String,
 }
 
 #[derive(Template)]
@@ -86,4 +92,11 @@ pub struct UserFormTemplate {
 pub struct ChangePasswordTemplate {
     pub user: User,
     pub error: Option<String>,
+    pub change_password_title: String,
+    pub new_password_label: String,
+    pub new_password_placeholder: String,
+    pub confirm_password_label: String,
+    pub confirm_password_placeholder: String,
+    pub cancel_button: String,
+    pub change_password_button: String,
 }

@@ -348,9 +348,18 @@ users-update-user = Update User
 users-change-password = Require password change
 users-change-password-tooltip = Require password change on next login
 users-placeholder-password = Enter new password (leave empty to keep existing)
-password-management-title = Password Management
-change-password-button = Change Password
-toggle-change-password-button = Toggle
+users-password-change-required-label = Password Change Required
+users-password-change-required-yes = Yes
+users-password-change-required-no = No
+users-password-management-title = Password Management
+users-change-password-button = Change Password
+users-require-password-change-button = Require Password Change
+users-change-password-title = Change Password for { $name }
+users-new-password-label = New Password
+users-new-password-placeholder = Enter new password
+users-confirm-password-label = Confirm Password
+users-confirm-password-placeholder = Confirm new password
+users-cancel-button = Cancel
 
 # Form actions
 form-create-user = Create User

@@ -299,6 +299,18 @@ users-not-found = Bruker ikke funnet
 users-form-username = Brukernavn
 users-form-domain = Domene
 users-form-enabled = Aktivert
+users-password-change-required-label = Passordendring påkrevd
+users-password-change-required-yes = Ja
+users-password-change-required-no = Nei
+users-password-management-title = Passordadministrasjon
+users-change-password-button = Endre passord
+users-require-password-change-button = Krev passordendring
+users-change-password-title = Endre passord for { $name }
+users-new-password-label = Nytt passord
+users-new-password-placeholder = Skriv inn nytt passord
+users-confirm-password-label = Bekreft passord
+users-confirm-password-placeholder = Bekreft nytt passord
+users-cancel-button = Avbryt
 
 # Relays
 relays-title = Videresendinger
@@ -560,6 +572,9 @@ error-forbidden = Forbudt
 error-database-error = Databasefeil
 error-validation-error = Valideringsfeil
 error-operation-not-allowed = Denne operasjonen er ikke tillatt på den nåværende databasen på grunn av begrensninger.
+error-passwords-do-not-match = Passordene samsvarer ikke
+error-password-too-short = Passordet må være minst 8 tegn
+error-failed-to-update-password = Kunne ikke oppdatere passordet
 
 # Success messages
 success-created = Opprettet

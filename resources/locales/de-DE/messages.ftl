@@ -343,6 +343,18 @@ users-tooltip-active = Dieses Benutzerkonto aktivieren
 users-cancel = Abbrechen
 users-create-user = Benutzer erstellen
 users-update-user = Benutzer aktualisieren
+users-password-change-required-label = Passwortänderung erforderlich
+users-password-change-required-yes = Ja
+users-password-change-required-no = Nein
+users-password-management-title = Passwortverwaltung
+users-change-password-button = Passwort ändern
+users-require-password-change-button = Passwortänderung erzwingen
+users-change-password-title = Passwort ändern für { $name }
+users-new-password-label = Neues Passwort
+users-new-password-placeholder = Neues Passwort eingeben
+users-confirm-password-label = Passwort bestätigen
+users-confirm-password-placeholder = Neues Passwort bestätigen
+users-cancel-button = Abbrechen
 
 # Statistics
 stats-title = Statistiken
@@ -404,6 +416,9 @@ error-duplicate-alias = Ein Alias mit dieser Quelle existiert bereits.
 error-duplicate-user = Ein Benutzer mit diesem Benutzernamen existiert bereits.
 error-constraint-violation = Die Daten erfüllen nicht die erforderlichen Einschränkungen. Bitte überprüfen Sie Ihre Eingabe.
 error-operation-not-allowed = Diese Operation ist auf der aktuellen Datenbank aufgrund von Einschränkungen nicht erlaubt.
+error-passwords-do-not-match = Die Passwörter stimmen nicht überein
+error-password-too-short = Das Passwort muss mindestens 8 Zeichen lang sein
+error-failed-to-update-password = Passwort konnte nicht aktualisiert werden
 
 # Success messages
 success-created = Erfolgreich erstellt.
