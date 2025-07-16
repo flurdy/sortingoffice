@@ -150,6 +150,8 @@ async fn build_user_form_template(
         user,
         form,
         error,
+        users_tooltip_maildir: get_translation(state, locale, "users-tooltip-maildir").await,
+        users_placeholder_maildir: get_translation(state, locale, "users-placeholder-maildir").await,
     }
 }
 
@@ -290,6 +292,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         user: None,
         form,
         error: None,
+        users_tooltip_maildir: get_translation(&state, &locale, "users-tooltip-maildir").await,
+        users_placeholder_maildir: get_translation(&state, &locale, "users-placeholder-maildir").await,
     };
     render_template!(content_template, &state, &locale, &headers)
 }

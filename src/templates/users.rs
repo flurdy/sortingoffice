@@ -85,6 +85,8 @@ pub struct UserFormTemplate {
     pub user: Option<User>,
     pub form: UserForm,
     pub error: Option<String>,
+    pub users_tooltip_maildir: String,
+    pub users_placeholder_maildir: String,
 }
 
 #[derive(Template)]
