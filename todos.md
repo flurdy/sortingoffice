@@ -108,3 +108,8 @@ Should we still use a CDN for HTMX and Tailwind?
   - how we ensure no migration is run on those
 
 Lets discuss how we can support different databases with different field names.
+
+Scan the codebase for tidy ups
+  - any obvious duplications
+  - any unnecessary, orphaned code
+  - any clean refactoring that makes sense

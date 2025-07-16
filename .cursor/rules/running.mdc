@@ -1,6 +1,6 @@
 ---
 description: to test or to run the application
-globs:
+globs: 
 alwaysApply: false
 ---
 
@@ -13,3 +13,4 @@ if `cargo watch`  or `make run` is running it should restart itself.
 Before a `cargo run` always chech with `cargo check` first.
 
 To restart `cargo run` use  `pkill -f sortingoffice; sleep 1; cargo run & sleep 3`
+- or use `cargo watch` to automatically restart
