@@ -102,7 +102,7 @@ The /static folder should organise its content into "images" etc
 
 Should we still use a CDN for HTMX and Tailwind?
 
-Document how we add remote prod databases
+✅ Document how we add remote prod databases
   - add remote databases via SSH
   - add remote databases running in AWS EC2 if the app is running in Kubernetes in DigitalOcean
   - how we ensure no migration is run on those

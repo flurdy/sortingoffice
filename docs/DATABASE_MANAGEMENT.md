@@ -369,3 +369,120 @@ make migrate-reset
 2. **Test migrations**: Run `make migrate-reset` to test
 3. **Backup before migrations**: In production environments
 4. **Use descriptive names**: `add_user_table` not `migration_001` 
+
+## Adding Remote Production Databases
+
+Sorting Office supports connecting to remote production databases. This section describes best practices and steps for securely adding and managing remote databases.
+
+### 1. Adding Remote Databases via SSH Tunnel
+
+For databases not directly accessible from your application host, use an SSH tunnel:
+
+```bash
+# Example: Forward local port 3307 to remote MySQL server (replace values as needed)
+ssh -L 3307:localhost:3306 user@remote-server
+```
+
+Then set your `.env` or config:
+```env
+DATABASE_URL=mysql://user:password@127.0.0.1:3307/production_db
+```
+
+- The app will connect to the remote database securely via the SSH tunnel.
+- Use a unique port (e.g., 3307) if 3306 is in use locally.
+
+### 2. Adding Remote Databases in AWS EC2 (with App in Kubernetes on DigitalOcean)
+
+- Ensure the AWS EC2 security group allows inbound MySQL (default 3306) from your DigitalOcean cluster's public IPs.
+- Use a strong password and restrict access to only the app's IPs.
+- Example connection string:
+
+```env
+DATABASE_URL=mysql://user:password@ec2-xx-xx-xx-xx.compute-1.amazonaws.com:3306/production_db
+```
+
+- For extra security, consider a VPN or SSH tunnel between your Kubernetes cluster and AWS EC2.
+- Use Kubernetes secrets to store credentials securely.
+
+### 2a. Setting Up an SSH Tunnel Between Kubernetes and AWS EC2
+
+If your AWS EC2 MySQL instance is not publicly accessible, you can create a secure SSH tunnel from your Kubernetes cluster (e.g., on DigitalOcean) to the EC2 instance. Here are several approaches:
+
+#### Option 1: SSH Tunnel via a Jump Host (Bastion)
+
+1. **Provision a Bastion Host** in the same VPC as your MySQL EC2 instance.
+2. **Allow SSH access** from your Kubernetes cluster's public IP to the bastion.
+3. **Allow MySQL access** from the bastion to the MySQL EC2 instance (port 3306).
+4. **Create the tunnel** from a pod in your cluster:
+
+```bash
+# Example: Forward local port 3307 in the pod to MySQL on EC2 via bastion
+ssh -i /path/to/key -N -L 3307:mysql-ec2-private-ip:3306 user@bastion-public-ip
+```
+
+- Use a Kubernetes Secret to mount the SSH key into the pod.
+- You can run this as an initContainer or sidecar in your deployment.
+
+#### Option 2: SSH Tunnel as a Kubernetes Sidecar
+
+Add an SSH tunnel sidecar container to your app deployment:
+
+```yaml
+# Example sidecar container in your Deployment
+- name: ssh-tunnel
+  image: ghcr.io/whilp/ssh-client:latest
+  args:
+    - -N
+    - -L
+    - 3307:mysql-ec2-private-ip:3306
+    - user@bastion-public-ip
+  volumeMounts:
+    - name: ssh-key
+      mountPath: /root/.ssh
+  env:
+    - name: SSH_AUTH_SOCK
+      value: /root/.ssh/ssh_auth_sock
+volumes:
+  - name: ssh-key
+    secret:
+      secretName: my-ssh-key-secret
+```
+
+- Your app connects to `localhost:3307` for MySQL.
+- The SSH key is stored as a Kubernetes Secret.
+
+#### Option 3: Use Teleport, StrongDM, or Similar
+
+- Tools like [Teleport](https://goteleport.com/) or [StrongDM](https://www.strongdm.com/) can manage secure tunnels and access policies between clusters and cloud VMs.
+- These tools provide audit logging and access control.
+
+#### General Tips
+- Always restrict SSH and MySQL access to only the necessary IPs.
+- Rotate SSH keys regularly.
+- Use Kubernetes NetworkPolicies to limit egress from your pods.
+- Monitor tunnel health and restart if needed (liveness/readiness probes).
+
+---
+
+### 3. Preventing Migrations on Remote Production Databases
+
+**Never run migrations on production databases unless you are certain!**
+
+- By convention, set an environment variable in production:
+
+```env
+DISABLE_MIGRATIONS=true
+```
+
+- Update your deployment scripts and CI/CD to check this variable before running any migration commands.
+- In the Sorting Office app, ensure migration commands (e.g., `make migrate`, `diesel migration run`) are only run in safe environments.
+- Consider using database user permissions to prevent schema changes (e.g., only allow `SELECT`, `INSERT`, `UPDATE`, `DELETE` for the app user in production).
+
+### 4. General Best Practices
+
+- Always backup production databases before making any changes.
+- Use read-only users for monitoring or reporting connections.
+- Document all remote database endpoints and access methods in a secure location.
+- Regularly audit access and rotate credentials.
+
+--- 
