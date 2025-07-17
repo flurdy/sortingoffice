@@ -548,7 +548,7 @@ reports-view-report = "Bericht anzeigen"
 
 # Domain Alias Report
 domains-alias-report-title = "Alias-Bericht"
-domains-alias-report-description = "Übersicht über Catch-All-, erforderliche und häufige Aliase für diese Domain"
+domains-alias-report-description = "Übersicht über alle Aliase für diese Domain, einschließlich Catch-All-, erforderliche und häufige Aliase"
 domains-existing-aliases-header = "Bestehende Aliase"
 
 # Relays

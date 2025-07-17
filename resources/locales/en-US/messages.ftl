@@ -565,7 +565,7 @@ reports-alias-cross-domain-description = "Search for aliases across all domains"
 
 # Domain Alias Report
 domains-alias-report-title = "Alias Report"
-domains-alias-report-description = "Overview of catch-all, required, and common aliases for this domain"
+domains-alias-report-description = "Overview of all aliases for this domain, including catch-all, required, and common aliases"
 domains-existing-aliases-header = "Existing Aliases"
 
 # Relays

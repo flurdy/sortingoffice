@@ -540,7 +540,7 @@ reports-view-report = "Ver Informe"
 
 # Domain Alias Report
 domains-alias-report-title = "Informe de Alias"
-domains-alias-report-description = "Resumen de alias de captura total, requeridos y comunes para este dominio"
+domains-alias-report-description = "Resumen de todos los alias para este dominio, incluyendo alias de captura total, requeridos y comunes"
 domains-existing-aliases-header = "Alias Existentes"
 
 # Relays

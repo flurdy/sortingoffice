@@ -482,7 +482,7 @@ reports-alias-cross-domain-description = "Søk etter et spesifikt alias på tver
 
 # Domain Alias Report
 domains-alias-report-title = "Aliasrapport"
-domains-alias-report-description = "Oversikt over catch-all, påkrevde og vanlige aliaser for denne domenen"
+domains-alias-report-description = "Oversikt over alle aliaser for dette domenet, inkludert catch-all, påkrevde og vanlige aliaser"
 domains-existing-aliases-header = "Eksisterende aliaser"
 
 # Configuration

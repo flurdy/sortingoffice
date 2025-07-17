@@ -98,7 +98,7 @@ In the show domain page can the existing aliases be shown above the missing ones
 
 ✅ Show per-database feature toggles (read-only, visible to admins) on the config page - IMPLEMENTED with full i18n support
 
-The /static folder should organise its content into "images" etc
+✅ The /static folder should organise its content into "images" etc - IMPLEMENTED
 
 Should we still use a CDN for HTMX and Tailwind?
 
