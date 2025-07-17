@@ -100,7 +100,7 @@ In the show domain page can the existing aliases be shown above the missing ones
 
 ✅ The /static folder should organise its content into "images" etc - IMPLEMENTED
 
-Should we still use a CDN for HTMX and Tailwind?
+✅ Should we still use a CDN for HTMX and Tailwind? - PARTIALLY IMPLEMENTED (HTMX and Flag Icons local, Tailwind CDN kept for styling compatibility)
 
 ✅ Document how we add remote prod databases
   - add remote databases via SSH
