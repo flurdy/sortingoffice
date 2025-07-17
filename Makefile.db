@@ -9,7 +9,8 @@ MYSQL_USER ?= root
 MYSQL_PASSWORD ?= rootpassword
 MYSQL_DATABASE ?= sortingoffice
 MYSQL_HOST ?= 127.0.0.1
-MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
+MYSQL_PORT ?= 3306
+MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) -N -e
 
 # Optional DATABASE_URL parameter for targeting other databases
 DATABASE_URL_ARG ?=
@@ -58,7 +59,7 @@ seed:
 		echo "🌱 Seeding database $(MYSQL_DATABASE) with initial data..."; \
 		if [ -f "seed_data/all.sql" ]; then \
 			echo "Running seed data from seed_data/all.sql..."; \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/all.sql; \
 			echo "✅ Seed data loaded successfully!"; \
 		else \
 			echo "❌ No seed data found. Creating default seed data..."; \
@@ -68,7 +69,7 @@ seed:
 		echo "🌱 Seeding default database with initial data..."; \
 		if [ -f "seed_data/all.sql" ]; then \
 			echo "Running seed data from seed_data/all.sql..."; \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/all.sql; \
 			echo "✅ Seed data loaded successfully!"; \
 		else \
 			echo "❌ No seed data found. Creating default seed data..."; \
@@ -80,7 +81,7 @@ seed-domains:
 	@if [ -n "$(MYSQL_DATABASE)" ]; then \
 		echo "🌱 Seeding domains table in $(MYSQL_DATABASE)..."; \
 		if [ -f "seed_data/domains.sql" ]; then \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/domains.sql; \
 			echo "✅ Domains seeded successfully!"; \
 		else \
 			echo "❌ seed_data/domains.sql not found!"; \
@@ -88,7 +89,7 @@ seed-domains:
 	else \
 		echo "🌱 Seeding domains table in default database..."; \
 		if [ -f "seed_data/domains.sql" ]; then \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/domains.sql; \
 			echo "✅ Domains seeded successfully!"; \
 		else \
 			echo "❌ seed_data/domains.sql not found!"; \
@@ -99,7 +100,7 @@ seed-users:
 	@if [ -n "$(MYSQL_DATABASE)" ]; then \
 		echo "🌱 Seeding users table in $(MYSQL_DATABASE)..."; \
 		if [ -f "seed_data/users.sql" ]; then \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/users.sql; \
 			echo "✅ Users seeded successfully!"; \
 		else \
 			echo "❌ seed_data/users.sql not found!"; \
@@ -107,7 +108,7 @@ seed-users:
 	else \
 		echo "🌱 Seeding users table in default database..."; \
 		if [ -f "seed_data/users.sql" ]; then \
-			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/users.sql; \
 			echo "✅ Users seeded successfully!"; \
 		else \
 			echo "❌ seed_data/users.sql not found!"; \
@@ -117,7 +118,7 @@ seed-users:
 seed-aliases:
 	@echo "🌱 Seeding aliases table..."
 	@if [ -f "seed_data/aliases.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/aliases.sql; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/aliases.sql; \
 		echo "✅ Aliases seeded successfully!"; \
 	else \
 		echo "❌ seed_data/aliases.sql not found!"; \
@@ -126,7 +127,7 @@ seed-aliases:
 seed-backups:
 	@echo "🌱 Seeding backups table..."
 	@if [ -f "seed_data/backups.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/backups.sql; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/backups.sql; \
 		echo "✅ Backups seeded successfully!"; \
 	else \
 		echo "❌ seed_data/backups.sql not found!"; \
@@ -135,7 +136,7 @@ seed-backups:
 seed-relocated:
 	@echo "🌱 Seeding relocated table..."
 	@if [ -f "seed_data/relocated.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/relocated.sql; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/relocated.sql; \
 		echo "✅ Relocated seeded successfully!"; \
 	else \
 		echo "❌ seed_data/relocated.sql not found!"; \
@@ -144,7 +145,7 @@ seed-relocated:
 seed-relays:
 	@echo "🌱 Seeding relays table..."
 	@if [ -f "seed_data/relays.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/relays.sql; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/relays.sql; \
 		echo "✅ Relays seeded successfully!"; \
 	else \
 		echo "❌ seed_data/relays.sql not found!"; \
@@ -153,7 +154,7 @@ seed-relays:
 seed-clients:
 	@echo "🌱 Seeding clients table..."
 	@if [ -f "seed_data/clients.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/clients.sql; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/clients.sql; \
 		echo "✅ Clients seeded successfully!"; \
 	else \
 		echo "❌ seed_data/clients.sql not found!"; \
@@ -175,15 +176,15 @@ create-seed-data:
 test-db-setup:
 	@echo "🧪 Setting up test database..."
 	@echo "Creating test database if it doesn't exist..."
-	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice_test;"
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "CREATE DATABASE IF NOT EXISTS sortingoffice_test;"
 	@echo "Granting permissions to sortingoffice user..."
-	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "GRANT ALL PRIVILEGES ON sortingoffice_test.* TO 'sortingoffice'@'%';"
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "GRANT ALL PRIVILEGES ON sortingoffice_test.* TO 'sortingoffice'@'%';"
 	@echo "Running migrations on test database..."
-	@DATABASE_URL=mysql://sortingoffice:sortingoffice@$(MYSQL_HOST)/sortingoffice_test diesel migration run
+	@DATABASE_URL=mysql://sortingoffice:sortingoffice@$(MYSQL_HOST):$(MYSQL_PORT)/sortingoffice_test diesel migration run
 
 test-db-clean:
 	@echo "🧹 Cleaning test database..."
-	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -e "DROP DATABASE IF EXISTS sortingoffice_test;"
+	@mysql -uroot -prootpassword -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "DROP DATABASE IF EXISTS sortingoffice_test;"
 
 test-db-reset: test-db-clean test-db-setup
 	@echo "🔄 Test database reset complete"
@@ -192,7 +193,7 @@ test-db-reset: test-db-clean test-db-setup
 prod-db-setup:
 	@echo "🏭 Setting up production database..."
 	@echo "Creating production database if it doesn't exist..."
-	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
 	@echo "Running migrations on production database..."
 	@diesel migration run
 	@echo "Seeding production database..."
@@ -204,7 +205,7 @@ prod-db-reset:
 	@read -p "" confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		echo "Resetting production database..."; \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -e "DROP DATABASE IF EXISTS sortingoffice;"; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "DROP DATABASE IF EXISTS sortingoffice;"; \
 		make prod-db-setup; \
 	else \
 		echo "Operation cancelled."; \
@@ -214,7 +215,7 @@ prod-db-reset:
 list-domains:
 	@if [ -n "$(MYSQL_DATABASE)" ]; then \
 		echo "Listing domains in $(MYSQL_DATABASE)..."; \
-		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e "SELECT * FROM domains;"; \
+		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) -N -e "SELECT * FROM domains;"; \
 	else \
 		echo "Listing domains in default database..."; \
 		$(MYSQL_CMD) "SELECT * FROM domains;"; \
@@ -223,7 +224,7 @@ list-domains:
 count-domains:
 	@if [ -n "$(MYSQL_DATABASE)" ]; then \
 		echo "Counting domains in $(MYSQL_DATABASE)..."; \
-		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e "SELECT COUNT(*) FROM domains;"; \
+		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) -N -e "SELECT COUNT(*) FROM domains;"; \
 	else \
 		echo "Counting domains in default database..."; \
 		$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"; \
@@ -277,8 +278,8 @@ db-help:
 	@echo "  make migrate-all       - Run migrations on all configured databases"
 	@echo ""
 	@echo "Seed Data:"
-	@echo "  make seed              - Seed database with all initial data (default or specify MYSQL_DATABASE)"
-	@echo "      e.g. make seed MYSQL_DATABASE=sortingoffice_dev"
+	@echo "  make seed              - Seed database with all initial data (default or specify MYSQL_DATABASE, MYSQL_HOST, MYSQL_PORT)"
+	@echo "      e.g. make seed MYSQL_DATABASE=sortingoffice_dev MYSQL_HOST=127.0.0.1 MYSQL_PORT=3308"
 	@echo "  make seed-domains      - Seed only domains table"
 	@echo "  make seed-users        - Seed only users table"
 	@echo "  make seed-aliases      - Seed only aliases table"
@@ -311,3 +312,4 @@ db-help:
 	@echo "  make list-clients      - List all clients"
 	@echo "  make count-clients     - Count all clients"
 	@echo "  make list-databases    - List all configured databases (id, label, url) from config.toml"
+	@echo "      e.g. make list-databases"
