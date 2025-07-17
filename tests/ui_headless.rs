@@ -803,17 +803,6 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
                 debug_source
             );
 
-            // Print browser console errors for debugging
-            let logs = driver.logs("browser").await;
-            match logs {
-                Ok(entries) => {
-                    for entry in entries {
-                        println!("[BROWSER LOG] {}: {}", entry.level, entry.message);
-                    }
-                }
-                Err(e) => println!("[BROWSER LOG] Could not fetch logs: {}", e),
-            }
-
             // Look for the domain search results container
             let results = driver.find_all(By::Css("[data-domain]"));
             let results = timeout10s!(results, "Find domain suggestion items");

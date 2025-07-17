@@ -137,6 +137,7 @@ async fn main() {
         // Database selection
         .route("/database", get(handlers::database::index))
         .route("/database/select", post(handlers::database::select))
+        .route("/database/dropdown", get(handlers::database::dropdown))
         .route(
             "/database/migrate",
             post(handlers::database::run_migrations),

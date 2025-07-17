@@ -254,7 +254,7 @@ mod tests {
             .unwrap();
 
         // Step 2: Create a user via HTTP POST
-        let user_form_data = "id=integrationuser@integration-user-test.com&password=securepass123&name=Integration+User&domain=integration-user-test.com&quota=100000&enabled=on&change_password=false";
+        let user_form_data = "id=integrationuser@integration-user-test.com&password=securepass123&name=Integration+User&maildir=testdir&domain=integration-user-test.com&quota=100000&enabled=on&change_password=false";
 
         let create_response = app
             .clone()
@@ -315,7 +315,7 @@ mod tests {
 
         // Step 6: Update the user
         let update_form_data =
-            "id=updateduser@integration-user-test.com&password=newpass123&name=Updated+User&domain=integration-user-test.com&quota=200000&enabled=off&change_password=true";
+            "id=updateduser@integration-user-test.com&password=newpass123&name=Updated+User&maildir=testdir&domain=integration-user-test.com&quota=200000&enabled=off&change_password=true";
 
         let update_response = app
             .clone()
@@ -514,7 +514,7 @@ mod tests {
             .unwrap();
 
         let user_form_data =
-            "id=statsuser@integration-stats-test.com&password=stats123&name=Stats+User&enabled=on";
+            "id=statsuser@integration-stats-test.com&password=stats123&name=Stats+User&maildir=testdir&enabled=on";
 
         let _user_response = app
             .clone()
@@ -643,7 +643,7 @@ mod tests {
 
         for (email, username, password) in users_data {
             let form_data = format!(
-                "id={}&password={}&name={}&enabled=on",
+                "id={}&password={}&name={}&maildir=testdir&enabled=on",
                 username, password, username
             );
 
@@ -771,7 +771,7 @@ mod tests {
 
         for (username, password, name, enabled) in users_data {
             let form_data = format!(
-                "id={}&password={}&name={}&enabled={}",
+                "id={}&password={}&name={}&maildir=testdir&enabled={}",
                 username,
                 password,
                 name,
@@ -1030,7 +1030,7 @@ mod tests {
 
         for (username, password, name) in database_users {
             let form_data = format!(
-                "id={}&password={}&name={}&enabled=on",
+                "id={}&password={}&name={}&maildir=testdir&enabled=on",
                 username, password, name
             );
 

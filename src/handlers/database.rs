@@ -122,3 +122,18 @@ pub async fn list_databases(
     let configs = state.db_manager.get_configs().to_vec();
     Ok(axum::Json(configs))
 }
+
+/// HTMX endpoint to render the database dropdown
+pub async fn dropdown(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+) -> Html<String> {
+    let databases = state.db_manager.get_configs();
+    let current_db = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let content_template = crate::templates::database::DatabaseDropdownTemplate {
+        databases,
+        current_db: &current_db,
+    };
+    Html(content_template.render().unwrap())
+}

@@ -139,6 +139,23 @@ mod tests {
         (app, state)
     }
 
+    async fn create_test_app_with_dbs(db_configs: Vec<DatabaseConfig>) -> (Router, AppState) {
+        let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        let config = Config::default();
+        let db_manager = crate::db::DatabaseManager::new(db_configs)
+            .await
+            .expect("Failed to create database manager");
+        let state = AppState {
+            db_manager,
+            i18n,
+            config,
+        };
+        let app = Router::new()
+            .route("/database/dropdown", axum::routing::get(handlers::database::dropdown))
+            .with_state(state.clone());
+        (app, state)
+    }
+
     // Helper function to create an authenticated cookie with a specific role
     fn create_auth_cookie(role: AdminRole) -> HeaderValue {
         let now = SystemTime::now()
@@ -459,6 +476,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -507,7 +525,7 @@ mod tests {
         let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
-            "id=testuser@create-test-{}.com&password=password123&name=Test+User&enabled=on",
+            "id=testuser@create-test-{}.com&password=password123&name=Test+User&maildir=testdir&enabled=on",
             unique_id
         );
 
@@ -564,6 +582,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -618,6 +637,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -673,11 +693,12 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let form_data = format!(
-            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&enabled=on",
+            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&maildir=testdir&enabled=on",
             unique_id
         );
 
@@ -736,6 +757,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -887,6 +909,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -1876,5 +1899,58 @@ mod tests {
         assert!(body_str.contains(&format!("search-test-{}", unique_id)));
 
         cleanup_test_db(&pool);
+    }
+
+    #[tokio::test]
+    async fn test_database_dropdown_handler() {
+        use crate::tests::testcontainers_setup::setup_test_db;
+        use diesel::RunQueryDsl;
+        let container = setup_test_db();
+        let port = container.get_mysql_port();
+        let url1 = format!("mysql://root@127.0.0.1:{}/testdb1", port);
+        let url2 = format!("mysql://root@127.0.0.1:{}/testdb2", port);
+        // Create both databases in the container
+        {
+            use diesel::Connection;
+            let pool = container.get_pool();
+            let mut conn = pool.get().unwrap();
+            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb1").execute(&mut conn).unwrap();
+            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb2").execute(&mut conn).unwrap();
+        }
+        let db_config1 = DatabaseConfig {
+            id: "test1".to_string(),
+            label: "Test Database 1".to_string(),
+            url: url1,
+            features: DatabaseFeatures::default(),
+        };
+        let db_config2 = DatabaseConfig {
+            id: "test2".to_string(),
+            label: "Test Database 2".to_string(),
+            url: url2,
+            features: DatabaseFeatures::default(),
+        };
+        let (app, _state) = create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()]).await;
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/database/dropdown")
+                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+        // Should contain both database labels
+        assert!(body_str.contains("Test Database 1"));
+        assert!(body_str.contains("Test Database 2"));
+        // Should contain a form for /database/select
+        assert!(body_str.contains("/database/select"));
     }
 }

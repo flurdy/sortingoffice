@@ -39,6 +39,7 @@ mod tests {
             name: "Test User".to_string(),
             enabled: true,
             change_password: false,
+            maildir: "testdir".to_string(),
         };
 
         assert!(!valid_user_form.id.is_empty());
