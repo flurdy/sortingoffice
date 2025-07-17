@@ -11,16 +11,38 @@ MYSQL_DATABASE ?= sortingoffice
 MYSQL_HOST ?= 127.0.0.1
 MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e
 
+# Optional DATABASE_URL parameter for targeting other databases
+DATABASE_URL_ARG ?=
+
 # General database operations
 migrate:
-	diesel migration run
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Running migrations on $(DATABASE_URL_ARG)..."; \
+		diesel migration run --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Running migrations on default database..."; \
+		diesel migration run; \
+	fi
 
 migrate-revert:
-	diesel migration revert
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Reverting last migration on $(DATABASE_URL_ARG)..."; \
+		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Reverting last migration on default database..."; \
+		diesel migration revert; \
+	fi
 
 migrate-reset:
-	diesel migration revert
-	diesel migration run
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Resetting migrations on $(DATABASE_URL_ARG)..."; \
+		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
+		diesel migration run --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Resetting migrations on default database..."; \
+		diesel migration revert; \
+		diesel migration run; \
+	fi
 
 # Run migrations on all configured databases
 migrate-all:
@@ -32,32 +54,64 @@ migrate-all:
 
 # Seed data management
 seed:
-	@echo "🌱 Seeding database with initial data..."
-	@if [ -f "seed_data/all.sql" ]; then \
-		echo "Running seed data from seed_data/all.sql..."; \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
-		echo "✅ Seed data loaded successfully!"; \
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "🌱 Seeding database $(MYSQL_DATABASE) with initial data..."; \
+		if [ -f "seed_data/all.sql" ]; then \
+			echo "Running seed data from seed_data/all.sql..."; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			echo "✅ Seed data loaded successfully!"; \
+		else \
+			echo "❌ No seed data found. Creating default seed data..."; \
+			make create-seed-data; \
+		fi \
 	else \
-		echo "❌ No seed data found. Creating default seed data..."; \
-		make create-seed-data; \
+		echo "🌱 Seeding default database with initial data..."; \
+		if [ -f "seed_data/all.sql" ]; then \
+			echo "Running seed data from seed_data/all.sql..."; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			echo "✅ Seed data loaded successfully!"; \
+		else \
+			echo "❌ No seed data found. Creating default seed data..."; \
+			make create-seed-data; \
+		fi \
 	fi
 
 seed-domains:
-	@echo "🌱 Seeding domains table..."
-	@if [ -f "seed_data/domains.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
-		echo "✅ Domains seeded successfully!"; \
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "🌱 Seeding domains table in $(MYSQL_DATABASE)..."; \
+		if [ -f "seed_data/domains.sql" ]; then \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
+			echo "✅ Domains seeded successfully!"; \
+		else \
+			echo "❌ seed_data/domains.sql not found!"; \
+		fi \
 	else \
-		echo "❌ seed_data/domains.sql not found!"; \
+		echo "🌱 Seeding domains table in default database..."; \
+		if [ -f "seed_data/domains.sql" ]; then \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/domains.sql; \
+			echo "✅ Domains seeded successfully!"; \
+		else \
+			echo "❌ seed_data/domains.sql not found!"; \
+		fi \
 	fi
 
 seed-users:
-	@echo "🌱 Seeding users table..."
-	@if [ -f "seed_data/users.sql" ]; then \
-		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
-		echo "✅ Users seeded successfully!"; \
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "🌱 Seeding users table in $(MYSQL_DATABASE)..."; \
+		if [ -f "seed_data/users.sql" ]; then \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
+			echo "✅ Users seeded successfully!"; \
+		else \
+			echo "❌ seed_data/users.sql not found!"; \
+		fi \
 	else \
-		echo "❌ seed_data/users.sql not found!"; \
+		echo "🌱 Seeding users table in default database..."; \
+		if [ -f "seed_data/users.sql" ]; then \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) < seed_data/users.sql; \
+			echo "✅ Users seeded successfully!"; \
+		else \
+			echo "❌ seed_data/users.sql not found!"; \
+		fi \
 	fi
 
 seed-aliases:
@@ -158,10 +212,22 @@ prod-db-reset:
 
 # Database inspection commands
 list-domains:
-	@$(MYSQL_CMD) "SELECT * FROM domains;"
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "Listing domains in $(MYSQL_DATABASE)..."; \
+		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e "SELECT * FROM domains;"; \
+	else \
+		echo "Listing domains in default database..."; \
+		$(MYSQL_CMD) "SELECT * FROM domains;"; \
+	fi
 
 count-domains:
-	@$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "Counting domains in $(MYSQL_DATABASE)..."; \
+		$(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) $(MYSQL_DATABASE) -N -e "SELECT COUNT(*) FROM domains;"; \
+	else \
+		echo "Counting domains in default database..."; \
+		$(MYSQL_CMD) "SELECT COUNT(*) FROM domains;"; \
+	fi
 
 list-aliases:
 	@$(MYSQL_CMD) "SELECT * FROM aliases;"
@@ -193,19 +259,26 @@ list-clients:
 count-clients:
 	@$(MYSQL_CMD) "SELECT COUNT(*) FROM clients;"
 
+list-databases:
+	./scripts/list-databases.sh
+
 # Help for database operations
 db-help:
 	@echo "🗄️  Database Management Commands"
 	@echo "================================"
 	@echo ""
 	@echo "Migrations:"
-	@echo "  make migrate           - Run pending migrations (default database only)"
-	@echo "  make migrate-revert    - Revert last migration"
-	@echo "  make migrate-reset     - Reset database (revert all, then run all)"
+	@echo "  make migrate           - Run pending migrations (default database or specify DATABASE_URL)"
+	@echo "      e.g. make migrate DATABASE_URL=..."
+	@echo "  make migrate-revert    - Revert last migration (default database or specify DATABASE_URL)"
+	@echo "      e.g. make migrate-revert DATABASE_URL=..."
+	@echo "  make migrate-reset     - Reset database (revert all, then run all; default or specify DATABASE_URL)"
+	@echo "      e.g. make migrate-reset DATABASE_URL=..."
 	@echo "  make migrate-all       - Run migrations on all configured databases"
 	@echo ""
 	@echo "Seed Data:"
-	@echo "  make seed              - Seed database with all initial data"
+	@echo "  make seed              - Seed database with all initial data (default or specify MYSQL_DATABASE)"
+	@echo "      e.g. make seed MYSQL_DATABASE=sortingoffice_dev"
 	@echo "  make seed-domains      - Seed only domains table"
 	@echo "  make seed-users        - Seed only users table"
 	@echo "  make seed-aliases      - Seed only aliases table"
@@ -237,3 +310,4 @@ db-help:
 	@echo "  make count-relays      - Count all relays"
 	@echo "  make list-clients      - List all clients"
 	@echo "  make count-clients     - Count all clients"
+	@echo "  make list-databases    - List all configured databases (id, label, url) from config.toml"

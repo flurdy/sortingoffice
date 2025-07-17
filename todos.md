@@ -75,7 +75,7 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ In dark mode, there is flash of white for a very brief time when loading new pags which is a bit off-putting - IMPLEMENTED
 
-Add some more reports
+✅ Add some more reports - IMPLEMENTED
    - orphaned alias / users
    - Externally forwarders
    - Domains missing required aliases and no catch-all
@@ -90,7 +90,7 @@ Add some more reports
 
 ✅ Add some seed data for relocated, clients and relays as well. - IMPLEMENTED
 
-When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination.
+✅ When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination. - IMPLEMENTED
 
 Can the database info in the header be a link to database selection, or even a drop down if not messy.
 
