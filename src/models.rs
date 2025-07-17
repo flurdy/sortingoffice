@@ -116,6 +116,7 @@ pub struct UserForm {
     pub id: String,
     pub password: String,
     pub name: String,
+    pub maildir: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,

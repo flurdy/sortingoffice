@@ -34,7 +34,7 @@ pub struct UserShowTemplate {
     pub user_details: String,
     pub user_id: String,
     pub full_name: String,
-
+    pub users_maildir: String,
     pub status: String,
     pub created: String,
     pub modified: String,
@@ -85,6 +85,7 @@ pub struct UserFormTemplate {
     pub user: Option<User>,
     pub form: UserForm,
     pub error: Option<String>,
+    pub users_maildir: String,
     pub users_tooltip_maildir: String,
     pub users_placeholder_maildir: String,
 }

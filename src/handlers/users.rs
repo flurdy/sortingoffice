@@ -89,7 +89,8 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         user_information: get_translation(state, locale, "users-user-information").await,
         user_details: get_translation(state, locale, "users-user-details").await,
         user_id: get_translation(state, locale, "users-user-id").await,
-        full_name: get_translation(state, locale, "users-full-name").await,
+        full_name: get_translation(state, locale, "users-form-name").await,
+        users_maildir: get_translation(state, locale, "users-maildir").await,
         created: get_translation(state, locale, "users-created").await,
         modified: get_translation(state, locale, "users-modified").await,
         status_active: get_translation(state, locale, "status-active").await,
@@ -100,12 +101,38 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         delete_user: get_translation(state, locale, "users-delete-user").await,
         delete_confirm: get_translation(state, locale, "users-delete-confirm").await,
         status: get_translation(state, locale, "users-status").await,
-        password_change_required_label: get_translation(state, locale, "users-password-change-required-label").await,
-        password_change_required_yes: get_translation(state, locale, "users-password-change-required-yes").await,
-        password_change_required_no: get_translation(state, locale, "users-password-change-required-no").await,
-        password_management_title: get_translation(state, locale, "users-password-management-title").await,
-        change_password_button: get_translation(state, locale, "users-change-password-button").await,
-        require_password_change_button: get_translation(state, locale, "users-require-password-change-button").await,
+        password_change_required_label: get_translation(
+            state,
+            locale,
+            "users-password-change-required-label",
+        )
+        .await,
+        password_change_required_yes: get_translation(
+            state,
+            locale,
+            "users-password-change-required-yes",
+        )
+        .await,
+        password_change_required_no: get_translation(
+            state,
+            locale,
+            "users-password-change-required-no",
+        )
+        .await,
+        password_management_title: get_translation(
+            state,
+            locale,
+            "users-password-management-title",
+        )
+        .await,
+        change_password_button: get_translation(state, locale, "users-change-password-button")
+            .await,
+        require_password_change_button: get_translation(
+            state,
+            locale,
+            "users-require-password-change-button",
+        )
+        .await,
         user,
     }
 }
@@ -137,11 +164,23 @@ async fn build_user_form_template(
         tooltip_name: get_translation(state, locale, "users-tooltip-name").await,
         tooltip_active: get_translation(state, locale, "users-tooltip-active").await,
         users_change_password: get_translation(state, locale, "users-change-password").await,
-        users_change_password_tooltip: get_translation(state, locale, "users-change-password-tooltip").await,
-        users_placeholder_password: get_translation(state, locale, "users-placeholder-password").await,
-        password_management_title: get_translation(state, locale, "password-management-title").await,
+        users_change_password_tooltip: get_translation(
+            state,
+            locale,
+            "users-change-password-tooltip",
+        )
+        .await,
+        users_placeholder_password: get_translation(state, locale, "users-placeholder-password")
+            .await,
+        password_management_title: get_translation(state, locale, "password-management-title")
+            .await,
         change_password_button: get_translation(state, locale, "change-password-button").await,
-        toggle_change_password_button: get_translation(state, locale, "toggle-change-password-button").await,
+        toggle_change_password_button: get_translation(
+            state,
+            locale,
+            "toggle-change-password-button",
+        )
+        .await,
         cancel: get_translation(state, locale, "users-cancel").await,
         create_user: get_translation(state, locale, "users-create-user").await,
         update_user: get_translation(state, locale, "users-update-user").await,
@@ -150,8 +189,10 @@ async fn build_user_form_template(
         user,
         form,
         error,
+        users_maildir: get_translation(state, locale, "users-maildir").await,
         users_tooltip_maildir: get_translation(state, locale, "users-tooltip-maildir").await,
-        users_placeholder_maildir: get_translation(state, locale, "users-placeholder-maildir").await,
+        users_placeholder_maildir: get_translation(state, locale, "users-placeholder-maildir")
+            .await,
     }
 }
 
@@ -237,12 +278,13 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         id: "".to_string(),
         password: "".to_string(),
         name: "".to_string(),
+        maildir: "/var/spool/mail/virtual".to_string(),
         enabled: true,
         change_password: false,
     };
     let translations = crate::handlers::utils::get_translations_batch(
-            &state,
-            &locale,
+        &state,
+        &locale,
         &[
             "users-new-user",
             "form-error",
@@ -264,7 +306,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
             "form-tooltip-domain",
             "form-tooltip-enable",
         ],
-        )
+    )
     .await;
     let content_template = UserFormTemplate {
         title: translations["users-new-user"].to_string(),
@@ -279,11 +321,23 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         tooltip_name: translations["form-tooltip-name"].to_string(),
         tooltip_active: translations["form-tooltip-enable"].to_string(),
         users_change_password: get_translation(&state, &locale, "users-change-password").await,
-        users_change_password_tooltip: get_translation(&state, &locale, "users-change-password-tooltip").await,
-        users_placeholder_password: get_translation(&state, &locale, "users-placeholder-password").await,
-        password_management_title: get_translation(&state, &locale, "password-management-title").await,
+        users_change_password_tooltip: get_translation(
+            &state,
+            &locale,
+            "users-change-password-tooltip",
+        )
+        .await,
+        users_placeholder_password: get_translation(&state, &locale, "users-placeholder-password")
+            .await,
+        password_management_title: get_translation(&state, &locale, "password-management-title")
+            .await,
         change_password_button: get_translation(&state, &locale, "change-password-button").await,
-        toggle_change_password_button: get_translation(&state, &locale, "toggle-change-password-button").await,
+        toggle_change_password_button: get_translation(
+            &state,
+            &locale,
+            "toggle-change-password-button",
+        )
+        .await,
         cancel: translations["form-cancel"].to_string(),
         create_user: translations["form-create-user"].to_string(),
         update_user: translations["form-update-user"].to_string(),
@@ -292,8 +346,10 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         user: None,
         form,
         error: None,
+        users_maildir: get_translation(&state, &locale, "users-maildir").await,
         users_tooltip_maildir: get_translation(&state, &locale, "users-tooltip-maildir").await,
-        users_placeholder_maildir: get_translation(&state, &locale, "users-placeholder-maildir").await,
+        users_placeholder_maildir: get_translation(&state, &locale, "users-placeholder-maildir")
+            .await,
     };
     render_template!(content_template, &state, &locale, &headers)
 }
@@ -336,6 +392,7 @@ pub async fn edit(
         id: user.id.clone(),
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
+        maildir: user.maildir.clone(),
         enabled: user.enabled,
         change_password: user.change_password,
     };
@@ -371,11 +428,9 @@ pub async fn create(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
-        &state,
-        &current_db_id,
-        "create_user",
-    ) {
+    if let Err(_status_code) =
+        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "create_user")
+    {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
         let form_template =
@@ -507,11 +562,9 @@ pub async fn update(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
-        &state,
-        &current_db_id,
-        "update_user",
-    ) {
+    if let Err(_status_code) =
+        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "update_user")
+    {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
 
@@ -802,26 +855,43 @@ pub async fn change_password_post(
             Html(content)
         }
         Err(_) => {
-            let error_msg = get_translation(&state, &locale, "error-failed-to-update-password").await;
-            let content = render_change_password_form(&user, Some(error_msg), &state, &locale).await;
+            let error_msg =
+                get_translation(&state, &locale, "error-failed-to-update-password").await;
+            let content =
+                render_change_password_form(&user, Some(error_msg), &state, &locale).await;
             Html(content)
         }
     }
 }
 
-async fn render_change_password_form(user: &User, error: Option<String>, state: &AppState, locale: &str) -> String {
+async fn render_change_password_form(
+    user: &User,
+    error: Option<String>,
+    state: &AppState,
+    locale: &str,
+) -> String {
     use crate::templates::users::ChangePasswordTemplate;
     ChangePasswordTemplate {
         user: user.clone(),
         error,
         change_password_title: get_translation(state, locale, "users-change-password-title").await,
         new_password_label: get_translation(state, locale, "users-new-password-label").await,
-        new_password_placeholder: get_translation(state, locale, "users-new-password-placeholder").await,
-        confirm_password_label: get_translation(state, locale, "users-confirm-password-label").await,
-        confirm_password_placeholder: get_translation(state, locale, "users-confirm-password-placeholder").await,
+        new_password_placeholder: get_translation(state, locale, "users-new-password-placeholder")
+            .await,
+        confirm_password_label: get_translation(state, locale, "users-confirm-password-label")
+            .await,
+        confirm_password_placeholder: get_translation(
+            state,
+            locale,
+            "users-confirm-password-placeholder",
+        )
+        .await,
         cancel_button: get_translation(state, locale, "users-cancel-button").await,
-        change_password_button: get_translation(state, locale, "users-change-password-button").await,
-    }.render().unwrap()
+        change_password_button: get_translation(state, locale, "users-change-password-button")
+            .await,
+    }
+    .render()
+    .unwrap()
 }
 
 pub async fn toggle_change_password(
@@ -844,6 +914,7 @@ pub async fn toggle_change_password(
         id: user.id.clone(),
         password: "".to_string(),
         name: user.name.clone(),
+        maildir: user.maildir.clone(),
         enabled: user.enabled,
         change_password: !user.change_password, // Toggle the value
     };

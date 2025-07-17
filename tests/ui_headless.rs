@@ -785,7 +785,10 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
             timeout10s!(driver.get(&add_alias_url), "Navigate to add alias form");
 
             // Find the mail input field
-            let mail_input = timeout10s!(driver.find(By::Css("input[name='mail']")), "Find mail input");
+            let mail_input = timeout10s!(
+                driver.find(By::Css("input[name='mail']")),
+                "Find mail input"
+            );
             timeout10s!(mail_input.clear(), "Clear mail input");
             // Type a domain fragment to trigger suggestions
             timeout10s!(mail_input.send_keys("@exa"), "Type '@exa' in mail input");
@@ -795,7 +798,10 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
 
             // Print the page source for debugging
             let debug_source = driver.source().await?;
-            println!("--- PAGE SOURCE AFTER TYPING ---\n{}\n--- END PAGE SOURCE ---", debug_source);
+            println!(
+                "--- PAGE SOURCE AFTER TYPING ---\n{}\n--- END PAGE SOURCE ---",
+                debug_source
+            );
 
             // Print browser console errors for debugging
             let logs = driver.logs("browser").await;
@@ -814,7 +820,9 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
             let count = results.len();
             println!("Found {} domain suggestion(s)", count);
             if count == 0 {
-                return Err(anyhow::anyhow!("No domain suggestions appeared in add alias form"));
+                return Err(anyhow::anyhow!(
+                    "No domain suggestions appeared in add alias form"
+                ));
             }
             // Optionally, check that one of the suggestions contains 'example.com'
             let mut found_example = false;
@@ -826,7 +834,9 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
                 }
             }
             if !found_example {
-                return Err(anyhow::anyhow!("Domain suggestions did not include 'example.com'"));
+                return Err(anyhow::anyhow!(
+                    "Domain suggestions did not include 'example.com'"
+                ));
             }
             println!("✅ Domain search suggestions appear in add alias form");
             timeout10s!(driver.quit(), "Quit driver");

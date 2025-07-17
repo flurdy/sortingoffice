@@ -349,15 +349,18 @@ pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<U
 
 pub fn update_user_password(pool: &DbPool, user_id: i32, new_password: &str) -> Result<(), Error> {
     let mut conn = pool.get().unwrap();
-    let hashed_password = bcrypt::hash(new_password.as_bytes(), bcrypt::DEFAULT_COST)
-        .map_err(|e| {
+    let hashed_password =
+        bcrypt::hash(new_password.as_bytes(), bcrypt::DEFAULT_COST).map_err(|e| {
             Error::DatabaseError(
                 diesel::result::DatabaseErrorKind::Unknown,
                 Box::new(e.to_string()),
             )
         })?;
     diesel::update(users::table.find(user_id))
-        .set((users::crypt.eq(hashed_password), users::modified.eq(Utc::now().naive_utc())))
+        .set((
+            users::crypt.eq(hashed_password),
+            users::modified.eq(Utc::now().naive_utc()),
+        ))
         .execute(&mut conn)?;
     Ok(())
 }
@@ -1378,8 +1381,9 @@ pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alia
 
     aliases::table
         .filter(
-            aliases::destination.like(&search_pattern)
-                .or(aliases::mail.like(&search_pattern))
+            aliases::destination
+                .like(&search_pattern)
+                .or(aliases::mail.like(&search_pattern)),
         )
         .select(Alias::as_select())
         .order(aliases::destination.asc())
@@ -1601,12 +1605,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
 
     // Find users where the domain doesn't exist or is disabled in the domains table
     let orphaned_users: Vec<OrphanedUser> = users::table
-        .select((
-            users::id,
-            users::name,
-            users::enabled,
-            users::created,
-        ))
+        .select((users::id, users::name, users::enabled, users::created))
         .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
@@ -1640,12 +1639,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
 
     // Find users who don't have a corresponding alias
     let users_without_aliases: Vec<UserWithoutAlias> = users::table
-        .select((
-            users::id,
-            users::name,
-            users::enabled,
-            users::created,
-        ))
+        .select((users::id, users::name, users::enabled, users::created))
         .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
@@ -1777,17 +1771,16 @@ pub fn get_missing_aliases_report(pool: &DbPool) -> Result<MissingAliasReport, E
     })
 }
 
-pub fn get_alias_cross_domain_report(pool: &DbPool, alias_name: &str) -> Result<AliasCrossDomainReport, Error> {
+pub fn get_alias_cross_domain_report(
+    pool: &DbPool,
+    alias_name: &str,
+) -> Result<AliasCrossDomainReport, Error> {
     let mut conn = pool.get().unwrap();
 
     // Find all occurrences of this alias across all domains
     let occurrences: Vec<AliasOccurrence> = aliases::table
         .filter(aliases::mail.like(format!("{}@%", alias_name)))
-        .select((
-            aliases::mail,
-            aliases::destination,
-            aliases::enabled,
-        ))
+        .select((aliases::mail, aliases::destination, aliases::enabled))
         .load::<(String, String, bool)>(&mut conn)?
         .into_iter()
         .map(|(mail, destination, enabled)| {
@@ -1808,7 +1801,10 @@ pub fn get_alias_cross_domain_report(pool: &DbPool, alias_name: &str) -> Result<
 }
 
 // Helper function to get required aliases for a domain
-fn get_required_aliases_for_domain(_conn: &mut MysqlConnection, _domain: &str) -> Result<Vec<String>, Error> {
+fn get_required_aliases_for_domain(
+    _conn: &mut MysqlConnection,
+    _domain: &str,
+) -> Result<Vec<String>, Error> {
     // This would typically come from configuration, but for now we'll use a default list
     // In a real implementation, this would be configurable per domain
     Ok(vec![

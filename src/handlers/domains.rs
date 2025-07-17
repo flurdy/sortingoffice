@@ -365,11 +365,9 @@ pub async fn create(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
-        &state,
-        &current_db_id,
-        "create_domain",
-    ) {
+    if let Err(_status_code) =
+        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "create_domain")
+    {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
         let title = get_translation(&state, &locale, "domains-new-domain").await;
@@ -620,11 +618,9 @@ pub async fn update(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) = crate::handlers::utils::check_database_restrictions(
-        &state,
-        &current_db_id,
-        "update_domain",
-    ) {
+    if let Err(_status_code) =
+        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "update_domain")
+    {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
         let title = get_translation(&state, &locale, "domains-edit-domain").await;

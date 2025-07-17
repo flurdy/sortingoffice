@@ -47,8 +47,6 @@ pub struct ExternalForwarderReportTemplate<'a> {
     pub report: &'a crate::models::ExternalForwarderReport,
 }
 
-
-
 #[derive(Template)]
 #[template(path = "reports/alias_cross_domain.html", escape = "html")]
 pub struct AliasCrossDomainReportTemplate<'a> {

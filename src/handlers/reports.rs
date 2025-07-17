@@ -1,8 +1,7 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::reports::{
-    MatrixReportTemplate, ReportsListTemplate,
-    OrphanedReportTemplate, ExternalForwarderReportTemplate,
-    AliasCrossDomainReportTemplate
+    AliasCrossDomainReportTemplate, ExternalForwarderReportTemplate, MatrixReportTemplate,
+    OrphanedReportTemplate, ReportsListTemplate,
 };
 use crate::{db, i18n::get_translation, AppState};
 use askama::Template;
@@ -120,12 +119,18 @@ pub async fn reports_list(
     let matrix_report_title = get_translation(&state, &locale, "reports-matrix-title").await;
     let matrix_report_description =
         get_translation(&state, &locale, "reports-matrix-description").await;
-    let orphaned_aliases_report_title = get_translation(&state, &locale, "reports-orphaned-aliases-title").await;
-    let orphaned_aliases_report_description = get_translation(&state, &locale, "reports-orphaned-aliases-description").await;
-    let external_forwarders_report_title = get_translation(&state, &locale, "reports-external-forwarders-title").await;
-    let external_forwarders_report_description = get_translation(&state, &locale, "reports-external-forwarders-description").await;
-    let alias_cross_domain_report_title = get_translation(&state, &locale, "reports-alias-cross-domain-title").await;
-    let alias_cross_domain_report_description = get_translation(&state, &locale, "reports-alias-cross-domain-description").await;
+    let orphaned_aliases_report_title =
+        get_translation(&state, &locale, "reports-orphaned-aliases-title").await;
+    let orphaned_aliases_report_description =
+        get_translation(&state, &locale, "reports-orphaned-aliases-description").await;
+    let external_forwarders_report_title =
+        get_translation(&state, &locale, "reports-external-forwarders-title").await;
+    let external_forwarders_report_description =
+        get_translation(&state, &locale, "reports-external-forwarders-description").await;
+    let alias_cross_domain_report_title =
+        get_translation(&state, &locale, "reports-alias-cross-domain-title").await;
+    let alias_cross_domain_report_description =
+        get_translation(&state, &locale, "reports-alias-cross-domain-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -284,7 +289,10 @@ pub async fn external_forwarders_report(
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
-            tracing::error!("Error rendering external forwarders report template: {:?}", e);
+            tracing::error!(
+                "Error rendering external forwarders report template: {:?}",
+                e
+            );
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
@@ -328,8 +336,6 @@ pub async fn external_forwarders_report(
     }
 }
 
-
-
 // Alias cross-domain search report
 pub async fn alias_cross_domain_report(
     State(state): State<AppState>,
@@ -357,7 +363,10 @@ pub async fn alias_cross_domain_report(
     let content = match content_template.render() {
         Ok(content) => content,
         Err(e) => {
-            tracing::error!("Error rendering alias cross-domain report template: {:?}", e);
+            tracing::error!(
+                "Error rendering alias cross-domain report template: {:?}",
+                e
+            );
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };

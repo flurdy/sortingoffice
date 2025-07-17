@@ -1854,7 +1854,10 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("GET")
-                    .uri(format!("/aliases/domain-search?domain=search-test-{}", unique_id))
+                    .uri(format!(
+                        "/aliases/domain-search?domain=search-test-{}",
+                        unique_id
+                    ))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -1864,7 +1867,9 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
 
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         // Should contain domain search results

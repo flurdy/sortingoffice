@@ -1,10 +1,10 @@
 use crate::{i18n::get_translation, AppState};
 use askama::Template;
 use axum::http::HeaderMap;
+use axum::http::StatusCode;
 use axum::response::Html;
 use std::collections::HashMap;
 use tracing::error;
-use axum::http::StatusCode;
 
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
@@ -367,7 +367,9 @@ where
 }
 
 /// Helper function to handle "not found" errors consistently
-pub async fn handle_not_found<T>(result: Result<T, Box<dyn std::error::Error>>) -> Result<T, StatusCode> {
+pub async fn handle_not_found<T>(
+    result: Result<T, Box<dyn std::error::Error>>,
+) -> Result<T, StatusCode> {
     match result {
         Ok(value) => Ok(value),
         Err(_) => Err(StatusCode::NOT_FOUND),
@@ -435,10 +437,7 @@ pub fn check_database_restrictions(
 }
 
 /// Check if the current database has any write restrictions
-pub fn get_database_restrictions_info(
-    state: &AppState,
-    database_id: &str,
-) -> Vec<String> {
+pub fn get_database_restrictions_info(state: &AppState, database_id: &str) -> Vec<String> {
     let config = &state.config;
     let mut restrictions = Vec::new();
 

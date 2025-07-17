@@ -1545,7 +1545,12 @@ pub async fn domain_search(
         let translations = crate::handlers::utils::get_translations_batch(
             &state,
             &locale,
-            &["domains-search-no-results", "domains-search-select", "status-active", "status-inactive"],
+            &[
+                "domains-search-no-results",
+                "domains-search-select",
+                "status-active",
+                "status-inactive",
+            ],
         )
         .await;
         let content_template = DomainSearchResultsTemplate {
@@ -1570,7 +1575,12 @@ pub async fn domain_search(
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
         &locale,
-        &["domains-search-no-results", "domains-search-select", "status-active", "status-inactive"],
+        &[
+            "domains-search-no-results",
+            "domains-search-select",
+            "status-active",
+            "status-inactive",
+        ],
     )
     .await;
     let content_template = DomainSearchResultsTemplate {

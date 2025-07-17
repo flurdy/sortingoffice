@@ -57,20 +57,29 @@ pub async fn view_config(
         get_translation(&state, &locale, "config-placeholder-domain-alias").await;
 
     // Global Feature Toggles translations
-    let global_features_header = get_translation(&state, &locale, "config-global-features-header").await;
-    let global_features_description = get_translation(&state, &locale, "config-global-features-description").await;
+    let global_features_header =
+        get_translation(&state, &locale, "config-global-features-header").await;
+    let global_features_description =
+        get_translation(&state, &locale, "config-global-features-description").await;
     let feature_read_only = get_translation(&state, &locale, "config-feature-read-only").await;
-    let feature_no_new_users = get_translation(&state, &locale, "config-feature-no-new-users").await;
-    let feature_no_new_domains = get_translation(&state, &locale, "config-feature-no-new-domains").await;
-    let feature_no_password_updates = get_translation(&state, &locale, "config-feature-no-password-updates").await;
-    let feature_database_disabled = get_translation(&state, &locale, "config-feature-database-disabled").await;
+    let feature_no_new_users =
+        get_translation(&state, &locale, "config-feature-no-new-users").await;
+    let feature_no_new_domains =
+        get_translation(&state, &locale, "config-feature-no-new-domains").await;
+    let feature_no_password_updates =
+        get_translation(&state, &locale, "config-feature-no-password-updates").await;
+    let feature_database_disabled =
+        get_translation(&state, &locale, "config-feature-database-disabled").await;
     let status_enabled = get_translation(&state, &locale, "config-status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "config-status-disabled").await;
 
     // Database Feature Toggles translations
-    let database_features_header = get_translation(&state, &locale, "config-database-features-header").await;
-    let database_features_description = get_translation(&state, &locale, "config-database-features-description").await;
-    let database_disabled_badge = get_translation(&state, &locale, "config-database-disabled-badge").await;
+    let database_features_header =
+        get_translation(&state, &locale, "config-database-features-header").await;
+    let database_features_description =
+        get_translation(&state, &locale, "config-database-features-description").await;
+    let database_disabled_badge =
+        get_translation(&state, &locale, "config-database-disabled-badge").await;
 
     // Load current configuration
     let config = match Config::load() {

@@ -104,7 +104,10 @@ async fn main() {
         .route("/aliases", get(handlers::aliases::list))
         .route("/aliases/{id}", get(handlers::aliases::show))
         .route("/aliases/search", get(handlers::aliases::search))
-        .route("/aliases/domain-search", get(handlers::aliases::domain_search))
+        .route(
+            "/aliases/domain-search",
+            get(handlers::aliases::domain_search),
+        )
         // Read-only backup operations
         .route("/backups/{id}", get(handlers::backups::show))
         // Read-only relay operations
@@ -121,8 +124,14 @@ async fn main() {
         .route("/reports", get(handlers::reports::reports_list))
         .route("/reports/matrix", get(handlers::reports::matrix_report))
         .route("/reports/orphaned", get(handlers::reports::orphaned_report))
-        .route("/reports/external-forwarders", get(handlers::reports::external_forwarders_report))
-        .route("/reports/alias-cross-domain", get(handlers::reports::alias_cross_domain_report))
+        .route(
+            "/reports/external-forwarders",
+            get(handlers::reports::external_forwarders_report),
+        )
+        .route(
+            "/reports/alias-cross-domain",
+            get(handlers::reports::alias_cross_domain_report),
+        )
         // Configuration
         .route("/config", get(handlers::config::view_config))
         // Database selection
@@ -182,9 +191,18 @@ async fn main() {
             post(handlers::users::toggle_enabled_show),
         )
         .route("/users/{id}/toggle", post(handlers::users::toggle_enabled))
-        .route("/users/{id}/change-password", get(handlers::users::change_password_form))
-        .route("/users/{id}/change-password", post(handlers::users::change_password_post))
-        .route("/users/{id}/toggle-change-password", post(handlers::users::toggle_change_password))
+        .route(
+            "/users/{id}/change-password",
+            get(handlers::users::change_password_form),
+        )
+        .route(
+            "/users/{id}/change-password",
+            post(handlers::users::change_password_post),
+        )
+        .route(
+            "/users/{id}/toggle-change-password",
+            post(handlers::users::toggle_change_password),
+        )
         // Alias edit operations
         .route("/aliases", post(handlers::aliases::create))
         .route("/aliases/new", get(handlers::aliases::new))
