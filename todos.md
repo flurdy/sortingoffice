@@ -107,6 +107,9 @@ Should we still use a CDN for HTMX and Tailwind?
   - add remote databases running in AWS EC2 if the app is running in Kubernetes in DigitalOcean
   - how we ensure no migration is run on those
 
+Create some useful reports across the databases
+  - such as a matrix of domains present in each db, whether as domain or backup
+
 Lets discuss how we can support different databases with different field names.
 
 Scan the codebase for tidy ups

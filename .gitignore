@@ -28,3 +28,7 @@ app.log
 config/config.toml
 
 cookies.txt
+
+orphaned_keys.txt
+
+*.bak
