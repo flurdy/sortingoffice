@@ -151,7 +151,10 @@ mod tests {
             config,
         };
         let app = Router::new()
-            .route("/database/dropdown", axum::routing::get(handlers::database::dropdown))
+            .route(
+                "/database/dropdown",
+                axum::routing::get(handlers::database::dropdown),
+            )
             .with_state(state.clone());
         (app, state)
     }
@@ -1911,11 +1914,14 @@ mod tests {
         let url2 = format!("mysql://root@127.0.0.1:{}/testdb2", port);
         // Create both databases in the container
         {
-            use diesel::Connection;
-            let pool = container.get_pool();
-            let mut conn = pool.get().unwrap();
-            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb1").execute(&mut conn).unwrap();
-            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb2").execute(&mut conn).unwrap();
+            let _pool = container.get_pool();
+            let mut conn = _pool.get().unwrap();
+            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb1")
+                .execute(&mut conn)
+                .unwrap();
+            diesel::sql_query("CREATE DATABASE IF NOT EXISTS testdb2")
+                .execute(&mut conn)
+                .unwrap();
         }
         let db_config1 = DatabaseConfig {
             id: "test1".to_string(),
@@ -1929,7 +1935,8 @@ mod tests {
             url: url2,
             features: DatabaseFeatures::default(),
         };
-        let (app, _state) = create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()]).await;
+        let (app, _state) =
+            create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()]).await;
 
         let response = app
             .oneshot(

@@ -92,7 +92,7 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ When filling in an alias mail field or a user id field when entering a @ should trigger a search through domain names as suggestions? Similar to suggestions for alias destination. - IMPLEMENTED
 
-Can the database info in the header be a link to database selection, or even a drop down if not messy.
+✅ Can the database info in the header be a link to database selection, or even a drop down if not messy. - IMPLEMENTED
 
 In the show domain page can the existing aliases be shown above the missing ones.
 

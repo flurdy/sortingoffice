@@ -1,8 +1,8 @@
 console.log("[domain-suggest] user-form.js loaded");
 // User form functionality
 
-try {
-  const userIdInput = document.getElementById("id");
+  try {
+    const userIdInput = document.getElementById("id");
   const searchResults = document.getElementById("user-id-search-results");
   const userIdDestinationInput = document.getElementById("user-id-destination");
 
@@ -14,7 +14,7 @@ try {
   }
   if (!userIdDestinationInput) {
     console.warn("[user-suggest] userIdDestinationInput not found");
-  }
+      }
   if (userIdInput && searchResults && userIdDestinationInput) {
     userIdInput.addEventListener("input", function () {
       const value = userIdInput.value;
@@ -23,7 +23,7 @@ try {
         userIdDestinationInput.value = value;
         userIdDestinationInput.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
         console.log("[user-suggest] Dispatching input event on user-id-destination", value);
-      } else {
+          } else {
         searchResults.classList.add("hidden");
         console.log("[user-suggest] Hiding user id suggestions (input too short)");
       }
@@ -57,4 +57,4 @@ try {
   }
 } catch (err) {
   console.error("[user-suggest] Error in user-form.js:", err);
-}
+  }

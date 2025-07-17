@@ -10,7 +10,7 @@ mod tests {
     use crate::config::DatabaseConfig;
     use crate::config::DatabaseFeatures;
     use crate::handlers;
-    use crate::tests::testcontainers_setup::{cleanup_test_db, setup_test_db};
+    use crate::tests::testcontainers_setup::setup_test_db;
     use crate::AppState;
 
     async fn create_test_app() -> (
@@ -105,7 +105,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_domain_workflow() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create a domain via HTTP POST
         let form_data = "domain=integration-domain.com&transport=smtp%3Aintegration&enabled=on";
@@ -146,8 +146,8 @@ mod tests {
         assert!(body_str.contains("integration-domain.com"));
 
         // Step 3: Get the domain ID from the database
-        let pool = container.get_pool();
-        let domains = crate::db::get_domains(pool).unwrap();
+        let _pool = container.get_pool();
+        let domains = crate::db::get_domains(_pool).unwrap();
         let domain = domains
             .iter()
             .find(|d| d.domain == "integration-domain.com")
@@ -187,7 +187,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_domain = crate::db::get_domain(pool, domain.pkid).unwrap();
+        let updated_domain = crate::db::get_domain(_pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
         assert_eq!(updated_domain.enabled, false);
 
@@ -207,7 +207,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_domain = crate::db::get_domain(pool, domain.pkid).unwrap();
+        let toggled_domain = crate::db::get_domain(_pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, true);
 
         // Step 9: Delete the domain
@@ -226,7 +226,7 @@ mod tests {
         assert_eq!(delete_response.status(), StatusCode::OK);
 
         // Step 10: Verify the domain was deleted
-        let remaining_domains = crate::db::get_domains(pool).unwrap();
+        let remaining_domains = crate::db::get_domains(_pool).unwrap();
         assert!(!remaining_domains
             .iter()
             .any(|d| d.domain == "updated-integration.com"));
@@ -234,7 +234,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_user_workflow() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create a domain first (required for users)
         let domain_form_data =
@@ -292,8 +292,8 @@ mod tests {
         assert!(body_str.contains("integrationuser@integration-user-test.com"));
 
         // Step 4: Get the user ID from the database
-        let pool = container.get_pool();
-        let users = crate::db::get_users(pool).unwrap();
+        let _pool = container.get_pool();
+        let users = crate::db::get_users(_pool).unwrap();
         let user = users
             .iter()
             .find(|u| u.id == "integrationuser@integration-user-test.com")
@@ -333,7 +333,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 7: Verify the update
-        let updated_user = crate::db::get_user(pool, user.pkid).unwrap();
+        let updated_user = crate::db::get_user(_pool, user.pkid).unwrap();
         println!(
             "DEBUG: Updated user - id: {}, enabled: {}, change_password: {}",
             updated_user.id, updated_user.enabled, updated_user.change_password
@@ -358,7 +358,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 9: Verify the toggle
-        let toggled_user = crate::db::get_user(pool, user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(_pool, user.pkid).unwrap();
         println!(
             "DEBUG: Toggled user - id: {}, enabled: {}",
             toggled_user.id, toggled_user.enabled
@@ -369,7 +369,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_alias_workflow() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create a domain first (required for aliases)
         let domain_form_data =
@@ -427,8 +427,8 @@ mod tests {
         assert!(body_str.contains("test@integration-alias-test.com"));
 
         // Step 4: Get the alias ID from the database
-        let pool = container.get_pool();
-        let aliases = crate::db::get_aliases(pool).unwrap();
+        let _pool = container.get_pool();
+        let aliases = crate::db::get_aliases(_pool).unwrap();
         let alias = aliases
             .iter()
             .find(|a| a.mail == "test@integration-alias-test.com")
@@ -468,7 +468,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 7: Verify the update
-        let updated_alias = crate::db::get_alias(pool, alias.pkid).unwrap();
+        let updated_alias = crate::db::get_alias(_pool, alias.pkid).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.enabled, false);
 
@@ -488,13 +488,13 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 9: Verify the toggle
-        let toggled_alias = crate::db::get_alias(pool, alias.pkid).unwrap();
+        let toggled_alias = crate::db::get_alias(_pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias.enabled, true);
     }
 
     #[tokio::test]
     async fn test_stats_integration() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create test data
         let domain_form_data =
@@ -567,8 +567,8 @@ mod tests {
         assert!(body_str.contains("Statistics") || body_str.contains("stats"));
 
         // Step 3: Verify database stats match
-        let pool = container.get_pool();
-        let system_stats = crate::db::get_system_stats(pool).unwrap();
+        let _pool = container.get_pool();
+        let system_stats = crate::db::get_system_stats(_pool).unwrap();
         assert_eq!(system_stats.total_domains, 1);
         assert_eq!(system_stats.total_users, 1);
         assert_eq!(system_stats.total_aliases, 1);
@@ -576,7 +576,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_complex_domain_management_journey() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create multiple domains with different configurations
         let domains_data = vec![
@@ -690,8 +690,8 @@ mod tests {
         }
 
         // Step 5: Test domain management operations
-        let pool = container.get_pool();
-        let domains = crate::db::get_domains(pool).unwrap();
+        let _pool = container.get_pool();
+        let domains = crate::db::get_domains(_pool).unwrap();
         let primary_domain = domains
             .iter()
             .find(|d| d.domain == "primary-domain.com")
@@ -713,7 +713,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Verify toggle
-        let toggled_domain = crate::db::get_domain(pool, primary_domain.pkid).unwrap();
+        let toggled_domain = crate::db::get_domain(_pool, primary_domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
 
         // Step 6: Test statistics
@@ -743,7 +743,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_user_management_with_aliases_journey() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create a domain
         let domain_form = "domain=user-test.com&transport=smtp%3Alocalhost&enabled=on";
@@ -822,8 +822,8 @@ mod tests {
         }
 
         // Step 4: Test user management operations
-        let pool = container.get_pool();
-        let users = crate::db::get_users(pool).unwrap();
+        let _pool = container.get_pool();
+        let users = crate::db::get_users(_pool).unwrap();
         let john = users.iter().find(|u| u.id == "john").unwrap();
 
         // Toggle user status
@@ -842,11 +842,11 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Verify toggle
-        let toggled_john = crate::db::get_user(pool, john.pkid).unwrap();
+        let toggled_john = crate::db::get_user(_pool, john.pkid).unwrap();
         assert_eq!(toggled_john.enabled, false);
 
         // Step 5: Test alias management
-        let aliases = crate::db::get_aliases(pool).unwrap();
+        let aliases = crate::db::get_aliases(_pool).unwrap();
         let john_alias = aliases
             .iter()
             .find(|a| a.mail == "john@user-test.com")
@@ -868,7 +868,7 @@ mod tests {
         assert_eq!(alias_toggle_response.status(), StatusCode::OK);
 
         // Verify alias toggle
-        let toggled_alias = crate::db::get_alias(pool, john_alias.pkid).unwrap();
+        let toggled_alias = crate::db::get_alias(_pool, john_alias.pkid).unwrap();
         assert_eq!(toggled_alias.enabled, false);
 
         // Step 6: Test statistics
@@ -898,7 +898,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_error_handling_and_edge_cases_journey() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Test duplicate domain creation (should fail gracefully)
         let domain_form = "domain=duplicate-test.com&transport=smtp%3Alocalhost&enabled=on";
@@ -986,14 +986,14 @@ mod tests {
         assert!(stats_str.contains("Statistics") || stats_str.contains("stats"));
 
         // Verify we have the expected domains
-        let pool = container.get_pool();
-        let final_domains = crate::db::get_domains(pool).unwrap();
+        let _pool = container.get_pool();
+        let final_domains = crate::db::get_domains(_pool).unwrap();
         assert!(final_domains.len() >= 1); // At least duplicate-test.com
     }
 
     #[tokio::test]
     async fn test_multi_database_workflow_journey() {
-        let (app, state, container) = create_test_app().await;
+        let (app, _state, container) = create_test_app().await;
 
         // Step 1: Create domains in different "virtual databases" (simulated by different naming patterns)
         let database_domains = vec![
@@ -1149,10 +1149,10 @@ mod tests {
         assert!(stats_str.contains("7")); // 7 aliases (3 postmaster + 1 cross + 3 bulk)
 
         // Step 7: Test data isolation (simulated by naming patterns)
-        let pool = container.get_pool();
-        let domains = crate::db::get_domains(pool).unwrap();
-        let users = crate::db::get_users(pool).unwrap();
-        let aliases = crate::db::get_aliases(pool).unwrap();
+        let _pool = container.get_pool();
+        let domains = crate::db::get_domains(_pool).unwrap();
+        let users = crate::db::get_users(_pool).unwrap();
+        let aliases = crate::db::get_aliases(_pool).unwrap();
 
         // Verify we have the expected data
         assert_eq!(domains.len(), 3);

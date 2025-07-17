@@ -7,6 +7,7 @@ use crate::{render_template_with_title, AppState};
 #[derive(Deserialize)]
 pub struct DatabaseSelectionForm {
     database_id: String,
+    redirect: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -47,24 +48,46 @@ pub async fn select(
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    // Update the session with the new database selection
-    if let Some(new_cookie) =
-        crate::handlers::auth::update_session_database(&headers, &form.database_id)
-    {
-        // Redirect back to the dashboard with the updated cookie
-        Ok(axum::response::Response::builder()
-            .status(axum::http::StatusCode::FOUND)
-            .header("Location", "/")
-            .header("Set-Cookie", new_cookie)
-            .body("".into())
-            .unwrap())
+    // Determine redirect target
+    let redirect_url = form.redirect.as_deref().unwrap_or("/");
+    let redirect_url = if redirect_url.is_empty() {
+        "/"
     } else {
-        // If we can't update the session, just redirect
-        Ok(axum::response::Response::builder()
+        redirect_url
+    };
+
+    // Update the session with the new database selection
+    let new_cookie = crate::handlers::auth::update_session_database(&headers, &form.database_id);
+
+    // Check if this is an HTMX request
+    let is_htmx = headers
+        .get("HX-Request")
+        .and_then(|v| v.to_str().ok())
+        .map(|v| v == "true")
+        .unwrap_or(false);
+
+    if is_htmx {
+        // For HTMX requests, return a response with HX-Redirect header
+        let mut response_builder = axum::response::Response::builder()
+            .status(axum::http::StatusCode::OK)
+            .header("HX-Redirect", redirect_url);
+
+        if let Some(cookie) = new_cookie {
+            response_builder = response_builder.header("Set-Cookie", cookie);
+        }
+
+        Ok(response_builder.body("".into()).unwrap())
+    } else {
+        // For regular requests, return a standard redirect
+        let mut response_builder = axum::response::Response::builder()
             .status(axum::http::StatusCode::FOUND)
-            .header("Location", "/")
-            .body("".into())
-            .unwrap())
+            .header("Location", redirect_url);
+
+        if let Some(cookie) = new_cookie {
+            response_builder = response_builder.header("Set-Cookie", cookie);
+        }
+
+        Ok(response_builder.body("".into()).unwrap())
     }
 }
 
@@ -131,9 +154,15 @@ pub async fn dropdown(
     let databases = state.db_manager.get_configs();
     let current_db = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    // Try to get the current URL from Referer header, fallback to "/"
+    let current_url = headers
+        .get("Referer")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("/");
     let content_template = crate::templates::database::DatabaseDropdownTemplate {
         databases,
         current_db: &current_db,
+        current_url,
     };
     Html(content_template.render().unwrap())
 }

@@ -835,3 +835,114 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
     )
     .await
 }
+
+#[tokio::test]
+async fn test_database_dropdown_selection_headless() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let docker = clients::Cli::default();
+            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+
+            println!("🗄️ Testing database dropdown selection in headless browser...");
+
+            // Authenticate first
+            authenticate_driver(&driver, app_port).await?;
+
+            // Navigate to a page that has the database dropdown (dashboard)
+            let dashboard_url = format!("http://172.17.0.1:{}", app_port);
+            println!("Navigating to dashboard: {}", dashboard_url);
+            timeout10s!(driver.get(&dashboard_url), "Navigate to dashboard");
+
+            // Wait for page to load
+            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+
+            // Find and click the database dropdown button
+            println!("Looking for database dropdown button...");
+            let dropdown_btn = timeout10s!(
+                driver.find(By::Id("db-dropdown-btn")),
+                "Find database dropdown button"
+            );
+            timeout10s!(dropdown_btn.click(), "Click database dropdown button");
+
+            // Wait for dropdown to appear
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+            // Check if dropdown is visible
+            let dropdown_list = timeout10s!(
+                driver.find(By::Id("db-dropdown-list")),
+                "Find database dropdown list"
+            );
+            let is_displayed =
+                timeout10s!(dropdown_list.is_displayed(), "Check dropdown visibility");
+            if !is_displayed {
+                return Err(anyhow::anyhow!(
+                    "Database dropdown should be visible after clicking"
+                ));
+            }
+
+            // Find all database options in the dropdown
+            let database_options = timeout10s!(
+                driver.find_all(By::Css("#db-dropdown-list button")),
+                "Find database options"
+            );
+            println!("Found {} database options", database_options.len());
+
+            if database_options.len() < 2 {
+                return Err(anyhow::anyhow!(
+                    "Should have at least 2 database options to test selection"
+                ));
+            }
+
+            // Get the current URL before selection
+            let current_url = timeout10s!(driver.current_url(), "Get current URL before selection");
+            println!("Current URL before selection: {}", current_url);
+
+            // Click on the second database option (if different from current)
+            let second_option = &database_options[1];
+            let option_text = timeout10s!(second_option.text(), "Get second option text");
+            println!("Selecting database: {}", option_text);
+
+            timeout10s!(second_option.click(), "Click second database option");
+
+            // Wait for the page to reload/redirect
+            tokio::time::sleep(tokio::time::Duration::from_millis(3000)).await;
+
+            // Check that we're still on the same page (dashboard) with sidebar preserved
+            let new_url = timeout10s!(driver.current_url(), "Get URL after selection");
+            println!("URL after selection: {}", new_url);
+
+            // Should still be on the dashboard
+            if !new_url.as_str().contains("3000") {
+                return Err(anyhow::anyhow!(
+                    "Should still be on the application after database selection"
+                ));
+            }
+
+            // Check that the sidebar/navigation is still present
+            let sidebar = timeout10s!(
+                driver.find(By::Css("nav, .sidebar, .navigation")),
+                "Find sidebar/navigation"
+            );
+            let sidebar_displayed = timeout10s!(sidebar.is_displayed(), "Check sidebar visibility");
+            if !sidebar_displayed {
+                return Err(anyhow::anyhow!(
+                    "Sidebar should still be visible after database selection"
+                ));
+            }
+
+            // Verify the page content is still there (dashboard content)
+            let page_source = timeout10s!(driver.source(), "Get page source after selection");
+            if !page_source.contains("Dashboard") && !page_source.contains("dashboard") {
+                return Err(anyhow::anyhow!(
+                    "Dashboard content should still be present after database selection"
+                ));
+            }
+
+            println!("✅ Database dropdown selection works correctly in headless browser");
+            timeout10s!(driver.quit(), "Quit driver");
+            Ok(())
+        },
+        Duration::from_secs(60),
+    )
+    .await
+}

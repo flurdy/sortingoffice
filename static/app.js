@@ -106,3 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.style.width = width + '%';
     }
 });
+
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+  if (evt.target.id === 'db-dropdown-list') {
+    evt.target.classList.remove('hidden');
+  }
+});

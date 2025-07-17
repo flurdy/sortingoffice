@@ -13,4 +13,5 @@ pub struct DatabaseSelectionTemplate<'a> {
 pub struct DatabaseDropdownTemplate<'a> {
     pub databases: &'a [crate::config::DatabaseConfig],
     pub current_db: &'a str,
+    pub current_url: &'a str,
 }

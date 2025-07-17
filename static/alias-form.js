@@ -11,9 +11,9 @@ if (mailInput) {
 
 console.log("[domain-suggest] alias-form.js loaded");
 // Alias form functionality
-try {
-  const destinationInput = document.getElementById("destination");
-  const searchResults = document.getElementById("search-results");
+  try {
+    const destinationInput = document.getElementById("destination");
+    const searchResults = document.getElementById("search-results");
   const domainSearchResults = document.getElementById("domain-search-results");
   const mailDomainInput = document.getElementById("mail-domain");
 
@@ -81,10 +81,10 @@ try {
         mailDomainInput.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
       } else {
         // Hide suggestions if not in domain part
-        domainSearchResults.classList.add("hidden");
+            domainSearchResults.classList.add("hidden");
         console.log("[domain-suggest] Hiding domain suggestions (not in domain part)");
-      }
-    });
+        }
+      });
     document.body.addEventListener("htmx:afterSwap", function (e) {
       if (e.target.id === "domain-search-results") {
         console.log("[domain-suggest] htmx:afterSwap for domain-search-results");
@@ -121,8 +121,8 @@ try {
           mailInput.focus();
           console.log("[domain-suggest] Inserted domain '", domain, "' into mail input");
         }
-      }
-    });
+  }
+});
   }
 } catch (err) {
   console.error("[domain-suggest] Error in alias-form.js:", err);
