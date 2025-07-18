@@ -724,6 +724,136 @@ impl DomainPresenceType {
     }
 }
 
+// Cross-database User Distribution Report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseUserDistributionReport {
+    pub databases: Vec<DatabaseInfo>,
+    pub users: Vec<CrossDatabaseUserRow>,
+    pub summary: UserDistributionSummary,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseUserRow {
+    pub user_id: String,
+    pub user_name: String,
+    pub presence: Vec<UserPresence>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserPresence {
+    pub database_id: String,
+    pub database_label: String,
+    pub present: bool,
+    pub enabled: bool,
+    pub domain: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserDistributionSummary {
+    pub total_users: i64,
+    pub users_in_multiple_dbs: i64,
+    pub users_in_single_db: i64,
+    pub enabled_users: i64,
+    pub disabled_users: i64,
+}
+
+// Cross-database Feature Toggle Compliance Report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseFeatureToggleReport {
+    pub databases: Vec<DatabaseFeatureInfo>,
+    pub compliance_summary: FeatureComplianceSummary,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatabaseFeatureInfo {
+    pub id: String,
+    pub label: String,
+    pub enabled: bool,
+    pub features: DatabaseFeatures,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatabaseFeatures {
+    pub read_only: bool,
+    pub no_new_users: bool,
+    pub no_new_domains: bool,
+    pub no_password_updates: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FeatureComplianceSummary {
+    pub total_databases: i64,
+    pub databases_with_read_only: i64,
+    pub databases_with_no_new_users: i64,
+    pub databases_with_no_new_domains: i64,
+    pub databases_with_no_password_updates: i64,
+    pub fully_restricted_databases: i64,
+}
+
+// Cross-database Migration Status Report models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseMigrationReport {
+    pub databases: Vec<DatabaseMigrationInfo>,
+    pub migration_summary: MigrationSummary,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatabaseMigrationInfo {
+    pub id: String,
+    pub label: String,
+    pub enabled: bool,
+    pub migration_status: MigrationStatus,
+    pub last_migration: String,
+    pub migration_count: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum MigrationStatus {
+    UpToDate,
+    Behind,
+    Error,
+    Unknown,
+}
+
+impl MigrationStatus {
+    pub fn css_class(&self) -> &'static str {
+        match self {
+            MigrationStatus::UpToDate => "text-green-600 dark:text-green-400",
+            MigrationStatus::Behind => "text-yellow-600 dark:text-yellow-400",
+            MigrationStatus::Error => "text-red-600 dark:text-red-400",
+            MigrationStatus::Unknown => "text-gray-400 dark:text-gray-500",
+        }
+    }
+
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            MigrationStatus::UpToDate => "✓",
+            MigrationStatus::Behind => "⚠",
+            MigrationStatus::Error => "✗",
+            MigrationStatus::Unknown => "?",
+        }
+    }
+
+    pub fn tooltip(&self) -> &'static str {
+        match self {
+            MigrationStatus::UpToDate => "Up to date",
+            MigrationStatus::Behind => "Behind on migrations",
+            MigrationStatus::Error => "Migration error",
+            MigrationStatus::Unknown => "Unknown status",
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MigrationSummary {
+    pub total_databases: i64,
+    pub up_to_date: i64,
+    pub behind: i64,
+    pub errors: i64,
+    pub unknown: i64,
+    pub latest_migration: String,
+}
+
 impl<T> PaginatedResult<T> {
     pub fn new(items: Vec<T>, total_count: i64, current_page: i64, per_page: i64) -> Self {
         let total_pages = (total_count + per_page - 1) / per_page; // Ceiling division

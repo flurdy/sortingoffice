@@ -571,6 +571,32 @@ reports-primary-domain = "Domain"
 reports-backup-domain = "Backup"
 reports-not-present = "Not Present"
 
+# Cross-Database User Distribution Report
+reports-cross-db-user-distribution-title = "Cross-Database User Distribution"
+reports-cross-db-user-distribution-description = "Shows how users are distributed across databases, highlighting duplicates and single-database users"
+reports-user-header = "User"
+reports-present = "Present"
+reports-no-users = "No users found"
+reports-no-users-description = "No users are configured in the system"
+
+# Cross-Database Feature Toggle Report
+reports-cross-db-feature-toggle-title = "Cross-Database Feature Toggle Compliance"
+reports-cross-db-feature-toggle-description = "Shows feature toggle settings across all databases and compliance with organizational policies"
+reports-read-only = "Read Only"
+reports-no-new-users = "No New Users"
+reports-no-new-domains = "No New Domains"
+reports-no-password-updates = "No Password Updates"
+reports-database-status-header = "Database Status"
+reports-enabled = "Enabled"
+reports-disabled = "Disabled"
+
+# Cross-Database Migration Report
+reports-cross-db-migration-title = "Cross-Database Migration Status"
+reports-cross-db-migration-description = "Tracks migration status across all databases and identifies which need updates"
+reports-status-header = "Status"
+reports-last-migration-header = "Last Migration"
+reports-migration-count-header = "Migration Count"
+
 # Domain Alias Report
 domains-alias-report-title = "Alias Report"
 domains-alias-report-description = "Overview of all aliases for this domain, including catch-all, required, and common aliases"

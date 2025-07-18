@@ -1,5 +1,6 @@
+use crate::models::DomainPresenceType::{Backup, Primary};
+use crate::models::MigrationStatus;
 use askama::Template;
-use crate::models::DomainPresenceType::{Primary, Backup};
 
 #[derive(Template)]
 #[template(path = "reports/matrix.html", escape = "html")]
@@ -33,6 +34,12 @@ pub struct ReportsListTemplate<'a> {
     pub alias_cross_domain_report_description: &'a str,
     pub cross_database_matrix_report_title: &'a str,
     pub cross_database_matrix_report_description: &'a str,
+    pub cross_database_user_distribution_report_title: &'a str,
+    pub cross_database_user_distribution_report_description: &'a str,
+    pub cross_database_feature_toggle_report_title: &'a str,
+    pub cross_database_feature_toggle_report_description: &'a str,
+    pub cross_database_migration_report_title: &'a str,
+    pub cross_database_migration_report_description: &'a str,
     pub view_report: &'a str,
 }
 
@@ -71,4 +78,51 @@ pub struct CrossDatabaseMatrixReportTemplate<'a> {
     pub no_domains: &'a str,
     pub no_domains_description: &'a str,
     pub report: &'a crate::models::CrossDatabaseDomainMatrixReport,
+}
+
+#[derive(Template)]
+#[template(
+    path = "reports/cross_database_user_distribution.html",
+    escape = "html"
+)]
+pub struct CrossDatabaseUserDistributionReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub user_header: &'a str,
+    pub database_header: &'a str,
+    pub present: &'a str,
+    pub not_present: &'a str,
+    pub legend_title: &'a str,
+    pub no_users: &'a str,
+    pub no_users_description: &'a str,
+    pub disabled: &'a str,
+    pub report: &'a crate::models::CrossDatabaseUserDistributionReport,
+}
+
+#[derive(Template)]
+#[template(path = "reports/cross_database_feature_toggle.html", escape = "html")]
+pub struct CrossDatabaseFeatureToggleReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub database_header: &'a str,
+    pub database_status_header: &'a str,
+    pub read_only: &'a str,
+    pub no_new_users: &'a str,
+    pub no_new_domains: &'a str,
+    pub no_password_updates: &'a str,
+    pub enabled: &'a str,
+    pub disabled: &'a str,
+    pub report: &'a crate::models::CrossDatabaseFeatureToggleReport,
+}
+
+#[derive(Template)]
+#[template(path = "reports/cross_database_migration.html", escape = "html")]
+pub struct CrossDatabaseMigrationReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub database_header: &'a str,
+    pub status_header: &'a str,
+    pub last_migration_header: &'a str,
+    pub migration_count_header: &'a str,
+    pub report: &'a crate::models::CrossDatabaseMigrationReport,
 }

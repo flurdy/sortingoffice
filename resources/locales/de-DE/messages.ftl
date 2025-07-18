@@ -653,3 +653,14 @@ clients-action-enable = Aktivieren
 clients-action-disable = Deaktivieren
 clients-status-enabled = Aktiviert
 clients-status-disabled = Deaktiviert
+
+# Cross-Database Reports
+reports-cross-db-feature-toggle-title = "Cross-Database Feature Toggle Compliance"
+reports-cross-db-feature-toggle-description = "Shows feature toggle settings across all databases and compliance with organizational policies"
+reports-read-only = "Read Only"
+reports-no-new-users = "No New Users"
+reports-no-new-domains = "No New Domains"
+reports-no-password-updates = "No Password Updates"
+reports-database-status-header = "Database Status"
+reports-enabled = "Enabled"
+reports-disabled = "Disabled"

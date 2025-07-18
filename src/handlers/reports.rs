@@ -1,8 +1,9 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::reports::{
-    AliasCrossDomainReportTemplate, CrossDatabaseMatrixReportTemplate,
-    ExternalForwarderReportTemplate, MatrixReportTemplate, OrphanedReportTemplate,
-    ReportsListTemplate,
+    AliasCrossDomainReportTemplate, CrossDatabaseFeatureToggleReportTemplate,
+    CrossDatabaseMatrixReportTemplate, CrossDatabaseMigrationReportTemplate,
+    CrossDatabaseUserDistributionReportTemplate, ExternalForwarderReportTemplate,
+    MatrixReportTemplate, OrphanedReportTemplate, ReportsListTemplate,
 };
 use crate::{db, i18n::get_translation, AppState};
 use askama::Template;
@@ -232,6 +233,26 @@ pub async fn reports_list(
         get_translation(&state, &locale, "reports-cross-db-matrix-title").await;
     let cross_database_matrix_report_description =
         get_translation(&state, &locale, "reports-cross-db-matrix-description").await;
+    let cross_database_user_distribution_report_title =
+        get_translation(&state, &locale, "reports-cross-db-user-distribution-title").await;
+    let cross_database_user_distribution_report_description = get_translation(
+        &state,
+        &locale,
+        "reports-cross-db-user-distribution-description",
+    )
+    .await;
+    let cross_database_feature_toggle_report_title =
+        get_translation(&state, &locale, "reports-cross-db-feature-toggle-title").await;
+    let cross_database_feature_toggle_report_description = get_translation(
+        &state,
+        &locale,
+        "reports-cross-db-feature-toggle-description",
+    )
+    .await;
+    let cross_database_migration_report_title =
+        get_translation(&state, &locale, "reports-cross-db-migration-title").await;
+    let cross_database_migration_report_description =
+        get_translation(&state, &locale, "reports-cross-db-migration-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -248,6 +269,15 @@ pub async fn reports_list(
         alias_cross_domain_report_description: &alias_cross_domain_report_description,
         cross_database_matrix_report_title: &cross_database_matrix_report_title,
         cross_database_matrix_report_description: &cross_database_matrix_report_description,
+        cross_database_user_distribution_report_title:
+            &cross_database_user_distribution_report_title,
+        cross_database_user_distribution_report_description:
+            &cross_database_user_distribution_report_description,
+        cross_database_feature_toggle_report_title: &cross_database_feature_toggle_report_title,
+        cross_database_feature_toggle_report_description:
+            &cross_database_feature_toggle_report_description,
+        cross_database_migration_report_title: &cross_database_migration_report_title,
+        cross_database_migration_report_description: &cross_database_migration_report_description,
         view_report: &view_report,
     };
 
@@ -489,6 +519,292 @@ pub async fn alias_cross_domain_report(
 
     let template = match BaseTemplate::with_i18n(
         format!("Alias '{}' Across Domains", alias),
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+// Cross-database User Distribution Report
+pub async fn cross_database_user_distribution_report(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-cross-db-user-distribution-title").await;
+    let description = get_translation(
+        &state,
+        &locale,
+        "reports-cross-db-user-distribution-description",
+    )
+    .await;
+    let user_header = get_translation(&state, &locale, "reports-user-header").await;
+    let database_header = get_translation(&state, &locale, "reports-database-header").await;
+    let present = get_translation(&state, &locale, "reports-present").await;
+    let not_present = get_translation(&state, &locale, "reports-not-present").await;
+    let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
+    let no_users = get_translation(&state, &locale, "reports-no-users").await;
+    let no_users_description =
+        get_translation(&state, &locale, "reports-no-users-description").await;
+    let disabled = get_translation(&state, &locale, "reports-disabled").await;
+
+    // Get cross-database user distribution report data
+    let report = match db::get_cross_database_user_distribution_report(&state.db_manager).await {
+        Ok(report) => report,
+        Err(e) => {
+            tracing::error!(
+                "Error generating cross-database user distribution report: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the cross-database user distribution report template
+    let content_template = CrossDatabaseUserDistributionReportTemplate {
+        title: &title,
+        description: &description,
+        user_header: &user_header,
+        database_header: &database_header,
+        present: &present,
+        not_present: &not_present,
+        legend_title: &legend_title,
+        no_users: &no_users,
+        no_users_description: &no_users_description,
+        disabled: &disabled,
+        report: &report,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!(
+                "Error rendering cross-database user distribution report template: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+// Cross-database Feature Toggle Compliance Report
+pub async fn cross_database_feature_toggle_report(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-cross-db-feature-toggle-title").await;
+    let description = get_translation(
+        &state,
+        &locale,
+        "reports-cross-db-feature-toggle-description",
+    )
+    .await;
+    let database_header = get_translation(&state, &locale, "reports-database-header").await;
+    let database_status_header =
+        get_translation(&state, &locale, "reports-database-status-header").await;
+    let read_only = get_translation(&state, &locale, "reports-read-only").await;
+    let no_new_users = get_translation(&state, &locale, "reports-no-new-users").await;
+    let no_new_domains = get_translation(&state, &locale, "reports-no-new-domains").await;
+    let no_password_updates = get_translation(&state, &locale, "reports-no-password-updates").await;
+    let enabled = get_translation(&state, &locale, "reports-enabled").await;
+    let disabled = get_translation(&state, &locale, "reports-disabled").await;
+
+    // Get cross-database feature toggle report data
+    let report = match db::get_cross_database_feature_toggle_report(&state.db_manager).await {
+        Ok(report) => report,
+        Err(e) => {
+            tracing::error!(
+                "Error generating cross-database feature toggle report: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the cross-database feature toggle report template
+    let content_template = CrossDatabaseFeatureToggleReportTemplate {
+        title: &title,
+        description: &description,
+        database_header: &database_header,
+        database_status_header: &database_status_header,
+        read_only: &read_only,
+        no_new_users: &no_new_users,
+        no_new_domains: &no_new_domains,
+        no_password_updates: &no_password_updates,
+        enabled: &enabled,
+        disabled: &disabled,
+        report: &report,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!(
+                "Error rendering cross-database feature toggle report template: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+// Cross-database Migration Status Report
+pub async fn cross_database_migration_report(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-cross-db-migration-title").await;
+    let description =
+        get_translation(&state, &locale, "reports-cross-db-migration-description").await;
+    let database_header = get_translation(&state, &locale, "reports-database-header").await;
+    let status_header = get_translation(&state, &locale, "reports-status-header").await;
+    let last_migration_header =
+        get_translation(&state, &locale, "reports-last-migration-header").await;
+    let migration_count_header =
+        get_translation(&state, &locale, "reports-migration-count-header").await;
+
+    // Get cross-database migration report data
+    let report = match db::get_cross_database_migration_report(&state.db_manager).await {
+        Ok(report) => report,
+        Err(e) => {
+            tracing::error!("Error generating cross-database migration report: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the cross-database migration report template
+    let content_template = CrossDatabaseMigrationReportTemplate {
+        title: &title,
+        description: &description,
+        database_header: &database_header,
+        status_header: &status_header,
+        last_migration_header: &last_migration_header,
+        migration_count_header: &migration_count_header,
+        report: &report,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!(
+                "Error rendering cross-database migration report template: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title,
         content,
         &state,
         &locale,

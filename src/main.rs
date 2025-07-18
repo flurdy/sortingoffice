@@ -136,6 +136,18 @@ async fn main() {
             "/reports/alias-cross-domain",
             get(handlers::reports::alias_cross_domain_report),
         )
+        .route(
+            "/reports/cross-database-user-distribution",
+            get(handlers::reports::cross_database_user_distribution_report),
+        )
+        .route(
+            "/reports/cross-database-feature-toggle",
+            get(handlers::reports::cross_database_feature_toggle_report),
+        )
+        .route(
+            "/reports/cross-database-migration",
+            get(handlers::reports::cross_database_migration_report),
+        )
         // Configuration
         .route("/config", get(handlers::config::view_config))
         // Database selection

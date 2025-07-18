@@ -110,6 +110,8 @@ In the show domain page can the existing aliases be shown above the missing ones
 Create some useful reports across the databases
   - such as a matrix of domains present in each db, whether as domain or backup
 
+✅ In the feature toggle report, change the status to database status? If I understand what that column is?
+
 Lets discuss how we can support different databases with different field names.
 
 Scan the codebase for tidy ups
