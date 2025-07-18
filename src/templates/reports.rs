@@ -1,4 +1,5 @@
 use askama::Template;
+use crate::models::DomainPresenceType::{Primary, Backup};
 
 #[derive(Template)]
 #[template(path = "reports/matrix.html", escape = "html")]
@@ -30,6 +31,8 @@ pub struct ReportsListTemplate<'a> {
     pub external_forwarders_report_description: &'a str,
     pub alias_cross_domain_report_title: &'a str,
     pub alias_cross_domain_report_description: &'a str,
+    pub cross_database_matrix_report_title: &'a str,
+    pub cross_database_matrix_report_description: &'a str,
     pub view_report: &'a str,
 }
 
@@ -52,4 +55,20 @@ pub struct ExternalForwarderReportTemplate<'a> {
 pub struct AliasCrossDomainReportTemplate<'a> {
     pub title: &'a str,
     pub report: &'a crate::models::AliasCrossDomainReport,
+}
+
+#[derive(Template)]
+#[template(path = "reports/cross_database_matrix.html", escape = "html")]
+pub struct CrossDatabaseMatrixReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub domain_header: &'a str,
+    pub database_header: &'a str,
+    pub primary_domain: &'a str,
+    pub backup_domain: &'a str,
+    pub not_present: &'a str,
+    pub legend_title: &'a str,
+    pub no_domains: &'a str,
+    pub no_domains_description: &'a str,
+    pub report: &'a crate::models::CrossDatabaseDomainMatrixReport,
 }

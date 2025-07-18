@@ -1814,3 +1814,122 @@ fn get_required_aliases_for_domain(
         "admin".to_string(),
     ])
 }
+
+// Cross-database domain matrix report
+pub async fn get_cross_database_domain_matrix_report(
+    db_manager: &DatabaseManager,
+) -> Result<CrossDatabaseDomainMatrixReport, Box<dyn std::error::Error>> {
+    let configs = db_manager.get_configs();
+    let mut all_domains = std::collections::HashSet::new();
+    let mut domain_presence_map = std::collections::HashMap::new();
+
+    // Collect all unique domains from all databases
+    for config in configs {
+        if let Some(pool) = db_manager.get_pool(&config.id).await {
+            // Get domains from this database
+            match get_domains(&pool) {
+                Ok(domains) => {
+                    for domain in domains {
+                        all_domains.insert(domain.domain.clone());
+                        domain_presence_map
+                            .entry((domain.domain.clone(), config.id.clone()))
+                            .or_insert_with(Vec::new)
+                            .push(DomainPresence {
+                                database_id: config.id.clone(),
+                                database_label: config.label.clone(),
+                                presence_type: DomainPresenceType::Primary,
+                                enabled: domain.enabled,
+                            });
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to get domains from database {}: {:?}", config.id, e);
+                }
+            }
+
+            // Get backup domains from this database
+            match get_backups(&pool) {
+                Ok(backups) => {
+                    for backup in backups {
+                        all_domains.insert(backup.domain.clone());
+                        domain_presence_map
+                            .entry((backup.domain.clone(), config.id.clone()))
+                            .or_insert_with(Vec::new)
+                            .push(DomainPresence {
+                                database_id: config.id.clone(),
+                                database_label: config.label.clone(),
+                                presence_type: DomainPresenceType::Backup,
+                                enabled: backup.enabled,
+                            });
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to get backups from database {}: {:?}", config.id, e);
+                }
+            }
+        }
+    }
+
+    // Create database info list (each database will have 2 columns: primary and backup)
+    let databases: Vec<DatabaseInfo> = configs
+        .iter()
+        .map(|config| DatabaseInfo {
+            id: config.id.clone(),
+            label: config.label.clone(),
+            enabled: !config.features.disabled,
+        })
+        .collect();
+
+    // Create domain rows with presence information for all databases
+    let mut domain_rows = Vec::new();
+    for domain in all_domains {
+        let mut presence = Vec::new();
+
+        for db_config in configs {
+            // Check for primary domain presence
+            let primary_presence = domain_presence_map
+                .get(&(domain.clone(), db_config.id.clone()))
+                .and_then(|presences| {
+                    presences
+                        .iter()
+                        .find(|p| p.presence_type == DomainPresenceType::Primary)
+                })
+                .cloned()
+                .unwrap_or_else(|| DomainPresence {
+                    database_id: db_config.id.clone(),
+                    database_label: format!("{} (Primary)", db_config.label),
+                    presence_type: DomainPresenceType::Missing,
+                    enabled: false,
+                });
+
+            // Check for backup domain presence
+            let backup_presence = domain_presence_map
+                .get(&(domain.clone(), db_config.id.clone()))
+                .and_then(|presences| {
+                    presences
+                        .iter()
+                        .find(|p| p.presence_type == DomainPresenceType::Backup)
+                })
+                .cloned()
+                .unwrap_or_else(|| DomainPresence {
+                    database_id: db_config.id.clone(),
+                    database_label: format!("{} (Backup)", db_config.label),
+                    presence_type: DomainPresenceType::Missing,
+                    enabled: false,
+                });
+
+            presence.push(primary_presence);
+            presence.push(backup_presence);
+        }
+
+        domain_rows.push(CrossDatabaseDomainRow { domain, presence });
+    }
+
+    // Sort domains alphabetically
+    domain_rows.sort_by(|a, b| a.domain.cmp(&b.domain));
+
+    Ok(CrossDatabaseDomainMatrixReport {
+        databases,
+        domains: domain_rows,
+    })
+}

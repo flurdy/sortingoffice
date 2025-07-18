@@ -1,0 +1,100 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ title }}</h1>
+        <p class="text-gray-600 dark:text-gray-300">{{ description }}</p>
+    </div>
+
+    {% if report.domains.is_empty() %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="text-center">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ no_domains }}</h3>
+            <p class="text-gray-600 dark:text-gray-300">{{ no_domains_description }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700 z-10">
+                            {{ domain_header }}
+                        </th>
+                        {% for database in report.databases %}
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-300 dark:border-gray-600" colspan="2">
+                            <div class="flex flex-col items-center">
+                                <span class="font-semibold">{{ database.label }}</span>
+                                {% if database.enabled %}
+                                <span class="text-xs text-green-600 dark:text-green-400">●</span>
+                                {% else %}
+                                <span class="text-xs text-red-600 dark:text-red-400">●</span>
+                                {% endif %}
+                            </div>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                    <tr class="bg-gray-50 dark:bg-gray-700">
+                        <th class="px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700 z-10">
+                            <!-- Empty header for domain column -->
+                        </th>
+                        {% for database in report.databases %}
+                        <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            {{ primary_domain }}
+                        </th>
+                        <th class="px-6 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-300 dark:border-gray-600">
+                            {{ backup_domain }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for domain_row in report.domains %}
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 odd:bg-gray-50 even:bg-white dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 z-10 bg-transparent">
+                            {{ domain_row.domain }}
+                        </td>
+                        {% for presence in domain_row.presence %}
+                        <td class="px-6 py-4 whitespace-nowrap text-center {% if loop.index % 2 == 0 %}border-r border-gray-300 dark:border-gray-600{% endif %}">
+                            {% if presence.presence_type == Primary %}
+                            <div class="flex flex-col items-center">
+                                {% if presence.enabled %}
+                                <span class="text-xs text-green-600 dark:text-green-400">●</span>
+                                {% else %}
+                                <span class="text-xs text-red-600 dark:text-red-400">●</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if presence.presence_type == Backup %}
+                            <div class="flex flex-col items-center">
+                                {% if presence.enabled %}
+                                <span class="text-xs text-green-600 dark:text-green-400">●</span>
+                                {% else %}
+                                <span class="text-xs text-red-600 dark:text-red-400">●</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ legend_title }}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-green-600 dark:text-green-400">●</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">Enabled</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-red-600 dark:text-red-400">●</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">Disabled</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div> 

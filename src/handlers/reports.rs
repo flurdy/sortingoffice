@@ -1,7 +1,8 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::reports::{
-    AliasCrossDomainReportTemplate, ExternalForwarderReportTemplate, MatrixReportTemplate,
-    OrphanedReportTemplate, ReportsListTemplate,
+    AliasCrossDomainReportTemplate, CrossDatabaseMatrixReportTemplate,
+    ExternalForwarderReportTemplate, MatrixReportTemplate, OrphanedReportTemplate,
+    ReportsListTemplate,
 };
 use crate::{db, i18n::get_translation, AppState};
 use askama::Template;
@@ -107,6 +108,102 @@ pub async fn matrix_report(
     }
 }
 
+pub async fn cross_database_domain_matrix_report(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-cross-db-matrix-title").await;
+    let description = get_translation(&state, &locale, "reports-cross-db-matrix-description").await;
+    let domain_header = get_translation(&state, &locale, "reports-domain-header").await;
+    let database_header = get_translation(&state, &locale, "reports-database-header").await;
+    let primary_domain = get_translation(&state, &locale, "reports-primary-domain").await;
+    let backup_domain = get_translation(&state, &locale, "reports-backup-domain").await;
+    let not_present = get_translation(&state, &locale, "reports-not-present").await;
+    let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
+    let no_domains = get_translation(&state, &locale, "reports-no-domains").await;
+    let no_domains_description =
+        get_translation(&state, &locale, "reports-no-domains-description").await;
+
+    // Get cross-database domain matrix report data
+    let report = match db::get_cross_database_domain_matrix_report(&state.db_manager).await {
+        Ok(report) => report,
+        Err(e) => {
+            tracing::error!(
+                "Error generating cross-database domain matrix report: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the cross-database matrix report template
+    let content_template = CrossDatabaseMatrixReportTemplate {
+        title: &title,
+        description: &description,
+        domain_header: &domain_header,
+        database_header: &database_header,
+        primary_domain: &primary_domain,
+        backup_domain: &backup_domain,
+        not_present: &not_present,
+        legend_title: &legend_title,
+        no_domains: &no_domains,
+        no_domains_description: &no_domains_description,
+        report: &report,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!(
+                "Error rendering cross-database matrix report template: {:?}",
+                e
+            );
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    // Get current database id from session/cookie or default
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    // Get current database label from db_manager
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title,
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
 pub async fn reports_list(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -131,6 +228,10 @@ pub async fn reports_list(
         get_translation(&state, &locale, "reports-alias-cross-domain-title").await;
     let alias_cross_domain_report_description =
         get_translation(&state, &locale, "reports-alias-cross-domain-description").await;
+    let cross_database_matrix_report_title =
+        get_translation(&state, &locale, "reports-cross-db-matrix-title").await;
+    let cross_database_matrix_report_description =
+        get_translation(&state, &locale, "reports-cross-db-matrix-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -145,6 +246,8 @@ pub async fn reports_list(
         external_forwarders_report_description: &external_forwarders_report_description,
         alias_cross_domain_report_title: &alias_cross_domain_report_title,
         alias_cross_domain_report_description: &alias_cross_domain_report_description,
+        cross_database_matrix_report_title: &cross_database_matrix_report_title,
+        cross_database_matrix_report_description: &cross_database_matrix_report_description,
         view_report: &view_report,
     };
 

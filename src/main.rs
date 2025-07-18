@@ -123,6 +123,10 @@ async fn main() {
         .route("/stats", get(handlers::stats::index))
         .route("/reports", get(handlers::reports::reports_list))
         .route("/reports/matrix", get(handlers::reports::matrix_report))
+        .route(
+            "/reports/cross-database-matrix",
+            get(handlers::reports::cross_database_domain_matrix_report),
+        )
         .route("/reports/orphaned", get(handlers::reports::orphaned_report))
         .route(
             "/reports/external-forwarders",

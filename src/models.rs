@@ -663,6 +663,67 @@ pub struct AliasOccurrence {
     pub enabled: bool,
 }
 
+// Cross-database domain matrix models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseDomainMatrixReport {
+    pub databases: Vec<DatabaseInfo>,
+    pub domains: Vec<CrossDatabaseDomainRow>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatabaseInfo {
+    pub id: String,
+    pub label: String,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrossDatabaseDomainRow {
+    pub domain: String,
+    pub presence: Vec<DomainPresence>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DomainPresence {
+    pub database_id: String,
+    pub database_label: String,
+    pub presence_type: DomainPresenceType,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum DomainPresenceType {
+    Primary, // Domain exists as primary domain
+    Backup,  // Domain exists as backup domain
+    Missing, // Domain doesn't exist in this database
+}
+
+impl DomainPresenceType {
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            DomainPresenceType::Primary => "",
+            DomainPresenceType::Backup => "",
+            DomainPresenceType::Missing => "",
+        }
+    }
+
+    pub fn css_class(&self) -> &'static str {
+        match self {
+            DomainPresenceType::Primary => "text-blue-600 dark:text-blue-400",
+            DomainPresenceType::Backup => "text-green-600 dark:text-green-400",
+            DomainPresenceType::Missing => "text-gray-400 dark:text-gray-500",
+        }
+    }
+
+    pub fn tooltip(&self) -> &'static str {
+        match self {
+            DomainPresenceType::Primary => "Primary domain",
+            DomainPresenceType::Backup => "Backup domain",
+            DomainPresenceType::Missing => "Not present",
+        }
+    }
+}
+
 impl<T> PaginatedResult<T> {
     pub fn new(items: Vec<T>, total_count: i64, current_page: i64, per_page: i64) -> Self {
         let total_pages = (total_count + per_page - 1) / per_page; // Ceiling division

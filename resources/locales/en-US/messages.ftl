@@ -563,6 +563,14 @@ reports-external-forwarders-description = "Find aliases that forward to external
 reports-alias-cross-domain-title = "Alias Cross-Domain Search"
 reports-alias-cross-domain-description = "Search for aliases across all domains"
 
+# Cross-Database Domain Matrix Report
+reports-cross-db-matrix-title = "Cross-Database Domain Matrix"
+reports-cross-db-matrix-description = "Matrix showing domains present across all databases, whether as primary or backup domains"
+reports-database-header = "Database"
+reports-primary-domain = "Domain"
+reports-backup-domain = "Backup"
+reports-not-present = "Not Present"
+
 # Domain Alias Report
 domains-alias-report-title = "Alias Report"
 domains-alias-report-description = "Overview of all aliases for this domain, including catch-all, required, and common aliases"
