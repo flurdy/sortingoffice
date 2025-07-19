@@ -2227,21 +2227,97 @@ async fn check_migration_status(
     }
 }
 
-/// Get users using per-database field mapping (prototype)
+/// Get users using per-database field mapping with table-qualified field names
 pub fn get_users_with_field_map(
     pool: &DbPool,
     db_config: &crate::config::DatabaseConfig,
 ) -> Result<Vec<User>, Error> {
     let mut conn = pool.get().unwrap();
-    let user_id = db_config.field("user_id");
-    let enabled = db_config.field("enabled");
-    // Add more fields as needed for your User struct
+
+    // Use table-qualified field mapping
+    let user_id = db_config.field_for_table("users", "id");
+    let enabled = db_config.field_for_table("users", "enabled");
+    let crypt = db_config.field_for_table("users", "crypt");
+    let name = db_config.field_for_table("users", "name");
+    let maildir = db_config.field_for_table("users", "maildir");
+    let home = db_config.field_for_table("users", "home");
+    let uid = db_config.field_for_table("users", "uid");
+    let gid = db_config.field_for_table("users", "gid");
+    let created = db_config.field_for_table("users", "created");
+    let modified = db_config.field_for_table("users", "modified");
+    let change_password = db_config.field_for_table("users", "change_password");
 
     let sql = format!(
-        "SELECT {user_id} as id, {enabled} as enabled, crypt, name, maildir, home, uid, gid, created, modified, change_password FROM users",
+        "SELECT {user_id} as id, {enabled} as enabled, {crypt} as crypt, {name} as name, {maildir} as maildir, {home} as home, {uid} as uid, {gid} as gid, {created} as created, {modified} as modified, {change_password} as change_password FROM users",
         user_id = user_id,
-        enabled = enabled
+        enabled = enabled,
+        crypt = crypt,
+        name = name,
+        maildir = maildir,
+        home = home,
+        uid = uid,
+        gid = gid,
+        created = created,
+        modified = modified,
+        change_password = change_password
     );
 
     sql_query(sql).load::<User>(&mut conn)
+}
+
+/// Helper function to build a SELECT query with field mapping for any table
+pub fn build_field_mapped_query(
+    table: &str,
+    fields: &[(&str, &str)], // (logical_name, alias_name)
+    db_config: &crate::config::DatabaseConfig,
+) -> String {
+    let mapped_fields: Vec<String> = fields
+        .iter()
+        .map(|(logical, alias)| {
+            let mapped_field = db_config.field_for_table(table, logical);
+            format!("{} as {}", mapped_field, alias)
+        })
+        .collect();
+
+    format!("SELECT {} FROM {}", mapped_fields.join(", "), table)
+}
+
+/// Get domains using per-database field mapping with table-qualified field names
+pub fn get_domains_with_field_map(
+    pool: &DbPool,
+    db_config: &crate::config::DatabaseConfig,
+) -> Result<Vec<Domain>, Error> {
+    let mut conn = pool.get().unwrap();
+
+    let fields = [
+        ("id", "pkid"),
+        ("domain", "domain"),
+        ("transport", "transport"),
+        ("created", "created"),
+        ("modified", "modified"),
+        ("enabled", "enabled"),
+    ];
+
+    let sql = build_field_mapped_query("domains", &fields, db_config);
+    sql_query(sql).load::<Domain>(&mut conn)
+}
+
+/// Get aliases using per-database field mapping with table-qualified field names
+pub fn get_aliases_with_field_map(
+    pool: &DbPool,
+    db_config: &crate::config::DatabaseConfig,
+) -> Result<Vec<Alias>, Error> {
+    let mut conn = pool.get().unwrap();
+
+    let fields = [
+        ("id", "pkid"),
+        ("mail", "mail"),
+        ("destination", "destination"),
+        ("created", "created"),
+        ("modified", "modified"),
+        ("enabled", "enabled"),
+    ];
+
+    let sql = build_field_mapped_query("aliases", &fields, db_config);
+    sql_query(sql).load::<Alias>(&mut conn)
 }

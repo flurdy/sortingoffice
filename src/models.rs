@@ -52,16 +52,24 @@ pub struct SystemStats {
     pub enabled_domains_and_backups: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
+#[derive(
+    Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone, QueryableByName,
+)]
 #[diesel(table_name = domains)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Domain {
+    #[diesel(sql_type = diesel::sql_types::Integer)]
     pub pkid: i32,
+    #[diesel(sql_type = diesel::sql_types::Text)]
     pub domain: String,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
     pub transport: Option<String>,
+    #[diesel(sql_type = diesel::sql_types::Timestamp)]
     pub created: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Timestamp)]
     pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
     pub enabled: bool,
 }
 
@@ -127,16 +135,24 @@ pub struct UserForm {
     pub change_password: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
+#[derive(
+    Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone, QueryableByName,
+)]
 #[diesel(table_name = aliases)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Alias {
+    #[diesel(sql_type = diesel::sql_types::Integer)]
     pub pkid: i32,
+    #[diesel(sql_type = diesel::sql_types::Text)]
     pub mail: String,
+    #[diesel(sql_type = diesel::sql_types::Text)]
     pub destination: String,
+    #[diesel(sql_type = diesel::sql_types::Timestamp)]
     pub created: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Timestamp)]
     pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
     pub enabled: bool,
 }
 

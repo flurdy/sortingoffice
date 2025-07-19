@@ -50,10 +50,24 @@ no_new_domains = false      # Set to true to prevent new domain creation
 no_password_updates = false # Set to true to prevent password changes
 disabled = false            # Set to true to completely disable this database
 # Example: Field mapping for schema differences
+# Use table-qualified field names to map fields for specific tables
+# Format: "table.field" = "actual_database_field_name"
 [databases.field_map]
-user_id = "user_id"
-email = "email_address"
-enabled = "is_active"
+# Users table field mappings
+users.id = "user_id"
+users.enabled = "is_active"
+users.email = "email_address"
+
+# Domains table field mappings  
+domains.id = "domain_id"
+domains.enabled = "is_active"
+
+# Aliases table field mappings
+aliases.id = "alias_id"
+aliases.enabled = "is_active"
+
+# Backward compatibility: simple field names still work
+# enabled = "is_active"  # This would apply to all tables if not overridden
 
 [[databases]]
 id = "backup"
@@ -67,10 +81,20 @@ no_new_domains = true       # No new domains on backup
 no_password_updates = true  # No password updates on backup
 disabled = false            # Database is enabled but restricted
 # Example: Field mapping for schema differences
+# Use table-qualified field names to map fields for specific tables
 [databases.field_map]
-user_id = "id"
-email = "mail"
-enabled = "enabled"
+# Users table field mappings
+users.id = "id"
+users.enabled = "enabled"
+users.email = "mail"
+
+# Domains table field mappings
+domains.id = "id"
+domains.enabled = "enabled"
+
+# Aliases table field mappings
+aliases.id = "id"
+aliases.enabled = "enabled"
 
 # Example: Completely disabled staging server
 # [[databases]]

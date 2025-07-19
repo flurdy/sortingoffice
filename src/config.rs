@@ -367,11 +367,49 @@ impl Default for Config {
 }
 
 impl DatabaseConfig {
-    /// Get the mapped field name for a logical field, or the logical name if not mapped
+    /// Get the mapped field name for a table-qualified logical field, or the logical name if not mapped
+    ///
+    /// Examples:
+    /// - `field("users.id")` -> looks for "users.id" in field_map, falls back to "id"
+    /// - `field("users.enabled")` -> looks for "users.enabled" in field_map, falls back to "enabled"
+    /// - `field("id")` -> looks for "id" in field_map, falls back to "id" (backward compatibility)
     pub fn field<'a>(&'a self, logical: &'a str) -> &'a str {
-        self.field_map
-            .get(logical)
-            .map(|s| s.as_str())
-            .unwrap_or(logical)
+        // First try the exact logical name (for backward compatibility)
+        if let Some(mapped) = self.field_map.get(logical) {
+            return mapped.as_str();
+        }
+
+        // If not found and it contains a dot, try without the table prefix
+        if logical.contains('.') {
+            let field_name = logical.split('.').last().unwrap_or(logical);
+            if let Some(mapped) = self.field_map.get(field_name) {
+                return mapped.as_str();
+            }
+        }
+
+        // Fall back to the original logical name
+        logical
+    }
+
+    /// Get the mapped field name for a specific table and field
+    ///
+    /// Examples:
+    /// - `field_for_table("users", "id")` -> looks for "users.id" or "id" in field_map
+    /// - `field_for_table("domains", "enabled")` -> looks for "domains.enabled" or "enabled" in field_map
+    pub fn field_for_table<'a>(&'a self, table: &'a str, field: &'a str) -> &'a str {
+        let qualified = format!("{}.{}", table, field);
+
+        // First try the qualified name
+        if let Some(mapped) = self.field_map.get(&qualified) {
+            return mapped.as_str();
+        }
+
+        // Then try just the field name
+        if let Some(mapped) = self.field_map.get(field) {
+            return mapped.as_str();
+        }
+
+        // Fall back to the original field name
+        field
     }
 }

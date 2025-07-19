@@ -196,10 +196,7 @@ async fn build_user_form_template(
     }
 }
 
-pub async fn list(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-) -> Html<String> {
+pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");

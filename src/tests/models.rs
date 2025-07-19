@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
 
+    use crate::config::{DatabaseConfig, DatabaseFeatures};
     use crate::models::*;
     use serde_json;
 
@@ -328,5 +329,45 @@ mod tests {
         assert_eq!(paginated.total_pages, 3);
         assert!(!paginated.has_next);
         assert!(paginated.has_prev);
+    }
+
+    #[test]
+    fn test_table_qualified_field_mapping() {
+        use std::collections::HashMap;
+
+        // Create a database config with table-qualified field mappings
+        let mut field_map = HashMap::new();
+        field_map.insert("users.id".to_string(), "user_id".to_string());
+        field_map.insert("users.enabled".to_string(), "is_active".to_string());
+        field_map.insert("domains.id".to_string(), "domain_id".to_string());
+        field_map.insert("domains.enabled".to_string(), "is_enabled".to_string());
+        field_map.insert("aliases.id".to_string(), "alias_id".to_string());
+
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test Database".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map,
+        };
+
+        // Test table-qualified field mapping
+        assert_eq!(db_config.field_for_table("users", "id"), "user_id");
+        assert_eq!(db_config.field_for_table("users", "enabled"), "is_active");
+        assert_eq!(db_config.field_for_table("domains", "id"), "domain_id");
+        assert_eq!(
+            db_config.field_for_table("domains", "enabled"),
+            "is_enabled"
+        );
+        assert_eq!(db_config.field_for_table("aliases", "id"), "alias_id");
+
+        // Test fallback to original field name when not mapped
+        assert_eq!(db_config.field_for_table("users", "name"), "name");
+        assert_eq!(db_config.field_for_table("domains", "domain"), "domain");
+
+        // Test backward compatibility with simple field names
+        assert_eq!(db_config.field("users.id"), "user_id");
+        assert_eq!(db_config.field("domains.enabled"), "is_enabled");
+        assert_eq!(db_config.field("unknown"), "unknown");
     }
 }
