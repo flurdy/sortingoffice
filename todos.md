@@ -94,7 +94,7 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Can the database info in the header be a link to database selection, or even a drop down if not messy. - IMPLEMENTED
 
-In the show domain page can the existing aliases be shown above the missing ones.
+✅ In the show domain page can the existing aliases be shown above the missing ones. - IMPLEMENTED
 
 ✅ Show per-database feature toggles (read-only, visible to admins) on the config page - IMPLEMENTED with full i18n support
 

@@ -389,14 +389,14 @@ This project provides multiple UI testing approaches to suit different needs and
 
 ## Test Options
 
-### 1. Standard UI Tests (`make test-ui` or `./tests/run_tests.sh ui-headless`)
+### 1. Standard UI Tests (`make test-ui-dev` or `./tests/run_tests.sh ui-headless`)
 - **What it does**: Runs UI tests against the application running on localhost:3000
 - **Database**: Uses the main application database (requires seed data)
 - **Browser**: Uses testcontainers for Selenium Chrome
 - **Pros**: Fast, simple setup
 - **Cons**: Requires application to be running, depends on main database state
 
-### 2. Containerized UI Tests (`make test-ui-containerized` or `./tests/run_tests.sh ui-containerized`)
+### 2. Containerized UI Tests (`make test-ui` or `./tests/run_tests.sh ui-containerized`)
 - **What it does**: Runs UI tests with isolated database using testcontainers
 - **Database**: Uses testcontainers MySQL (isolated, clean database)
 - **Browser**: Uses testcontainers for Selenium Chrome
@@ -423,10 +423,10 @@ This project provides multiple UI testing approaches to suit different needs and
 
 ```bash
 # Standard UI tests (recommended for most cases)
-make test-ui
+make test-ui-dev
 
 # Containerized UI tests (experimental - may have Docker networking issues)
-make test-ui-containerized
+make test-ui
 
 # All tests (unit + UI)
 make test-all
@@ -437,7 +437,7 @@ make test-all
 ```bash
 # Using the test runner script directly
 ./tests/run_tests.sh ui-headless        # Standard UI tests
-./tests/run_tests.sh ui-containerized   # Containerized UI tests
+./tests/run_tests.sh ui                 # Containerized UI tests
 ./tests/run_tests.sh unit               # Unit tests only
 ./tests/run_tests.sh all                # All tests
 ```

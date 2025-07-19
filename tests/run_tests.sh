@@ -35,7 +35,7 @@ show_usage() {
     echo ""
     echo "Options:"
     echo "  unit              Run only unit tests (default)"
-    echo "  ui                Run only UI tests"
+    echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  ui-headless       Run only headless UI tests"
     echo "  ui-containerized  Run containerized UI tests (app + db in containers)"
     echo "  all               Run all tests (unit + UI)"
@@ -45,7 +45,7 @@ show_usage() {
     echo "Examples:"
     echo "  $0                # Run unit tests"
     echo "  $0 unit           # Run unit tests"
-    echo "  $0 ui             # Run UI tests"
+    echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 ui-headless    # Run headless UI tests"
     echo "  $0 ui-containerized # Run containerized UI tests"
     echo "  $0 all            # Run all tests"
@@ -261,8 +261,8 @@ run_all_tests() {
     run_unit_tests
     echo ""
     
-    # Run UI tests
-    run_ui_tests
+    # Run containerized UI tests
+    run_containerized_ui_tests
 }
 
 # Main script logic
@@ -271,7 +271,7 @@ case "${1:-unit}" in
         run_unit_tests
         ;;
     "ui")
-        run_ui_tests
+        run_containerized_ui_tests
         ;;
     "ui-headless")
         run_headless_ui_tests

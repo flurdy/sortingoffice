@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-ui-setup test-ui-compose test-ui-cleanup test-ui-failfast
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-ui-dev test-all test-ui-setup test-ui-compose test-ui-cleanup test-ui-failfast
 
 # Default target
 help:
@@ -39,9 +39,8 @@ help:
 	@echo "  make install    - Install dependencies"
 	@echo "  make test       - Run all tests (unit + UI)"
 	@echo "  make test-unit  - Run only unit/integration tests"
-	@echo "  make test-ui    - Run only UI tests"
-	@echo "  make test-ui-headless - Run only headless UI tests"
-	@echo "  make test-ui-containerized - Run containerized UI tests (app + db in containers)"
+	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
+	@echo "  make test-ui-dev - Run only headless UI tests"
 	@echo "  make test-all   - Run all tests (unit + UI)"
 	@echo "  make test-ui-setup - Setup Selenium for UI tests"
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
@@ -96,13 +95,10 @@ test-unit: test-db-setup
 	./tests/run_tests.sh unit
 
 test-ui:
-	./tests/run_tests.sh ui-headless
-
-test-ui-headless:
-	./tests/run_tests.sh ui-headless
-
-test-ui-containerized:
 	./tests/run_tests.sh ui-containerized
+
+test-ui-dev:
+	./tests/run_tests.sh ui-headless
 
 test-all: test-db-setup
 	./tests/run_tests.sh all
@@ -114,7 +110,7 @@ test-ui-setup:
 # Docker Compose UI test commands (deprecated - now using testcontainers)
 test-ui-compose:
 	@echo "🧪 Running UI tests with testcontainers..."
-	./tests/run_tests.sh ui-headless
+	./tests/run_tests.sh ui-containerized
 
 test-ui-cleanup:
 	@echo "🧹 UI test cleanup not needed - testcontainers auto-cleanup"
