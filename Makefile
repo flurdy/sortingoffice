@@ -41,6 +41,7 @@ help:
 	@echo "  make test-unit  - Run only unit/integration tests"
 	@echo "  make test-ui    - Run only UI tests"
 	@echo "  make test-ui-headless - Run only headless UI tests"
+	@echo "  make test-ui-containerized - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-all   - Run all tests (unit + UI)"
 	@echo "  make test-ui-setup - Setup Selenium for UI tests"
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
@@ -99,6 +100,9 @@ test-ui:
 
 test-ui-headless:
 	./tests/run_tests.sh ui-headless
+
+test-ui-containerized:
+	./tests/run_tests.sh ui-containerized
 
 test-all: test-db-setup
 	./tests/run_tests.sh all

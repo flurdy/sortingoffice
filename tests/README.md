@@ -382,3 +382,109 @@ tests/
 ```
 
 This organization provides a clear separation between different types of tests while maintaining a unified interface for running them all. 
+
+# UI Testing Options
+
+This project provides multiple UI testing approaches to suit different needs and environments.
+
+## Test Options
+
+### 1. Standard UI Tests (`make test-ui` or `./tests/run_tests.sh ui-headless`)
+- **What it does**: Runs UI tests against the application running on localhost:3000
+- **Database**: Uses the main application database (requires seed data)
+- **Browser**: Uses testcontainers for Selenium Chrome
+- **Pros**: Fast, simple setup
+- **Cons**: Requires application to be running, depends on main database state
+
+### 2. Containerized UI Tests (`make test-ui-containerized` or `./tests/run_tests.sh ui-containerized`)
+- **What it does**: Runs UI tests with isolated database using testcontainers
+- **Database**: Uses testcontainers MySQL (isolated, clean database)
+- **Browser**: Uses testcontainers for Selenium Chrome
+- **Application**: Runs against localhost:3000 (application must be started)
+- **Pros**: Database isolation, consistent test environment
+- **Cons**: Requires application to be running, Docker networking issues on some systems
+- **Status**: Experimental - may have Docker networking issues
+
+### 3. Full Containerized Tests (Future Enhancement)
+- **What it does**: Would run entire application in testcontainers
+- **Database**: Uses testcontainers MySQL
+- **Browser**: Uses testcontainers for Selenium Chrome
+- **Application**: Would run in testcontainers
+- **Pros**: Complete isolation, no external dependencies
+- **Cons**: More complex setup, slower startup
+
+## Usage
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Application running on localhost:3000 (for options 1 and 2)
+
+### Running Tests
+
+```bash
+# Standard UI tests (recommended for most cases)
+make test-ui
+
+# Containerized UI tests (experimental - may have Docker networking issues)
+make test-ui-containerized
+
+# All tests (unit + UI)
+make test-all
+```
+
+### Test Script Options
+
+```bash
+# Using the test runner script directly
+./tests/run_tests.sh ui-headless        # Standard UI tests
+./tests/run_tests.sh ui-containerized   # Containerized UI tests
+./tests/run_tests.sh unit               # Unit tests only
+./tests/run_tests.sh all                # All tests
+```
+
+## Test Coverage
+
+The UI tests cover:
+- Homepage loading and authentication
+- Navigation between pages
+- Domain search functionality
+- Form interactions
+- Basic UI responsiveness
+
+## Troubleshooting
+
+### Application Not Running
+If you get an error about the application not running on localhost:3000:
+```bash
+# Start the application
+cargo run
+
+# Or use Docker Compose
+docker-compose up
+```
+
+### Docker Issues
+If Docker is not available or not running:
+```bash
+# Check Docker status
+docker info
+
+# Start Docker service (if needed)
+sudo systemctl start docker
+```
+
+### Test Timeouts
+If tests timeout, you can increase timeout values in the test files or check:
+- Application responsiveness
+- Database connectivity
+- Selenium container health
+
+## CI/CD Integration
+
+For CI/CD pipelines, the standard UI tests are recommended as they provide:
+- Consistent environment
+- Reliable Docker networking
+- No external dependencies (except Docker)
+- Reproducible results
+
+The containerized UI tests are experimental and may have Docker networking issues on some systems. 

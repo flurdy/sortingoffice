@@ -33,9 +33,9 @@ diesel::table! {
         client -> Varchar,
         #[max_length = 10]
         status -> Varchar,
+        enabled -> Bool,
         created_at -> Nullable<Timestamp>,
         updated_at -> Nullable<Timestamp>,
-        enabled -> Bool,
     }
 }
 
@@ -79,8 +79,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    users (pkid) {
-        pkid -> Integer,
+    users (id) {
         #[max_length = 255]
         id -> Varchar,
         #[max_length = 255]

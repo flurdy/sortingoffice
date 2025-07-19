@@ -802,14 +802,14 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
             tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
             // Try to directly trigger the domain search by setting the hidden input value
-            let domain_input = timeout10s!(
+            let _domain_input = timeout10s!(
                 driver.find(By::Css("input[name='domain']")),
                 "Find domain input"
             );
 
             // Use JavaScript to set the value and trigger the input event
             let script = "document.getElementById('mail-domain').value = 'exa'; document.getElementById('mail-domain').dispatchEvent(new Event('input', { bubbles: true }));";
-            timeout10s!(driver.execute_script(script, vec![]), "Execute domain search script");
+            timeout10s!(driver.execute(script, vec![]), "Execute domain search script");
 
             // Wait for suggestions to appear
             tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;

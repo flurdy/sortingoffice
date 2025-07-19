@@ -190,6 +190,14 @@ test-db-reset: test-db-clean test-db-setup
 	@echo "🔄 Test database reset complete"
 
 # Production database management
+prod-db-create:
+	@echo "🏭 Setting up production database..."
+	@echo "Creating production database if it doesn't exist..."
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
+	@echo "Running migrations on production database..."
+	@diesel migration run
+
+# Production database management
 prod-db-setup:
 	@echo "🏭 Setting up production database..."
 	@echo "Creating production database if it doesn't exist..."
@@ -206,7 +214,18 @@ prod-db-reset:
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		echo "Resetting production database..."; \
 		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "DROP DATABASE IF EXISTS sortingoffice;"; \
-		make prod-db-setup; \
+		make prod-dp-setup
+	else \
+		echo "Operation cancelled."; \
+	fi
+
+prod-db-clean:
+	@echo "⚠️  WARNING: This will clean the production database!"
+	@echo "Are you sure? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		echo "Resetting production database..."; \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "DROP DATABASE IF EXISTS sortingoffice;"; \
 	else \
 		echo "Operation cancelled."; \
 	fi
@@ -295,8 +314,10 @@ db-help:
 	@echo "  make test-db-reset     - Reset test database"
 	@echo ""
 	@echo "Production Database:"
+	@echo "  make prod-db-create    - Create production database"
 	@echo "  make prod-db-setup     - Setup production database with seed data"
-	@echo "  make prod-db-reset     - Reset production database (WARNING: destructive)"
+	@echo "  make prod-db-clean     - Clean production database (WARNING: destructive)"
+	@echo "  make prod-db-reset     - Reset production database (WARNING: destructive) with seed data"
 	@echo ""
 	@echo "Database Inspection:"
 	@echo "  make list-domains      - List all domains"

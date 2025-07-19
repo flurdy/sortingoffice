@@ -307,7 +307,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         .execute(&mut conn)?;
 
     users::table
-        .order(users::pkid.desc())
+        .order(users::id.desc())
         .select(User::as_select())
         .first::<User>(&mut conn)
 }

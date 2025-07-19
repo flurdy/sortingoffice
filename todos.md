@@ -107,12 +107,14 @@ In the show domain page can the existing aliases be shown above the missing ones
   - add remote databases running in AWS EC2 if the app is running in Kubernetes in DigitalOcean
   - how we ensure no migration is run on those
 
-Create some useful reports across the databases
+✅ Create some useful reports across the databases
   - such as a matrix of domains present in each db, whether as domain or backup
 
 ✅ In the feature toggle report, change the status to database status? If I understand what that column is?
 
-Lets discuss how we can support different databases with different field names.
+✅ Lets discuss how we can support different databases with different field names.
+
+Lets review the pages and fields for users, I may have made a mistake.
 
 Scan the codebase for tidy ups
   - any obvious duplications
@@ -125,3 +127,11 @@ Improve theme slightly
 - still support the dark mode
 
 Verify the german link in the language drop down is translated, in english it just shows the id (language-german)
+
+Add wizard for onboarding a set of new domains, maybe with common aliases and destinations, maybe copy existing domain+aliases.
+
+Any way we can ensure no seeding happens on prod databases?
+
+Any way we can block migrations on prod databases?
+
+Can we make certain tables optional? Relays, relocated and clients are not in every db.

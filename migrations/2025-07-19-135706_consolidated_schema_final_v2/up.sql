@@ -1,6 +1,5 @@
--- Your SQL goes here
-
 -- Consolidated migration: Create all tables with final schema
+-- This migration consolidates all previous migrations into a single file
 
 -- Create domains table
 CREATE TABLE domains (
@@ -12,28 +11,25 @@ CREATE TABLE domains (
     enabled TINYINT(1) NOT NULL DEFAULT 1
 );
 
--- Create users table
+-- Create users table (without domain column - domain is derived from aliases)
 CREATE TABLE users (
-    pkid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id VARCHAR(255) NOT NULL,
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
     crypt VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     maildir VARCHAR(255) NOT NULL,
     home VARCHAR(255) NOT NULL DEFAULT '/var/spool/mail/virtual',
     uid SMALLINT(5) UNSIGNED NOT NULL DEFAULT 5000,
     gid SMALLINT(5) UNSIGNED NOT NULL DEFAULT 5000,
-    domain VARCHAR(255) NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     enabled TINYINT(1) NOT NULL DEFAULT 1,
-    change_password TINYINT(1) NOT NULL DEFAULT 0,
-    FOREIGN KEY (domain) REFERENCES domains(domain)
+    change_password TINYINT(1) NOT NULL DEFAULT 0
 );
 
--- Create aliases table (without domain column - domain is derived from mail field)
+-- Create aliases table (domain is derived from mail field)
 CREATE TABLE aliases (
     pkid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    mail VARCHAR(255) NOT NULL,
+    mail VARCHAR(255) NOT NULL UNIQUE,
     destination VARCHAR(255) NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -48,4 +44,34 @@ CREATE TABLE backups (
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     enabled TINYINT(1) NOT NULL DEFAULT 1
+);
+
+-- Create relays table for Postfix relay configuration
+CREATE TABLE relays (
+    pkid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    recipient VARCHAR(255) NOT NULL UNIQUE,
+    status VARCHAR(10) NOT NULL,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create relocated table for Postfix relocation configuration
+CREATE TABLE relocated (
+    pkid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    old_address VARCHAR(255) NOT NULL UNIQUE,
+    new_address VARCHAR(255) NOT NULL,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create clients table for Postfix client configuration
+CREATE TABLE clients (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    client VARCHAR(255) NOT NULL UNIQUE,
+    status VARCHAR(10) NOT NULL DEFAULT 'allowed',
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
