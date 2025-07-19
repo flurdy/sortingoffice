@@ -30,6 +30,7 @@ mod tests {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -592,7 +593,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/users/{}", _user.pkid))
+                    .uri(format!("/users/{}", _user.id))
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -647,7 +648,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(format!("/users/{}/edit", _user.pkid))
+                    .uri(format!("/users/{}/edit", _user.id))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -709,7 +710,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/users/{}", _user.pkid))
+                    .uri(format!("/users/{}", _user.id))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::from(form_data))
@@ -721,7 +722,9 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was updated
-        let updated_user = crate::db::get_user(&pool, _user.pkid).unwrap();
+        let updated_user =
+            crate::db::get_user(&pool, format!("updateduser@update-test-{}.com", unique_id))
+                .unwrap();
         assert_eq!(
             updated_user.id,
             format!("updateduser@update-test-{}.com", unique_id)
@@ -770,7 +773,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/users/{}/toggle", _user.pkid))
+                    .uri(format!("/users/{}/toggle", _user.id))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
                     .unwrap(),
@@ -781,7 +784,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify user was toggled
-        let toggled_user = crate::db::get_user(&pool, _user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(&pool, _user.id).unwrap();
         assert_eq!(toggled_user.enabled, false);
 
         cleanup_test_db(&pool);
@@ -1465,6 +1468,7 @@ mod tests {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -1514,6 +1518,7 @@ mod tests {
                     "mysql://root:password@localhost/sortingoffice_test".to_string()
                 }),
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -1928,12 +1933,14 @@ mod tests {
             label: "Test Database 1".to_string(),
             url: url1,
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         };
         let db_config2 = DatabaseConfig {
             id: "test2".to_string(),
             label: "Test Database 2".to_string(),
             url: url2,
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         };
         let (app, _state) =
             create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()]).await;

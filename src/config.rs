@@ -34,6 +34,8 @@ pub struct DatabaseConfig {
     pub url: String,
     #[serde(default)]
     pub features: DatabaseFeatures,
+    #[serde(default)]
+    pub field_map: std::collections::HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -361,5 +363,15 @@ impl Default for Config {
             databases: vec![],
             global_features: GlobalFeatures::default(),
         }
+    }
+}
+
+impl DatabaseConfig {
+    /// Get the mapped field name for a logical field, or the logical name if not mapped
+    pub fn field<'a>(&'a self, logical: &'a str) -> &'a str {
+        self.field_map
+            .get(logical)
+            .map(|s| s.as_str())
+            .unwrap_or(logical)
     }
 }

@@ -7,6 +7,7 @@ use diesel::mysql::MysqlConnection;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::result::Error;
+use diesel::sql_query;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -245,10 +246,11 @@ pub fn get_users(pool: &DbPool) -> Result<Vec<User>, Error> {
         .load::<User>(&mut conn)
 }
 
-pub fn get_user(pool: &DbPool, user_id: i32) -> Result<User, Error> {
+pub fn get_user(pool: &DbPool, user_id: String) -> Result<User, Error> {
+    use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
-    users::table
-        .find(user_id)
+    users
+        .filter(id.eq(user_id))
         .select(User::as_select())
         .first::<User>(&mut conn)
 }
@@ -310,64 +312,71 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         .first::<User>(&mut conn)
 }
 
-pub fn update_user(pool: &DbPool, user_id: i32, user_data: UserForm) -> Result<User, Error> {
+pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Result<User, Error> {
+    use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
 
-    if !user_data.password.is_empty() {
-        let hashed_password = bcrypt::hash(user_data.password.as_bytes(), bcrypt::DEFAULT_COST)
-            .map_err(|e| {
-                Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::Unknown,
-                    Box::new(e.to_string()),
-                )
-            })?;
+    // First get the current user to preserve unchanged fields
+    let _current_user = get_user(pool, user_id.clone())?;
 
-        diesel::update(users::table.find(user_id))
+    // Update the user - include id if it's different from the current one
+    if user_data.id != user_id {
+        diesel::update(users.filter(id.eq(user_id.clone())))
             .set((
-                users::id.eq(user_data.id),
-                users::name.eq(user_data.name),
-                users::enabled.eq(user_data.enabled),
-                users::change_password.eq(user_data.change_password),
-                users::modified.eq(Utc::now().naive_utc()),
-                users::crypt.eq(hashed_password),
+                id.eq(user_data.id.clone()),
+                name.eq(user_data.name),
+                enabled.eq(user_data.enabled),
+                change_password.eq(user_data.change_password),
             ))
             .execute(&mut conn)?;
     } else {
-        diesel::update(users::table.find(user_id))
+        diesel::update(users.filter(id.eq(user_id.clone())))
             .set((
-                users::id.eq(user_data.id),
-                users::name.eq(user_data.name),
-                users::enabled.eq(user_data.enabled),
-                users::change_password.eq(user_data.change_password),
-                users::modified.eq(Utc::now().naive_utc()),
+                name.eq(user_data.name),
+                enabled.eq(user_data.enabled),
+                change_password.eq(user_data.change_password),
             ))
             .execute(&mut conn)?;
     }
 
-    get_user(pool, user_id)
+    // Return the updated user using the new ID if it changed
+    let final_user_id = if user_data.id != user_id {
+        user_data.id
+    } else {
+        user_id
+    };
+    get_user(pool, final_user_id)
 }
 
-pub fn update_user_password(pool: &DbPool, user_id: i32, new_password: &str) -> Result<(), Error> {
+pub fn update_user_password(
+    pool: &DbPool,
+    user_id: String,
+    new_password: &str,
+) -> Result<(), Error> {
+    use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
-    let hashed_password =
-        bcrypt::hash(new_password.as_bytes(), bcrypt::DEFAULT_COST).map_err(|e| {
-            Error::DatabaseError(
-                diesel::result::DatabaseErrorKind::Unknown,
-                Box::new(e.to_string()),
-            )
-        })?;
-    diesel::update(users::table.find(user_id))
-        .set((
-            users::crypt.eq(hashed_password),
-            users::modified.eq(Utc::now().naive_utc()),
-        ))
+
+    // Hash the new password
+    let hashed_password = bcrypt::hash(new_password, bcrypt::DEFAULT_COST).map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
+
+    // Update the password
+    diesel::update(users.filter(id.eq(user_id)))
+        .set(crypt.eq(hashed_password))
         .execute(&mut conn)?;
+
     Ok(())
 }
 
-pub fn delete_user(pool: &DbPool, user_id: i32) -> Result<usize, Error> {
+pub fn delete_user(pool: &DbPool, user_id: String) -> Result<usize, Error> {
+    use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
-    diesel::delete(users::table.find(user_id)).execute(&mut conn)
+
+    diesel::delete(users.filter(id.eq(user_id))).execute(&mut conn)
 }
 
 pub fn get_aliases(pool: &DbPool) -> Result<Vec<Alias>, Error> {
@@ -444,20 +453,19 @@ pub fn toggle_domain_enabled(pool: &DbPool, domain_id: i32) -> Result<Domain, Er
     get_domain(pool, domain_id)
 }
 
-pub fn toggle_user_enabled(pool: &DbPool, user_id: i32) -> Result<User, Error> {
+pub fn toggle_user_enabled(pool: &DbPool, user_id: String) -> Result<User, Error> {
+    use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
 
-    // First get the current user to check its enabled status
-    let current_user = get_user(pool, user_id)?;
-    let new_enabled_status = !current_user.enabled;
+    // Get current user
+    let current_user = get_user(pool, user_id.clone())?;
 
-    diesel::update(users::table.find(user_id))
-        .set((
-            users::enabled.eq(new_enabled_status),
-            users::modified.eq(Utc::now().naive_utc()),
-        ))
+    // Toggle the enabled status
+    diesel::update(users.filter(id.eq(user_id.clone())))
+        .set(enabled.eq(!current_user.enabled))
         .execute(&mut conn)?;
 
+    // Return the updated user
     get_user(pool, user_id)
 }
 
@@ -2217,4 +2225,23 @@ async fn check_migration_status(
         Ok(_) => Ok(MigrationStatus::UpToDate),
         Err(_) => Ok(MigrationStatus::Error),
     }
+}
+
+/// Get users using per-database field mapping (prototype)
+pub fn get_users_with_field_map(
+    pool: &DbPool,
+    db_config: &crate::config::DatabaseConfig,
+) -> Result<Vec<User>, Error> {
+    let mut conn = pool.get().unwrap();
+    let user_id = db_config.field("user_id");
+    let enabled = db_config.field("enabled");
+    // Add more fields as needed for your User struct
+
+    let sql = format!(
+        "SELECT {user_id} as id, {enabled} as enabled, crypt, name, maildir, home, uid, gid, created, modified, change_password FROM users",
+        user_id = user_id,
+        enabled = enabled
+    );
+
+    sql_query(sql).load::<User>(&mut conn)
 }

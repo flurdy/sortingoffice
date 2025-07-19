@@ -1,6 +1,7 @@
 use crate::schema::*;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use diesel::sql_types::{Bool, Text};
 use serde::{Deserialize, Deserializer, Serialize};
 
 fn deserialize_checkbox<'de, D>(deserializer: D) -> Result<bool, D::Error>
@@ -78,13 +79,15 @@ pub struct NewDomain {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable, QueryableByName)]
 #[diesel(table_name = users)]
-#[diesel(primary_key(pkid))]
+#[diesel(primary_key(id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
-    pub pkid: i32,
+    #[diesel(sql_type = Text)]
     pub id: String,
+    #[diesel(sql_type = Bool)]
+    pub enabled: bool,
     pub crypt: String,
     pub name: String,
     pub maildir: String,
@@ -93,7 +96,6 @@ pub struct User {
     pub gid: u16,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
-    pub enabled: bool,
     pub change_password: bool,
 }
 
@@ -856,7 +858,11 @@ pub struct MigrationSummary {
 
 impl<T> PaginatedResult<T> {
     pub fn new(items: Vec<T>, total_count: i64, current_page: i64, per_page: i64) -> Self {
-        let total_pages = (total_count + per_page - 1) / per_page; // Ceiling division
+        let total_pages = if per_page > 0 {
+            (total_count + per_page - 1) / per_page // Ceiling division
+        } else {
+            1 // Default to 1 page if per_page is 0
+        };
         let has_next = current_page < total_pages;
         let has_prev = current_page > 1;
 
@@ -864,7 +870,7 @@ impl<T> PaginatedResult<T> {
             items,
             total_count,
             current_page,
-            per_page,
+            per_page: per_page.max(1), // Ensure per_page is at least 1
             total_pages,
             has_next,
             has_prev,

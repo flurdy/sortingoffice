@@ -30,6 +30,7 @@ mod tests {
                 container.get_mysql_port()
             ),
             features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         }];
         let db_manager = crate::db::DatabaseManager::new(db_config)
             .await
@@ -304,7 +305,7 @@ mod tests {
             .clone()
             .oneshot(
                 Request::builder()
-                    .uri(format!("/users/{}", user.pkid))
+                    .uri(format!("/users/{}", user.id))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -322,7 +323,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("PUT")
-                    .uri(format!("/users/{}", user.pkid))
+                    .uri(format!("/users/{}", user.id))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(update_form_data))
                     .unwrap(),
@@ -333,7 +334,9 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 7: Verify the update
-        let updated_user = crate::db::get_user(_pool, user.pkid).unwrap();
+        let updated_user =
+            crate::db::get_user(_pool, "updateduser@integration-user-test.com".to_string())
+                .unwrap();
         println!(
             "DEBUG: Updated user - id: {}, enabled: {}, change_password: {}",
             updated_user.id, updated_user.enabled, updated_user.change_password
@@ -348,7 +351,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/users/{}/toggle", user.pkid))
+                    .uri(format!("/users/{}/toggle", updated_user.id))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -358,7 +361,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 9: Verify the toggle
-        let toggled_user = crate::db::get_user(_pool, user.pkid).unwrap();
+        let toggled_user = crate::db::get_user(_pool, updated_user.id.clone()).unwrap();
         println!(
             "DEBUG: Toggled user - id: {}, enabled: {}",
             toggled_user.id, toggled_user.enabled
@@ -832,7 +835,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method("POST")
-                    .uri(format!("/users/{}/toggle", john.pkid))
+                    .uri(format!("/users/{}/toggle", john.id))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -842,7 +845,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Verify toggle
-        let toggled_john = crate::db::get_user(_pool, john.pkid).unwrap();
+        let toggled_john = crate::db::get_user(_pool, john.id.clone()).unwrap();
         assert_eq!(toggled_john.enabled, false);
 
         // Step 5: Test alias management

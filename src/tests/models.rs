@@ -44,7 +44,6 @@ mod tests {
     #[test]
     fn test_user_serialization() {
         let user = User {
-            pkid: 1,
             id: "testuser@example.com".to_string(),
             crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
@@ -61,7 +60,6 @@ mod tests {
         let json = serde_json::to_string(&user).unwrap();
         let deserialized: User = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(user.pkid, deserialized.pkid);
         assert_eq!(user.id, deserialized.id);
         assert_eq!(user.name, deserialized.name);
         assert_eq!(user.maildir, deserialized.maildir);

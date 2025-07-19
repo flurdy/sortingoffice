@@ -88,9 +88,7 @@ console.log("[domain-suggest] alias-form.js loaded");
     document.body.addEventListener("htmx:afterSwap", function (e) {
       if (e.target.id === "domain-search-results") {
         console.log("[domain-suggest] htmx:afterSwap for domain-search-results");
-        const query = mailInput ? mailInput.value.trim() : "";
         if (
-          query.length >= 2 &&
           domainSearchResults &&
           domainSearchResults.innerHTML.trim() !== ""
         ) {

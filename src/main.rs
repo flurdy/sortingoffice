@@ -53,6 +53,7 @@ async fn main() {
             label: "Primary Database".to_string(),
             url: db_url,
             features: config::DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
         }];
         db::DatabaseManager::new(fallback_config)
             .await

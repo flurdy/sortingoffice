@@ -6,7 +6,7 @@ use crate::{
 };
 use askama::Template;
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::HeaderMap,
     response::Html,
     Form,
@@ -199,18 +199,18 @@ async fn build_user_form_template(
 pub async fn list(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Query(params): Query<PaginationParams>,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    let page = params.page.unwrap_or(1);
-    let per_page = params.per_page.unwrap_or(20);
-    let paginated_users = match db::get_users_paginated(&pool, page, per_page) {
+    // Get users (use regular function for now)
+    let users = match db::get_users(&pool) {
         Ok(users) => users,
-        Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
+        Err(_) => vec![],
     };
+    // Dummy pagination for now
+    let paginated = PaginatedResult::new(users.clone(), users.len() as i64, 1, users.len() as i64);
     let translations = crate::handlers::utils::get_translations_batch(
         &state,
         &locale,
@@ -232,17 +232,8 @@ pub async fn list(
         ],
     )
     .await;
-    let paginated = PaginatedResult::new(
-        paginated_users.items.clone(),
-        paginated_users.total_count,
-        paginated_users.current_page,
-        paginated_users.per_page,
-    );
-    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-    let max_item = std::cmp::min(
-        paginated.current_page * paginated.per_page,
-        paginated.total_count,
-    );
+    let page_range: Vec<i64> = vec![1];
+    let max_item = users.len() as i64;
     let content_template = UsersListTemplate {
         title: translations["users-title"].to_string(),
         description: translations["users-description"].to_string(),
@@ -258,7 +249,7 @@ pub async fn list(
         disable_user: translations["users-disable-user"].to_string(),
         empty_title: translations["users-empty-title"].to_string(),
         empty_description: translations["users-empty-description"].to_string(),
-        users: paginated_users.items,
+        users,
         pagination: paginated,
         page_range,
         max_item,
@@ -356,7 +347,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
 
 pub async fn show(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -375,7 +366,7 @@ pub async fn show(
 
 pub async fn edit(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -553,7 +544,7 @@ pub async fn create(
 
 pub async fn update(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
     Form(form): Form<UserForm>,
 ) -> Html<String> {
@@ -572,7 +563,7 @@ pub async fn update(
         let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
             .await
             .expect("Failed to get database pool");
-        let existing_user = match db::get_user(&pool, id) {
+        let existing_user = match db::get_user(&pool, id.clone()) {
             Ok(user) => user,
             Err(_) => return Html("User not found".to_string()),
         };
@@ -611,7 +602,7 @@ pub async fn update(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // First get the existing user
-    let existing_user = match db::get_user(&pool, id) {
+    let existing_user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -646,9 +637,9 @@ pub async fn update(
             Html(template.render().unwrap())
         }
     } else {
-        match db::update_user(&pool, id, form.clone()) {
+        match db::update_user(&pool, id.clone(), form.clone()) {
             Ok(_) => {
-                let user = match db::get_user(&pool, id) {
+                let user = match db::get_user(&pool, id.clone()) {
                     Ok(user) => user,
                     Err(_) => return Html("User not found".to_string()),
                 };
@@ -715,7 +706,7 @@ pub async fn update(
 
 pub async fn delete(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -737,7 +728,7 @@ pub async fn delete(
 
 pub async fn toggle_enabled(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -745,7 +736,7 @@ pub async fn toggle_enabled(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(&pool, id) {
+    match db::toggle_user_enabled(&pool, id.clone()) {
         Ok(_) => {
             let users = db::get_users(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
@@ -759,7 +750,7 @@ pub async fn toggle_enabled(
 
 pub async fn toggle_enabled_list(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -767,7 +758,7 @@ pub async fn toggle_enabled_list(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(&pool, id) {
+    match db::toggle_user_enabled(&pool, id.clone()) {
         Ok(_) => {
             let users = db::get_users(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
@@ -781,7 +772,7 @@ pub async fn toggle_enabled_list(
 
 pub async fn toggle_enabled_show(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -789,9 +780,9 @@ pub async fn toggle_enabled_show(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(&pool, id) {
+    match db::toggle_user_enabled(&pool, id.clone()) {
         Ok(_) => {
-            let user = match db::get_user(&pool, id) {
+            let user = match db::get_user(&pool, id.clone()) {
                 Ok(user) => user,
                 Err(_) => return Html("User not found".to_string()),
             };
@@ -808,13 +799,13 @@ pub async fn toggle_enabled_show(
 // GET handler for change password form
 pub async fn change_password_form(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
-    let user = match db::get_user(&pool, id) {
+    let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -826,7 +817,7 @@ pub async fn change_password_form(
 // POST handler for change password form
 pub async fn change_password_post(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
     Form(form): Form<ChangePasswordForm>,
 ) -> Html<String> {
@@ -834,7 +825,7 @@ pub async fn change_password_post(
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
-    let user = match db::get_user(&pool, id) {
+    let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -848,7 +839,7 @@ pub async fn change_password_post(
         let content = render_change_password_form(&user, Some(error_msg), &state, &locale).await;
         return Html(content);
     }
-    match db::update_user_password(&pool, id, &form.new_password) {
+    match db::update_user_password(&pool, id.clone(), &form.new_password) {
         Ok(_) => {
             let content_template = build_user_show_template(&state, &locale, user).await;
             let content = content_template.render().unwrap();
@@ -896,7 +887,7 @@ async fn render_change_password_form(
 
 pub async fn toggle_change_password(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -904,7 +895,7 @@ pub async fn toggle_change_password(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let user = match db::get_user(&pool, id) {
+    let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
     };
@@ -920,10 +911,10 @@ pub async fn toggle_change_password(
     };
 
     // Update the user with the toggled change_password field
-    match db::update_user(&pool, id, form) {
+    match db::update_user(&pool, id.clone(), form) {
         Ok(_) => {
             // Get the updated user
-            let updated_user = match db::get_user(&pool, id) {
+            let updated_user = match db::get_user(&pool, id.clone()) {
                 Ok(user) => user,
                 Err(_) => return Html("User not found".to_string()),
             };

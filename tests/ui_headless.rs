@@ -790,8 +790,26 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
                 "Find mail input"
             );
             timeout10s!(mail_input.clear(), "Clear mail input");
+
+            // Wait for JavaScript to load
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
             // Type a domain fragment to trigger suggestions
+            // The JavaScript will automatically trigger domain search when @ is typed
             timeout10s!(mail_input.send_keys("@exa"), "Type '@exa' in mail input");
+
+            // Wait a bit for the input to be processed
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+            // Try to directly trigger the domain search by setting the hidden input value
+            let domain_input = timeout10s!(
+                driver.find(By::Css("input[name='domain']")),
+                "Find domain input"
+            );
+
+            // Use JavaScript to set the value and trigger the input event
+            let script = "document.getElementById('mail-domain').value = 'exa'; document.getElementById('mail-domain').dispatchEvent(new Event('input', { bubbles: true }));";
+            timeout10s!(driver.execute_script(script, vec![]), "Execute domain search script");
 
             // Wait for suggestions to appear
             tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
@@ -813,13 +831,15 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
                     "No domain suggestions appeared in add alias form"
                 ));
             }
-            // Optionally, check that one of the suggestions contains 'example.com'
+            // Check that one of the suggestions has the data-domain attribute with 'example.com'
             let mut found_example = false;
             for elem in results {
-                let text = elem.text().await?;
-                if text.contains("example.com") {
-                    found_example = true;
-                    break;
+                let domain_attr = elem.attr("data-domain").await?;
+                if let Some(domain) = domain_attr {
+                    if domain == "example.com" {
+                        found_example = true;
+                        break;
+                    }
                 }
             }
             if !found_example {

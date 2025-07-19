@@ -81,7 +81,6 @@ mod tests {
 
         // Test User model creation
         let user = User {
-            pkid: 1,
             id: "testuser@example.com".to_string(),
             crypt: "hashed_password".to_string(),
             name: "Test User".to_string(),
@@ -95,7 +94,6 @@ mod tests {
             change_password: false,
         };
 
-        assert_eq!(user.pkid, 1);
         assert_eq!(user.id, "testuser@example.com");
         assert_eq!(user.name, "Test User");
         assert_eq!(user.maildir, "testuser/");
