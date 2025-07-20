@@ -32,11 +32,28 @@
             <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ field_new_address_help }}</p>
         </div>
         
+        <!-- Fancy radio toggle for enabled/disabled (both new and edit forms) -->
         <div class="mb-4">
-            <div class="flex items-center gap-2">
-                <div class="flex items-center">
-                    <input type="checkbox" class="form-checkbox h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded" name="enabled" {% if form.enabled %}checked{% endif %}>
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">{{ field_enabled }}</span>
+            <div class="flex items-center gap-2 mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold">
+                    {{ field_enabled }}
+                </label>
+            </div>
+            <div class="radio-toggle-container">
+                <div class="radio-toggle">
+                    <input type="radio" id="enabled_true" name="enabled" value="true" checked class="radio-toggle-input">
+                    <label for="enabled_true" class="radio-toggle-label radio-toggle-label-left">
+                        <span class="radio-toggle-icon">✓</span>
+                        <span class="radio-toggle-text">Enabled</span>
+                    </label>
+                    
+                    <input type="radio" id="enabled_false" name="enabled" value="false" class="radio-toggle-input">
+                    <label for="enabled_false" class="radio-toggle-label radio-toggle-label-right">
+                        <span class="radio-toggle-icon">✗</span>
+                        <span class="radio-toggle-text">Disabled</span>
+                    </label>
+                    
+                    <div class="radio-toggle-slider"></div>
                 </div>
             </div>
         </div>
