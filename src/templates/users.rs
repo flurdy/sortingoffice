@@ -106,6 +106,7 @@ pub struct ChangePasswordTemplate {
     pub user: User,
     pub error: Option<String>,
     pub change_password_title: String,
+    pub user_email_label: String,
     pub new_password_label: String,
     pub new_password_placeholder: String,
     pub confirm_password_label: String,

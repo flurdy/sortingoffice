@@ -114,7 +114,7 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Lets discuss how we can support different databases with different field names.
 
-Lets review the pages and fields for users, I may have made a mistake.
+✅ Lets review the pages and fields for users, I may have made a mistake. - IMPLEMENTED
 
 Scan the codebase for tidy ups
   - any obvious duplications

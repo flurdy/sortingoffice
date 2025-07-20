@@ -1,10 +1,8 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::users::*;
 use crate::{
-    db, get_entity_or_not_found,
-    i18n::{get_translation, get_translation_with_args},
-    models::*,
-    render_template, render_template_with_title, AppState,
+    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template,
+    render_template_with_title, AppState,
 };
 use askama::Template;
 use axum::{
@@ -14,7 +12,6 @@ use axum::{
     Form,
 };
 use serde::Deserialize;
-use std::collections::HashMap;
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -840,6 +837,7 @@ async fn render_change_password_form(
         user: user.clone(),
         error,
         change_password_title: get_translation(state, locale, "users-change-password-title").await,
+        user_email_label: get_translation(state, locale, "users-change-password-user-email").await,
         new_password_label: get_translation(state, locale, "users-new-password-label").await,
         new_password_placeholder: get_translation(state, locale, "users-new-password-placeholder")
             .await,
