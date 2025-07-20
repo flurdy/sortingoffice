@@ -22,6 +22,12 @@ pub struct UsersListTemplate {
     pub pagination: PaginatedResult<User>,
     pub page_range: Vec<i64>,
     pub max_item: i64,
+    pub pagination_previous: String,
+    pub pagination_next: String,
+    pub pagination_showing: String,
+    pub pagination_to: String,
+    pub pagination_of: String,
+    pub pagination_results: String,
 }
 
 #[derive(Template)]
@@ -35,6 +41,7 @@ pub struct UserShowTemplate {
     pub user_id: String,
     pub full_name: String,
     pub users_maildir: String,
+    pub users_home: String,
     pub status: String,
     pub created: String,
     pub modified: String,
@@ -88,6 +95,9 @@ pub struct UserFormTemplate {
     pub users_maildir: String,
     pub users_tooltip_maildir: String,
     pub users_placeholder_maildir: String,
+    pub users_home: String,
+    pub users_tooltip_home: String,
+    pub users_placeholder_home: String,
 }
 
 #[derive(Template)]

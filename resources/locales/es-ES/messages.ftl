@@ -275,6 +275,7 @@ users-title = Usuarios
 users-description = Gestiona los usuarios de tu servidor de correo y sus cuentas.
 users-add = Agregar Usuario
 users-table-header-username = Nombre de Usuario
+users-table-header-domain = Dominio
 users-table-header-enabled = Habilitado
 users-table-header-actions = Acciones
 users-empty-title = No hay usuarios
@@ -303,16 +304,20 @@ users-new-user = Nuevo Usuario
 users-edit-user-title = Editar Usuario
 users-form-user-id = ID de Usuario
 users-form-password = Contraseña
-users-form-name = Nombre del buzón
+users-form-name = Nombre de usuario
 users-form-active = Activo
 users-placeholder-user-email = usuario@ejemplo.com
-users-placeholder-name = nombre del buzón
-users-maildir = Ruta Maildir
-users-tooltip-maildir = La carpeta raíz del buzón de este usuario (relativa a la raíz de almacenamiento de correo)
-users-placeholder-maildir = p.ej. example.com/usuario/
+users-placeholder-name = nombre de usuario
+users-maildir = Nombre del buzón
+users-tooltip-maildir = El nombre de la carpeta del buzón del usuario
+users-placeholder-maildir = p.ej. usuario
+users-home = Directorio de inicio
+users-tooltip-home = La carpeta raíz que contiene los buzones
+users-placeholder-home = p.ej. /var/spool/mail/maildir
+users-placeholder-password = Ingrese nueva contraseña (dejar vacío para mantener la existente)
 users-tooltip-user-id = La dirección de correo electrónico para la cuenta de usuario (ej. usuario@ejemplo.com)
 users-tooltip-password = La contraseña para la cuenta de usuario (dejar vacío para mantener la contraseña existente al editar)
-users-tooltip-name = Nombre de la carpeta del buzón del usuario
+users-tooltip-name = El nombre de usuario para la cuenta de usuario
 users-tooltip-active = Habilitar esta cuenta de usuario
 users-cancel = Cancelar
 users-create-user = Crear Usuario
@@ -323,6 +328,7 @@ users-password-change-required-no = No
 users-password-management-title = Gestión de contraseñas
 users-change-password-button = Cambiar contraseña
 users-require-password-change-button = Requerir cambio de contraseña
+toggle-change-password-button = Alternar requisito de cambio de contraseña
 users-change-password-title = Cambiar contraseña para { $name }
 users-new-password-label = Nueva contraseña
 users-new-password-placeholder = Ingrese nueva contraseña
@@ -395,6 +401,14 @@ login-user-id = ID de Usuario
 login-password = Contraseña
 login-sign-in = Iniciar sesión
 login-error = Error
+
+# Pagination
+pagination-previous = Anterior
+pagination-next = Siguiente
+pagination-showing = Mostrando
+pagination-to = a
+pagination-of = de
+pagination-results = resultados
 
 # Roles and Permissions
 

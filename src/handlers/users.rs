@@ -1,8 +1,10 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::users::*;
 use crate::{
-    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template,
-    render_template_with_title, AppState,
+    db, get_entity_or_not_found,
+    i18n::{get_translation, get_translation_with_args},
+    models::*,
+    render_template, render_template_with_title, AppState,
 };
 use askama::Template;
 use axum::{
@@ -12,6 +14,7 @@ use axum::{
     Form,
 };
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -53,6 +56,12 @@ async fn build_user_list_template(
     let disable_user = get_translation(state, locale, "users-disable-user").await;
     let empty_title = get_translation(state, locale, "users-empty-title").await;
     let empty_description = get_translation(state, locale, "users-empty-description").await;
+    let pagination_previous = get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = get_translation(state, locale, "pagination-next").await;
+    let pagination_showing = get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = get_translation(state, locale, "pagination-to").await;
+    let pagination_of = get_translation(state, locale, "pagination-of").await;
+    let pagination_results = get_translation(state, locale, "pagination-results").await;
     let page_range: Vec<i64> = (1..=pagination.total_pages).collect();
     let max_item = std::cmp::min(
         pagination.current_page * pagination.per_page,
@@ -78,6 +87,12 @@ async fn build_user_list_template(
         pagination,
         page_range,
         max_item,
+        pagination_previous,
+        pagination_next,
+        pagination_showing,
+        pagination_to,
+        pagination_of,
+        pagination_results,
     }
 }
 
@@ -91,6 +106,7 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         user_id: get_translation(state, locale, "users-user-id").await,
         full_name: get_translation(state, locale, "users-form-name").await,
         users_maildir: get_translation(state, locale, "users-maildir").await,
+        users_home: get_translation(state, locale, "users-home").await,
         created: get_translation(state, locale, "users-created").await,
         modified: get_translation(state, locale, "users-modified").await,
         status_active: get_translation(state, locale, "status-active").await,
@@ -193,6 +209,9 @@ async fn build_user_form_template(
         users_tooltip_maildir: get_translation(state, locale, "users-tooltip-maildir").await,
         users_placeholder_maildir: get_translation(state, locale, "users-placeholder-maildir")
             .await,
+        users_home: get_translation(state, locale, "users-home").await,
+        users_tooltip_home: get_translation(state, locale, "users-tooltip-home").await,
+        users_placeholder_home: get_translation(state, locale, "users-placeholder-home").await,
     }
 }
 
@@ -250,6 +269,12 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         pagination: paginated,
         page_range,
         max_item,
+        pagination_previous: get_translation(&state, &locale, "pagination-previous").await,
+        pagination_next: get_translation(&state, &locale, "pagination-next").await,
+        pagination_showing: get_translation(&state, &locale, "pagination-showing").await,
+        pagination_to: get_translation(&state, &locale, "pagination-to").await,
+        pagination_of: get_translation(&state, &locale, "pagination-of").await,
+        pagination_results: get_translation(&state, &locale, "pagination-results").await,
     };
     render_template_with_title!(
         content_template,
@@ -266,80 +291,31 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         id: "".to_string(),
         password: "".to_string(),
         name: "".to_string(),
-        maildir: "/var/spool/mail/virtual".to_string(),
+        maildir: "".to_string(),
+        home: "/var/spool/mail/maildir".to_string(),
         enabled: true,
         change_password: false,
     };
-    let translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
-        &[
-            "users-new-user",
-            "form-error",
-            "form-username",
-            "form-password",
-            "form-name",
-            "form-domain",
-            "form-active",
-            "form-cancel",
-            "form-create-user",
-            "form-update-user",
-            "form-placeholder-username",
-            "form-placeholder-password",
-            "form-placeholder-name",
-            "form-placeholder-domain",
-            "form-tooltip-username",
-            "form-tooltip-password",
-            "form-tooltip-name",
-            "form-tooltip-domain",
-            "form-tooltip-enable",
-        ],
-    )
-    .await;
-    let content_template = UserFormTemplate {
-        title: translations["users-new-user"].to_string(),
-        form_user_id: translations["form-username"].to_string(),
-        form_password: translations["form-password"].to_string(),
-        form_name: translations["form-name"].to_string(),
-        form_active: translations["form-active"].to_string(),
-        placeholder_user_email: translations["form-placeholder-username"].to_string(),
-        placeholder_name: translations["form-placeholder-name"].to_string(),
-        tooltip_user_id: translations["form-tooltip-username"].to_string(),
-        tooltip_password: translations["form-tooltip-password"].to_string(),
-        tooltip_name: translations["form-tooltip-name"].to_string(),
-        tooltip_active: translations["form-tooltip-enable"].to_string(),
-        users_change_password: get_translation(&state, &locale, "users-change-password").await,
-        users_change_password_tooltip: get_translation(
+
+    let content_template = build_user_form_template(&state, &locale, None, form, None).await;
+    let content = content_template.render().unwrap();
+
+    if crate::handlers::utils::is_htmx_request(&headers) {
+        Html(content)
+    } else {
+        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+        let template = BaseTemplate::with_i18n(
+            get_translation(&state, &locale, "users-add-title").await,
+            content,
             &state,
             &locale,
-            "users-change-password-tooltip",
+            current_db_label,
+            current_db_id,
         )
-        .await,
-        users_placeholder_password: get_translation(&state, &locale, "users-placeholder-password")
-            .await,
-        password_management_title: get_translation(&state, &locale, "password-management-title")
-            .await,
-        change_password_button: get_translation(&state, &locale, "change-password-button").await,
-        toggle_change_password_button: get_translation(
-            &state,
-            &locale,
-            "toggle-change-password-button",
-        )
-        .await,
-        cancel: translations["form-cancel"].to_string(),
-        create_user: translations["form-create-user"].to_string(),
-        update_user: translations["form-update-user"].to_string(),
-        new_user: translations["users-new-user"].to_string(),
-        edit_user_title: "".to_string(),
-        user: None,
-        form,
-        error: None,
-        users_maildir: get_translation(&state, &locale, "users-maildir").await,
-        users_tooltip_maildir: get_translation(&state, &locale, "users-tooltip-maildir").await,
-        users_placeholder_maildir: get_translation(&state, &locale, "users-placeholder-maildir")
-            .await,
-    };
-    render_template!(content_template, &state, &locale, &headers)
+        .await
+        .unwrap();
+        Html(template.render().unwrap())
+    }
 }
 
 pub async fn show(
@@ -381,6 +357,7 @@ pub async fn edit(
         password: "".to_string(), // Don't populate password for security
         name: user.name.clone(),
         maildir: user.maildir.clone(),
+        home: user.home.clone(),
         enabled: user.enabled,
         change_password: user.change_password,
     };
@@ -903,6 +880,7 @@ pub async fn toggle_change_password(
         password: "".to_string(),
         name: user.name.clone(),
         maildir: user.maildir.clone(),
+        home: user.home.clone(),
         enabled: user.enabled,
         change_password: !user.change_password, // Toggle the value
     };

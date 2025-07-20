@@ -270,6 +270,8 @@ aliases-create-alias = Créer l'Alias
 users-title = Utilisateurs
 users-description = Gérer les utilisateurs de courrier électronique et leurs paramètres.
 users-add = Ajouter un Utilisateur
+users-table-header-username = Nom d'utilisateur
+users-table-header-domain = Domaine
 users-table-header-enabled = Activé
 users-table-header-actions = Actions
 users-add-title = Ajouter un Utilisateur
@@ -296,13 +298,13 @@ users-not-found = Utilisateur non trouvé
 users-form-error = Erreur
 users-form-user-id = ID Utilisateur
 users-form-password = Mot de Passe
-users-form-name = Nom de la boîte aux lettres
+users-form-name = Nom d'utilisateur
 users-form-active = Actif
 users-placeholder-user-email = utilisateur@exemple.com
-users-placeholder-name = nom de la boîte aux lettres
+users-placeholder-name = nom d'utilisateur
 users-tooltip-user-id = L'identifiant unique de l'utilisateur
 users-tooltip-password = Le mot de passe pour le compte
-users-tooltip-name = Le nom du dossier de la boîte aux lettres de l'utilisateur
+users-tooltip-name = Le nom d'utilisateur pour le compte utilisateur
 users-tooltip-active = Activer cet utilisateur
 users-cancel = Annuler
 users-update-user = Mettre à Jour l'Utilisateur
@@ -316,6 +318,7 @@ users-password-change-required-no = Non
 users-password-management-title = Gestion des mots de passe
 users-change-password-button = Changer le mot de passe
 users-require-password-change-button = Exiger le changement de mot de passe
+toggle-change-password-button = Basculer l'exigence de changement de mot de passe
 users-change-password-title = Changer le mot de passe pour { $name }
 users-new-password-label = Nouveau mot de passe
 users-new-password-placeholder = Entrez un nouveau mot de passe
@@ -325,9 +328,13 @@ users-cancel-button = Annuler
 error-passwords-do-not-match = Les mots de passe ne correspondent pas
 error-password-too-short = Le mot de passe doit comporter au moins 8 caractères
 error-failed-to-update-password = Échec de la mise à jour du mot de passe
-users-maildir = Chemin Maildir
-users-tooltip-maildir = Le dossier racine de la boîte aux lettres de cet utilisateur (relatif à la racine du stockage mail)
-users-placeholder-maildir = ex. example.com/utilisateur/
+users-maildir = Nom de la boîte aux lettres
+users-tooltip-maildir = Le nom du dossier de la boîte aux lettres de l'utilisateur
+users-placeholder-maildir = ex. utilisateur
+users-home = Répertoire d'accueil
+users-tooltip-home = Le dossier racine contenant les boîtes aux lettres
+users-placeholder-home = ex. /var/spool/mail/maildir
+users-placeholder-password = Entrer un nouveau mot de passe (laisser vide pour conserver l'existant)
 
 # Relays
 relays-title = Relais
@@ -937,5 +944,13 @@ login-user-id = Identifiant utilisateur
 login-password = Mot de passe
 login-sign-in = Se connecter
 login-error = Nom d'utilisateur ou mot de passe invalide
+
+# Pagination
+pagination-previous = Précédent
+pagination-next = Suivant
+pagination-showing = Affichage
+pagination-to = à
+pagination-of = sur
+pagination-results = résultats
 
 # Roles and Permissions
