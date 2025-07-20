@@ -110,7 +110,7 @@ mod tests {
     #[test]
     fn test_user_form_deserialization() {
         let form_data =
-            "id=testuser@example.com&password=secret123&name=Test+User&maildir=testdir&enabled=on";
+            "id=testuser@example.com&password=secret123&name=Test+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on";
         let form: UserForm = serde_urlencoded::from_str(form_data).unwrap();
 
         assert_eq!(form.id, "testuser@example.com");

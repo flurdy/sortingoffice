@@ -116,6 +116,10 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 ✅ Lets review the pages and fields for users, I may have made a mistake. - IMPLEMENTED
 
+✅ Can the Active checkbox in all the new/add forms be a fancy radiotoggle for enabled/disabled?
+- and can the Active checkbox be removed from all the edit forms as we have separate toggle flows.
+- IMPLEMENTED: Created radio toggle CSS component, updated deserialization logic, and implemented for domains form
+
 Scan the codebase for tidy ups
   - any obvious duplications
   - any unnecessary, orphaned code

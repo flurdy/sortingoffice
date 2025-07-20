@@ -1,0 +1,89 @@
+/* Fancy Radio Toggle Component */
+.radio-toggle {
+  display: inline-flex;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  padding: 1px;
+  position: relative;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.dark .radio-toggle {
+  background-color: #374151;
+}
+
+.radio-toggle input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-toggle label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: 60px;
+  text-align: center;
+  color: #6b7280;
+  background-color: transparent;
+}
+
+.dark .radio-toggle label {
+  color: #9ca3af;
+}
+
+.radio-toggle input[type="radio"]:checked + label {
+  background-color: #3b82f6;
+  color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Different colors for enabled vs disabled states */
+.radio-toggle input[type="radio"][value="true"]:checked + label {
+  background-color: #10b981; /* Green for enabled */
+}
+
+.radio-toggle input[type="radio"][value="false"]:checked + label {
+  background-color: #ef4444; /* Red for disabled */
+}
+
+.radio-toggle:hover {
+  background-color: #d1d5db;
+}
+
+.dark .radio-toggle:hover {
+  background-color: #4b5563;
+}
+
+/* Hover effects for enabled/disabled states */
+.radio-toggle input[type="radio"][value="true"]:checked + label:hover {
+  background-color: #059669; /* Darker green on hover */
+}
+
+.radio-toggle input[type="radio"][value="false"]:checked + label:hover {
+  background-color: #dc2626; /* Darker red on hover */
+}
+
+.radio-toggle input[type="radio"]:focus + label {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+.radio-toggle.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.radio-toggle.disabled label {
+  cursor: not-allowed;
+}
+
+/* Success/Error states for enabled/disabled - now handled by value-based selectors above */ 

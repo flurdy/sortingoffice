@@ -9,10 +9,11 @@ where
     D: Deserializer<'de>,
 {
     let opt = Option::<String>::deserialize(deserializer)?;
-    Ok(matches!(
-        opt.as_deref(),
-        Some("on") | Some("true") | Some("1")
-    ))
+    match opt.as_deref() {
+        Some("on") | Some("true") | Some("1") => Ok(true),
+        Some("false") | Some("off") | Some("0") => Ok(false),
+        _ => Ok(false), // Default to false for any other value or None
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

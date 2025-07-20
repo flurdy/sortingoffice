@@ -733,6 +733,57 @@ pub async fn update(
             let disable_domain = get_translation(&state, &locale, "domains-disable-domain").await;
             let delete_domain = get_translation(&state, &locale, "domains-delete-domain").await;
             let delete_confirm = get_translation(&state, &locale, "domains-delete-confirm").await;
+
+            // Generate alias report and existing aliases like in the show handler
+            let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
+            let existing_aliases =
+                db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+
+            // Get all the alias-related translations
+            let alias_report_title =
+                get_translation(&state, &locale, "domains-alias-report-title").await;
+            let alias_report_description =
+                get_translation(&state, &locale, "domains-alias-report-description").await;
+            let existing_aliases_header =
+                get_translation(&state, &locale, "domains-existing-aliases-header").await;
+            let catch_all_header =
+                get_translation(&state, &locale, "reports-catch-all-header").await;
+            let destination_header =
+                get_translation(&state, &locale, "reports-destination-header").await;
+            let required_aliases_header =
+                get_translation(&state, &locale, "reports-required-aliases-header").await;
+            let missing_aliases_header =
+                get_translation(&state, &locale, "reports-missing-aliases-header").await;
+            let missing_required_alias_header =
+                get_translation(&state, &locale, "reports-missing-required-aliases-header").await;
+            let missing_common_aliases_header =
+                get_translation(&state, &locale, "reports-missing-common-aliases-header").await;
+            let mail_header = get_translation(&state, &locale, "reports-mail-header").await;
+            let status_header = get_translation(&state, &locale, "reports-status-header").await;
+            let enabled_header = get_translation(&state, &locale, "reports-enabled-header").await;
+            let actions_header = get_translation(&state, &locale, "reports-actions-header").await;
+            let no_required_aliases =
+                get_translation(&state, &locale, "reports-no-required-aliases").await;
+            let no_missing_aliases =
+                get_translation(&state, &locale, "reports-no-missing-aliases").await;
+            let add_missing_required_alias_button = get_translation(
+                &state,
+                &locale,
+                "domains-add-missing-required-aliases-button",
+            )
+            .await;
+            let add_common_alias_button =
+                get_translation(&state, &locale, "reports-add-common-alias-button").await;
+            let add_catch_all_button =
+                get_translation(&state, &locale, "domains-add-catch-all-button").await;
+            let add_alias_button =
+                get_translation(&state, &locale, "domains-add-alias-button").await;
+            let no_catch_all_message =
+                get_translation(&state, &locale, "domains-no-catch-all-message").await;
+            let action_view = get_translation(&state, &locale, "action-view").await;
+            let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
+            let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
+
             let content_template = DomainShowTemplate {
                 title: &title,
                 domain,
@@ -752,31 +803,31 @@ pub async fn update(
                 disable_domain: &disable_domain,
                 delete_domain: &delete_domain,
                 delete_confirm: &delete_confirm,
-                alias_report: None,
-                catch_all_header: "",
-                destination_header: "",
-                required_aliases_header: "",
-                missing_aliases_header: "",
-                missing_required_alias_header: "",
-                missing_common_aliases_header: "",
-                mail_header: "",
-                status_header: "",
-                enabled_header: "",
-                actions_header: "",
-                no_required_aliases: "",
-                no_missing_aliases: "",
-                alias_report_title: "",
-                alias_report_description: "",
-                existing_aliases_header: "",
-                add_missing_required_alias_button: "",
-                add_common_alias_button: "",
-                add_catch_all_button: "",
-                add_alias_button: "",
-                no_catch_all_message: "",
-                existing_aliases: &[],
-                action_view: "",
-                enable_alias: "",
-                disable_alias: "",
+                alias_report,
+                catch_all_header: &catch_all_header,
+                destination_header: &destination_header,
+                required_aliases_header: &required_aliases_header,
+                missing_aliases_header: &missing_aliases_header,
+                missing_required_alias_header: &missing_required_alias_header,
+                missing_common_aliases_header: &missing_common_aliases_header,
+                mail_header: &mail_header,
+                status_header: &status_header,
+                enabled_header: &enabled_header,
+                actions_header: &actions_header,
+                no_required_aliases: &no_required_aliases,
+                no_missing_aliases: &no_missing_aliases,
+                alias_report_title: &alias_report_title,
+                alias_report_description: &alias_report_description,
+                existing_aliases_header: &existing_aliases_header,
+                add_missing_required_alias_button: &add_missing_required_alias_button,
+                add_common_alias_button: &add_common_alias_button,
+                add_catch_all_button: &add_catch_all_button,
+                add_alias_button: &add_alias_button,
+                no_catch_all_message: &no_catch_all_message,
+                existing_aliases: &existing_aliases,
+                action_view: &action_view,
+                enable_alias: &enable_alias,
+                disable_alias: &disable_alias,
             };
             Html(content_template.render().unwrap())
         }

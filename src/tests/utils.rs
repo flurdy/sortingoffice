@@ -40,6 +40,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
 
         assert!(!valid_user_form.id.is_empty());

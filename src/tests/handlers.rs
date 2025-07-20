@@ -481,6 +481,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -529,7 +530,7 @@ mod tests {
         let _domain = crate::db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
-            "id=testuser@create-test-{}.com&password=password123&name=Test+User&maildir=testdir&enabled=on",
+            "id=testuser@create-test-{}.com&password=password123&name=Test+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
             unique_id
         );
 
@@ -587,6 +588,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -642,6 +644,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -698,11 +701,12 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
         let form_data = format!(
-            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&maildir=testdir&enabled=on",
+            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
             unique_id
         );
 
@@ -764,6 +768,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 
@@ -916,6 +921,7 @@ mod tests {
             enabled: true,
             change_password: false,
             maildir: "testdir".to_string(),
+            home: "/var/spool/mail/virtual".to_string(),
         };
         let _user = crate::db::create_user(&pool, user_form).unwrap();
 

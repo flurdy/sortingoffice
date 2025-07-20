@@ -42,12 +42,12 @@ INSERT INTO relocated (old_address, new_address, enabled) VALUES
 
 -- Seed data for relays (no foreign key constraints)
 INSERT INTO relays (recipient, status, enabled) VALUES
-('relay1@example.com', 'allowed', 1),
-('relay2@example.org', 'allowed', 1),
-('relay3@test.com', 'rejected', 0),
-('backup-relay@example.com', 'allowed', 1),
-('external-relay@partner.com', 'allowed', 1),
-('blocked-relay@spam.com', 'rejected', 1);
+('relay1@example.com', 'OK', 1),
+('relay2@example.org', 'OK', 1),
+('relay3@test.com', 'REJECT', 0),
+('backup-relay@example.com', 'OK', 1),
+('external-relay@partner.com', 'REJECT', 1),
+('blocked-relay@spam.com', 'REJECT', 1);
 
 -- Seed data for clients (no foreign key constraints)
 INSERT INTO clients (client, status) VALUES
