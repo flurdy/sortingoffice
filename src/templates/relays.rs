@@ -5,6 +5,7 @@ use askama::Template;
 #[template(path = "relays/list.html", escape = "html")]
 pub struct RelayListTemplate<'a> {
     pub title: &'a str,
+    pub relays_list_description: &'a str,
     pub add_relay: &'a str,
     pub table_header_recipient: &'a str,
     pub table_header_status: &'a str,
@@ -19,11 +20,10 @@ pub struct RelayListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub relays: Vec<Relay>,
-    pub relays_list_description: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "relays/show.html", escape = "html")]
+#[template(path = "relays/show.html")]
 pub struct RelayShowTemplate<'a> {
     pub title: &'a str,
     pub relay: Relay,

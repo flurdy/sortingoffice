@@ -5,6 +5,7 @@ use crate::{
     render_template_with_title, AppState,
 };
 use askama::Template;
+use tracing::warn;
 use axum::{
     extract::{Path, Query, State},
     http::HeaderMap,
@@ -145,6 +146,17 @@ pub async fn new(
         &["mail", "destination", "active"],
     )
     .await;
+
+    macro_rules! get_or_log {
+        ($map:expr, $key:expr) => {{
+            if let Some(val) = $map.get($key) {
+                val.as_str()
+            } else {
+                warn!("Missing translation key: {}", $key);
+                concat!("MISSING: ", $key)
+            }
+        }};
+    }
 
     let content_template = AliasFormTemplate {
         title: &form_translations["aliases-add-title"],

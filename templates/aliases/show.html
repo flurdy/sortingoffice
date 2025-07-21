@@ -29,8 +29,7 @@
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ forward_to }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ alias.destination }}</dd>
                 </div>
-
-                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ status }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                         {% if alias.enabled %}
@@ -40,11 +39,11 @@
                         {% endif %}
                     </dd>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ created }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ alias.created.format("%Y-%m-%d %H:%M:%S") }}</dd>
                 </div>
-                <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ modified }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ alias.modified.format("%Y-%m-%d %H:%M:%S") }}</dd>
                 </div>
@@ -54,21 +53,21 @@
 
     <!-- Actions -->
     <div class="mt-6 flex space-x-3">
-        <button 
-            hx-get="/aliases/{{ alias.pkid }}/edit" 
+        <button
+            hx-get="/aliases/{{ alias.pkid }}/edit"
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
             {{ edit_alias_button }}
         </button>
-        <button 
-            hx-post="/aliases/{{ alias.pkid }}/toggle-show" 
+        <button
+            hx-post="/aliases/{{ alias.pkid }}/toggle-show"
             hx-target="#main-content"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             {% if alias.enabled %}{{ disable_alias_button }}{% else %}{{ enable_alias_button }}{% endif %}
         </button>
-        <button 
-            hx-delete="/aliases/{{ alias.pkid }}" 
-            hx-target="#main-content" 
+        <button
+            hx-delete="/aliases/{{ alias.pkid }}"
+            hx-target="#main-content"
             hx-confirm="{{ delete_confirm }}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
             {{ delete_alias }}

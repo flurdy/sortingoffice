@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use tracing::debug;
 
 #[derive(Debug, Clone)]
 pub struct I18n {
@@ -13,9 +14,26 @@ impl I18n {
     pub fn new(default_locale: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let mut messages = HashMap::new();
 
-        // Load the default locale
-        let default_messages = Self::load_messages(default_locale)?;
-        messages.insert(default_locale.to_string(), default_messages);
+        // Load all locales
+        let locales = ["en-US", "es-ES", "fr-FR", "nb-NO", "de-DE"];
+        for locale in locales {
+            debug!("Loading locale: {}", locale);
+            match Self::load_messages(locale) {
+                Ok(locale_messages) => {
+                    messages.insert(locale.to_string(), locale_messages);
+                }
+                Err(e) => {
+                    debug!("Failed to load locale {}: {:?}", locale, e);
+                }
+            }
+        }
+
+        // Ensure default locale is loaded
+        if !messages.contains_key(default_locale) {
+            debug!("Loading default locale: {}", default_locale);
+            let default_messages = Self::load_messages(default_locale)?;
+            messages.insert(default_locale.to_string(), default_messages);
+        }
 
         Ok(I18n {
             messages: Arc::new(RwLock::new(messages)),
@@ -25,30 +43,58 @@ impl I18n {
 
     fn load_messages(locale: &str) -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
         let resource_path = format!("resources/locales/{locale}/messages.ftl");
+        debug!("Loading messages from: {}", resource_path);
         let resource_str = fs::read_to_string(&resource_path)?;
 
         let mut messages = HashMap::new();
+        let mut current_key = None;
+        let mut current_value = String::new();
+
         for line in resource_str.lines() {
-            let line = line.trim();
+            let line = line.trim_start();
+            
+            // Skip empty lines and comments
             if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 
-            if let Some((key, value)) = line.split_once('=') {
+            // If we have a key-value pair
+            if let Some(idx) = line.find('=') {
+                // If we had a previous key-value pair, store it
+                if let Some(key) = current_key.take() {
+                    debug!("Storing multi-line translation - Key: {}, Value: {:?}", key, current_value.trim());
+                    messages.insert(key, current_value.trim().to_string());
+                    current_value.clear();
+                }
+
+                let (key, value) = line.split_at(idx);
                 let key = key.trim();
-                let value = value.trim();
+                let value = value[1..].trim(); // Skip the '=' and trim
 
-                // Remove quotes if present
-                let value = if value.starts_with('"') && value.ends_with('"') {
-                    &value[1..value.len() - 1]
+                if !value.is_empty() {
+                    // Store immediately if it's a single-line value
+                    debug!("Storing single-line translation - Key: {}, Value: {:?}", key, value);
+                    messages.insert(key.to_string(), value.to_string());
                 } else {
-                    value
-                };
-
-                messages.insert(key.to_string(), value.to_string());
+                    // Start collecting a multi-line value
+                    current_key = Some(key.to_string());
+                }
+            } else if let Some(ref _key) = current_key {
+                // Continuation of a multi-line value
+                if !current_value.is_empty() {
+                    current_value.push('\n');
+                }
+                current_value.push_str(line);
             }
         }
 
+        // Store the last key-value pair if any
+        if let Some(key) = current_key {
+            debug!("Storing final multi-line translation - Key: {}, Value: {:?}", key, current_value.trim());
+            messages.insert(key, current_value.trim().to_string());
+        }
+
+        debug!("Loaded {} translations for locale {}", messages.len(), locale);
         Ok(messages)
     }
 
@@ -58,18 +104,27 @@ impl I18n {
         // Try to get the requested locale
         if let Some(locale_messages) = messages.get(locale) {
             if let Some(message) = locale_messages.get(message_id) {
+                debug!("Found translation for {} in {}: {:?}", message_id, locale, message);
                 return message.clone();
+            } else {
+                debug!("No translation found for {} in {}", message_id, locale);
             }
+        } else {
+            debug!("Locale {} not found, falling back to default", locale);
         }
 
         // Fall back to default locale
         if let Some(default_messages) = messages.get(&self.default_locale) {
             if let Some(message) = default_messages.get(message_id) {
+                debug!("Found translation for {} in default locale: {:?}", message_id, message);
                 return message.clone();
+            } else {
+                debug!("No translation found for {} in default locale", message_id);
             }
         }
 
         // Fallback to message ID if translation fails
+        debug!("No translation found for {}, using message ID", message_id);
         message_id.to_string()
     }
 

@@ -5,6 +5,7 @@ use axum::http::StatusCode;
 use axum::response::Html;
 use std::collections::HashMap;
 use tracing::error;
+use tracing::debug;
 
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
@@ -269,6 +270,7 @@ pub async fn get_entity_form_translations(
     locale: &str,
     entity: &str,
 ) -> HashMap<String, String> {
+    debug!("Loading form translations for entity: {}, locale: {}", entity, locale);
     let mut translations = HashMap::new();
 
     // Common form keys
@@ -276,22 +278,33 @@ pub async fn get_entity_form_translations(
 
     for key in common_keys {
         let value = get_translation(state, locale, key).await;
+        debug!("Loading common key: {} = {:?}", key, value);
         translations.insert(key.to_string(), value);
     }
 
     // Entity-specific keys
+    let singular = if entity == "aliases" {
+        "alias"
+    } else {
+        entity.trim_end_matches('s')
+    };
+
     let entity_keys = [
         format!("{entity}-add-title"),
         format!("{entity}-edit-title"),
-        format!("{entity}-new-{entity}"),
-        format!("{entity}-edit-{entity}"),
+        format!("{entity}-new-{singular}"),
+        format!("{entity}-edit-{singular}"),
     ];
+
+    debug!("Generated entity keys: {:?}", entity_keys);
 
     for key in entity_keys {
         let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
+        debug!("Loading entity key: {} = {:?}", key, value);
+        translations.insert(key.clone(), value);
     }
 
+    debug!("Final translations map: {:#?}", translations);
     translations
 }
 
@@ -606,7 +619,7 @@ pub async fn create_base_template(
         .map(|db| db.label.clone())
         .unwrap_or_else(|| current_db_id.clone());
 
-    let template = crate::templates::layout::BaseTemplate::with_i18n(
+    match crate::templates::layout::BaseTemplate::with_i18n(
         title,
         content,
         state,
@@ -614,9 +627,14 @@ pub async fn create_base_template(
         current_db_label,
         current_db_id,
     )
-    .await?;
-
-    Ok(Html(template.render()?))
+    .await
+    {
+        Ok(template) => Ok(Html(template.render()?)),
+        Err(e) => {
+            error!("Failed to create BaseTemplate with i18n: {:?}", e);
+            Err(e)
+        }
+    }
 }
 
 /// Helper function to render form template with error handling
@@ -633,7 +651,7 @@ where
     let content = match template.render() {
         Ok(content) => content,
         Err(e) => {
-            error!("Failed to render template: {:?}", e);
+            error!("Failed to render form template: {:?}", e);
             return Html("Error rendering template".to_string());
         }
     };
@@ -644,7 +662,7 @@ where
         match create_base_template(state, locale, title, content, headers).await {
             Ok(html) => html,
             Err(e) => {
-                error!("Failed to create base template: {:?}", e);
+                error!("Failed to create base template in render_form_template: {:?}", e);
                 Html("Error creating template".to_string())
             }
         }

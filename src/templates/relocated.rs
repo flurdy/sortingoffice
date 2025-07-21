@@ -5,6 +5,7 @@ use askama::Template;
 #[template(path = "relocated/list.html", escape = "html")]
 pub struct RelocatedListTemplate<'a> {
     pub title: &'a str,
+    pub relocated_list_description: &'a str,
     pub add_relocated: &'a str,
     pub table_header_old_address: &'a str,
     pub table_header_new_address: &'a str,
@@ -19,7 +20,6 @@ pub struct RelocatedListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub relocated: Vec<Relocated>,
-    pub relocated_list_description: &'a str,
 }
 
 #[derive(Template)]

@@ -248,6 +248,15 @@ aliases-delete-confirm = Are you sure you want to delete this alias?
 aliases-edit-alias = Edit Alias
 aliases-new-alias = New Alias
 aliases-form-error = Error
+aliases-field-mail = Mail Address
+aliases-field-mail-help = The email address for the alias (e.g., alias@example.com)
+aliases-field-destination = Destination
+aliases-field-destination-help = The destination email address where mail will be forwarded
+aliases-field-active = Active
+aliases-field-active-help = Enable this alias for mail forwarding
+aliases-placeholder-active = Enable this alias
+aliases-placeholder-mail = alias@example.com
+aliases-placeholder-destination = destination@example.com
 aliases-mail-address = Mail Address
 aliases-destination = Destination
 aliases-placeholder-mail = alias@example.com
@@ -261,6 +270,7 @@ aliases-update-alias = Update Alias
 aliases-create-alias = Create Alias
 aliases-search-no-results = No matching aliases found
 aliases-search-select = Click to select
+aliases-add-title = Add Alias
 
 # Users
 users-title = Users
