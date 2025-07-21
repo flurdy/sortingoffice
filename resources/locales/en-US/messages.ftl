@@ -227,6 +227,8 @@ domains-field-domain = Domain
 domains-field-domain-help = The domain name for this mail server (e.g., example.com)
 domains-field-transport = Transport
 domains-field-transport-help = Transport configuration for this domain (e.g., virtual for virtual domains)
+domains-placeholder-domain = example.com
+domains-placeholder-transport = virtual
 domains-field-active = Active
 domains-field-active-help = Enable this domain for mail handling
 
@@ -642,3 +644,9 @@ config-status-disabled = Disabled
 config-database-features-header = Database Feature Toggles
 config-database-features-description = Database-specific feature restrictions. These override global settings when enabled.
 config-database-disabled-badge = Disabled
+
+# Dashboard fields (added for test_domains_edit and similar tests)
+dashboard-field-domain = Domain
+dashboard-field-domain-help = The domain name for this dashboard entry (e.g., example.com)
+dashboard-field-enabled = Enabled
+dashboard-field-enabled-help = Whether this dashboard entry is enabled

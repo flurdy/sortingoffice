@@ -4,8 +4,8 @@ use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::Html;
 use std::collections::HashMap;
-use tracing::error;
 use tracing::debug;
+use tracing::error;
 
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
@@ -671,7 +671,10 @@ where
         match create_base_template(state, locale, title, content, headers).await {
             Ok(html) => html,
             Err(e) => {
-                error!("Failed to create base template in render_form_template: {:?}", e);
+                error!(
+                    "Failed to create base template in render_form_template: {:?}",
+                    e
+                );
                 Html("Error creating template".to_string())
             }
         }

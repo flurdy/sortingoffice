@@ -1,10 +1,10 @@
+use askama::Template;
 use axum::{
     extract::{Form, Path, Query, State},
     http::HeaderMap,
     response::Html,
 };
 use serde::Deserialize;
-use askama::Template;
 
 use crate::{
     db,
@@ -12,9 +12,8 @@ use crate::{
         auth::get_selected_database,
         language::get_user_locale,
         utils::{
-            get_field_translations, get_translations_batch,
-            get_entity_form_translations, get_current_db_pool,
-            is_htmx_request, render_form_template, handle_database_error,
+            get_current_db_pool, get_entity_form_translations, get_field_translations,
+            get_translations_batch, handle_database_error, is_htmx_request, render_form_template,
             render_list_template, render_show_template,
         },
     },
@@ -101,7 +100,7 @@ pub async fn list(
         title: &translations["aliases-title"],
         aliases: &paginated_aliases.items,
         pagination: &paginated,
-        page_range: &page_range,  // Pass as reference
+        page_range: &page_range, // Pass as reference
         max_item,
         description: &translations["aliases-description"],
         add_alias: &translations["aliases-add"],
@@ -117,12 +116,7 @@ pub async fn list(
         empty_title: &translations["aliases-empty-title"],
         empty_description: &translations["aliases-empty-description"],
     };
-    render_list_template(
-        content_template,
-        &state,
-        &locale,
-        &headers
-    ).await
+    render_list_template(content_template, &state, &locale, &headers).await
 }
 
 pub async fn new(
@@ -150,8 +144,7 @@ pub async fn new(
     let locale = get_user_locale(&headers);
 
     // Use helper functions to fetch translations in batches
-    let form_translations =
-        get_entity_form_translations(&state, &locale, "aliases").await;
+    let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
     let field_translations = get_field_translations(
         &state,
         &locale,
@@ -254,12 +247,7 @@ pub async fn show(
         delete_confirm: &translations["aliases-delete-confirm"],
         alias,
     };
-    render_show_template(
-        content_template,
-        &state,
-        &locale,
-        &headers
-    ).await
+    render_show_template(content_template, &state, &locale, &headers).await
 }
 
 pub async fn edit(
@@ -286,8 +274,7 @@ pub async fn edit(
     let locale = get_user_locale(&headers);
 
     // Use helper functions to fetch translations in batches
-    let form_translations =
-        get_entity_form_translations(&state, &locale, "aliases").await;
+    let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
     let field_translations = get_field_translations(
         &state,
         &locale,
@@ -560,7 +547,7 @@ pub async fn create(
                         title: &title,
                         aliases: &aliases,
                         pagination: &paginated,
-                        page_range: &page_range,  // Pass as reference
+                        page_range: &page_range, // Pass as reference
                         max_item,
                         description: &description,
                         add_alias: &add_alias,
@@ -611,15 +598,11 @@ pub async fn create(
 
             // Handle specific database errors with user-friendly messages
             let locale = get_user_locale(&headers);
-            let error_message = handle_database_error(
-                &state, &locale, e, "alias", &form.mail,
-            )
-            .await;
+            let error_message =
+                handle_database_error(&state, &locale, e, "alias", &form.mail).await;
 
             // Use helper functions to fetch translations in batches
-            let form_translations =
-                get_entity_form_translations(&state, &locale, "aliases")
-                    .await;
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
             let field_translations = get_field_translations(
                 &state,
                 &locale,
@@ -760,15 +743,11 @@ pub async fn update(
             let original_alias = db::get_alias(&pool, id).ok();
 
             let locale = get_user_locale(&headers);
-            let error_message = handle_database_error(
-                &state, &locale, e, "alias", &form.mail,
-            )
-            .await;
+            let error_message =
+                handle_database_error(&state, &locale, e, "alias", &form.mail).await;
 
             // Use helper functions to fetch translations in batches
-            let form_translations =
-                get_entity_form_translations(&state, &locale, "aliases")
-                    .await;
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
             let field_translations = get_field_translations(
                 &state,
                 &locale,
@@ -860,7 +839,7 @@ pub async fn delete(
                 title: &title,
                 aliases: &aliases,
                 pagination: &paginated,
-                page_range: &page_range,  // Pass as reference
+                page_range: &page_range, // Pass as reference
                 max_item,
                 description: &description,
                 add_alias: &add_alias,
@@ -1046,7 +1025,7 @@ pub async fn toggle_enabled_list(
                 title: &title,
                 aliases: &aliases,
                 pagination: &paginated,
-                page_range: &page_range,  // Pass as reference
+                page_range: &page_range, // Pass as reference
                 max_item,
                 description: &description,
                 add_alias: &add_alias,

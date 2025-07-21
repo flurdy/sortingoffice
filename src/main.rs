@@ -1,20 +1,19 @@
 use sortingoffice::{AppState, Config, DatabaseManager, I18n};
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
-    // Initialize logging
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
-
     // Load configuration
     let config = Config::load().expect("Failed to load configuration");
+
+    // Initialize i18n
+    let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
     // Initialize database manager
     let db_manager = DatabaseManager::new(config.databases.clone())
         .await
         .expect("Failed to initialize database manager");
-
-    // Initialize i18n
-    let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
     // Create app state
     let state = AppState {
@@ -23,10 +22,14 @@ async fn main() {
         config,
     };
 
-    // Create and run the app
+    // Create app
     let app = sortingoffice::handlers::create_app(state);
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3000));
-    log::info!("Listening on {}", addr);
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    // Bind to all interfaces
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let listener = TcpListener::bind(addr).await.unwrap();
+    println!("Listening on {}", addr);
+
+    // Start server
     axum::serve(listener, app).await.unwrap();
 }

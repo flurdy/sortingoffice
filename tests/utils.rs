@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::models::*;
     use chrono::Utc;
+    use sortingoffice::models::*;
 
     #[test]
     fn test_checkbox_deserialization_utility() {
@@ -11,7 +11,7 @@ mod tests {
         ];
 
         for (form_data, expected) in test_cases {
-            let form: crate::models::DomainForm = serde_urlencoded::from_str(form_data).unwrap();
+            let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
             assert_eq!(form.enabled, expected, "Failed for input: {}", form_data);
         }
     }

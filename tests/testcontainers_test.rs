@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::tests::testcontainers_setup::{cleanup_test_db, setup_test_db};
     use diesel::{QueryableByName, RunQueryDsl};
+    use sortingoffice::test_helpers::testcontainers_setup::{cleanup_test_db, setup_test_db};
 
     #[derive(QueryableByName)]
     struct CountResult {

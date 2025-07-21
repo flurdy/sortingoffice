@@ -157,3 +157,5 @@ Any way we can ensure no seeding happens on prod databases?
 Any way we can block migrations on prod databases?
 
 Can we make certain tables optional? Relays, relocated and clients are not in every db.
+
+On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough.

@@ -7,6 +7,7 @@ pub mod config;
 pub mod dashboard;
 pub mod database;
 pub mod domains;
+pub mod health; // Add health module
 pub mod language;
 pub mod not_found;
 pub mod relays;
@@ -32,11 +33,12 @@ pub use config::view_config;
 pub use dashboard::index as dashboard_index;
 pub use database::{dropdown, index as database_index, list_databases, run_migrations, select};
 pub use domains::{
-    add_missing_required_alias, create as create_domain, delete as delete_domain, edit as edit_domain,
-    list as list_domains, new as new_domain, show as show_domain, toggle_enabled as toggle_domain_enabled,
-    toggle_enabled_list as toggle_domain_enabled_list, toggle_enabled_show as toggle_domain_enabled_show,
-    update as update_domain,
+    add_missing_required_alias, create as create_domain, delete as delete_domain,
+    edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
+    toggle_enabled as toggle_domain_enabled, toggle_enabled_list as toggle_domain_enabled_list,
+    toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
 };
+pub use health::*;
 pub use language::{get_user_locale, set_language};
 pub use not_found::not_found;
 pub use relays::{
@@ -60,10 +62,10 @@ pub use users::{
     change_password_form, change_password_post, create as create_user, delete as delete_user,
     edit as edit_user, list as list_users, new as new_user, show as show_user,
     toggle_change_password, toggle_enabled as toggle_user_enabled,
-    toggle_enabled_list as toggle_user_enabled_list, toggle_enabled_show as toggle_user_enabled_show,
-    update as update_user,
+    toggle_enabled_list as toggle_user_enabled_list,
+    toggle_enabled_show as toggle_user_enabled_show, update as update_user,
 };
-pub use utils::{get_user_locale as get_user_locale_util};
+pub use utils::get_user_locale as get_user_locale_util; // Export health handlers
 
 use axum::{middleware, Router};
 use tower_http::trace::TraceLayer;
@@ -85,10 +87,7 @@ pub fn create_app(app_state: AppState) -> Router {
         .route("/aliases", axum::routing::get(list))
         .route("/aliases/{id}", axum::routing::get(show))
         .route("/aliases/search", axum::routing::get(search))
-        .route(
-            "/aliases/domain-search",
-            axum::routing::get(domain_search),
-        )
+        .route("/aliases/domain-search", axum::routing::get(domain_search))
         // Read-only backup operations
         .route("/backups/{id}", axum::routing::get(backups::show))
         // Read-only relay operations
@@ -135,10 +134,7 @@ pub fn create_app(app_state: AppState) -> Router {
         .route("/database", axum::routing::get(database_index))
         .route("/database/select", axum::routing::post(select))
         .route("/database/dropdown", axum::routing::get(dropdown))
-        .route(
-            "/database/migrate",
-            axum::routing::post(run_migrations),
-        )
+        .route("/database/migrate", axum::routing::post(run_migrations))
         .route("/api/databases", axum::routing::get(list_databases))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
@@ -188,7 +184,10 @@ pub fn create_app(app_state: AppState) -> Router {
             "/users/{id}/toggle-show",
             axum::routing::post(toggle_user_enabled_show),
         )
-        .route("/users/{id}/toggle", axum::routing::post(toggle_user_enabled))
+        .route(
+            "/users/{id}/toggle",
+            axum::routing::post(toggle_user_enabled),
+        )
         .route(
             "/users/{id}/change-password",
             axum::routing::get(change_password_form),
@@ -204,10 +203,7 @@ pub fn create_app(app_state: AppState) -> Router {
         // Alias edit operations
         .route("/aliases", axum::routing::post(create))
         .route("/aliases/new", axum::routing::get(new))
-        .route(
-            "/aliases/{id}",
-            axum::routing::put(update).delete(delete),
-        )
+        .route("/aliases/{id}", axum::routing::put(update).delete(delete))
         .route("/aliases/{id}/edit", axum::routing::get(edit))
         .route(
             "/aliases/{id}/toggle-list",
@@ -221,10 +217,7 @@ pub fn create_app(app_state: AppState) -> Router {
             "/aliases/{id}/toggle-domain-show",
             axum::routing::post(toggle_enabled_domain_show),
         )
-        .route(
-            "/aliases/{id}/toggle",
-            axum::routing::post(toggle_enabled),
-        )
+        .route("/aliases/{id}/toggle", axum::routing::post(toggle_enabled))
         // Backup edit operations
         .route("/backups", axum::routing::post(backups::create))
         .route("/backups/new", axum::routing::get(backups::new))
@@ -258,10 +251,12 @@ pub fn create_app(app_state: AppState) -> Router {
         .route("/relocated/new", axum::routing::get(create_relocated_form))
         .route(
             "/relocated/{id}",
-            axum::routing::put(update_relocated)
-                .delete(delete_relocated),
+            axum::routing::put(update_relocated).delete(delete_relocated),
         )
-        .route("/relocated/{id}/edit", axum::routing::get(edit_relocated_form))
+        .route(
+            "/relocated/{id}/edit",
+            axum::routing::get(edit_relocated_form),
+        )
         .route(
             "/relocated/{id}/toggle-enabled",
             axum::routing::post(toggle_relocated_enabled),
@@ -273,14 +268,8 @@ pub fn create_app(app_state: AppState) -> Router {
             "/clients/{id}",
             axum::routing::put(update_client).delete(delete_client),
         )
-        .route(
-            "/clients/{id}/edit",
-            axum::routing::get(edit_client_form),
-        )
-        .route(
-            "/clients/{id}/toggle",
-            axum::routing::put(toggle_client),
-        )
+        .route("/clients/{id}/edit", axum::routing::get(edit_client_form))
+        .route("/clients/{id}/toggle", axum::routing::put(toggle_client))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
@@ -294,11 +283,9 @@ pub fn create_app(app_state: AppState) -> Router {
     // Create the main app with public and protected routes
     Router::new()
         // Public routes (no authentication required)
-        .route(
-            "/login",
-            axum::routing::get(login_form).post(login),
-        )
+        .route("/login", axum::routing::get(login_form).post(login))
         .route("/logout", axum::routing::post(logout))
+        .route("/health", axum::routing::get(health::health_check)) // Add health endpoint
         // Theme and language
         .route("/theme/toggle", axum::routing::post(toggle_theme))
         .route("/language/set", axum::routing::post(set_language))

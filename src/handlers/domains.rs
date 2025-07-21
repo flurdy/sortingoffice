@@ -1,20 +1,11 @@
 use crate::{
     db,
-    handlers::{
-        utils::{
-            get_field_translations,
-            get_entity_form_translations,
-        },
-    },
+    handlers::utils::{get_entity_form_translations, get_field_translations},
     i18n::get_translation,
-    models::{PaginatedResult, PaginationParams, DomainForm, NewDomain},
-    templates::{
-        domains::{
-            DomainFormTemplate, DomainsListTemplate, DomainShowTemplate,
-        },
-    },
-    AppState,
+    models::{DomainForm, NewDomain, PaginatedResult, PaginationParams},
     render_template_with_title,
+    templates::domains::{DomainFormTemplate, DomainShowTemplate, DomainsListTemplate},
+    AppState,
 };
 use askama::Template;
 use axum::{
@@ -524,24 +515,24 @@ pub async fn edit(
     .await;
 
     let content_template = DomainFormTemplate {
-        title: &form_translations["domains-edit-domain"],
+        title: form_translations.get("domains-edit-domain").map(|s| s.as_str()).unwrap_or("Edit Domain"),
         domain: Some(domain),
         form,
         error: None,
-        form_error: &form_translations["form-error"],
-        form_domain: &field_translations["domains-field-domain"],
-        form_transport: &field_translations["domains-field-transport"],
-        form_active: &field_translations["domains-field-active"],
-        form_cancel: &form_translations["form-cancel"],
-        form_create_domain: &form_translations["action-save"],
-        form_update_domain: &form_translations["action-save"],
-        form_placeholder_domain: &field_translations["domains-placeholder-domain"],
-        form_placeholder_transport: &field_translations["domains-placeholder-transport"],
-        form_tooltip_domain: &field_translations["domains-field-domain-help"],
-        form_tooltip_transport: &field_translations["domains-field-transport-help"],
-        form_tooltip_enable: &field_translations["domains-field-active-help"],
-        form_enabled: &form_translations["form-enabled"],
-        form_disabled: &form_translations["form-disabled"],
+        form_error: form_translations.get("form-error").map(|s| s.as_str()).unwrap_or("Form Error"),
+        form_domain: field_translations.get("domains-field-domain").map(|s| s.as_str()).unwrap_or("Domain"),
+        form_transport: field_translations.get("domains-field-transport").map(|s| s.as_str()).unwrap_or("Transport"),
+        form_active: field_translations.get("domains-field-active").map(|s| s.as_str()).unwrap_or("Active"),
+        form_cancel: form_translations.get("form-cancel").map(|s| s.as_str()).unwrap_or("Cancel"),
+        form_create_domain: form_translations.get("action-save").map(|s| s.as_str()).unwrap_or("Save"),
+        form_update_domain: form_translations.get("action-save").map(|s| s.as_str()).unwrap_or("Save"),
+        form_placeholder_domain: field_translations.get("domains-placeholder-domain").map(|s| s.as_str()).unwrap_or("example.com"),
+        form_placeholder_transport: field_translations.get("domains-placeholder-transport").map(|s| s.as_str()).unwrap_or("virtual"),
+        form_tooltip_domain: field_translations.get("domains-field-domain-help").map(|s| s.as_str()).unwrap_or("Domain tooltip"),
+        form_tooltip_transport: field_translations.get("domains-field-transport-help").map(|s| s.as_str()).unwrap_or("Transport tooltip"),
+        form_tooltip_enable: field_translations.get("domains-field-active-help").map(|s| s.as_str()).unwrap_or("Active tooltip"),
+        form_enabled: form_translations.get("form-enabled").map(|s| s.as_str()).unwrap_or("Enabled"),
+        form_disabled: form_translations.get("form-disabled").map(|s| s.as_str()).unwrap_or("Disabled"),
     };
 
     // Use helper function for template rendering

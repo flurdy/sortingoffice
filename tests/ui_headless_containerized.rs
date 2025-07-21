@@ -104,8 +104,27 @@ async fn setup_containerized_test<'a>(
     tokio::time::sleep(Duration::from_secs(10)).await;
 
     // Start Selenium standalone Chrome container
-    let selenium = docker
-        .run(GenericImage::new("selenium/standalone-chrome", "latest").with_exposed_port(4444));
+    let selenium = docker.run(
+        GenericImage::new("selenium/standalone-chrome", "latest")
+            .with_exposed_port(4444)
+            .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+            .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+            .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+            .with_env_var("SE_START_XVFB", "false")
+            .with_env_var("SE_SCREEN_WIDTH", "1920")
+            .with_env_var("SE_SCREEN_HEIGHT", "1080")
+            .with_env_var("SE_SCREEN_DEPTH", "24")
+            .with_env_var("SE_SCREEN_DPI", "96")
+            .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+            .with_env_var("SE_VNC_NO_PASSWORD", "1")
+            .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+            .with_env_var("SE_NODE_HOST", "localhost")
+            .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+            .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+            .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+            .with_env_var("SE_OPTS", "--host-resolver-rules='MAP * 127.0.0.1'")
+            .with_volume("/dev/shm", "/dev/shm"),
+    );
     let selenium_port = selenium.get_host_port_ipv4(4444);
 
     // Wait for Selenium to be ready
@@ -123,6 +142,10 @@ async fn setup_containerized_test<'a>(
     caps.add_arg("--window-size=1920,1080")?;
     caps.add_arg("--disable-web-security")?;
     caps.add_arg("--allow-running-insecure-content")?;
+    caps.add_arg("--host-resolver-rules=MAP * 127.0.0.1")?;
+    caps.add_arg("--remote-debugging-port=9222")?;
+    caps.add_arg("--whitelisted-ips=")?;
+    caps.add_arg("--disable-features=VizDisplayCompositor")?;
 
     let driver = timeout(
         Duration::from_secs(10),
@@ -142,7 +165,7 @@ async fn authenticate_driver(driver: &WebDriver, app_port: u16) -> Result<()> {
     println!("🔐 Authenticating with headless browser...");
 
     // Navigate to login page using Docker host gateway
-    let login_url = format!("http://172.17.0.1:{}/login", app_port);
+    let login_url = format!("http://host.docker.internal:{}/login", app_port);
     println!("Navigating to login page: {}", login_url);
     timeout10s!(driver.get(&login_url), "Navigate to login page")?;
 
@@ -239,7 +262,7 @@ async fn test_homepage_loads_containerized() -> Result<()> {
             let app_port = 3000;
 
             // Navigate to homepage using Docker host gateway
-            let home_url = format!("http://172.17.0.1:{}", app_port);
+            let home_url = format!("http://host.docker.internal:{}", app_port);
             println!("Navigating to homepage: {}", home_url);
             timeout10s!(driver.get(&home_url), "Navigate to homepage")?;
 
@@ -278,7 +301,7 @@ async fn test_domain_search_containerized() -> Result<()> {
             let app_port = 3000;
 
             // Navigate to aliases page using Docker host gateway
-            let aliases_url = format!("http://172.17.0.1:{}/aliases", app_port);
+            let aliases_url = format!("http://host.docker.internal:{}/aliases", app_port);
             println!("Navigating to aliases page: {}", aliases_url);
             timeout10s!(driver.get(&aliases_url), "Navigate to aliases page")?;
 
@@ -334,7 +357,7 @@ async fn test_navigation_containerized() -> Result<()> {
             let app_port = 3000;
 
             // Navigate to homepage using Docker host gateway
-            let home_url = format!("http://172.17.0.1:{}", app_port);
+            let home_url = format!("http://host.docker.internal:{}", app_port);
             println!("Navigating to homepage: {}", home_url);
             timeout10s!(driver.get(&home_url), "Navigate to homepage")?;
 
@@ -351,7 +374,7 @@ async fn test_navigation_containerized() -> Result<()> {
 
             for (path, expected_title) in pages {
                 println!("Testing navigation to {}", path);
-                let url = format!("http://172.17.0.1:{}{}", app_port, path);
+                let url = format!("http://host.docker.internal:{}{}", app_port, path);
                 timeout10s!(driver.get(&url), "Navigate to page")?;
 
                 // Wait for page to load

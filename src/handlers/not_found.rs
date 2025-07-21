@@ -20,4 +20,4 @@ pub async fn not_found(headers: HeaderMap) -> Response {
             .body("404 - Page Not Found".into())
             .unwrap()
     }
-} 
+}

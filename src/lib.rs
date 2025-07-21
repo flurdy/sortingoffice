@@ -5,6 +5,7 @@ pub mod i18n;
 pub mod models;
 pub mod schema;
 pub mod templates;
+pub mod test_helpers;
 
 pub use crate::config::Config;
 pub use crate::db::DatabaseManager;
@@ -20,4 +21,4 @@ pub struct AppState {
     pub db_manager: DatabaseManager,
     pub i18n: I18n,
     pub config: Config,
-} 
+}

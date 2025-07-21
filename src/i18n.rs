@@ -53,7 +53,7 @@ impl I18n {
 
         for line in resource_str.lines() {
             let line = line.trim_start();
-            
+
             // Skip empty lines and comments
             if line.is_empty() || line.starts_with('#') {
                 continue;
@@ -88,7 +88,7 @@ impl I18n {
 
     pub async fn get_translation(&self, locale: &str, key: &str) -> String {
         let messages = self.messages.read().await;
-        
+
         // Try to get translation from requested locale
         if let Some(locale_messages) = messages.get(locale) {
             if let Some(translation) = locale_messages.get(key) {

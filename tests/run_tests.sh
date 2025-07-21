@@ -92,14 +92,40 @@ run_integration_tests() {
     print_success "Integration tests completed successfully!"
 }
 
+# Function to check if application is healthy
+check_app_health() {
+    local max_attempts=5  # Reduced attempts since we're failing fast
+    local attempt=1
+    local wait_time=1
+
+    print_status "Checking if application is healthy..."
+    while [ $attempt -le $max_attempts ]; do
+        # Try the health check endpoint
+        local response=$(curl -s -w "%{http_code}" -o /dev/null http://localhost:3000/health)
+        if [ "$response" = "200" ]; then
+            print_success "Application is healthy and responding on localhost:3000"
+            return 0
+        elif [ -n "$response" ] && [ "$response" != "000" ]; then
+            # If we got a response but it's not 200, fail fast
+            print_error "Application health check failed with status $response"
+            return 1
+        fi
+        print_status "Waiting for application to be ready (attempt $attempt/$max_attempts)..."
+        sleep $wait_time
+        attempt=$((attempt + 1))
+    done
+
+    print_error "Application is not responding after $max_attempts attempts"
+    return 1
+}
+
 # Function to run UI tests
 run_ui_tests() {
     print_status "Running UI tests for sortingoffice..."
     
-    # Check if the application is running
-    print_status "Checking if application is running..."
-    if ! curl -s http://localhost:3000/ > /dev/null 2>&1; then
-        print_warning "Application is not running on localhost:3000"
+    # Check if the application is healthy
+    if ! check_app_health; then
+        print_warning "Application is not healthy on localhost:3000"
         print_status "Please start the application first:"
         echo "  cargo run"
         echo "  # or"
@@ -108,8 +134,6 @@ run_ui_tests() {
         print_status "Then run this script again."
         exit 1
     fi
-
-    print_success "Application is running on localhost:3000"
 
     # Ensure seed data is loaded for UI tests
     print_status "Ensuring seed data is loaded for UI tests..."
@@ -147,10 +171,9 @@ run_ui_tests() {
 run_headless_ui_tests() {
     print_status "Running headless UI tests for sortingoffice..."
     
-    # Check if the application is running
-    print_status "Checking if application is running..."
-    if ! curl -s http://localhost:3000/ > /dev/null 2>&1; then
-        print_warning "Application is not running on localhost:3000"
+    # Check if the application is healthy
+    if ! check_app_health; then
+        print_warning "Application is not healthy on localhost:3000"
         print_status "Please start the application first:"
         echo "  cargo run"
         echo "  # or"
@@ -159,8 +182,6 @@ run_headless_ui_tests() {
         print_status "Then run this script again."
         exit 1
     fi
-
-    print_success "Application is running on localhost:3000"
 
     # Ensure seed data is loaded for UI tests
     print_status "Ensuring seed data is loaded for UI tests..."
@@ -210,10 +231,9 @@ run_containerized_ui_tests() {
         exit 1
     fi
 
-    # Check if the application is running
-    print_status "Checking if application is running..."
-    if ! curl -s http://localhost:3000/ > /dev/null 2>&1; then
-        print_warning "Application is not running on localhost:3000"
+    # Check if the application is healthy
+    if ! check_app_health; then
+        print_warning "Application is not healthy on localhost:3000"
         print_status "Please start the application first:"
         echo "  cargo run"
         echo "  # or"
@@ -223,11 +243,10 @@ run_containerized_ui_tests() {
         exit 1
     fi
 
-    print_success "Application is running on localhost:3000"
-
     # Set environment variables
     export RUST_TEST_THREADS=1
     export RUST_LOG=info
+    export DATABASE_URL="mysql://sortingoffice:sortingoffice@localhost:33419/sortingoffice"
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."

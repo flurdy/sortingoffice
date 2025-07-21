@@ -7,17 +7,17 @@ mod tests {
     };
     use tower::ServiceExt;
 
-    use crate::config::DatabaseConfig;
-    use crate::config::DatabaseFeatures;
-    use crate::handlers;
-    use crate::tests::testcontainers_setup::setup_test_db;
-    use crate::AppState;
-
-    async fn create_test_app() -> (
-        Router,
+    use sortingoffice::{
+        config::{Config, DatabaseConfig, DatabaseFeatures},
+        db::{self, DatabaseManager},
+        handlers,
+        i18n::I18n,
         AppState,
-        crate::tests::testcontainers_setup::TestContainer,
-    ) {
+    };
+
+    use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
+
+    async fn create_test_app() -> (Router, AppState, TestContainer) {
         // Use testcontainers for proper isolation
         let container = setup_test_db();
         let _pool = container.get_pool();
@@ -32,76 +32,32 @@ mod tests {
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
-        let db_manager = crate::db::DatabaseManager::new(db_config)
+        let db_manager = DatabaseManager::new(db_config)
             .await
             .expect("Failed to create database manager");
-        let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
-        let config = crate::config::Config::default();
+        let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
+        let config = Config::default();
         let state = AppState {
             db_manager,
             i18n,
             config,
         };
-        let app = Router::new()
-            .route("/domains", axum::routing::get(handlers::domains::list))
-            .route("/domains", axum::routing::post(handlers::domains::create))
-            .route("/domains/{id}", axum::routing::get(handlers::domains::show))
-            .route(
-                "/domains/{id}/edit",
-                axum::routing::get(handlers::domains::edit),
-            )
-            .route(
-                "/domains/{id}",
-                axum::routing::put(handlers::domains::update),
-            )
-            .route(
-                "/domains/{id}",
-                axum::routing::delete(handlers::domains::delete),
-            )
-            .route(
-                "/domains/{id}/toggle",
-                axum::routing::post(handlers::domains::toggle_enabled),
-            )
-            .route("/users", axum::routing::get(handlers::users::list))
-            .route("/users", axum::routing::post(handlers::users::create))
-            .route("/users/{id}", axum::routing::get(handlers::users::show))
-            .route(
-                "/users/{id}/edit",
-                axum::routing::get(handlers::users::edit),
-            )
-            .route("/users/{id}", axum::routing::put(handlers::users::update))
-            .route(
-                "/users/{id}",
-                axum::routing::delete(handlers::users::delete),
-            )
-            .route(
-                "/users/{id}/toggle",
-                axum::routing::post(handlers::users::toggle_enabled),
-            )
-            .route("/aliases", axum::routing::get(handlers::aliases::list))
-            .route("/aliases", axum::routing::post(handlers::aliases::create))
-            .route("/aliases/{id}", axum::routing::get(handlers::aliases::show))
-            .route(
-                "/aliases/{id}/edit",
-                axum::routing::get(handlers::aliases::edit),
-            )
-            .route(
-                "/aliases/{id}",
-                axum::routing::put(handlers::aliases::update),
-            )
-            .route(
-                "/aliases/{id}",
-                axum::routing::delete(handlers::aliases::delete),
-            )
-            .route(
-                "/aliases/{id}/toggle-list",
-                axum::routing::post(handlers::aliases::toggle_enabled),
-            )
-            .route("/stats", axum::routing::get(handlers::stats::index))
-            .route("/dashboard", axum::routing::get(handlers::dashboard::index))
-            .with_state(state.clone());
 
+        let app = handlers::create_app(state.clone());
         (app, state, container)
+    }
+
+    // Helper function to create an authenticated cookie with edit role
+    fn create_edit_auth_cookie() -> axum::http::HeaderValue {
+        let expiry = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() + 3600; // 1 hour in the future
+        let cookie = format!(
+            "authenticated={}:edit:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax",
+            expiry
+        );
+        axum::http::HeaderValue::from_str(&cookie).unwrap()
     }
 
     #[tokio::test]
@@ -118,6 +74,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(form_data))
                     .unwrap(),
             )
@@ -132,6 +89,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/domains")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -148,7 +106,7 @@ mod tests {
 
         // Step 3: Get the domain ID from the database
         let _pool = container.get_pool();
-        let domains = crate::db::get_domains(_pool).unwrap();
+        let domains = db::get_domains(_pool).unwrap();
         let domain = domains
             .iter()
             .find(|d| d.domain == "integration-domain.com")
@@ -160,6 +118,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}", domain.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -179,6 +138,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/domains/{}", domain.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(update_form_data))
                     .unwrap(),
             )
@@ -188,7 +148,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 6: Verify the update
-        let updated_domain = crate::db::get_domain(_pool, domain.pkid).unwrap();
+        let updated_domain = db::get_domain(_pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
         assert_eq!(updated_domain.enabled, false);
 
@@ -199,6 +159,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/domains/{}/toggle", domain.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -208,7 +169,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 8: Verify the toggle
-        let toggled_domain = crate::db::get_domain(_pool, domain.pkid).unwrap();
+        let toggled_domain = db::get_domain(_pool, domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, true);
 
         // Step 9: Delete the domain
@@ -218,6 +179,7 @@ mod tests {
                 Request::builder()
                     .method("DELETE")
                     .uri(format!("/domains/{}", domain.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -227,7 +189,7 @@ mod tests {
         assert_eq!(delete_response.status(), StatusCode::OK);
 
         // Step 10: Verify the domain was deleted
-        let remaining_domains = crate::db::get_domains(_pool).unwrap();
+        let remaining_domains = db::get_domains(_pool).unwrap();
         assert!(!remaining_domains
             .iter()
             .any(|d| d.domain == "updated-integration.com"));
@@ -248,6 +210,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form_data))
                     .unwrap(),
             )
@@ -264,6 +227,7 @@ mod tests {
                     .method("POST")
                     .uri("/users")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(user_form_data))
                     .unwrap(),
             )
@@ -278,6 +242,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/users")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -294,7 +259,7 @@ mod tests {
 
         // Step 4: Get the user ID from the database
         let _pool = container.get_pool();
-        let users = crate::db::get_users(_pool).unwrap();
+        let users = db::get_users(_pool).unwrap();
         let user = users
             .iter()
             .find(|u| u.id == "integrationuser@integration-user-test.com")
@@ -306,6 +271,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}", user.id))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -325,6 +291,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/users/{}", user.id))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(update_form_data))
                     .unwrap(),
             )
@@ -335,8 +302,7 @@ mod tests {
 
         // Step 7: Verify the update
         let updated_user =
-            crate::db::get_user(_pool, "updateduser@integration-user-test.com".to_string())
-                .unwrap();
+            db::get_user(_pool, "updateduser@integration-user-test.com".to_string()).unwrap();
         println!(
             "DEBUG: Updated user - id: {}, enabled: {}, change_password: {}",
             updated_user.id, updated_user.enabled, updated_user.change_password
@@ -352,6 +318,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/users/{}/toggle", updated_user.id))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -361,7 +328,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 9: Verify the toggle
-        let toggled_user = crate::db::get_user(_pool, updated_user.id.clone()).unwrap();
+        let toggled_user = db::get_user(_pool, updated_user.id.clone()).unwrap();
         println!(
             "DEBUG: Toggled user - id: {}, enabled: {}",
             toggled_user.id, toggled_user.enabled
@@ -385,6 +352,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form_data))
                     .unwrap(),
             )
@@ -401,6 +369,7 @@ mod tests {
                     .method("POST")
                     .uri("/aliases")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(alias_form_data))
                     .unwrap(),
             )
@@ -415,6 +384,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/aliases")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -431,7 +401,7 @@ mod tests {
 
         // Step 4: Get the alias ID from the database
         let _pool = container.get_pool();
-        let aliases = crate::db::get_aliases(_pool).unwrap();
+        let aliases = db::get_aliases(_pool).unwrap();
         let alias = aliases
             .iter()
             .find(|a| a.mail == "test@integration-alias-test.com")
@@ -443,6 +413,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri(format!("/aliases/{}", alias.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -462,6 +433,7 @@ mod tests {
                     .method("PUT")
                     .uri(format!("/aliases/{}", alias.pkid))
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(update_form_data))
                     .unwrap(),
             )
@@ -471,7 +443,7 @@ mod tests {
         assert_eq!(update_response.status(), StatusCode::OK);
 
         // Step 7: Verify the update
-        let updated_alias = crate::db::get_alias(_pool, alias.pkid).unwrap();
+        let updated_alias = db::get_alias(_pool, alias.pkid).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
         assert_eq!(updated_alias.enabled, false);
 
@@ -482,6 +454,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/aliases/{}/toggle-list", alias.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -491,7 +464,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Step 9: Verify the toggle
-        let toggled_alias = crate::db::get_alias(_pool, alias.pkid).unwrap();
+        let toggled_alias = db::get_alias(_pool, alias.pkid).unwrap();
         assert_eq!(toggled_alias.enabled, true);
     }
 
@@ -510,6 +483,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form_data))
                     .unwrap(),
             )
@@ -526,6 +500,7 @@ mod tests {
                     .method("POST")
                     .uri("/users")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(user_form_data))
                     .unwrap(),
             )
@@ -541,6 +516,7 @@ mod tests {
                     .method("POST")
                     .uri("/aliases")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(alias_form_data))
                     .unwrap(),
             )
@@ -553,6 +529,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -571,7 +548,7 @@ mod tests {
 
         // Step 3: Verify database stats match
         let _pool = container.get_pool();
-        let system_stats = crate::db::get_system_stats(_pool).unwrap();
+        let system_stats = db::get_system_stats(_pool).unwrap();
         assert_eq!(system_stats.total_domains, 1);
         assert_eq!(system_stats.total_users, 1);
         assert_eq!(system_stats.total_aliases, 1);
@@ -605,6 +582,7 @@ mod tests {
                         .method("POST")
                         .uri("/domains")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -621,6 +599,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/domains")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -657,6 +636,7 @@ mod tests {
                         .method("POST")
                         .uri("/users")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -683,6 +663,7 @@ mod tests {
                         .method("POST")
                         .uri("/aliases")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -694,7 +675,7 @@ mod tests {
 
         // Step 5: Test domain management operations
         let _pool = container.get_pool();
-        let domains = crate::db::get_domains(_pool).unwrap();
+        let domains = db::get_domains(_pool).unwrap();
         let primary_domain = domains
             .iter()
             .find(|d| d.domain == "primary-domain.com")
@@ -707,6 +688,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/domains/{}/toggle", primary_domain.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -716,7 +698,7 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Verify toggle
-        let toggled_domain = crate::db::get_domain(_pool, primary_domain.pkid).unwrap();
+        let toggled_domain = db::get_domain(_pool, primary_domain.pkid).unwrap();
         assert_eq!(toggled_domain.enabled, false);
 
         // Step 6: Test statistics
@@ -725,6 +707,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -757,6 +740,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form))
                     .unwrap(),
             )
@@ -788,6 +772,7 @@ mod tests {
                         .method("POST")
                         .uri("/users")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -815,6 +800,7 @@ mod tests {
                         .method("POST")
                         .uri("/aliases")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -826,7 +812,7 @@ mod tests {
 
         // Step 4: Test user management operations
         let _pool = container.get_pool();
-        let users = crate::db::get_users(_pool).unwrap();
+        let users = db::get_users(_pool).unwrap();
         let john = users.iter().find(|u| u.id == "john").unwrap();
 
         // Toggle user status
@@ -836,6 +822,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/users/{}/toggle", john.id))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -845,11 +832,11 @@ mod tests {
         assert_eq!(toggle_response.status(), StatusCode::OK);
 
         // Verify toggle
-        let toggled_john = crate::db::get_user(_pool, john.id.clone()).unwrap();
+        let toggled_john = db::get_user(_pool, john.id.clone()).unwrap();
         assert_eq!(toggled_john.enabled, false);
 
         // Step 5: Test alias management
-        let aliases = crate::db::get_aliases(_pool).unwrap();
+        let aliases = db::get_aliases(_pool).unwrap();
         let john_alias = aliases
             .iter()
             .find(|a| a.mail == "john@user-test.com")
@@ -862,6 +849,7 @@ mod tests {
                 Request::builder()
                     .method("POST")
                     .uri(format!("/aliases/{}/toggle-list", john_alias.pkid))
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -871,7 +859,7 @@ mod tests {
         assert_eq!(alias_toggle_response.status(), StatusCode::OK);
 
         // Verify alias toggle
-        let toggled_alias = crate::db::get_alias(_pool, john_alias.pkid).unwrap();
+        let toggled_alias = db::get_alias(_pool, john_alias.pkid).unwrap();
         assert_eq!(toggled_alias.enabled, false);
 
         // Step 6: Test statistics
@@ -880,6 +868,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -912,6 +901,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form))
                     .unwrap(),
             )
@@ -928,6 +918,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(domain_form))
                     .unwrap(),
             )
@@ -953,6 +944,7 @@ mod tests {
                     .method("POST")
                     .uri("/domains")
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::from(empty_domain_form))
                     .unwrap(),
             )
@@ -972,6 +964,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -990,7 +983,7 @@ mod tests {
 
         // Verify we have the expected domains
         let _pool = container.get_pool();
-        let final_domains = crate::db::get_domains(_pool).unwrap();
+        let final_domains = db::get_domains(_pool).unwrap();
         assert!(final_domains.len() >= 1); // At least duplicate-test.com
     }
 
@@ -1015,6 +1008,7 @@ mod tests {
                         .method("POST")
                         .uri("/domains")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -1044,6 +1038,7 @@ mod tests {
                         .method("POST")
                         .uri("/users")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -1070,6 +1065,7 @@ mod tests {
                         .method("POST")
                         .uri("/aliases")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -1092,6 +1088,7 @@ mod tests {
                         .method("POST")
                         .uri("/aliases")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -1118,6 +1115,7 @@ mod tests {
                         .method("POST")
                         .uri("/aliases")
                         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                        .header("cookie", create_edit_auth_cookie())
                         .body(Body::from(form_data))
                         .unwrap(),
                 )
@@ -1133,6 +1131,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .uri("/stats")
+                    .header("cookie", create_edit_auth_cookie())
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1153,9 +1152,9 @@ mod tests {
 
         // Step 7: Test data isolation (simulated by naming patterns)
         let _pool = container.get_pool();
-        let domains = crate::db::get_domains(_pool).unwrap();
-        let users = crate::db::get_users(_pool).unwrap();
-        let aliases = crate::db::get_aliases(_pool).unwrap();
+        let domains = db::get_domains(_pool).unwrap();
+        let users = db::get_users(_pool).unwrap();
+        let aliases = db::get_aliases(_pool).unwrap();
 
         // Verify we have the expected data
         assert_eq!(domains.len(), 3);
