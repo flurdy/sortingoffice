@@ -38,7 +38,7 @@ pub struct DatabaseConfig {
     pub field_map: std::collections::HashMap<String, String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct DatabaseFeatures {
     #[serde(default)]
     pub read_only: bool,
@@ -52,19 +52,7 @@ pub struct DatabaseFeatures {
     pub disabled: bool,
 }
 
-impl Default for DatabaseFeatures {
-    fn default() -> Self {
-        DatabaseFeatures {
-            read_only: false,
-            no_new_users: false,
-            no_new_domains: false,
-            no_password_updates: false,
-            disabled: false,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct GlobalFeatures {
     #[serde(default)]
     pub read_only: bool,
@@ -74,17 +62,6 @@ pub struct GlobalFeatures {
     pub no_new_domains: bool,
     #[serde(default)]
     pub no_password_updates: bool,
-}
-
-impl Default for GlobalFeatures {
-    fn default() -> Self {
-        GlobalFeatures {
-            read_only: false,
-            no_new_users: false,
-            no_new_domains: false,
-            no_password_updates: false,
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -381,7 +358,7 @@ impl DatabaseConfig {
 
         // If not found and it contains a dot, try without the table prefix
         if logical.contains('.') {
-            let field_name = logical.split('.').last().unwrap_or(logical);
+            let field_name = logical.split('.').next_back().unwrap_or(logical);
             if let Some(mapped) = self.field_map.get(field_name) {
                 return mapped.as_str();
             }
@@ -397,7 +374,7 @@ impl DatabaseConfig {
     /// - `field_for_table("users", "id")` -> looks for "users.id" or "id" in field_map
     /// - `field_for_table("domains", "enabled")` -> looks for "domains.enabled" or "enabled" in field_map
     pub fn field_for_table<'a>(&'a self, table: &'a str, field: &'a str) -> &'a str {
-        let qualified = format!("{}.{}", table, field);
+        let qualified = format!("{table}.{field}");
 
         // First try the qualified name
         if let Some(mapped) = self.field_map.get(&qualified) {

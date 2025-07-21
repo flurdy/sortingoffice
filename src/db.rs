@@ -1385,7 +1385,7 @@ pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Al
 
 pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
-    let search_pattern = format!("%{}%", query);
+    let search_pattern = format!("%{query}%");
 
     aliases::table
         .filter(
@@ -1401,7 +1401,7 @@ pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alia
 
 pub fn search_aliases_by_name(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
-    let search_pattern = format!("{}%@%", query);
+    let search_pattern = format!("{query}%@%");
 
     aliases::table
         .filter(aliases::mail.like(&search_pattern))
@@ -1413,7 +1413,7 @@ pub fn search_aliases_by_name(pool: &DbPool, query: &str, limit: i64) -> Result<
 
 pub fn search_domains(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Domain>, Error> {
     let mut conn = pool.get().unwrap();
-    let search_pattern = format!("%{}%", query);
+    let search_pattern = format!("%{query}%");
 
     domains::table
         .filter(domains::domain.like(&search_pattern))
@@ -1594,7 +1594,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                     .optional()
                     .unwrap_or(None);
                 // Consider orphaned if domain doesn't exist or is disabled
-                domain_exists.map_or(true, |(_, enabled)| !enabled)
+                domain_exists.is_none_or(|(_, enabled)| !enabled)
             } else {
                 false
             }
@@ -1628,7 +1628,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                     .optional()
                     .unwrap_or(None);
                 // Consider orphaned if domain doesn't exist or is disabled
-                domain_exists.map_or(true, |(_, enabled)| !enabled)
+                domain_exists.is_none_or(|(_, enabled)| !enabled)
             } else {
                 false
             }
@@ -1739,7 +1739,7 @@ pub fn get_missing_aliases_report(pool: &DbPool) -> Result<MissingAliasReport, E
     for domain in all_domains {
         // Check if domain has catch-all alias
         let catch_all_alias: Option<String> = aliases::table
-            .filter(aliases::mail.eq(format!("@{}", domain)))
+            .filter(aliases::mail.eq(format!("@{domain}")))
             .select(aliases::mail)
             .first::<String>(&mut conn)
             .optional()?;
@@ -1753,7 +1753,7 @@ pub fn get_missing_aliases_report(pool: &DbPool) -> Result<MissingAliasReport, E
         let mut missing_required_aliases = Vec::new();
         for required_alias in required_aliases {
             let alias_exists: Option<String> = aliases::table
-                .filter(aliases::mail.eq(format!("{}@{}", required_alias, domain)))
+                .filter(aliases::mail.eq(format!("{required_alias}@{domain}")))
                 .select(aliases::mail)
                 .first::<String>(&mut conn)
                 .optional()?;
@@ -1787,7 +1787,7 @@ pub fn get_alias_cross_domain_report(
 
     // Find all occurrences of this alias across all domains
     let occurrences: Vec<AliasOccurrence> = aliases::table
-        .filter(aliases::mail.like(format!("{}@%", alias_name)))
+        .filter(aliases::mail.like(format!("{alias_name}@%")))
         .select((aliases::mail, aliases::destination, aliases::enabled))
         .load::<(String, String, bool)>(&mut conn)?
         .into_iter()
@@ -2057,7 +2057,7 @@ fn get_user_domain(pool: &DbPool, user_id: &str) -> Result<Option<String>, Error
 
     // Find aliases for this user to determine their domain
     let domain: Option<String> = aliases::table
-        .filter(aliases::mail.like(format!("{}@%", user_id)))
+        .filter(aliases::mail.like(format!("{user_id}@%")))
         .select(aliases::mail)
         .first::<String>(&mut conn)
         .optional()?
@@ -2248,18 +2248,7 @@ pub fn get_users_with_field_map(
     let change_password = db_config.field_for_table("users", "change_password");
 
     let sql = format!(
-        "SELECT {user_id} as id, {enabled} as enabled, {crypt} as crypt, {name} as name, {maildir} as maildir, {home} as home, {uid} as uid, {gid} as gid, {created} as created, {modified} as modified, {change_password} as change_password FROM users",
-        user_id = user_id,
-        enabled = enabled,
-        crypt = crypt,
-        name = name,
-        maildir = maildir,
-        home = home,
-        uid = uid,
-        gid = gid,
-        created = created,
-        modified = modified,
-        change_password = change_password
+        "SELECT {user_id} as id, {enabled} as enabled, {crypt} as crypt, {name} as name, {maildir} as maildir, {home} as home, {uid} as uid, {gid} as gid, {created} as created, {modified} as modified, {change_password} as change_password FROM users"
     );
 
     sql_query(sql).load::<User>(&mut conn)
@@ -2275,7 +2264,7 @@ pub fn build_field_mapped_query(
         .iter()
         .map(|(logical, alias)| {
             let mapped_field = db_config.field_for_table(table, logical);
-            format!("{} as {}", mapped_field, alias)
+            format!("{mapped_field} as {alias}")
         })
         .collect();
 

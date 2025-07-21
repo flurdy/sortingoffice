@@ -247,77 +247,48 @@ pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMa
 
     info!("Handling client create form request");
 
-    let title = get_translation(&state, &locale, "clients-add-title").await;
-    let form_error = get_translation(&state, &locale, "form-error").await;
-    let form_client = get_translation(&state, &locale, "clients-field-client").await;
-    let form_status = get_translation(&state, &locale, "clients-field-status").await;
-    let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
-    let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_placeholder_client =
-        get_translation(&state, &locale, "clients-placeholder-client").await;
-    let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
-    let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
-    let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
-    let form_tooltip_enabled = get_translation(&state, &locale, "clients-field-enabled-help").await;
-    let enabled_yes = get_translation(&state, &locale, "clients-enabled-yes").await;
-    let enabled_no = get_translation(&state, &locale, "clients-enabled-no").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "clients").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "clients",
+        &["client", "status", "enabled"],
+    )
+    .await;
+    let status_translations =
+        crate::handlers::utils::get_status_translations(&state, &locale, "clients").await;
 
     let content_template = ClientFormTemplate {
-        title: &title,
+        title: &form_translations["clients-add-title"],
         client: None,
-        form_error: &form_error,
-        form_client: &form_client,
-        form_status: &form_status,
-        form_cancel: &form_cancel,
-        form_create_client: &form_create_client,
-        form_update_client: &form_update_client,
-        form_placeholder_client: &form_placeholder_client,
-        form_tooltip_client: &form_tooltip_client,
-        form_tooltip_status: &form_tooltip_status,
-        form_enabled: &form_enabled,
-        form_tooltip_enabled: &form_tooltip_enabled,
-        enabled_yes: &enabled_yes,
-        enabled_no: &enabled_no,
-        status_allowed: &status_allowed,
-        status_blocked: &status_blocked,
+        form_error: &form_translations["form-error"],
+        form_client: &field_translations["clients-field-client"],
+        form_status: &field_translations["clients-field-status"],
+        form_cancel: &form_translations["form-cancel"],
+        form_create_client: &form_translations["action-save"],
+        form_update_client: &form_translations["action-save"],
+        form_placeholder_client: &field_translations["clients-placeholder-client"],
+        form_tooltip_client: &field_translations["clients-field-client-help"],
+        form_tooltip_status: &field_translations["clients-field-status-help"],
+        form_enabled: &field_translations["clients-field-enabled"],
+        form_tooltip_enabled: &field_translations["clients-field-enabled-help"],
+        enabled_yes: &status_translations["clients-enabled-yes"],
+        enabled_no: &status_translations["clients-enabled-no"],
+        status_allowed: &status_translations["clients-status-allowed"],
+        status_blocked: &status_translations["clients-status-blocked"],
     };
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            warn!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-        let template = BaseTemplate::with_i18n(
-            title,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["clients-add-title"].clone(),
+    )
+    .await
 }
 
 pub async fn edit_client_form(
@@ -340,77 +311,48 @@ pub async fn edit_client_form(
         }
     };
 
-    let title = get_translation(&state, &locale, "clients-edit-title").await;
-    let form_error = get_translation(&state, &locale, "form-error").await;
-    let form_client = get_translation(&state, &locale, "clients-field-client").await;
-    let form_status = get_translation(&state, &locale, "clients-field-status").await;
-    let form_cancel = get_translation(&state, &locale, "clients-action-cancel").await;
-    let form_create_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_update_client = get_translation(&state, &locale, "clients-action-save").await;
-    let form_placeholder_client =
-        get_translation(&state, &locale, "clients-placeholder-client").await;
-    let form_tooltip_client = get_translation(&state, &locale, "clients-field-client-help").await;
-    let form_tooltip_status = get_translation(&state, &locale, "clients-field-status-help").await;
-    let form_enabled = get_translation(&state, &locale, "clients-field-enabled").await;
-    let form_tooltip_enabled = get_translation(&state, &locale, "clients-field-enabled-help").await;
-    let enabled_yes = get_translation(&state, &locale, "clients-enabled-yes").await;
-    let enabled_no = get_translation(&state, &locale, "clients-enabled-no").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "clients").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "clients",
+        &["client", "status", "enabled"],
+    )
+    .await;
+    let status_translations =
+        crate::handlers::utils::get_status_translations(&state, &locale, "clients").await;
 
     let content_template = ClientFormTemplate {
-        title: &title,
+        title: &form_translations["clients-edit-title"],
         client: Some(client),
-        form_error: &form_error,
-        form_client: &form_client,
-        form_status: &form_status,
-        form_cancel: &form_cancel,
-        form_create_client: &form_create_client,
-        form_update_client: &form_update_client,
-        form_placeholder_client: &form_placeholder_client,
-        form_tooltip_client: &form_tooltip_client,
-        form_tooltip_status: &form_tooltip_status,
-        form_enabled: &form_enabled,
-        form_tooltip_enabled: &form_tooltip_enabled,
-        enabled_yes: &enabled_yes,
-        enabled_no: &enabled_no,
-        status_allowed: &status_allowed,
-        status_blocked: &status_blocked,
+        form_error: &form_translations["form-error"],
+        form_client: &field_translations["clients-field-client"],
+        form_status: &field_translations["clients-field-status"],
+        form_cancel: &form_translations["form-cancel"],
+        form_create_client: &form_translations["action-save"],
+        form_update_client: &form_translations["action-save"],
+        form_placeholder_client: &field_translations["clients-placeholder-client"],
+        form_tooltip_client: &field_translations["clients-field-client-help"],
+        form_tooltip_status: &field_translations["clients-field-status-help"],
+        form_enabled: &field_translations["clients-field-enabled"],
+        form_tooltip_enabled: &field_translations["clients-field-enabled-help"],
+        enabled_yes: &status_translations["clients-enabled-yes"],
+        enabled_no: &status_translations["clients-enabled-no"],
+        status_allowed: &status_translations["clients-status-allowed"],
+        status_blocked: &status_translations["clients-status-blocked"],
     };
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            warn!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-        let template = BaseTemplate::with_i18n(
-            title,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["clients-edit-title"].clone(),
+    )
+    .await
 }
 
 pub async fn create_client(

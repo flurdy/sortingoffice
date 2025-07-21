@@ -157,58 +157,55 @@ async fn build_user_form_template(
     form: UserForm,
     error: Option<String>,
 ) -> UserFormTemplate {
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(state, locale, "users").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        state,
+        locale,
+        "users",
+        &["id", "password", "name", "active", "maildir", "home"],
+    )
+    .await;
+
     let title = if user.is_some() {
-        get_translation(state, locale, "users-edit-user-title").await
+        form_translations["users-edit-user-title"].clone()
     } else {
-        get_translation(state, locale, "users-new-user").await
+        form_translations["users-new-user"].clone()
     };
 
     UserFormTemplate {
         title,
-        form_user_id: get_translation(state, locale, "users-form-user-id").await,
-        form_password: get_translation(state, locale, "users-form-password").await,
-        form_name: get_translation(state, locale, "users-form-name").await,
-        form_active: get_translation(state, locale, "users-form-active").await,
-        placeholder_user_email: get_translation(state, locale, "users-placeholder-user-email")
-            .await,
-        placeholder_name: get_translation(state, locale, "users-placeholder-name").await,
-        tooltip_user_id: get_translation(state, locale, "users-tooltip-user-id").await,
-        tooltip_password: get_translation(state, locale, "users-tooltip-password").await,
-        tooltip_name: get_translation(state, locale, "users-tooltip-name").await,
-        tooltip_active: get_translation(state, locale, "users-tooltip-active").await,
-        users_change_password: get_translation(state, locale, "users-change-password").await,
-        users_change_password_tooltip: get_translation(
-            state,
-            locale,
-            "users-change-password-tooltip",
-        )
-        .await,
-        users_placeholder_password: get_translation(state, locale, "users-placeholder-password")
-            .await,
-        password_management_title: get_translation(state, locale, "password-management-title")
-            .await,
-        change_password_button: get_translation(state, locale, "change-password-button").await,
-        toggle_change_password_button: get_translation(
-            state,
-            locale,
-            "toggle-change-password-button",
-        )
-        .await,
-        cancel: get_translation(state, locale, "users-cancel").await,
-        create_user: get_translation(state, locale, "users-create-user").await,
-        update_user: get_translation(state, locale, "users-update-user").await,
-        new_user: get_translation(state, locale, "users-new-user").await,
-        edit_user_title: get_translation(state, locale, "users-edit-user-title").await,
+        form_user_id: field_translations["users-field-id"].clone(),
+        form_password: field_translations["users-field-password"].clone(),
+        form_name: field_translations["users-field-name"].clone(),
+        form_active: field_translations["users-field-active"].clone(),
+        placeholder_user_email: field_translations["users-placeholder-user-email"].clone(),
+        placeholder_name: field_translations["users-placeholder-name"].clone(),
+        tooltip_user_id: field_translations["users-field-id-help"].clone(),
+        tooltip_password: field_translations["users-field-password-help"].clone(),
+        tooltip_name: field_translations["users-field-name-help"].clone(),
+        tooltip_active: field_translations["users-field-active-help"].clone(),
+        users_change_password: form_translations["users-change-password"].clone(),
+        users_change_password_tooltip: form_translations["users-change-password-tooltip"].clone(),
+        users_placeholder_password: field_translations["users-placeholder-password"].clone(),
+        password_management_title: form_translations["password-management-title"].clone(),
+        change_password_button: form_translations["change-password-button"].clone(),
+        toggle_change_password_button: form_translations["toggle-change-password-button"].clone(),
+        cancel: form_translations["form-cancel"].clone(),
+        create_user: form_translations["action-save"].clone(),
+        update_user: form_translations["action-save"].clone(),
+        new_user: form_translations["users-new-user"].clone(),
+        edit_user_title: form_translations["users-edit-user-title"].clone(),
         user,
         form,
         error,
-        users_maildir: get_translation(state, locale, "users-maildir").await,
-        users_tooltip_maildir: get_translation(state, locale, "users-tooltip-maildir").await,
-        users_placeholder_maildir: get_translation(state, locale, "users-placeholder-maildir")
-            .await,
-        users_home: get_translation(state, locale, "users-home").await,
-        users_tooltip_home: get_translation(state, locale, "users-tooltip-home").await,
-        users_placeholder_home: get_translation(state, locale, "users-placeholder-home").await,
+        users_maildir: field_translations["users-field-maildir"].clone(),
+        users_tooltip_maildir: field_translations["users-field-maildir-help"].clone(),
+        users_placeholder_maildir: field_translations["users-placeholder-maildir"].clone(),
+        users_home: field_translations["users-field-home"].clone(),
+        users_tooltip_home: field_translations["users-field-home-help"].clone(),
+        users_placeholder_home: field_translations["users-placeholder-home"].clone(),
     }
 }
 
@@ -218,10 +215,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
     // Get users (use regular function for now)
-    let users = match db::get_users(&pool) {
-        Ok(users) => users,
-        Err(_) => vec![],
-    };
+    let users = db::get_users(&pool).unwrap_or_default();
     // Dummy pagination for now
     let paginated = PaginatedResult::new(users.clone(), users.len() as i64, 1, users.len() as i64);
     let translations = crate::handlers::utils::get_translations_batch(
@@ -295,24 +289,16 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     };
 
     let content_template = build_user_form_template(&state, &locale, None, form, None).await;
-    let content = content_template.render().unwrap();
 
-    if crate::handlers::utils::is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "users-add-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        "users-add-title".to_string(),
+    )
+    .await
 }
 
 pub async fn show(
@@ -360,24 +346,16 @@ pub async fn edit(
     };
 
     let content_template = build_user_form_template(&state, &locale, Some(user), form, None).await;
-    let content = content_template.render().unwrap();
 
-    if crate::handlers::utils::is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "users-edit-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        "users-edit-title".to_string(),
+    )
+    .await
 }
 
 pub async fn create(
@@ -424,27 +402,21 @@ pub async fn create(
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let error_msg = get_translation(&state, &locale, "validation-username-required").await;
+        let form_translations =
+            crate::handlers::utils::get_entity_form_translations(&state, &locale, "users").await;
+        let error_msg = form_translations["validation-username-required"].clone();
         let form_template =
             build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
-        let content = form_template.render().unwrap();
 
-        if crate::handlers::utils::is_htmx_request(&headers) {
-            Html(content)
-        } else {
-            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "users-add-title").await,
-                content,
-                &state,
-                &locale,
-                current_db_label,
-                current_db_id,
-            )
-            .await
-            .unwrap();
-            Html(template.render().unwrap())
-        }
+        // Use helper function for template rendering
+        crate::handlers::utils::render_form_template(
+            form_template,
+            &state,
+            &locale,
+            &headers,
+            "users-add-title".to_string(),
+        )
+        .await
     } else {
         // Create user directly (no domain validation needed)
         match db::create_user(&pool, form.clone()) {
@@ -480,34 +452,29 @@ pub async fn create(
                 }
             }
             Err(e) => {
-                let error_msg = if e.to_string().contains("Duplicate entry") {
-                    get_translation(&state, &locale, "error-duplicate-user").await
-                } else {
-                    get_translation(&state, &locale, "error-unexpected").await
-                };
+                let error_message = crate::handlers::utils::handle_database_error(
+                    &state, &locale, e, "user", &form.id,
+                )
+                .await;
 
-                let form_template =
-                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
-                        .await;
-                let content = form_template.render().unwrap();
+                let form_template = build_user_form_template(
+                    &state,
+                    &locale,
+                    None,
+                    form.clone(),
+                    Some(error_message),
+                )
+                .await;
 
-                if crate::handlers::utils::is_htmx_request(&headers) {
-                    Html(content)
-                } else {
-                    let (current_db_label, current_db_id) =
-                        get_current_db_info(&state, &headers).await;
-                    let template = BaseTemplate::with_i18n(
-                        get_translation(&state, &locale, "users-add-title").await,
-                        content,
-                        &state,
-                        &locale,
-                        current_db_label,
-                        current_db_id,
-                    )
-                    .await
-                    .unwrap();
-                    Html(template.render().unwrap())
-                }
+                // Use helper function for template rendering
+                crate::handlers::utils::render_form_template(
+                    form_template,
+                    &state,
+                    &locale,
+                    &headers,
+                    "users-add-title".to_string(),
+                )
+                .await
             }
         }
     }
@@ -580,7 +547,9 @@ pub async fn update(
 
     // Validate required fields
     if form.id.trim().is_empty() {
-        let error_msg = get_translation(&state, &locale, "validation-username-required").await;
+        let form_translations =
+            crate::handlers::utils::get_entity_form_translations(&state, &locale, "users").await;
+        let error_msg = form_translations["validation-username-required"].clone();
         let form_template = build_user_form_template(
             &state,
             &locale,
@@ -589,24 +558,16 @@ pub async fn update(
             Some(error_msg),
         )
         .await;
-        let content = form_template.render().unwrap();
 
-        if crate::handlers::utils::is_htmx_request(&headers) {
-            Html(content)
-        } else {
-            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "users-edit-title").await,
-                content,
-                &state,
-                &locale,
-                current_db_label,
-                current_db_id,
-            )
-            .await
-            .unwrap();
-            Html(template.render().unwrap())
-        }
+        // Use helper function for template rendering
+        crate::handlers::utils::render_form_template(
+            form_template,
+            &state,
+            &locale,
+            &headers,
+            "users-edit-title".to_string(),
+        )
+        .await
     } else {
         match db::update_user(&pool, id.clone(), form.clone()) {
             Ok(_) => {

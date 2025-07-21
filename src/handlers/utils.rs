@@ -263,27 +263,112 @@ pub async fn get_translations_batch(
     translations
 }
 
-/// Common translation keys for forms
-pub async fn get_form_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    get_translations_batch(
-        state,
-        locale,
-        &[
-            "form-error",
-            "form-cancel",
-            "action-save",
-            "action-edit",
-            "action-view",
-            "action-enable",
-            "action-disable",
-            "action-delete",
-            "status-enabled",
-            "status-disabled",
-            "status-active",
-            "status-inactive",
-        ],
-    )
-    .await
+/// Helper function to fetch multiple form-related translations at once
+pub async fn get_entity_form_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    // Common form keys
+    let common_keys = ["form-error", "form-cancel", "action-save", "action-cancel"];
+
+    for key in common_keys {
+        let value = get_translation(state, locale, key).await;
+        translations.insert(key.to_string(), value);
+    }
+
+    // Entity-specific keys
+    let entity_keys = [
+        format!("{entity}-add-title"),
+        format!("{entity}-edit-title"),
+        format!("{entity}-new-{entity}"),
+        format!("{entity}-edit-{entity}"),
+    ];
+
+    for key in entity_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch field-related translations
+pub async fn get_field_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+    fields: &[&str],
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    for field in fields {
+        let field_keys = [
+            format!("{entity}-field-{field}"),
+            format!("{entity}-field-{field}-help"),
+            format!("{entity}-placeholder-{field}"),
+        ];
+
+        for key in field_keys {
+            let value = get_translation(state, locale, &key).await;
+            translations.insert(key, value);
+        }
+    }
+
+    translations
+}
+
+/// Helper function to fetch status-related translations
+pub async fn get_status_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    let status_keys = [
+        format!("{entity}-status-allowed"),
+        format!("{entity}-status-blocked"),
+        format!("{entity}-status-enabled"),
+        format!("{entity}-status-disabled"),
+        format!("{entity}-enabled-yes"),
+        format!("{entity}-enabled-no"),
+    ];
+
+    for key in status_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch action-related translations
+pub async fn get_action_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    let action_keys = [
+        format!("{entity}-action-view"),
+        format!("{entity}-action-edit"),
+        format!("{entity}-action-enable"),
+        format!("{entity}-action-disable"),
+        format!("{entity}-action-delete"),
+        format!("{entity}-action-cancel"),
+        format!("{entity}-delete-confirm"),
+    ];
+
+    for key in action_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
 }
 
 /// Common translation keys for table headers
@@ -475,4 +560,108 @@ where
             Err(e)
         }
     }
+}
+
+/// Helper function to handle database errors consistently
+pub async fn handle_database_error(
+    state: &AppState,
+    locale: &str,
+    error: diesel::result::Error,
+    entity: &str,
+    identifier: &str,
+) -> String {
+    match error {
+        diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::UniqueViolation,
+            _,
+        ) => {
+            let key = format!("error-duplicate-{entity}");
+            get_translation(state, locale, &key)
+                .await
+                .replace("{identifier}", identifier)
+        }
+        diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::CheckViolation,
+            _,
+        ) => get_translation(state, locale, "error-constraint-violation").await,
+        _ => get_translation(state, locale, "error-unexpected").await,
+    }
+}
+
+/// Helper function to create BaseTemplate with common pattern
+pub async fn create_base_template(
+    state: &AppState,
+    locale: &str,
+    title: String,
+    content: String,
+    headers: &HeaderMap,
+) -> Result<Html<String>, Box<dyn std::error::Error>> {
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = crate::templates::layout::BaseTemplate::with_i18n(
+        title,
+        content,
+        state,
+        locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await?;
+
+    Ok(Html(template.render()?))
+}
+
+/// Helper function to render form template with error handling
+pub async fn render_form_template<T>(
+    template: T,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+    title: String,
+) -> Html<String>
+where
+    T: askama::Template,
+{
+    let content = match template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            error!("Failed to render template: {:?}", e);
+            return Html("Error rendering template".to_string());
+        }
+    };
+
+    if is_htmx_request(headers) {
+        Html(content)
+    } else {
+        match create_base_template(state, locale, title, content, headers).await {
+            Ok(html) => html,
+            Err(e) => {
+                error!("Failed to create base template: {:?}", e);
+                Html("Error creating template".to_string())
+            }
+        }
+    }
+}
+
+/// Helper function to get current database info
+pub async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (String, String) {
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    (current_db_label, current_db_id)
 }

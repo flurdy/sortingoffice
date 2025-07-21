@@ -226,70 +226,42 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         enabled: true,
     };
 
-    let title = get_translation(&state, &locale, "relays-new-relay").await;
-    let action = "/relays";
-    let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
-    let field_status = get_translation(&state, &locale, "relays-field-status").await;
-    let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
-    let field_recipient_help =
-        get_translation(&state, &locale, "relays-field-recipient-help").await;
-    let field_status_help = get_translation(&state, &locale, "relays-field-status-help").await;
-    let action_save = get_translation(&state, &locale, "action-save").await;
-    let action_cancel = get_translation(&state, &locale, "action-cancel").await;
-    let back_to_list = get_translation(&state, &locale, "relays-back-to-list").await;
-    let placeholder_recipient =
-        get_translation(&state, &locale, "relays-placeholder-recipient").await;
-    let placeholder_status = get_translation(&state, &locale, "relays-placeholder-status").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "relays").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "relays",
+        &["recipient", "status", "enabled"],
+    )
+    .await;
 
     let content_template = RelayFormTemplate {
-        title: &title,
-        action,
+        title: &form_translations["relays-new-relay"],
+        action: "/relays",
         form,
-        field_recipient: &field_recipient,
-        field_status: &field_status,
-        field_enabled: &field_enabled,
-        field_recipient_help: &field_recipient_help,
-        field_status_help: &field_status_help,
-        action_save: &action_save,
-        action_cancel: &action_cancel,
-        back_to_list: &back_to_list,
-        placeholder_recipient: &placeholder_recipient,
-        placeholder_status: &placeholder_status,
+        field_recipient: &field_translations["relays-field-recipient"],
+        field_status: &field_translations["relays-field-status"],
+        field_enabled: &field_translations["relays-field-enabled"],
+        field_recipient_help: &field_translations["relays-field-recipient-help"],
+        field_status_help: &field_translations["relays-field-status-help"],
+        action_save: &form_translations["action-save"],
+        action_cancel: &form_translations["action-cancel"],
+        back_to_list: &form_translations["relays-back-to-list"],
+        placeholder_recipient: &field_translations["relays-placeholder-recipient"],
+        placeholder_status: &field_translations["relays-placeholder-status"],
     };
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relays-add-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["relays-add-title"].clone(),
+    )
+    .await
 }
 
 // Create a new relay
@@ -348,70 +320,42 @@ pub async fn edit_form(
         enabled: relay.enabled,
     };
 
-    let title = get_translation(&state, &locale, "relays-edit-relay").await;
-    let action = format!("/relays/{relay_id}");
-    let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
-    let field_status = get_translation(&state, &locale, "relays-field-status").await;
-    let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
-    let field_recipient_help =
-        get_translation(&state, &locale, "relays-field-recipient-help").await;
-    let field_status_help = get_translation(&state, &locale, "relays-field-status-help").await;
-    let action_save = get_translation(&state, &locale, "action-save").await;
-    let action_cancel = get_translation(&state, &locale, "action-cancel").await;
-    let back_to_list = get_translation(&state, &locale, "relays-back-to-list").await;
-    let placeholder_recipient =
-        get_translation(&state, &locale, "relays-placeholder-recipient").await;
-    let placeholder_status = get_translation(&state, &locale, "relays-placeholder-status").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "relays").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "relays",
+        &["recipient", "status", "enabled"],
+    )
+    .await;
 
     let content_template = RelayFormTemplate {
-        title: &title,
-        action: &action,
+        title: &form_translations["relays-edit-relay"],
+        action: &format!("/relays/{relay_id}"),
         form,
-        field_recipient: &field_recipient,
-        field_status: &field_status,
-        field_enabled: &field_enabled,
-        field_recipient_help: &field_recipient_help,
-        field_status_help: &field_status_help,
-        action_save: &action_save,
-        action_cancel: &action_cancel,
-        back_to_list: &back_to_list,
-        placeholder_recipient: &placeholder_recipient,
-        placeholder_status: &placeholder_status,
+        field_recipient: &field_translations["relays-field-recipient"],
+        field_status: &field_translations["relays-field-status"],
+        field_enabled: &field_translations["relays-field-enabled"],
+        field_recipient_help: &field_translations["relays-field-recipient-help"],
+        field_status_help: &field_translations["relays-field-status-help"],
+        action_save: &form_translations["action-save"],
+        action_cancel: &form_translations["action-cancel"],
+        back_to_list: &form_translations["relays-back-to-list"],
+        placeholder_recipient: &field_translations["relays-placeholder-recipient"],
+        placeholder_status: &field_translations["relays-placeholder-status"],
     };
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relays-edit-relay").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["relays-edit-relay"].clone(),
+    )
+    .await
 }
 
 // Update a relay

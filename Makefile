@@ -37,11 +37,12 @@ help:
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make install    - Install dependencies"
-	@echo "  make test       - Run all tests (unit + UI)"
-	@echo "  make test-unit  - Run only unit/integration tests"
+	@echo "  make test       - Run all tests (unit + integration + UI)"
+	@echo "  make test-unit  - Run only unit tests"
+	@echo "  make test-integration - Run only integration tests"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-ui-dev - Run only headless UI tests"
-	@echo "  make test-all   - Run all tests (unit + UI)"
+	@echo "  make test-all   - Run all tests (unit + integration + UI)"
 	@echo "  make test-ui-setup - Setup Selenium for UI tests"
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
 	@echo "  make test-ui-cleanup - Clean up UI test environment"
@@ -93,6 +94,9 @@ test: test-db-setup
 
 test-unit: test-db-setup
 	./tests/run_tests.sh unit
+
+test-integration: test-db-setup
+	./tests/run_tests.sh integration
 
 test-ui:
 	./tests/run_tests.sh ui-containerized

@@ -134,50 +134,49 @@ pub async fn new(
         return_url: None,
     };
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    let translations = crate::handlers::utils::get_translations_batch(
+
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "aliases").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
         &state,
         &locale,
-        &[
-            "aliases-add-title",
-            "aliases-edit-alias",
-            "aliases-new-alias",
-            "aliases-form-error",
-            "aliases-mail-address",
-            "aliases-destination",
-            "aliases-placeholder-mail",
-            "aliases-placeholder-destination",
-            "aliases-tooltip-mail",
-            "aliases-tooltip-destination",
-            "aliases-active",
-            "aliases-tooltip-active",
-            "aliases-cancel",
-            "aliases-update-alias",
-            "aliases-create-alias",
-        ],
+        "aliases",
+        &["mail", "destination", "active"],
     )
     .await;
+
     let content_template = AliasFormTemplate {
-        title: &translations["aliases-add-title"],
+        title: &form_translations["aliases-add-title"],
         alias: None,
         form,
         error: None,
         return_url,
-        edit_alias: &translations["aliases-edit-alias"],
-        new_alias: &translations["aliases-new-alias"],
-        form_error: &translations["aliases-form-error"],
-        mail_address: &translations["aliases-mail-address"],
-        destination: &translations["aliases-destination"],
-        placeholder_mail: &translations["aliases-placeholder-mail"],
-        placeholder_destination: &translations["aliases-placeholder-destination"],
-        tooltip_mail: &translations["aliases-tooltip-mail"],
-        tooltip_destination: &translations["aliases-tooltip-destination"],
-        active: &translations["aliases-active"],
-        tooltip_active: &translations["aliases-tooltip-active"],
-        cancel: &translations["aliases-cancel"],
-        update_alias: &translations["aliases-update-alias"],
-        create_alias: &translations["aliases-create-alias"],
+        edit_alias: &form_translations["aliases-edit-alias"],
+        new_alias: &form_translations["aliases-new-alias"],
+        form_error: &form_translations["form-error"],
+        mail_address: &field_translations["aliases-field-mail"],
+        destination: &field_translations["aliases-field-destination"],
+        placeholder_mail: &field_translations["aliases-placeholder-mail"],
+        placeholder_destination: &field_translations["aliases-placeholder-destination"],
+        tooltip_mail: &field_translations["aliases-field-mail-help"],
+        tooltip_destination: &field_translations["aliases-field-destination-help"],
+        active: &field_translations["aliases-field-active"],
+        tooltip_active: &field_translations["aliases-field-active-help"],
+        cancel: &form_translations["form-cancel"],
+        update_alias: &form_translations["action-save"],
+        create_alias: &form_translations["action-save"],
     };
-    render_template!(content_template, &state, &locale, &headers)
+
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["aliases-add-title"].clone(),
+    )
+    .await
 }
 
 pub async fn show(
@@ -264,71 +263,49 @@ pub async fn edit(
     };
 
     let locale = crate::handlers::language::get_user_locale(&headers);
-    let title = get_translation(&state, &locale, "aliases-edit-title").await;
-    let edit_alias = get_translation(&state, &locale, "aliases-edit-alias").await;
-    let new_alias = get_translation(&state, &locale, "aliases-new-alias").await;
-    let form_error = get_translation(&state, &locale, "aliases-form-error").await;
-    let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
-    let destination = get_translation(&state, &locale, "aliases-destination").await;
-    let placeholder_mail = get_translation(&state, &locale, "aliases-placeholder-mail").await;
-    let placeholder_destination =
-        get_translation(&state, &locale, "aliases-placeholder-destination").await;
-    let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
-    let tooltip_destination = get_translation(&state, &locale, "aliases-tooltip-destination").await;
-    let active = get_translation(&state, &locale, "aliases-active").await;
-    let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
-    let cancel = get_translation(&state, &locale, "aliases-cancel").await;
-    let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
-    let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
+
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "aliases").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "aliases",
+        &["mail", "destination", "active"],
+    )
+    .await;
 
     let content_template = AliasFormTemplate {
-        title: &title,
+        title: &form_translations["aliases-edit-title"],
         alias: Some(alias),
         form,
         error: None,
         return_url: None,
-        edit_alias: &edit_alias,
-        new_alias: &new_alias,
-        form_error: &form_error,
-        mail_address: &mail_address,
-        destination: &destination,
-        placeholder_mail: &placeholder_mail,
-        placeholder_destination: &placeholder_destination,
-        tooltip_mail: &tooltip_mail,
-        tooltip_destination: &tooltip_destination,
-        active: &active,
-        tooltip_active: &tooltip_active,
-        cancel: &cancel,
-        update_alias: &update_alias,
-        create_alias: &create_alias,
+        edit_alias: &form_translations["aliases-edit-alias"],
+        new_alias: &form_translations["aliases-new-alias"],
+        form_error: &form_translations["form-error"],
+        mail_address: &field_translations["aliases-field-mail"],
+        destination: &field_translations["aliases-field-destination"],
+        placeholder_mail: &field_translations["aliases-placeholder-mail"],
+        placeholder_destination: &field_translations["aliases-placeholder-destination"],
+        tooltip_mail: &field_translations["aliases-field-mail-help"],
+        tooltip_destination: &field_translations["aliases-field-destination-help"],
+        active: &field_translations["aliases-field-active"],
+        tooltip_active: &field_translations["aliases-field-active-help"],
+        cancel: &form_translations["form-cancel"],
+        update_alias: &form_translations["action-save"],
+        create_alias: &form_translations["action-save"],
     };
-    let content = content_template.render().unwrap();
 
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "aliases-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["aliases-edit-title"].clone(),
+    )
+    .await
 }
 
 pub async fn create(
@@ -612,87 +589,55 @@ pub async fn create(
             eprintln!("Error creating alias: {e:?}");
 
             // Handle specific database errors with user-friendly messages
-            let error_message = match e {
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::UniqueViolation,
-                    _,
-                ) => format!("An alias with the email '{}' already exists.", form.mail),
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::CheckViolation,
-                    _,
-                ) => "The alias data does not meet the required constraints. Please check your input.".to_string(),
-                _ => "An unexpected error occurred while creating the alias. Please try again.".to_string(),
-            };
-
-            // Return to form with error message
             let locale = crate::handlers::language::get_user_locale(&headers);
-            let title = get_translation(&state, &locale, "aliases-add-title").await;
-            let edit_alias = get_translation(&state, &locale, "aliases-edit-alias").await;
-            let new_alias = get_translation(&state, &locale, "aliases-new-alias").await;
-            let form_error = get_translation(&state, &locale, "aliases-form-error").await;
-            let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
-            let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let placeholder_mail =
-                get_translation(&state, &locale, "aliases-placeholder-mail").await;
-            let placeholder_destination =
-                get_translation(&state, &locale, "aliases-placeholder-destination").await;
-            let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
-            let tooltip_destination =
-                get_translation(&state, &locale, "aliases-tooltip-destination").await;
-            let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
-            let cancel = get_translation(&state, &locale, "aliases-cancel").await;
-            let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
-            let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
+            let error_message = crate::handlers::utils::handle_database_error(
+                &state, &locale, e, "alias", &form.mail,
+            )
+            .await;
 
-            let active = get_translation(&state, &locale, "aliases-active").await;
+            // Use helper functions to fetch translations in batches
+            let form_translations =
+                crate::handlers::utils::get_entity_form_translations(&state, &locale, "aliases")
+                    .await;
+            let field_translations = crate::handlers::utils::get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
             let content_template = AliasFormTemplate {
-                title: &title,
+                title: &form_translations["aliases-add-title"],
                 alias: None,
                 form: form.clone(),
                 error: Some(error_message),
                 return_url: None,
-                edit_alias: &edit_alias,
-                new_alias: &new_alias,
-                form_error: &form_error,
-                mail_address: &mail_address,
-                destination: &destination,
-                placeholder_mail: &placeholder_mail,
-                placeholder_destination: &placeholder_destination,
-                tooltip_mail: &tooltip_mail,
-                tooltip_destination: &tooltip_destination,
-                active: &active,
-                tooltip_active: &tooltip_active,
-                cancel: &cancel,
-                update_alias: &update_alias,
-                create_alias: &create_alias,
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
             };
-            let content = content_template.render().unwrap();
 
-            if is_htmx_request(&headers) {
-                Html(content)
-            } else {
-                let locale = crate::handlers::language::get_user_locale(&headers);
-                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state
-                    .db_manager
-                    .get_configs()
-                    .iter()
-                    .find(|db| db.id == current_db_id)
-                    .map(|db| db.label.clone())
-                    .unwrap_or_else(|| current_db_id.clone());
-                let template = BaseTemplate::with_i18n(
-                    get_translation(&state, &locale, "aliases-add-title").await,
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                Html(template.render().unwrap())
-            }
+            // Use helper function for template rendering
+            crate::handlers::utils::render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-add-title"].clone(),
+            )
+            .await
         }
     }
 }
@@ -790,94 +735,58 @@ pub async fn update(
             eprintln!("Error updating alias: {e:?}");
 
             // Handle specific database errors with user-friendly messages
-            let error_message = match e {
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::ForeignKeyViolation,
-                    _,
-                ) => "The domain does not exist. Please create the domain first before adding aliases.".to_string(),
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::UniqueViolation,
-                    _,
-                ) => format!("An alias with the email '{}' already exists.", form.mail),
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::CheckViolation,
-                    _,
-                ) => "The alias data does not meet the required constraints. Please check your input.".to_string(),
-                _ => "An unexpected error occurred while updating the alias. Please try again.".to_string(),
-            };
-
             // Get the original alias for the form
             let original_alias = db::get_alias(&pool, id).ok();
 
-            // Return to form with error message
             let locale = crate::handlers::language::get_user_locale(&headers);
-            let title = get_translation(&state, &locale, "aliases-edit-title").await;
-            let edit_alias = get_translation(&state, &locale, "aliases-edit-alias").await;
-            let new_alias = get_translation(&state, &locale, "aliases-new-alias").await;
-            let form_error = get_translation(&state, &locale, "aliases-form-error").await;
-            let mail_address = get_translation(&state, &locale, "aliases-mail-address").await;
-            let destination = get_translation(&state, &locale, "aliases-destination").await;
-            let placeholder_mail =
-                get_translation(&state, &locale, "aliases-placeholder-mail").await;
-            let placeholder_destination =
-                get_translation(&state, &locale, "aliases-placeholder-destination").await;
-            let tooltip_mail = get_translation(&state, &locale, "aliases-tooltip-mail").await;
-            let tooltip_destination =
-                get_translation(&state, &locale, "aliases-tooltip-destination").await;
-            let tooltip_active = get_translation(&state, &locale, "aliases-tooltip-active").await;
-            let cancel = get_translation(&state, &locale, "aliases-cancel").await;
-            let update_alias = get_translation(&state, &locale, "aliases-update-alias").await;
-            let create_alias = get_translation(&state, &locale, "aliases-create-alias").await;
+            let error_message = crate::handlers::utils::handle_database_error(
+                &state, &locale, e, "alias", &form.mail,
+            )
+            .await;
 
-            let active = get_translation(&state, &locale, "aliases-active").await;
+            // Use helper functions to fetch translations in batches
+            let form_translations =
+                crate::handlers::utils::get_entity_form_translations(&state, &locale, "aliases")
+                    .await;
+            let field_translations = crate::handlers::utils::get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
             let content_template = AliasFormTemplate {
-                title: &title,
+                title: &form_translations["aliases-edit-title"],
                 alias: original_alias,
                 form: form.clone(),
                 error: Some(error_message),
                 return_url: None,
-                edit_alias: &edit_alias,
-                new_alias: &new_alias,
-                form_error: &form_error,
-                mail_address: &mail_address,
-                destination: &destination,
-                placeholder_mail: &placeholder_mail,
-                placeholder_destination: &placeholder_destination,
-                tooltip_mail: &tooltip_mail,
-                tooltip_destination: &tooltip_destination,
-                active: &active,
-                tooltip_active: &tooltip_active,
-                cancel: &cancel,
-                update_alias: &update_alias,
-                create_alias: &create_alias,
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
             };
-            let content = content_template.render().unwrap();
 
-            if is_htmx_request(&headers) {
-                Html(content)
-            } else {
-                let locale = crate::handlers::language::get_user_locale(&headers);
-                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state
-                    .db_manager
-                    .get_configs()
-                    .iter()
-                    .find(|db| db.id == current_db_id)
-                    .map(|db| db.label.clone())
-                    .unwrap_or_else(|| current_db_id.clone());
-                let template = BaseTemplate::with_i18n(
-                    get_translation(&state, &locale, "aliases-edit-title").await,
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                Html(template.render().unwrap())
-            }
+            // Use helper function for template rendering
+            crate::handlers::utils::render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-edit-title"].clone(),
+            )
+            .await
         }
     }
 }
@@ -1486,7 +1395,7 @@ pub async fn search(
     use crate::schema::users::dsl as users_dsl;
     use diesel::prelude::*;
     if let Ok(mut conn) = pool.get() {
-        let search_pattern = format!("%{}%", query_string);
+        let search_pattern = format!("%{query_string}%");
         let user_ids: Vec<String> = users_dsl::users
             .filter(users_dsl::id.like(&search_pattern))
             .select(users_dsl::id)
@@ -1500,7 +1409,7 @@ pub async fn search(
 
     // 3. Sort and limit
     let mut values: Vec<String> = values.into_iter().collect();
-    values.sort_by(|a, b| a.to_lowercase().cmp(&b.to_lowercase()));
+    values.sort_by_key(|a| a.to_lowercase());
     values.truncate(limit as usize);
 
     // 4. Render as a flat list of suggestions
@@ -1519,9 +1428,9 @@ pub async fn search(
     } else {
         let items: String = values
             .into_iter()
-            .map(|v| format!("<li class=\"cursor-pointer\">{}</li>", v))
+            .map(|v| format!("<li class=\"cursor-pointer\">{v}</li>"))
             .collect();
-        format!("<ul>{}</ul>", items)
+        format!("<ul>{items}</ul>")
     };
 
     Html(html)
@@ -1566,10 +1475,7 @@ pub async fn domain_search(
     let limit = query.limit.unwrap_or(10);
     let search_results = db::search_domains(&pool, &query_string, limit);
 
-    let domains = match search_results {
-        Ok(domains) => domains,
-        Err(_) => vec![],
-    };
+    let domains = search_results.unwrap_or_default();
 
     let locale = crate::handlers::utils::get_user_locale(&headers);
     let translations = crate::handlers::utils::get_translations_batch(

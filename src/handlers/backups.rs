@@ -17,28 +17,47 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         enabled: true,
     };
 
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "backups").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "backups",
+        &["domain", "transport", "active"],
+    )
+    .await;
+
     let content_template = BackupFormTemplate {
-        title: get_translation(&state, &locale, "backups-new-backup").await,
-        form_error: get_translation(&state, &locale, "backups-form-error").await,
-        form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-        form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-        form_active: get_translation(&state, &locale, "backups-form-active").await,
-        placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport")
-            .await,
-        tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-        tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
-        tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-        cancel: get_translation(&state, &locale, "backups-cancel").await,
-        create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-        update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-        new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-        edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
+        title: form_translations["backups-new-backup"].clone(),
+        form_error: form_translations["backups-form-error"].clone(),
+        form_domain: field_translations["backups-form-domain"].clone(),
+        form_transport: field_translations["backups-form-transport"].clone(),
+        form_active: field_translations["backups-form-active"].clone(),
+        placeholder_domain: field_translations["backups-placeholder-domain"].clone(),
+        placeholder_transport: field_translations["backups-placeholder-transport"].clone(),
+        tooltip_domain: field_translations["backups-tooltip-domain"].clone(),
+        tooltip_transport: field_translations["backups-tooltip-transport"].clone(),
+        tooltip_active: field_translations["backups-tooltip-active"].clone(),
+        cancel: form_translations["backups-cancel"].clone(),
+        create_backup: form_translations["backups-create-backup"].clone(),
+        update_backup: form_translations["backups-update-backup"].clone(),
+        new_backup: form_translations["backups-new-backup"].clone(),
+        edit_backup_title: form_translations["backups-edit-backup-title"].clone(),
         backup: None,
         form,
         error: None,
     };
-    Html(content_template.render().unwrap())
+
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["backups-add-title"].clone(),
+    )
+    .await
 }
 
 pub async fn show(
@@ -125,28 +144,47 @@ pub async fn edit(
         enabled: backup.enabled,
     };
 
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "backups").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "backups",
+        &["domain", "transport", "active"],
+    )
+    .await;
+
     let content_template = BackupFormTemplate {
-        title: get_translation(&state, &locale, "backups-edit-backup-title").await,
-        form_error: get_translation(&state, &locale, "backups-form-error").await,
-        form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-        form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-        form_active: get_translation(&state, &locale, "backups-form-active").await,
-        placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport")
-            .await,
-        tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-        tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
-        tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-        cancel: get_translation(&state, &locale, "backups-cancel").await,
-        create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-        update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-        new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-        edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
+        title: form_translations["backups-edit-backup-title"].clone(),
+        form_error: form_translations["backups-form-error"].clone(),
+        form_domain: field_translations["backups-form-domain"].clone(),
+        form_transport: field_translations["backups-form-transport"].clone(),
+        form_active: field_translations["backups-form-active"].clone(),
+        placeholder_domain: field_translations["backups-placeholder-domain"].clone(),
+        placeholder_transport: field_translations["backups-placeholder-transport"].clone(),
+        tooltip_domain: field_translations["backups-tooltip-domain"].clone(),
+        tooltip_transport: field_translations["backups-tooltip-transport"].clone(),
+        tooltip_active: field_translations["backups-tooltip-active"].clone(),
+        cancel: form_translations["backups-cancel"].clone(),
+        create_backup: form_translations["backups-create-backup"].clone(),
+        update_backup: form_translations["backups-update-backup"].clone(),
+        new_backup: form_translations["backups-new-backup"].clone(),
+        edit_backup_title: form_translations["backups-edit-backup-title"].clone(),
         backup: Some(backup),
         form,
         error: None,
     };
-    Html(content_template.render().unwrap())
+
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["backups-edit-title"].clone(),
+    )
+    .await
 }
 
 pub async fn create(

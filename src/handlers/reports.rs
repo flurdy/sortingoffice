@@ -19,20 +19,25 @@ pub async fn matrix_report(
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    // Get translations
-    let title = get_translation(&state, &locale, "reports-matrix-title").await;
-    let description = get_translation(&state, &locale, "reports-matrix-description").await;
-    let domain_header = get_translation(&state, &locale, "reports-domain-header").await;
-    let catch_all_header = get_translation(&state, &locale, "reports-catch-all-header").await;
-    let required_aliases_header =
-        get_translation(&state, &locale, "reports-required-aliases-header").await;
-    let status_present = get_translation(&state, &locale, "reports-status-present").await;
-    let status_missing = get_translation(&state, &locale, "reports-status-missing").await;
-    let status_disabled = get_translation(&state, &locale, "reports-status-disabled").await;
-    let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
-    let no_domains = get_translation(&state, &locale, "reports-no-domains").await;
-    let no_domains_description =
-        get_translation(&state, &locale, "reports-no-domains-description").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "reports-matrix-title",
+            "reports-matrix-description",
+            "reports-domain-header",
+            "reports-catch-all-header",
+            "reports-required-aliases-header",
+            "reports-status-present",
+            "reports-status-missing",
+            "reports-status-disabled",
+            "reports-legend-title",
+            "reports-no-domains",
+            "reports-no-domains-description",
+        ],
+    )
+    .await;
 
     // Get matrix report data
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -48,17 +53,17 @@ pub async fn matrix_report(
 
     // Create the matrix report template
     let content_template = MatrixReportTemplate {
-        title: &title,
-        description: &description,
-        domain_header: &domain_header,
-        catch_all_header: &catch_all_header,
-        required_aliases_header: &required_aliases_header,
-        status_present: &status_present,
-        status_missing: &status_missing,
-        status_disabled: &status_disabled,
-        legend_title: &legend_title,
-        no_domains: &no_domains,
-        no_domains_description: &no_domains_description,
+        title: &form_translations["reports-matrix-title"],
+        description: &form_translations["reports-matrix-description"],
+        domain_header: &form_translations["reports-domain-header"],
+        catch_all_header: &form_translations["reports-catch-all-header"],
+        required_aliases_header: &form_translations["reports-required-aliases-header"],
+        status_present: &form_translations["reports-status-present"],
+        status_missing: &form_translations["reports-status-missing"],
+        status_disabled: &form_translations["reports-status-disabled"],
+        legend_title: &form_translations["reports-legend-title"],
+        no_domains: &form_translations["reports-no-domains"],
+        no_domains_description: &form_translations["reports-no-domains-description"],
         report: &report,
     };
 
@@ -84,7 +89,7 @@ pub async fn matrix_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        title,
+        form_translations["reports-matrix-title"].clone(),
         content,
         &state,
         &locale,
@@ -489,7 +494,7 @@ pub async fn alias_cross_domain_report(
     };
 
     let content_template = AliasCrossDomainReportTemplate {
-        title: &format!("Alias '{}' Across Domains", alias),
+        title: &format!("Alias '{alias}' Across Domains"),
         report: &report,
     };
 
@@ -518,7 +523,7 @@ pub async fn alias_cross_domain_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        format!("Alias '{}' Across Domains", alias),
+        format!("Alias '{alias}' Across Domains"),
         content,
         &state,
         &locale,

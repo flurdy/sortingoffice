@@ -35,16 +35,18 @@ show_usage() {
     echo ""
     echo "Options:"
     echo "  unit              Run only unit tests (default)"
+    echo "  integration       Run only integration tests"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  ui-headless       Run only headless UI tests"
     echo "  ui-containerized  Run containerized UI tests (app + db in containers)"
-    echo "  all               Run all tests (unit + UI)"
+    echo "  all               Run all tests (unit + integration + UI)"
     echo "  ui-setup          Setup UI test environment"
     echo "  help              Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                # Run unit tests"
     echo "  $0 unit           # Run unit tests"
+    echo "  $0 integration    # Run integration tests"
     echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 ui-headless    # Run headless UI tests"
     echo "  $0 ui-containerized # Run containerized UI tests"
@@ -55,6 +57,22 @@ show_usage() {
 # Function to run unit tests
 run_unit_tests() {
     print_status "Running unit tests for sortingoffice..."
+    
+    # Set test environment
+    export RUST_LOG=debug
+    export RUST_BACKTRACE=1
+    export RUST_TEST_THREADS=1
+
+    # Run the unit tests (individual module tests)
+    print_status "Running unit tests with cargo..."
+    cargo test --lib --verbose
+
+    print_success "Unit tests completed successfully!"
+}
+
+# Function to run integration tests
+run_integration_tests() {
+    print_status "Running integration tests for sortingoffice..."
     
     # Check if DATABASE_URL is set, if not use default test database
     if [ -z "$DATABASE_URL" ]; then
@@ -67,12 +85,11 @@ run_unit_tests() {
     export RUST_BACKTRACE=1
     export RUST_TEST_THREADS=1
 
-    # Run the unit tests (excluding UI tests)
-    print_status "Running unit tests with cargo..."
-    # Run only the integration tests from src/tests/ by running the main binary tests
+    # Run the integration tests from src/tests/ by running the main binary tests
+    print_status "Running integration tests with cargo..."
     cargo test --bin sortingoffice --verbose
 
-    print_success "Unit tests completed successfully!"
+    print_success "Integration tests completed successfully!"
 }
 
 # Function to run UI tests
@@ -261,6 +278,10 @@ run_all_tests() {
     run_unit_tests
     echo ""
     
+    # Run integration tests
+    run_integration_tests
+    echo ""
+    
     # Run containerized UI tests
     run_containerized_ui_tests
 }
@@ -269,6 +290,9 @@ run_all_tests() {
 case "${1:-unit}" in
     "unit")
         run_unit_tests
+        ;;
+    "integration")
+        run_integration_tests
         ;;
     "ui")
         run_containerized_ui_tests

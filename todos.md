@@ -120,10 +120,15 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 - and can the Active checkbox be removed from all the edit forms as we have separate toggle flows.
 - IMPLEMENTED: Created radio toggle CSS component, updated deserialization logic, and implemented for domains form
 
-Scan the codebase for tidy ups
+✅ Scan the codebase for tidy ups - IMPLEMENTED
   - any obvious duplications
   - any unnecessary, orphaned code
   - any clean refactoring that makes sense
+
+✅ Can the integration tests be a separate call like make test-unit and test-ui? And not part of test-unit. But part of make test-all. - IMPLEMENTED
+
+Some resource pages (backups list, users list) have enabled as active/inactive not enabled/disabled
+- in dark mode the colouring of these are inconsistent.
 
 Improve theme slightly
 - maybe add a subtle background where applicable
@@ -132,7 +137,7 @@ Improve theme slightly
 
 Verify the german link in the language drop down is translated, in english it just shows the id (language-german)
 
-Add wizard for onboarding a set of new domains, maybe with common aliases and destinations, maybe copy existing domain+aliases.
+Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 
 Any way we can ensure no seeding happens on prod databases?
 

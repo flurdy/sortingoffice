@@ -131,51 +131,45 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         transport: "virtual".to_string(),
         enabled: true,
     };
-    let translations = crate::handlers::utils::get_translations_batch(
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
         &state,
         &locale,
-        &[
-            "domains-new-domain",
-            "form-error",
-            "form-domain",
-            "form-transport",
-            "form-active",
-            "form-cancel",
-            "form-create-domain",
-            "form-update-domain",
-            "form-placeholder-domain",
-            "form-placeholder-transport",
-            "form-tooltip-domain",
-            "form-tooltip-transport",
-            "form-tooltip-enable",
-        ],
+        "domains",
+        &["domain", "transport", "active"],
     )
     .await;
+
     let content_template = DomainFormTemplate {
-        title: &translations["domains-new-domain"],
+        title: &form_translations["domains-new-domain"],
         domain: None,
         form,
         error: None,
-        form_error: &translations["form-error"],
-        form_domain: &translations["form-domain"],
-        form_transport: &translations["form-transport"],
-        form_active: &translations["form-active"],
-        form_cancel: &translations["form-cancel"],
-        form_create_domain: &translations["form-create-domain"],
-        form_update_domain: &translations["form-update-domain"],
-        form_placeholder_domain: &translations["form-placeholder-domain"],
-        form_placeholder_transport: &translations["form-placeholder-transport"],
-        form_tooltip_domain: &translations["form-tooltip-domain"],
-        form_tooltip_transport: &translations["form-tooltip-transport"],
-        form_tooltip_enable: &translations["form-tooltip-enable"],
+        form_error: &form_translations["form-error"],
+        form_domain: &field_translations["domains-field-domain"],
+        form_transport: &field_translations["domains-field-transport"],
+        form_active: &field_translations["domains-field-active"],
+        form_cancel: &form_translations["form-cancel"],
+        form_create_domain: &form_translations["action-save"],
+        form_update_domain: &form_translations["action-save"],
+        form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+        form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+        form_tooltip_domain: &field_translations["domains-field-domain-help"],
+        form_tooltip_transport: &field_translations["domains-field-transport-help"],
+        form_tooltip_enable: &field_translations["domains-field-active-help"],
     };
-    render_template_with_title!(
+
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
         content_template,
-        content_template.title,
         &state,
         &locale,
-        &headers
+        &headers,
+        form_translations["domains-new-domain"].clone(),
     )
+    .await
 }
 
 pub async fn show(
@@ -319,40 +313,45 @@ pub async fn edit(
         enabled: domain.enabled,
     };
 
-    let title = get_translation(&state, &locale, "domains-edit-domain").await;
-    let form_error = get_translation(&state, &locale, "form-error").await;
-    let form_domain = get_translation(&state, &locale, "form-domain").await;
-    let form_transport = get_translation(&state, &locale, "form-transport").await;
-    let form_active = get_translation(&state, &locale, "form-active").await;
-    let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-    let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-    let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-    let form_placeholder_domain = get_translation(&state, &locale, "form-placeholder-domain").await;
-    let form_placeholder_transport =
-        get_translation(&state, &locale, "form-placeholder-transport").await;
-    let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-    let form_tooltip_transport = get_translation(&state, &locale, "form-tooltip-transport").await;
-    let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+    // Use helper functions to fetch translations in batches
+    let form_translations =
+        crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
+    let field_translations = crate::handlers::utils::get_field_translations(
+        &state,
+        &locale,
+        "domains",
+        &["domain", "transport", "active"],
+    )
+    .await;
 
     let content_template = DomainFormTemplate {
-        title: &title,
+        title: &form_translations["domains-edit-domain"],
         domain: Some(domain),
         form,
         error: None,
-        form_error: &form_error,
-        form_domain: &form_domain,
-        form_transport: &form_transport,
-        form_active: &form_active,
-        form_cancel: &form_cancel,
-        form_create_domain: &form_create_domain,
-        form_update_domain: &form_update_domain,
-        form_placeholder_domain: &form_placeholder_domain,
-        form_placeholder_transport: &form_placeholder_transport,
-        form_tooltip_domain: &form_tooltip_domain,
-        form_tooltip_transport: &form_tooltip_transport,
-        form_tooltip_enable: &form_tooltip_enable,
+        form_error: &form_translations["form-error"],
+        form_domain: &field_translations["domains-field-domain"],
+        form_transport: &field_translations["domains-field-transport"],
+        form_active: &field_translations["domains-field-active"],
+        form_cancel: &form_translations["form-cancel"],
+        form_create_domain: &form_translations["action-save"],
+        form_update_domain: &form_translations["action-save"],
+        form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+        form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+        form_tooltip_domain: &field_translations["domains-field-domain-help"],
+        form_tooltip_transport: &field_translations["domains-field-transport-help"],
+        form_tooltip_enable: &field_translations["domains-field-active-help"],
     };
-    Html(content_template.render().unwrap())
+
+    // Use helper function for template rendering
+    crate::handlers::utils::render_form_template(
+        content_template,
+        &state,
+        &locale,
+        &headers,
+        form_translations["domains-edit-domain"].clone(),
+    )
+    .await
 }
 
 pub async fn create(
@@ -370,41 +369,46 @@ pub async fn create(
     {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
-        let title = get_translation(&state, &locale, "domains-new-domain").await;
-        let form_error = get_translation(&state, &locale, "form-error").await;
-        let form_domain = get_translation(&state, &locale, "form-domain").await;
-        let form_transport = get_translation(&state, &locale, "form-transport").await;
-        let form_active = get_translation(&state, &locale, "form-active").await;
-        let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-        let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-        let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-        let form_placeholder_domain =
-            get_translation(&state, &locale, "form-placeholder-domain").await;
-        let form_placeholder_transport =
-            get_translation(&state, &locale, "form-placeholder-transport").await;
-        let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-        let form_tooltip_transport =
-            get_translation(&state, &locale, "form-tooltip-transport").await;
-        let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+
+        // Use helper functions to fetch translations in batches
+        let form_translations =
+            crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
+        let field_translations = crate::handlers::utils::get_field_translations(
+            &state,
+            &locale,
+            "domains",
+            &["domain", "transport", "active"],
+        )
+        .await;
+
         let content_template = DomainFormTemplate {
-            title: &title,
+            title: &form_translations["domains-new-domain"],
             domain: None,
             form,
             error: Some(error_msg),
-            form_error: &form_error,
-            form_domain: &form_domain,
-            form_transport: &form_transport,
-            form_active: &form_active,
-            form_cancel: &form_cancel,
-            form_create_domain: &form_create_domain,
-            form_update_domain: &form_update_domain,
-            form_placeholder_domain: &form_placeholder_domain,
-            form_placeholder_transport: &form_placeholder_transport,
-            form_tooltip_domain: &form_tooltip_domain,
-            form_tooltip_transport: &form_tooltip_transport,
-            form_tooltip_enable: &form_tooltip_enable,
+            form_error: &form_translations["form-error"],
+            form_domain: &field_translations["domains-field-domain"],
+            form_transport: &field_translations["domains-field-transport"],
+            form_active: &field_translations["domains-field-active"],
+            form_cancel: &form_translations["form-cancel"],
+            form_create_domain: &form_translations["action-save"],
+            form_update_domain: &form_translations["action-save"],
+            form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+            form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+            form_tooltip_domain: &field_translations["domains-field-domain-help"],
+            form_tooltip_transport: &field_translations["domains-field-transport-help"],
+            form_tooltip_enable: &field_translations["domains-field-active-help"],
         };
-        return Html(content_template.render().unwrap());
+
+        // Use helper function for template rendering
+        return crate::handlers::utils::render_form_template(
+            content_template,
+            &state,
+            &locale,
+            &headers,
+            form_translations["domains-new-domain"].clone(),
+        )
+        .await;
     }
 
     let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
@@ -415,41 +419,46 @@ pub async fn create(
     if form.domain.trim().is_empty() {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "validation-domain-required").await;
-        let title = get_translation(&state, &locale, "domains-new-domain").await;
-        let form_error = get_translation(&state, &locale, "form-error").await;
-        let form_domain = get_translation(&state, &locale, "form-domain").await;
-        let form_transport = get_translation(&state, &locale, "form-transport").await;
-        let form_active = get_translation(&state, &locale, "form-active").await;
-        let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-        let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-        let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-        let form_placeholder_domain =
-            get_translation(&state, &locale, "form-placeholder-domain").await;
-        let form_placeholder_transport =
-            get_translation(&state, &locale, "form-placeholder-transport").await;
-        let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-        let form_tooltip_transport =
-            get_translation(&state, &locale, "form-tooltip-transport").await;
-        let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+
+        // Use helper functions to fetch translations in batches
+        let form_translations =
+            crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
+        let field_translations = crate::handlers::utils::get_field_translations(
+            &state,
+            &locale,
+            "domains",
+            &["domain", "transport", "active"],
+        )
+        .await;
+
         let content_template = DomainFormTemplate {
-            title: &title,
+            title: &form_translations["domains-new-domain"],
             domain: None,
             form,
             error: Some(error_msg),
-            form_error: &form_error,
-            form_domain: &form_domain,
-            form_transport: &form_transport,
-            form_active: &form_active,
-            form_cancel: &form_cancel,
-            form_create_domain: &form_create_domain,
-            form_update_domain: &form_update_domain,
-            form_placeholder_domain: &form_placeholder_domain,
-            form_placeholder_transport: &form_placeholder_transport,
-            form_tooltip_domain: &form_tooltip_domain,
-            form_tooltip_transport: &form_tooltip_transport,
-            form_tooltip_enable: &form_tooltip_enable,
+            form_error: &form_translations["form-error"],
+            form_domain: &field_translations["domains-field-domain"],
+            form_transport: &field_translations["domains-field-transport"],
+            form_active: &field_translations["domains-field-active"],
+            form_cancel: &form_translations["form-cancel"],
+            form_create_domain: &form_translations["action-save"],
+            form_update_domain: &form_translations["action-save"],
+            form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+            form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+            form_tooltip_domain: &field_translations["domains-field-domain-help"],
+            form_tooltip_transport: &field_translations["domains-field-transport-help"],
+            form_tooltip_enable: &field_translations["domains-field-active-help"],
         };
-        return Html(content_template.render().unwrap());
+
+        // Use helper function for template rendering
+        return crate::handlers::utils::render_form_template(
+            content_template,
+            &state,
+            &locale,
+            &headers,
+            form_translations["domains-new-domain"].clone(),
+        )
+        .await;
     }
 
     let new_domain = NewDomain {
@@ -554,55 +563,55 @@ pub async fn create(
         }
         Err(e) => {
             let locale = crate::handlers::language::get_user_locale(&headers);
-            let error_message = match e {
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::UniqueViolation,
-                    _,
-                ) => get_translation(&state, &locale, "error-duplicate-domain")
-                    .await
-                    .replace("{domain}", &form.domain),
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::CheckViolation,
-                    _,
-                ) => get_translation(&state, &locale, "error-constraint-violation").await,
-                _ => get_translation(&state, &locale, "error-unexpected").await,
-            };
+            let error_message = crate::handlers::utils::handle_database_error(
+                &state,
+                &locale,
+                e,
+                "domain",
+                &form.domain,
+            )
+            .await;
 
-            let title = get_translation(&state, &locale, "domains-new-domain").await;
-            let form_error = get_translation(&state, &locale, "form-error").await;
-            let form_domain = get_translation(&state, &locale, "form-domain").await;
-            let form_transport = get_translation(&state, &locale, "form-transport").await;
-            let form_active = get_translation(&state, &locale, "form-active").await;
-            let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-            let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-            let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-            let form_placeholder_domain =
-                get_translation(&state, &locale, "form-placeholder-domain").await;
-            let form_placeholder_transport =
-                get_translation(&state, &locale, "form-placeholder-transport").await;
-            let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-            let form_tooltip_transport =
-                get_translation(&state, &locale, "form-tooltip-transport").await;
-            let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+            // Use helper functions to fetch translations in batches
+            let form_translations =
+                crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains")
+                    .await;
+            let field_translations = crate::handlers::utils::get_field_translations(
+                &state,
+                &locale,
+                "domains",
+                &["domain", "transport", "active"],
+            )
+            .await;
+
             let content_template = DomainFormTemplate {
-                title: &title,
+                title: &form_translations["domains-new-domain"],
                 domain: None,
                 form,
                 error: Some(error_message),
-                form_error: &form_error,
-                form_domain: &form_domain,
-                form_transport: &form_transport,
-                form_active: &form_active,
-                form_cancel: &form_cancel,
-                form_create_domain: &form_create_domain,
-                form_update_domain: &form_update_domain,
-                form_placeholder_domain: &form_placeholder_domain,
-                form_placeholder_transport: &form_placeholder_transport,
-                form_tooltip_domain: &form_tooltip_domain,
-                form_tooltip_transport: &form_tooltip_transport,
-                form_tooltip_enable: &form_tooltip_enable,
+                form_error: &form_translations["form-error"],
+                form_domain: &field_translations["domains-field-domain"],
+                form_transport: &field_translations["domains-field-transport"],
+                form_active: &field_translations["domains-field-active"],
+                form_cancel: &form_translations["form-cancel"],
+                form_create_domain: &form_translations["action-save"],
+                form_update_domain: &form_translations["action-save"],
+                form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+                form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+                form_tooltip_domain: &field_translations["domains-field-domain-help"],
+                form_tooltip_transport: &field_translations["domains-field-transport-help"],
+                form_tooltip_enable: &field_translations["domains-field-active-help"],
             };
-            Html(content_template.render().unwrap())
+
+            // Use helper function for template rendering
+            crate::handlers::utils::render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["domains-new-domain"].clone(),
+            )
+            .await
         }
     }
 }
@@ -623,39 +632,35 @@ pub async fn update(
     {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
-        let title = get_translation(&state, &locale, "domains-edit-domain").await;
-        let form_error = get_translation(&state, &locale, "form-error").await;
-        let form_domain = get_translation(&state, &locale, "form-domain").await;
-        let form_transport = get_translation(&state, &locale, "form-transport").await;
-        let form_active = get_translation(&state, &locale, "form-active").await;
-        let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-        let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-        let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-        let form_placeholder_domain =
-            get_translation(&state, &locale, "form-placeholder-domain").await;
-        let form_placeholder_transport =
-            get_translation(&state, &locale, "form-placeholder-transport").await;
-        let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-        let form_tooltip_transport =
-            get_translation(&state, &locale, "form-tooltip-transport").await;
-        let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+
+        // Use helper functions to fetch translations in batches
+        let form_translations =
+            crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
+        let field_translations = crate::handlers::utils::get_field_translations(
+            &state,
+            &locale,
+            "domains",
+            &["domain", "transport", "active"],
+        )
+        .await;
+
         let content_template = DomainFormTemplate {
-            title: &title,
+            title: &form_translations["domains-edit-domain"],
             domain: None,
             form,
             error: Some(error_msg),
-            form_error: &form_error,
-            form_domain: &form_domain,
-            form_transport: &form_transport,
-            form_active: &form_active,
-            form_cancel: &form_cancel,
-            form_create_domain: &form_create_domain,
-            form_update_domain: &form_update_domain,
-            form_placeholder_domain: &form_placeholder_domain,
-            form_placeholder_transport: &form_placeholder_transport,
-            form_tooltip_domain: &form_tooltip_domain,
-            form_tooltip_transport: &form_tooltip_transport,
-            form_tooltip_enable: &form_tooltip_enable,
+            form_error: &form_translations["form-error"],
+            form_domain: &field_translations["domains-field-domain"],
+            form_transport: &field_translations["domains-field-transport"],
+            form_active: &field_translations["domains-field-active"],
+            form_cancel: &form_translations["form-cancel"],
+            form_create_domain: &form_translations["action-save"],
+            form_update_domain: &form_translations["action-save"],
+            form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+            form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+            form_tooltip_domain: &field_translations["domains-field-domain-help"],
+            form_tooltip_transport: &field_translations["domains-field-transport-help"],
+            form_tooltip_enable: &field_translations["domains-field-active-help"],
         };
         return Html(content_template.render().unwrap());
     }
@@ -832,17 +837,15 @@ pub async fn update(
             Html(content_template.render().unwrap())
         }
         Err(e) => {
-            let error_message = match e {
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::UniqueViolation,
-                    _,
-                ) => format!("A domain with the name '{domain_name}' already exists."),
-                diesel::result::Error::DatabaseError(
-                    diesel::result::DatabaseErrorKind::CheckViolation,
-                    _,
-                ) => "The domain data does not meet the required constraints. Please check your input.".to_string(),
-                _ => "An unexpected error occurred while updating the domain. Please try again.".to_string(),
-            };
+            let locale = crate::handlers::language::get_user_locale(&headers);
+            let error_message = crate::handlers::utils::handle_database_error(
+                &state,
+                &locale,
+                e,
+                "domain",
+                &domain_name,
+            )
+            .await;
 
             // Recreate the form for error display
             let error_form = DomainForm {
@@ -851,42 +854,46 @@ pub async fn update(
                 enabled: true,
             };
 
-            let locale = crate::handlers::language::get_user_locale(&headers);
-            let title = get_translation(&state, &locale, "domains-edit-domain").await;
-            let form_error = get_translation(&state, &locale, "form-error").await;
-            let form_domain = get_translation(&state, &locale, "form-domain").await;
-            let form_transport = get_translation(&state, &locale, "form-transport").await;
-            let form_active = get_translation(&state, &locale, "form-active").await;
-            let form_cancel = get_translation(&state, &locale, "form-cancel").await;
-            let form_create_domain = get_translation(&state, &locale, "form-create-domain").await;
-            let form_update_domain = get_translation(&state, &locale, "form-update-domain").await;
-            let form_placeholder_domain =
-                get_translation(&state, &locale, "form-placeholder-domain").await;
-            let form_placeholder_transport =
-                get_translation(&state, &locale, "form-placeholder-transport").await;
-            let form_tooltip_domain = get_translation(&state, &locale, "form-tooltip-domain").await;
-            let form_tooltip_transport =
-                get_translation(&state, &locale, "form-tooltip-transport").await;
-            let form_tooltip_enable = get_translation(&state, &locale, "form-tooltip-enable").await;
+            // Use helper functions to fetch translations in batches
+            let form_translations =
+                crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains")
+                    .await;
+            let field_translations = crate::handlers::utils::get_field_translations(
+                &state,
+                &locale,
+                "domains",
+                &["domain", "transport", "active"],
+            )
+            .await;
+
             let content_template = DomainFormTemplate {
-                title: &title,
+                title: &form_translations["domains-edit-domain"],
                 domain: None,
                 form: error_form,
                 error: Some(error_message),
-                form_error: &form_error,
-                form_domain: &form_domain,
-                form_transport: &form_transport,
-                form_active: &form_active,
-                form_cancel: &form_cancel,
-                form_create_domain: &form_create_domain,
-                form_update_domain: &form_update_domain,
-                form_placeholder_domain: &form_placeholder_domain,
-                form_placeholder_transport: &form_placeholder_transport,
-                form_tooltip_domain: &form_tooltip_domain,
-                form_tooltip_transport: &form_tooltip_transport,
-                form_tooltip_enable: &form_tooltip_enable,
+                form_error: &form_translations["form-error"],
+                form_domain: &field_translations["domains-field-domain"],
+                form_transport: &field_translations["domains-field-transport"],
+                form_active: &field_translations["domains-field-active"],
+                form_cancel: &form_translations["form-cancel"],
+                form_create_domain: &form_translations["action-save"],
+                form_update_domain: &form_translations["action-save"],
+                form_placeholder_domain: &field_translations["domains-placeholder-domain"],
+                form_placeholder_transport: &field_translations["domains-placeholder-transport"],
+                form_tooltip_domain: &field_translations["domains-field-domain-help"],
+                form_tooltip_transport: &field_translations["domains-field-transport-help"],
+                form_tooltip_enable: &field_translations["domains-field-active-help"],
             };
-            Html(content_template.render().unwrap())
+
+            // Use helper function for template rendering
+            crate::handlers::utils::render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["domains-edit-domain"].clone(),
+            )
+            .await
         }
     }
 }
