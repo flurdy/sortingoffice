@@ -27,11 +27,11 @@ language-norwegian = Norsk
 language-german = Deutsch
 
 # About Page
-about-title = Om Sorteringskontor
+about-title = Om Sorting Office
 about-subtitle = Et omfattende e-postserver administrasjonsverktøy for å administrere domener, brukere, aliaser og sikkerhetskopier.
-about-what-is-title = Hva er Sorteringskontor?
-about-what-is-p1 = Sorteringskontor er et nettbasert administrasjonsgrensesnitt for å administrere en komplett e-postserveroppsett. Det gir en intuitiv måte å administrere domener, brukere, e-postaliaser og sikkerhetskopikonfigurasjoner for et Postfix og Dovecot e-postservermiljø.
-about-what-is-p2 = Bygget med Rust og moderne nettverkteknologier, tilbyr Sorteringskontor en sikker, rask og pålitelig måte å administrere e-postserveren din uten å måtte redigere konfigurasjonsfiler manuelt.
+about-what-is-title = Hva er Sorting Office?
+about-what-is-p1 = Sorting Office er et nettbasert administrasjonsgrensesnitt for å administrere en komplett e-postserveroppsett. Det gir en intuitiv måte å administrere domener, brukere, e-postaliaser og sikkerhetskopikonfigurasjoner for et Postfix og Dovecot e-postservermiljø.
+about-what-is-p2 = Bygget med Rust og moderne nettverkteknologier, tilbyr Sorting Office en sikker, rask og pålitelig måte å administrere e-postserveren din uten å måtte redigere konfigurasjonsfiler manuelt.
 about-features-title = Hovedfunksjoner
 about-feature-domain-management = Domeneadministrasjon
 about-feature-domain-management-desc = Legg til, rediger og administrer e-postdomener enkelt
@@ -63,7 +63,7 @@ about-based-on-flurdy-desc = Dette administrasjonsverktøyet er designet for å 
 about-read-guide = Les den komplette oppsettguiden →
 about-github-project-title = GitHub-prosjekt
 about-open-source = Åpen kildekode
-about-open-source-desc = Sorteringskontor er et åpen kildekode-prosjekt hostet på GitHub under MIT-lisensen.
+about-open-source-desc = Sorting Office er et åpen kildekode-prosjekt hostet på GitHub under MIT-lisensen.
 about-view-repository = Vis repository
 about-view-repository-desc = Bla gjennom kildekode og dokumentasjon
 about-report-issues = Rapporter problemer
@@ -573,7 +573,7 @@ validation-already-exists = Eksisterer allerede
 validation-not-found = Ikke funnet
 
 # Login
-login-title = Logg inn på Sorteringskontor
+login-title = Logg inn på Sorting Office
 login-user-id = Bruker-ID
 login-password = Passord
 login-sign-in = Logg inn

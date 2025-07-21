@@ -1,5 +1,5 @@
 # Application title and branding
-app-title = Bureau de Tri
+app-title = Sorting Office
 app-subtitle = Outil d'Administration du Serveur de Courrier
 
 # Navigation
@@ -27,11 +27,11 @@ language-norwegian = Norsk
 language-german = Deutsch
 
 # About Page
-about-title = À Propos de Bureau de Tri
+about-title = À Propos de Sorting Office
 about-subtitle = Un outil complet d'administration de serveur de courrier pour gérer les domaines, utilisateurs, alias et sauvegardes.
-about-what-is-title = Qu'est-ce que Bureau de Tri ?
-about-what-is-p1 = Bureau de Tri est une interface d'administration web pour gérer une configuration complète de serveur de courrier. Il fournit une façon intuitive de gérer les domaines, utilisateurs, alias de courrier électronique et configurations de sauvegarde pour un environnement de serveur de courrier Postfix et Dovecot.
-about-what-is-p2 = Construit avec Rust et des technologies web modernes, Bureau de Tri offre une façon sécurisée, rapide et fiable d'administrer votre serveur de courrier sans avoir besoin de modifier manuellement les fichiers de configuration.
+about-what-is-title = Qu'est-ce que Sorting Office ?
+about-what-is-p1 = Sorting Office est une interface d'administration web pour gérer une configuration complète de serveur de courrier. Il fournit une façon intuitive de gérer les domaines, utilisateurs, alias de courrier électronique et configurations de sauvegarde pour un environnement de serveur de courrier Postfix et Dovecot.
+about-what-is-p2 = Construit avec Rust et des technologies web modernes, Sorting Office offre une façon sécurisée, rapide et fiable d'administrer votre serveur de courrier sans avoir besoin de modifier manuellement les fichiers de configuration.
 about-features-title = Fonctionnalités Principales
 about-feature-domain-management = Gestion des Domaines
 about-feature-domain-management-desc = Ajouter, modifier et gérer les domaines de courrier facilement
@@ -63,7 +63,7 @@ about-based-on-flurdy-desc = Cet outil d'administration est conçu pour fonction
 about-read-guide = Lire le guide complet de configuration →
 about-github-project-title = Projet GitHub
 about-open-source = Open Source
-about-open-source-desc = Bureau de Tri est un projet open source hébergé sur GitHub sous la licence MIT.
+about-open-source-desc = Sorting Office est un projet open source hébergé sur GitHub sous la licence MIT.
 about-view-repository = Voir le Répertoire
 about-view-repository-desc = Parcourir le code source et la documentation
 about-report-issues = Signaler des Problèmes

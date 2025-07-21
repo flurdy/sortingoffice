@@ -134,13 +134,10 @@ In the run_tests.sh does run_unit_tests actually test anything different than ru
 
 In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
 
-
 Improve theme slightly
 - maybe add a subtle background where applicable
 - maybe a different light mode colour scheme
-- still support the dark mode
-
-Verify the german link in the language drop down is translated, in english it just shows the id (language-german)
+- still support the dark mod
 
 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 
