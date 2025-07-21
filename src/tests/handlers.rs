@@ -18,6 +18,13 @@ mod tests {
     async fn create_test_app() -> (Router, AppState) {
         let _pool = setup_test_db();
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        
+        // Load translation files for testing
+        let _ = i18n.load_locale("en-US").await;
+        let _ = i18n.load_locale("es-ES").await;
+        let _ = i18n.load_locale("nb-NO").await;
+        let _ = i18n.load_locale("fr-FR").await;
+        let _ = i18n.load_locale("de-DE").await;
         let config = Config::default();
 
         // Create a database manager with the test pool
@@ -142,6 +149,13 @@ mod tests {
 
     async fn create_test_app_with_dbs(db_configs: Vec<DatabaseConfig>) -> (Router, AppState) {
         let i18n = crate::i18n::I18n::new("en-US").expect("Failed to initialize i18n");
+        
+        // Load translation files for testing
+        let _ = i18n.load_locale("en-US").await;
+        let _ = i18n.load_locale("es-ES").await;
+        let _ = i18n.load_locale("nb-NO").await;
+        let _ = i18n.load_locale("fr-FR").await;
+        let _ = i18n.load_locale("de-DE").await;
         let config = Config::default();
         let db_manager = crate::db::DatabaseManager::new(db_configs)
             .await

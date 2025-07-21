@@ -65,7 +65,7 @@ run_unit_tests() {
 
     # Run the unit tests (individual module tests)
     print_status "Running unit tests with cargo..."
-    cargo test --lib --verbose
+    cargo test --bin sortingoffice --verbose
 
     print_success "Unit tests completed successfully!"
 }

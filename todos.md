@@ -128,7 +128,12 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 ✅ Can the integration tests be a separate call like make test-unit and test-ui? And not part of test-unit. But part of make test-all. - IMPLEMENTED
 
 Some resource pages (backups list, users list) have enabled as active/inactive not enabled/disabled
-- in dark mode the colouring of these are inconsistent.
+- in dark mode the colouring of these are inconsistent in some resource lists.
+
+In the run_tests.sh does run_unit_tests actually test anything different than run_integration_tests?
+
+In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
+
 
 Improve theme slightly
 - maybe add a subtle background where applicable

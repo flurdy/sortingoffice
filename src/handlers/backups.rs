@@ -145,8 +145,20 @@ pub async fn edit(
     };
 
     // Use helper functions to fetch translations in batches
-    let form_translations =
-        crate::handlers::utils::get_entity_form_translations(&state, &locale, "backups").await;
+    let form_translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "backups-edit-backup-title",
+            "backups-form-error",
+            "backups-cancel",
+            "backups-create-backup",
+            "backups-update-backup",
+            "backups-new-backup",
+            "backups-edit-title",
+        ],
+    )
+    .await;
     let field_translations = crate::handlers::utils::get_field_translations(
         &state,
         &locale,
@@ -156,21 +168,21 @@ pub async fn edit(
     .await;
 
     let content_template = BackupFormTemplate {
-        title: form_translations["backups-edit-backup-title"].clone(),
-        form_error: form_translations["backups-form-error"].clone(),
-        form_domain: field_translations["backups-form-domain"].clone(),
-        form_transport: field_translations["backups-form-transport"].clone(),
-        form_active: field_translations["backups-form-active"].clone(),
-        placeholder_domain: field_translations["backups-placeholder-domain"].clone(),
-        placeholder_transport: field_translations["backups-placeholder-transport"].clone(),
-        tooltip_domain: field_translations["backups-tooltip-domain"].clone(),
-        tooltip_transport: field_translations["backups-tooltip-transport"].clone(),
-        tooltip_active: field_translations["backups-tooltip-active"].clone(),
-        cancel: form_translations["backups-cancel"].clone(),
-        create_backup: form_translations["backups-create-backup"].clone(),
-        update_backup: form_translations["backups-update-backup"].clone(),
-        new_backup: form_translations["backups-new-backup"].clone(),
-        edit_backup_title: form_translations["backups-edit-backup-title"].clone(),
+        title: form_translations.get("backups-edit-backup-title").unwrap_or(&"Edit Backup".to_string()).clone(),
+        form_error: form_translations.get("backups-form-error").unwrap_or(&"Form Error".to_string()).clone(),
+        form_domain: field_translations.get("backups-form-domain").unwrap_or(&"Domain".to_string()).clone(),
+        form_transport: field_translations.get("backups-form-transport").unwrap_or(&"Transport".to_string()).clone(),
+        form_active: field_translations.get("backups-form-active").unwrap_or(&"Active".to_string()).clone(),
+        placeholder_domain: field_translations.get("backups-placeholder-domain").unwrap_or(&"Enter domain".to_string()).clone(),
+        placeholder_transport: field_translations.get("backups-placeholder-transport").unwrap_or(&"Enter transport".to_string()).clone(),
+        tooltip_domain: field_translations.get("backups-tooltip-domain").unwrap_or(&"Domain tooltip".to_string()).clone(),
+        tooltip_transport: field_translations.get("backups-tooltip-transport").unwrap_or(&"Transport tooltip".to_string()).clone(),
+        tooltip_active: field_translations.get("backups-tooltip-active").unwrap_or(&"Active tooltip".to_string()).clone(),
+        cancel: form_translations.get("backups-cancel").unwrap_or(&"Cancel".to_string()).clone(),
+        create_backup: form_translations.get("backups-create-backup").unwrap_or(&"Create Backup".to_string()).clone(),
+        update_backup: form_translations.get("backups-update-backup").unwrap_or(&"Update Backup".to_string()).clone(),
+        new_backup: form_translations.get("backups-new-backup").unwrap_or(&"New Backup".to_string()).clone(),
+        edit_backup_title: form_translations.get("backups-edit-backup-title").unwrap_or(&"Edit Backup".to_string()).clone(),
         backup: Some(backup),
         form,
         error: None,
@@ -182,7 +194,7 @@ pub async fn edit(
         &state,
         &locale,
         &headers,
-        form_translations["backups-edit-title"].clone(),
+        form_translations.get("backups-edit-title").unwrap_or(&"Edit Backup".to_string()).clone(),
     )
     .await
 }
