@@ -86,8 +86,8 @@ action-enable = Activer
 action-disable = Désactiver
 
 # Status indicators
-status-active = Actif
-status-inactive = Inactif
+status-active = Activé
+status-inactive = Désactivé
 status-enabled = Activé
 status-disabled = Désactivé
 
