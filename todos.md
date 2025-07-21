@@ -130,7 +130,15 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 ✅ Some resource pages (backups list, users list) have enabled as active/inactive not enabled/disabled
 - in dark mode the colouring of these are inconsistent in some resource lists. - IMPLEMENTED
 
-In the run_tests.sh does run_unit_tests actually test anything different than run_integration_tests?
+✅ In the run_tests.sh does run_unit_tests actually test anything different than run_integration_tests? - IMPLEMENTED
+- No, they were running the same tests
+- Fixed by:
+  - Moving unit tests into source files (src/*.rs)
+  - Moving integration tests to tests/ directory
+  - Updating run_tests.sh to use --lib for unit tests and --test for integration tests
+  - Updating Makefile to properly separate test types
+
+Provide some timings of the unit, integration, ui-headless and ui-containerized.
 
 In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
 

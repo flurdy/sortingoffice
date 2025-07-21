@@ -34,8 +34,8 @@ show_usage() {
     echo "Usage: $0 [OPTION]"
     echo ""
     echo "Options:"
-    echo "  unit              Run only unit tests (default)"
-    echo "  integration       Run only integration tests"
+    echo "  unit              Run only unit tests (tests in source files)"
+    echo "  integration       Run only integration tests (tests in tests/ directory)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  ui-headless       Run only headless UI tests"
     echo "  ui-containerized  Run containerized UI tests (app + db in containers)"
@@ -63,9 +63,9 @@ run_unit_tests() {
     export RUST_BACKTRACE=1
     export RUST_TEST_THREADS=1
 
-    # Run the unit tests (individual module tests)
+    # Run only the unit tests (tests in source files)
     print_status "Running unit tests with cargo..."
-    cargo test --bin sortingoffice --verbose
+    cargo test --lib --verbose
 
     print_success "Unit tests completed successfully!"
 }
@@ -85,9 +85,9 @@ run_integration_tests() {
     export RUST_BACKTRACE=1
     export RUST_TEST_THREADS=1
 
-    # Run the integration tests from src/tests/ by running the main binary tests
+    # Run the integration tests from tests/ directory
     print_status "Running integration tests with cargo..."
-    cargo test --bin sortingoffice --verbose
+    cargo test --test '*' --verbose
 
     print_success "Integration tests completed successfully!"
 }

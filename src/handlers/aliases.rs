@@ -22,8 +22,8 @@ use crate::{
     models::{PaginatedResult, PaginationParams},
     templates::{
         aliases::{
-            AliasFormTemplate, AliasesListTemplate, AliasShowTemplate,
-            AliasSearchResultsTemplate, DomainSearchResultsTemplate,
+            AliasFormTemplate, AliasSearchResultsTemplate, AliasShowTemplate, AliasesListTemplate,
+            DomainSearchResultsTemplate,
         },
         domains::DomainShowTemplate,
         layout::BaseTemplate,
@@ -101,7 +101,7 @@ pub async fn list(
         title: &translations["aliases-title"],
         aliases: &paginated_aliases.items,
         pagination: &paginated,
-        page_range: &page_range,
+        page_range: &page_range,  // Pass as reference
         max_item,
         description: &translations["aliases-description"],
         add_alias: &translations["aliases-add"],
@@ -560,7 +560,7 @@ pub async fn create(
                         title: &title,
                         aliases: &aliases,
                         pagination: &paginated,
-                        page_range: &page_range,
+                        page_range: &page_range,  // Pass as reference
                         max_item,
                         description: &description,
                         add_alias: &add_alias,
@@ -860,7 +860,7 @@ pub async fn delete(
                 title: &title,
                 aliases: &aliases,
                 pagination: &paginated,
-                page_range: &page_range,
+                page_range: &page_range,  // Pass as reference
                 max_item,
                 description: &description,
                 add_alias: &add_alias,
@@ -1046,7 +1046,7 @@ pub async fn toggle_enabled_list(
                 title: &title,
                 aliases: &aliases,
                 pagination: &paginated,
-                page_range: &page_range,
+                page_range: &page_range,  // Pass as reference
                 max_item,
                 description: &description,
                 add_alias: &add_alias,

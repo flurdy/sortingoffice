@@ -98,20 +98,24 @@ install:
 test: test-db-setup
 	./tests/run_tests.sh all
 
-test-unit: test-db-setup
-	./tests/run_tests.sh unit
+.PHONY: test-unit
+test-unit:
+	@echo "Running unit tests..."
+	@tests/run_tests.sh unit
 
-test-integration: test-db-setup
-	./tests/run_tests.sh integration
+.PHONY: test-integration
+test-integration:
+	@echo "Running integration tests..."
+	@tests/run_tests.sh integration
 
+.PHONY: test-ui
 test-ui:
-	./tests/run_tests.sh ui-containerized
+	@echo "Running UI tests..."
+	@tests/run_tests.sh ui
 
-test-ui-dev:
-	./tests/run_tests.sh ui-headless
-
-test-all: test-db-setup
-	./tests/run_tests.sh all
+.PHONY: test-all
+test-all: test-unit test-integration test-ui
+	@echo "All tests completed!"
 
 test-ui-setup:
 	@echo "🔧 Setting up UI test environment..."

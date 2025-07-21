@@ -1,13 +1,13 @@
-use crate::models::{Alias, AliasForm, PaginatedResult};
 use askama::Template;
+use crate::models::{Alias, AliasForm, Domain, PaginatedResult};
 
 #[derive(Template)]
-#[template(path = "aliases/list.html", escape = "html")]
+#[template(path = "aliases/list.html")]
 pub struct AliasesListTemplate<'a> {
     pub title: &'a str,
     pub aliases: &'a [Alias],
     pub pagination: &'a PaginatedResult<Alias>,
-    pub page_range: &'a [i64],
+    pub page_range: &'a [i64],  // Changed back to reference
     pub max_item: i64,
     pub description: &'a str,
     pub add_alias: &'a str,
@@ -25,30 +25,7 @@ pub struct AliasesListTemplate<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "aliases/show.html", escape = "html")]
-pub struct AliasShowTemplate<'a> {
-    pub title: &'a str,
-    pub alias: Alias,
-    pub view_edit_settings: &'a str,
-    pub back_to_aliases: &'a str,
-    pub alias_information: &'a str,
-    pub alias_details: &'a str,
-    pub mail: &'a str,
-    pub forward_to: &'a str,
-    pub status: &'a str,
-    pub status_active: &'a str,
-    pub status_inactive: &'a str,
-    pub created: &'a str,
-    pub modified: &'a str,
-    pub edit_alias_button: &'a str,
-    pub enable_alias_button: &'a str,
-    pub disable_alias_button: &'a str,
-    pub delete_alias: &'a str,
-    pub delete_confirm: &'a str,
-}
-
-#[derive(Template)]
-#[template(path = "aliases/form.html", escape = "html")]
+#[template(path = "aliases/form.html")]
 pub struct AliasFormTemplate<'a> {
     pub title: &'a str,
     pub alias: Option<Alias>,
@@ -72,17 +49,40 @@ pub struct AliasFormTemplate<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "aliases/search_results.html", escape = "html")]
+#[template(path = "aliases/show.html")]
+pub struct AliasShowTemplate<'a> {
+    pub title: &'a str,
+    pub alias: Alias,
+    pub view_edit_settings: &'a str,
+    pub back_to_aliases: &'a str,
+    pub alias_information: &'a str,
+    pub alias_details: &'a str,
+    pub mail: &'a str,
+    pub forward_to: &'a str,
+    pub status: &'a str,
+    pub status_active: &'a str,
+    pub status_inactive: &'a str,
+    pub created: &'a str,
+    pub modified: &'a str,
+    pub edit_alias_button: &'a str,
+    pub enable_alias_button: &'a str,
+    pub disable_alias_button: &'a str,
+    pub delete_alias: &'a str,
+    pub delete_confirm: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "aliases/search_results.html")]
 pub struct AliasSearchResultsTemplate<'a> {
-    pub aliases: &'a [crate::models::Alias],
+    pub aliases: &'a [Alias],
     pub no_results: &'a str,
     pub select_text: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "aliases/domain_search_results.html", escape = "html")]
+#[template(path = "aliases/domain_search_results.html")]
 pub struct DomainSearchResultsTemplate<'a> {
-    pub domains: &'a [crate::models::Domain],
+    pub domains: &'a [Domain],
     pub no_results: &'a str,
     pub select_text: &'a str,
     pub status_active: &'a str,

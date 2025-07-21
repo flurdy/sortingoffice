@@ -21,10 +21,10 @@
                     <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_mail }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_destination }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ table_header_enabled }}</th>
-                                <th scope="col" class="relative px-6 py-3">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/3">{{ table_header_mail }}</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/3">{{ table_header_destination }}</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-32">{{ table_header_enabled }}</th>
+                                <th scope="col" class="relative px-6 py-3 w-48">
                                     <span class="sr-only">{{ table_header_actions }}</span>
                                 </th>
                             </tr>
@@ -40,7 +40,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                     {{ alias.destination }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
                                     {% if alias.enabled %}
                                     <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
                                     {% else %}
@@ -115,9 +115,9 @@
                     {% for page_num in page_range %}
                         {% if *page_num == pagination.current_page %}
                         <span class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ page_num }}</span>
-                        {% elif *page_num == 1 || *page_num == pagination.total_pages || (*page_num >= pagination.current_page - 2 && *page_num <= pagination.current_page + 2) %}
+                        {% else if *page_num == 1 || *page_num == pagination.total_pages || (*page_num >= pagination.current_page - 2 && *page_num <= pagination.current_page + 2) %}
                         <a href="?page={{ page_num }}&per_page={{ pagination.per_page }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ page_num }}</a>
-                        {% elif *page_num == pagination.current_page - 3 || *page_num == pagination.current_page + 3 %}
+                        {% else if *page_num == pagination.current_page - 3 || *page_num == pagination.current_page + 3 %}
                         <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
                         {% endif %}
                     {% endfor %}
