@@ -23,6 +23,8 @@ language-selector = Langue
 language-english = English
 language-spanish = Español
 language-french = Français
+language-norwegian = Norsk
+language-german = Deutsch
 
 # About Page
 about-title = À Propos de Bureau de Tri
