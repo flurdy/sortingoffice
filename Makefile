@@ -47,6 +47,12 @@ help:
 	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
 	@echo "  make test-ui-cleanup - Clean up UI test environment"
 	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  make fmt        - Format code with cargo fmt"
+	@echo "  make check      - Check code compilation"
+	@echo "  make clippy     - Run clippy linter"
+	@echo "  make pre-commit - Run formatting and compilation checks"
 
 
 # Docker commands
@@ -133,6 +139,10 @@ check:
 
 clippy:
 	cargo clippy
+
+# Pre-commit checks (same as git hook)
+pre-commit: fmt check
+	@echo "✅ All pre-commit checks passed!"
 
 # Production build
 release:
