@@ -138,10 +138,9 @@ In the run_tests.sh does run_ui_containerized which uses databases in testcontai
 
 ✅ Can we reorder the English messages.ftl, there seems to be two about sections etc, it would be good if they where joined. And the same for other sections. - IMPLEMENTED
 
-Improve theme slightly
-- maybe add a subtle background where applicable
-- maybe a different light mode colour scheme
-- still support the dark mod
+✅ Improve theme slightly - IMPLEMENTED
+- add a subtle gray background where applicable
+- still support the dark mode
 
 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 

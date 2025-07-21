@@ -46,3 +46,36 @@
 .htmx-request.htmx-indicator {
     display: block;
 }
+
+/* Light mode theme improvements */
+.bg-gray-50 {
+    background-color: #f8fafc !important;
+}
+
+.bg-white {
+    background-color: #ffffff !important;
+}
+
+/* Dark mode overrides */
+.dark {
+    color-scheme: dark;
+}
+
+.dark .bg-gray-50 {
+    background-color: #111827 !important;
+}
+
+.dark .bg-white {
+    background-color: #1f2937 !important;
+}
+
+/* Background pattern */
+.bg-pattern {
+    background-color: #f1f5f9;
+    background-image: linear-gradient(0deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.dark .bg-pattern {
+    background-color: #0f172a;
+    background-image: linear-gradient(0deg, #111827 0%, #0f172a 100%);
+}
