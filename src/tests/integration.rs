@@ -20,7 +20,7 @@ mod tests {
     ) {
         // Use testcontainers for proper isolation
         let container = setup_test_db();
-        let pool = container.get_pool();
+        let _pool = container.get_pool();
 
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
@@ -644,7 +644,7 @@ mod tests {
             ("admin@secondary-domain.com", "admin", "adminpass"),
         ];
 
-        for (email, username, password) in users_data {
+        for (_email, username, password) in users_data {
             let form_data = format!(
                 "id={}&password={}&name={}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
                 username, password, username

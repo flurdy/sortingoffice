@@ -19,10 +19,12 @@ mod common {
     static INIT: Once = Once::new();
     // WARNING: The following uses a shared reference to mutable static. This is a known limitation for test pool setup in this test harness.
     // See: https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html
+    #[allow(static_mut_refs)]
     static mut TEST_POOL: Option<DbPool> = None;
 
     pub fn setup_test_db() -> DbPool {
         unsafe {
+            #[allow(static_mut_refs)]
             if TEST_POOL.is_none() {
                 INIT.call_once(|| {
                     std::env::set_var("RUST_LOG", "debug");
@@ -51,6 +53,7 @@ mod common {
                 TEST_POOL = Some(pool);
             }
 
+            #[allow(static_mut_refs)]
             TEST_POOL.as_ref().unwrap().clone()
         }
     }

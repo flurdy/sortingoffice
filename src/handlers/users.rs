@@ -190,36 +190,117 @@ async fn build_user_form_template(
 
     UserFormTemplate {
         title,
-        form_user_id: field_translations.get("users-field-id").unwrap_or(&"User ID".to_string()).clone(),
-        form_password: field_translations.get("users-field-password").unwrap_or(&"Password".to_string()).clone(),
-        form_name: field_translations.get("users-field-name").unwrap_or(&"Name".to_string()).clone(),
-        form_active: field_translations.get("users-field-active").unwrap_or(&"Active".to_string()).clone(),
-        placeholder_user_email: field_translations.get("users-placeholder-user-email").unwrap_or(&"Enter user email".to_string()).clone(),
-        placeholder_name: field_translations.get("users-placeholder-name").unwrap_or(&"Enter name".to_string()).clone(),
-        tooltip_user_id: field_translations.get("users-field-id-help").unwrap_or(&"User ID tooltip".to_string()).clone(),
-        tooltip_password: field_translations.get("users-field-password-help").unwrap_or(&"Password tooltip".to_string()).clone(),
-        tooltip_name: field_translations.get("users-field-name-help").unwrap_or(&"Name tooltip".to_string()).clone(),
-        tooltip_active: field_translations.get("users-field-active-help").unwrap_or(&"Active tooltip".to_string()).clone(),
-        users_change_password: form_translations.get("users-change-password").unwrap_or(&"Change Password".to_string()).clone(),
-        users_change_password_tooltip: form_translations.get("users-change-password-tooltip").unwrap_or(&"Change user password".to_string()).clone(),
-        users_placeholder_password: field_translations.get("users-placeholder-password").unwrap_or(&"Enter password".to_string()).clone(),
-        password_management_title: form_translations.get("password-management-title").unwrap_or(&"Password Management".to_string()).clone(),
-        change_password_button: form_translations.get("change-password-button").unwrap_or(&"Change Password".to_string()).clone(),
-        toggle_change_password_button: form_translations.get("toggle-change-password-button").unwrap_or(&"Toggle Change Password".to_string()).clone(),
-        cancel: form_translations.get("form-cancel").unwrap_or(&"Cancel".to_string()).clone(),
-        create_user: form_translations.get("action-save").unwrap_or(&"Save".to_string()).clone(),
-        update_user: form_translations.get("action-save").unwrap_or(&"Save".to_string()).clone(),
-        new_user: form_translations.get("users-new-user").unwrap_or(&"New User".to_string()).clone(),
-        edit_user_title: form_translations.get("users-edit-user-title").unwrap_or(&"Edit User".to_string()).clone(),
+        form_user_id: field_translations
+            .get("users-field-id")
+            .unwrap_or(&"User ID".to_string())
+            .clone(),
+        form_password: field_translations
+            .get("users-field-password")
+            .unwrap_or(&"Password".to_string())
+            .clone(),
+        form_name: field_translations
+            .get("users-field-name")
+            .unwrap_or(&"Name".to_string())
+            .clone(),
+        form_active: field_translations
+            .get("users-field-active")
+            .unwrap_or(&"Active".to_string())
+            .clone(),
+        placeholder_user_email: field_translations
+            .get("users-placeholder-user-email")
+            .unwrap_or(&"Enter user email".to_string())
+            .clone(),
+        placeholder_name: field_translations
+            .get("users-placeholder-name")
+            .unwrap_or(&"Enter name".to_string())
+            .clone(),
+        tooltip_user_id: field_translations
+            .get("users-field-id-help")
+            .unwrap_or(&"User ID tooltip".to_string())
+            .clone(),
+        tooltip_password: field_translations
+            .get("users-field-password-help")
+            .unwrap_or(&"Password tooltip".to_string())
+            .clone(),
+        tooltip_name: field_translations
+            .get("users-field-name-help")
+            .unwrap_or(&"Name tooltip".to_string())
+            .clone(),
+        tooltip_active: field_translations
+            .get("users-field-active-help")
+            .unwrap_or(&"Active tooltip".to_string())
+            .clone(),
+        users_change_password: form_translations
+            .get("users-change-password")
+            .unwrap_or(&"Change Password".to_string())
+            .clone(),
+        users_change_password_tooltip: form_translations
+            .get("users-change-password-tooltip")
+            .unwrap_or(&"Change user password".to_string())
+            .clone(),
+        users_placeholder_password: field_translations
+            .get("users-placeholder-password")
+            .unwrap_or(&"Enter password".to_string())
+            .clone(),
+        password_management_title: form_translations
+            .get("password-management-title")
+            .unwrap_or(&"Password Management".to_string())
+            .clone(),
+        change_password_button: form_translations
+            .get("change-password-button")
+            .unwrap_or(&"Change Password".to_string())
+            .clone(),
+        toggle_change_password_button: form_translations
+            .get("toggle-change-password-button")
+            .unwrap_or(&"Toggle Change Password".to_string())
+            .clone(),
+        cancel: form_translations
+            .get("form-cancel")
+            .unwrap_or(&"Cancel".to_string())
+            .clone(),
+        create_user: form_translations
+            .get("action-save")
+            .unwrap_or(&"Save".to_string())
+            .clone(),
+        update_user: form_translations
+            .get("action-save")
+            .unwrap_or(&"Save".to_string())
+            .clone(),
+        new_user: form_translations
+            .get("users-new-user")
+            .unwrap_or(&"New User".to_string())
+            .clone(),
+        edit_user_title: form_translations
+            .get("users-edit-user-title")
+            .unwrap_or(&"Edit User".to_string())
+            .clone(),
         user,
         form,
         error,
-        users_maildir: field_translations.get("users-field-maildir").unwrap_or(&"Maildir".to_string()).clone(),
-        users_tooltip_maildir: field_translations.get("users-field-maildir-help").unwrap_or(&"Maildir tooltip".to_string()).clone(),
-        users_placeholder_maildir: field_translations.get("users-placeholder-maildir").unwrap_or(&"Enter maildir".to_string()).clone(),
-        users_home: field_translations.get("users-field-home").unwrap_or(&"Home".to_string()).clone(),
-        users_tooltip_home: field_translations.get("users-field-home-help").unwrap_or(&"Home tooltip".to_string()).clone(),
-        users_placeholder_home: field_translations.get("users-placeholder-home").unwrap_or(&"Enter home".to_string()).clone(),
+        users_maildir: field_translations
+            .get("users-field-maildir")
+            .unwrap_or(&"Maildir".to_string())
+            .clone(),
+        users_tooltip_maildir: field_translations
+            .get("users-field-maildir-help")
+            .unwrap_or(&"Maildir tooltip".to_string())
+            .clone(),
+        users_placeholder_maildir: field_translations
+            .get("users-placeholder-maildir")
+            .unwrap_or(&"Enter maildir".to_string())
+            .clone(),
+        users_home: field_translations
+            .get("users-field-home")
+            .unwrap_or(&"Home".to_string())
+            .clone(),
+        users_tooltip_home: field_translations
+            .get("users-field-home-help")
+            .unwrap_or(&"Home tooltip".to_string())
+            .clone(),
+        users_placeholder_home: field_translations
+            .get("users-placeholder-home")
+            .unwrap_or(&"Enter home".to_string())
+            .clone(),
     }
 }
 
