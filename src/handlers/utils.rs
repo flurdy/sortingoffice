@@ -270,41 +270,50 @@ pub async fn get_entity_form_translations(
     locale: &str,
     entity: &str,
 ) -> HashMap<String, String> {
-    debug!("Loading form translations for entity: {}, locale: {}", entity, locale);
     let mut translations = HashMap::new();
 
-    // Common form keys
-    let common_keys = ["form-error", "form-cancel", "action-save", "action-cancel"];
+    // Load common form translations
+    let common_keys = vec![
+        "form-error",
+        "form-cancel",
+        "action-save",
+        "action-cancel",
+        "form-enabled",
+        "form-disabled",
+        "form-create-domain",
+        "form-update-domain",
+        "form-placeholder-domain",
+        "form-placeholder-transport",
+        "form-tooltip-domain",
+        "form-tooltip-transport",
+        "form-tooltip-enable",
+    ];
 
     for key in common_keys {
         let value = get_translation(state, locale, key).await;
-        debug!("Loading common key: {} = {:?}", key, value);
         translations.insert(key.to_string(), value);
     }
 
-    // Entity-specific keys
+    // Generate entity-specific keys
     let singular = if entity == "aliases" {
         "alias"
     } else {
         entity.trim_end_matches('s')
     };
 
-    let entity_keys = [
+    let entity_keys = vec![
         format!("{entity}-add-title"),
         format!("{entity}-edit-title"),
         format!("{entity}-new-{singular}"),
         format!("{entity}-edit-{singular}"),
     ];
 
-    debug!("Generated entity keys: {:?}", entity_keys);
-
     for key in entity_keys {
         let value = get_translation(state, locale, &key).await;
-        debug!("Loading entity key: {} = {:?}", key, value);
-        translations.insert(key.clone(), value);
+        translations.insert(key, value);
     }
 
-    debug!("Final translations map: {:#?}", translations);
+    debug!("Final translations map: {translations:#?}");
     translations
 }
 
@@ -682,4 +691,78 @@ pub async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (Stri
         .unwrap_or_else(|| current_db_id.clone());
 
     (current_db_label, current_db_id)
+}
+
+pub async fn render_list_template<T>(
+    template: T,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String>
+where
+    T: Template,
+{
+    let content = template.render().unwrap();
+
+    if is_htmx_request(headers) {
+        Html(content)
+    } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+        let template = crate::templates::layout::BaseTemplate::with_i18n(
+            get_translation(state, locale, "aliases-title").await,
+            content,
+            state,
+            locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        .unwrap();
+        Html(template.render().unwrap())
+    }
+}
+
+pub async fn render_show_template<T>(
+    template: T,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String>
+where
+    T: Template,
+{
+    let content = template.render().unwrap();
+
+    if is_htmx_request(headers) {
+        Html(content)
+    } else {
+        let current_db_id = crate::handlers::auth::get_selected_database(headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+        let template = crate::templates::layout::BaseTemplate::with_i18n(
+            get_translation(state, locale, "aliases-show-title").await,
+            content,
+            state,
+            locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        .unwrap();
+        Html(template.render().unwrap())
+    }
 }

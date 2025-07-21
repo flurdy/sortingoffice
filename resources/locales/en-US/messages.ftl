@@ -26,7 +26,119 @@ language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
 
-# About Page
+# Common actions
+action-edit = Edit
+action-delete = Delete
+action-view = View
+action-save = Save
+action-cancel = Cancel
+action-enable = Enable
+action-disable = Disable
+
+# Status indicators
+status-active = Enabled
+status-inactive = Disabled
+status-enabled = Enabled
+status-disabled = Disabled
+
+# Forms
+form-error = Error
+form-cancel = Cancel
+form-create = Create
+form-update = Update
+form-active = Active
+form-placeholder-domain = example.com
+form-placeholder-transport = virtual
+form-tooltip-domain = The domain name (e.g., example.com)
+form-tooltip-transport = Transport configuration (e.g., virtual for virtual domains)
+form-tooltip-enable = Enable this domain
+form-create-domain = Create Domain
+form-update-domain = Update Domain
+form-enabled = Enabled
+form-disabled = Disabled
+form-domain = Domain
+form-transport = Transport
+form-username = Username
+form-password = Password
+
+# Form validation
+validation-domain-required = Domain name is required. Please enter a valid domain name.
+validation-username-required = Username is required.
+
+# Error messages
+error-unexpected = An unexpected error occurred. Please try again.
+error-duplicate-domain = A domain with this name already exists.
+error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
+error-duplicate-user = A user with this username already exists.
+error-constraint-violation = The data does not meet the required constraints. Please check your input.
+error-operation-not-allowed = This operation is not allowed on the current database due to restrictions.
+
+# Login
+login-title = Sign in to Sorting Office
+login-user-id = User ID
+login-password = Password
+login-sign-in = Sign in
+login-error = Invalid username or password
+login-error-invalid-credentials = Invalid username or password. Please try again.
+login-error-empty-fields = Please enter both username and password.
+
+# Dashboard
+dashboard-title = Dashboard
+dashboard-description = Overview of your mail server statistics and quick actions.
+dashboard-total-domains = Total Domains
+dashboard-total-backups = Total Backups
+dashboard-total-aliases = Total Aliases
+dashboard-total-users = Total Users
+dashboard-total-relays = Total Relays
+dashboard-total-relocated = Total Relocated
+dashboard-total-clients = Total Clients
+dashboard-enabled-domains-and-backups = Enabled Domains & Backups
+dashboard-enabled-aliases = Enabled Aliases
+dashboard-enabled-users = Enabled Users
+dashboard-quick-actions = Quick Actions
+dashboard-primary-actions = Primary Actions
+dashboard-advanced-management = Advanced Management
+dashboard-analytics-reports = Analytics & Reports
+dashboard-help-resources = Help & Resources
+
+# Quick action cards
+quick-action-manage-domains = Manage Domains
+quick-action-manage-domains-desc = Add, edit, or remove domains
+quick-action-manage-backups = Manage Backups
+quick-action-manage-backups-desc = Add, edit, or remove backups
+quick-action-manage-domains-and-backups = Domains & Backups
+quick-action-manage-domains-and-backups-desc = Manage domains and backup servers
+quick-action-manage-email = Email Management
+quick-action-manage-email-desc = Manage email aliases and forwarding
+quick-action-manage-aliases = Manage Aliases
+quick-action-manage-aliases-desc = Add, edit, or remove email aliases
+quick-action-manage-users = Manage Users
+quick-action-manage-users-desc = Add, edit, or remove users
+quick-action-manage-clients = Manage Clients
+quick-action-manage-clients-desc = Add, edit, or remove client access controls
+quick-action-manage-relays = Manage Relays
+quick-action-manage-config = Configuration
+quick-action-manage-config-desc = System settings and preferences
+quick-action-view-statistics = View Statistics
+quick-action-view-statistics-desc = System metrics and analytics
+quick-action-view-reports = View Reports
+quick-action-view-reports-desc = Detailed reports and analysis
+
+# Resource labels
+resource-domains = domains
+resource-backups = backups
+resource-aliases = aliases
+resource-users = users
+resource-relays = relays
+resource-relocated = relocated
+resource-clients = clients
+
+# Help section
+help-title = Need help setting up your mail server?
+help-description = This admin tool is based on flurdy's comprehensive guide for setting up a complete mail server with Postfix, Dovecot, and more.
+help-read-guide = Read the complete setup guide →
+
+# About
 about-title = About Sorting Office
 about-subtitle = A comprehensive mail server administration tool for managing domains, users, aliases, and backups.
 about-what-is-title = What is Sorting Office?
@@ -78,78 +190,6 @@ about-version = Version
 about-license = License
 about-maintainer = Maintainer
 
-# Common actions
-action-edit = Edit
-action-delete = Delete
-action-view = View
-action-save = Save
-action-cancel = Cancel
-action-enable = Enable
-action-disable = Disable
-
-# Status indicators
-status-active = Enabled
-status-inactive = Disabled
-status-enabled = Enabled
-status-disabled = Disabled
-
-# Dashboard
-dashboard-title = Dashboard
-dashboard-description = Overview of your mail server statistics and quick actions.
-dashboard-total-domains = Total Domains
-dashboard-total-backups = Total Backups
-dashboard-total-aliases = Total Aliases
-dashboard-total-users = Total Users
-dashboard-total-relays = Total Relays
-dashboard-total-relocated = Total Relocated
-dashboard-total-clients = Total Clients
-dashboard-enabled-domains-and-backups = Enabled Domains & Backups
-dashboard-enabled-aliases = Enabled Aliases
-dashboard-enabled-users = Enabled Users
-dashboard-quick-actions = Quick Actions
-dashboard-primary-actions = Primary Actions
-dashboard-advanced-management = Advanced Management
-dashboard-analytics-reports = Analytics & Reports
-dashboard-help-resources = Help & Resources
-
-# Quick action cards
-quick-action-manage-domains = Manage Domains
-quick-action-manage-domains-desc = Add, edit, or remove domains
-quick-action-manage-backups = Manage Backups
-quick-action-manage-backups-desc = Add, edit, or remove backups
-quick-action-manage-domains-and-backups = Domains & Backups
-quick-action-manage-domains-and-backups-desc = Manage domains and backup servers
-quick-action-manage-email = Email Management
-quick-action-manage-email-desc = Manage email aliases and forwarding
-quick-action-manage-aliases = Manage Aliases
-quick-action-manage-aliases-desc = Add, edit, or remove email aliases
-quick-action-manage-users = Manage Users
-quick-action-manage-users-desc = Add, edit, or remove users
-quick-action-manage-clients = Manage Clients
-quick-action-manage-clients-desc = Add, edit, or remove client access controls
-quick-action-manage-relays = Manage Relays
-quick-action-manage-relocated = Manage Relocated
-quick-action-manage-config = Configuration
-quick-action-manage-config-desc = System settings and preferences
-quick-action-view-statistics = View Statistics
-quick-action-view-statistics-desc = System metrics and analytics
-quick-action-view-reports = View Reports
-quick-action-view-reports-desc = Detailed reports and analysis
-
-# Resource labels
-resource-domains = domains
-resource-backups = backups
-resource-aliases = aliases
-resource-users = users
-resource-relays = relays
-resource-relocated = relocated
-resource-clients = clients
-
-# Help section
-help-title = Need help setting up your mail server?
-help-description = This admin tool is based on flurdy's comprehensive guide for setting up a complete mail server with Postfix, Dovecot, and more.
-help-read-guide = Read the complete setup guide →
-
 # Domains
 domains-title = Domains
 domains-description = Manage your mail server domains and their settings.
@@ -162,6 +202,8 @@ domains-empty-description = Get started by creating a new domain.
 domains-show-title = Domain
 domains-new-domain = New Domain
 domains-edit-domain = Edit Domain
+domains-add-title = Add Domain
+domains-edit-title = Edit Domain
 domains-view-edit-settings = View and edit domain settings.
 domains-back-to-domains = Back to Domains
 domains-domain-information = Domain Information
@@ -181,6 +223,12 @@ domains-add-missing-required-aliases-button = Add alias
 domains-add-catch-all-button = Add alias
 domains-add-alias-button = Add new alias
 domains-no-catch-all-message = No catch-all alias configured for this domain
+domains-field-domain = Domain
+domains-field-domain-help = The domain name for this mail server (e.g., example.com)
+domains-field-transport = Transport
+domains-field-transport-help = Transport configuration for this domain (e.g., virtual for virtual domains)
+domains-field-active = Active
+domains-field-active-help = Enable this domain for mail handling
 
 # Backups
 backups-title = Backups
@@ -260,11 +308,9 @@ aliases-placeholder-mail = alias@example.com
 aliases-placeholder-destination = destination@example.com
 aliases-mail-address = Mail Address
 aliases-destination = Destination
-aliases-placeholder-mail = alias@example.com
-aliases-placeholder-destination = destination@example.com
+aliases-active = Active
 aliases-tooltip-mail = The email address for the alias (e.g., alias@example.com)
 aliases-tooltip-destination = The destination email address where mail will be forwarded
-aliases-active = Active
 aliases-tooltip-active = Enable this alias for mail forwarding
 aliases-cancel = Cancel
 aliases-update-alias = Update Alias
@@ -341,283 +387,6 @@ users-new-password-placeholder = Enter new password
 users-confirm-password-label = Confirm Password
 users-confirm-password-placeholder = Confirm new password
 users-cancel-button = Cancel
-
-# Form actions
-form-create-user = Create User
-form-update-user = Update User
-form-cancel = Cancel
-form-placeholder-username = user@example.com
-form-placeholder-password = Enter new password (leave empty to keep existing)
-form-placeholder-name = John Doe
-form-tooltip-username = The email address for the user account (e.g., user@example.com)
-form-tooltip-password = The password for the user account (leave empty to keep existing password when editing)
-form-tooltip-name = The display name for the user (e.g., John Doe)
-form-tooltip-enable = Enable this user account
-
-# Statistics
-stats-title = Statistics
-stats-description = View detailed statistics about your mail server.
-stats-system-overview = System Overview
-stats-system-description = System-wide and per-domain statistics for your mail server.
-stats-total-domains = Total Domains
-stats-total-backups = Total Backups
-stats-total-aliases = Total Aliases
-stats-total-users = Total Users
-stats-total-relays = Total Relays
-stats-total-relocated = Total Relocated
-stats-total-clients = Total Clients
-stats-domain-statistics = Domain Statistics
-stats-table-header-domain = Domain
-stats-table-header-users = Users
-stats-table-header-aliases = Aliases
-stats-table-header-total-quota = Total Quota
-stats-table-header-used-quota = Used Quota
-stats-quota-usage-title = Quota Usage
-stats-quota-usage-overview = Storage Usage Overview
-stats-quota-usage-description = Monitor disk space usage across all domains and users
-stats-quota-usage-percentage = Usage Percentage
-stats-quota-total = Total Quota
-stats-quota-used = Used Quota
-stats-recent-activity-title = Recent Activity
-stats-recent-domains = Recent Domains
-stats-recent-users = Recent Users
-stats-recent-aliases = Recent Aliases
-stats-recent-backups = Recent Backups
-stats-recent-relays = Recent Relays
-stats-recent-relocated = Recent Relocated
-stats-recent-clients = Recent Clients
-
-# Forms
-form-domain = Domain
-form-transport = Transport
-form-username = Username
-form-password = Password
-
-# Form validation
-validation-domain-required = Domain name is required. Please enter a valid domain name.
-validation-username-required = Username is required.
-
-# Error messages
-error-unexpected = An unexpected error occurred. Please try again.
-error-duplicate-domain = A domain with this name already exists.
-error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
-error-duplicate-user = A user with this username already exists.
-error-constraint-violation = The data does not meet the required constraints. Please check your input.
-error-operation-not-allowed = This operation is not allowed on the current database due to restrictions.
-
-# Success messages
-
-# Theme
-theme-toggle = Toggle theme
-
-# Login
-login-title = Sign in to Sorting Office
-login-user-id = User ID
-login-password = Password
-login-sign-in = Sign in
-login-error = Invalid username or password
-login-error-invalid-credentials = Invalid username or password. Please try again.
-login-error-empty-fields = Please enter both username and password.
-
-# Roles and Permissions
-
-# About
-about-title = About Sorting Office
-about-what-is-title = What is Sorting Office?
-about-what-is-p1 = Sorting Office is a web-based administration interface for managing a complete mail server setup. It provides an intuitive way to manage domains, users, email aliases, and backup configurations for a Postfix and Dovecot mail server environment.
-about-what-is-p2 = Built with Rust and modern web technologies, Sorting Office offers a secure, fast, and reliable way to administer your mail server without needing to manually edit configuration files.
-about-features-title = Key Features
-about-feature-domain-management = Domain Management
-about-feature-domain-management-desc = Add, edit, and manage mail domains with ease
-about-feature-user-management = User Management
-about-feature-user-management-desc = Create and manage email users and accounts
-about-feature-alias-management = Alias Management
-about-feature-alias-management-desc = Set up email aliases and forwarding rules
-about-feature-backup-configuration = Backup Configuration
-about-feature-backup-configuration-desc = Configure and manage backup MX servers
-about-feature-statistics-dashboard = Statistics Dashboard
-about-feature-statistics-dashboard-desc = Monitor your mail server usage and statistics
-about-technology-stack-title = Technology Stack
-about-backend = Backend
-about-backend-desc = Rust with Axum web framework
-about-database = Database
-about-database-desc = MySQL with Diesel ORM
-about-frontend = Frontend
-about-frontend-desc = HTML templates with Tailwind CSS
-about-templating = Templating
-about-templating-desc = Askama template engine
-about-mail-server = Mail Server
-about-mail-server-desc = Postfix & Dovecot
-about-deployment = Deployment
-about-deployment-desc = Docker containerization
-about-github-project-title = GitHub Project
-about-open-source = Open Source
-about-open-source-desc = Sorting Office is an open-source project hosted on GitHub under the MIT license.
-about-view-repository = View Repository
-about-view-repository-desc = Browse source code and documentation
-about-report-issues = Report Issues
-about-report-issues-desc = Bug reports and feature requests
-about-pull-requests = Pull Requests
-about-pull-requests-desc = Contribute to the project
-about-readme = README
-about-readme-desc = Project documentation and setup
-about-version-information = Version Information
-about-project-details = Project Details
-about-version = Version
-about-license = License
-about-maintainer = Maintainer
-
-# Forms
-form-error = Error
-form-cancel = Cancel
-form-create = Create
-form-update = Update
-form-active = Active
-form-placeholder-domain = example.com
-form-placeholder-transport = virtual
-form-tooltip-domain = The domain name (e.g., example.com)
-form-tooltip-transport = Transport configuration (e.g., virtual for virtual domains)
-form-tooltip-enable = Enable this domain
-form-create-domain = Create Domain
-form-update-domain = Update Domain
-
-# Reports
-reports-domain-header = "Domain"
-reports-destination-header = "Destination"
-reports-required-aliases-header = "Required Aliases"
-reports-missing-aliases-header = "Missing Required Aliases"
-reports-missing-required-aliases-header = "Missing Required Aliases"
-reports-missing-common-aliases-header = "Missing Common Aliases"
-reports-add-missing-required-alias-button = "Add alias"
-reports-add-common-alias-button = "Add alias"
-reports-add-catch-all-button = "Add alias"
-reports-alias-report-title = "Alias Report"
-reports-alias-report-description = "Overview of catch-all, required, and common aliases for this domain"
-reports-missing-required-alias-header = "Missing Required Aliases"
-reports-existing-aliases-header = "Existing Aliases"
-reports-no-catch-all-message = "No catch-all alias configured for this domain"
-reports-mail-header = "Email"
-reports-status-header = "Status"
-reports-enabled-header = "Enabled"
-reports-actions-header = "Actions"
-reports-no-required-aliases = "No required aliases found for this domain"
-reports-no-missing-aliases = "No missing required aliases for this domain"
-reports-catch-all-header = Catch-All Alias
-reports-no-domains = "No domains found"
-reports-no-domains-description = "No domains are configured in the system"
-
-# Configuration
-config-title = "Configuration"
-config-description = "Manage required aliases and domain-specific overrides."
-config-required-aliases-header = "Required Aliases"
-config-common-aliases-header = "Common Aliases"
-config-domain-overrides-header = "Domain Overrides"
-config-save-button = "Save Configuration"
-config-cancel-button = "Cancel"
-config-add-required-alias-button = "Add Required Alias"
-config-add-common-alias-button = "Add Common Alias"
-config-remove-alias-button = "Remove"
-config-promote-button = "Promote to Required"
-config-demote-button = "Demote to Common"
-config-required-aliases-description = "These aliases are essential for email standards compliance (RFC requirements)."
-config-common-aliases-description = "These aliases are commonly expected by users and services but not strictly required."
-config-domain-overrides-description = "Override required aliases for specific domains."
-config-add-domain-override-button = "Add Domain Override"
-config-remove-domain-button = "Remove Domain"
-config-required-aliases-label = "Required Aliases"
-config-common-aliases-label = "Common Aliases"
-config-remove-button = "Remove"
-config-add-alias-button = "Add Alias"
-config-placeholder-required-alias = "Enter new required alias (e.g., postmaster)"
-config-placeholder-common-alias = "Enter new common alias (e.g., admin)"
-config-placeholder-domain = "Enter domain (e.g., example.com)"
-config-placeholder-domain-alias = "Enter alias for {domain}"
-
-# Global Feature Toggles
-config-global-features-header = "Global Feature Toggles"
-config-global-features-description = "These settings apply to all databases unless overridden by database-specific settings."
-config-feature-read-only = "Read Only"
-config-feature-no-new-users = "No New Users"
-config-feature-no-new-domains = "No New Domains"
-config-feature-no-password-updates = "No Password Updates"
-config-feature-database-disabled = "Database Disabled"
-config-status-enabled = "Enabled"
-config-status-disabled = "Disabled"
-
-# Database Feature Toggles
-config-database-features-header = "Database Feature Toggles"
-config-database-features-description = "Database-specific feature restrictions. These override global settings when enabled."
-config-database-disabled-badge = "Disabled"
-
-# Matrix Report
-reports-matrix-title = "Domain Alias Matrix Report"
-reports-matrix-description = "Comprehensive overview of all domains and their alias status with visual indicators"
-reports-status-present = "Present and enabled"
-reports-status-missing = "Missing"
-reports-status-disabled = "Present but disabled"
-reports-legend-title = "Status Legend"
-
-# Reports List
-reports-list-title = "Reports"
-reports-list-description = "View and analyze mail server data with comprehensive reports"
-reports-view-report = "View Report"
-
-# Matrix Report
-reports-matrix-title = "Domain Alias Matrix Report"
-reports-matrix-description = "Comprehensive overview of all domains and their alias status with visual indicators"
-
-# Orphaned Aliases & Users Report
-reports-orphaned-aliases-title = "Orphaned Aliases & Users Report"
-reports-orphaned-aliases-description = "Find aliases that reference non-existent users or domains, and users that exist but have no associated aliases"
-
-# External Forwarders Report
-reports-external-forwarders-title = "External Forwarders Report"
-reports-external-forwarders-description = "Find aliases that forward to external domains"
-
-# Missing Aliases Report
-
-# Alias Cross-Domain Search Report
-reports-alias-cross-domain-title = "Alias Cross-Domain Search"
-reports-alias-cross-domain-description = "Search for aliases across all domains"
-
-# Cross-Database Domain Matrix Report
-reports-cross-db-matrix-title = "Cross-Database Domain Matrix"
-reports-cross-db-matrix-description = "Matrix showing domains present across all databases, whether as primary or backup domains"
-reports-database-header = "Database"
-reports-primary-domain = "Domain"
-reports-backup-domain = "Backup"
-reports-not-present = "Not Present"
-
-# Cross-Database User Distribution Report
-reports-cross-db-user-distribution-title = "Cross-Database User Distribution"
-reports-cross-db-user-distribution-description = "Shows how users are distributed across databases, highlighting duplicates and single-database users"
-reports-user-header = "User"
-reports-present = "Present"
-reports-no-users = "No users found"
-reports-no-users-description = "No users are configured in the system"
-
-# Cross-Database Feature Toggle Report
-reports-cross-db-feature-toggle-title = "Cross-Database Feature Toggle Compliance"
-reports-cross-db-feature-toggle-description = "Shows feature toggle settings across all databases and compliance with organizational policies"
-reports-read-only = "Read Only"
-reports-no-new-users = "No New Users"
-reports-no-new-domains = "No New Domains"
-reports-no-password-updates = "No Password Updates"
-reports-database-status-header = "Database Status"
-reports-enabled = "Enabled"
-reports-disabled = "Disabled"
-
-# Cross-Database Migration Report
-reports-cross-db-migration-title = "Cross-Database Migration Status"
-reports-cross-db-migration-description = "Tracks migration status across all databases and identifies which need updates"
-reports-status-header = "Status"
-reports-last-migration-header = "Last Migration"
-reports-migration-count-header = "Migration Count"
-
-# Domain Alias Report
-domains-alias-report-title = "Alias Report"
-domains-alias-report-description = "Overview of all aliases for this domain, including catch-all, required, and common aliases"
-domains-existing-aliases-header = "Existing Aliases"
 
 # Relays
 relays-title = Relays
@@ -733,3 +502,143 @@ pagination-showing = Showing
 pagination-to = to
 pagination-of = of
 pagination-results = results
+
+# Statistics
+stats-title = Statistics
+stats-description = View detailed statistics about your mail server.
+stats-system-overview = System Overview
+stats-system-description = System-wide and per-domain statistics for your mail server.
+stats-total-domains = Total Domains
+stats-total-backups = Total Backups
+stats-total-aliases = Total Aliases
+stats-total-users = Total Users
+stats-total-relays = Total Relays
+stats-total-relocated = Total Relocated
+stats-total-clients = Total Clients
+stats-domain-statistics = Domain Statistics
+stats-table-header-domain = Domain
+stats-table-header-users = Users
+stats-table-header-aliases = Aliases
+stats-table-header-total-quota = Total Quota
+stats-table-header-used-quota = Used Quota
+stats-quota-usage-title = Quota Usage
+stats-quota-usage-overview = Storage Usage Overview
+stats-quota-usage-description = Monitor disk space usage across all domains and users
+stats-quota-usage-percentage = Usage Percentage
+stats-quota-total = Total Quota
+stats-quota-used = Used Quota
+stats-recent-activity-title = Recent Activity
+stats-recent-domains = Recent Domains
+stats-recent-users = Recent Users
+stats-recent-aliases = Recent Aliases
+stats-recent-backups = Recent Backups
+stats-recent-relays = Recent Relays
+stats-recent-relocated = Recent Relocated
+stats-recent-clients = Recent Clients
+
+# Reports
+reports-list-title = Reports
+reports-list-description = View and analyze mail server data with comprehensive reports
+reports-view-report = View Report
+
+# Matrix Report
+reports-matrix-title = Domain Alias Matrix Report
+reports-matrix-description = Comprehensive overview of all domains and their alias status with visual indicators
+reports-status-present = Present and enabled
+reports-status-missing = Missing
+reports-status-disabled = Present but disabled
+reports-legend-title = Status Legend
+
+# Orphaned Aliases & Users Report
+reports-orphaned-aliases-title = Orphaned Aliases & Users Report
+reports-orphaned-aliases-description = Find aliases that reference non-existent users or domains, and users that exist but have no associated aliases
+
+# External Forwarders Report
+reports-external-forwarders-title = External Forwarders Report
+reports-external-forwarders-description = Find aliases that forward to external domains
+
+# Alias Cross-Domain Search Report
+reports-alias-cross-domain-title = Alias Cross-Domain Search
+reports-alias-cross-domain-description = Search for aliases across all domains
+
+# Cross-Database Domain Matrix Report
+reports-cross-db-matrix-title = Cross-Database Domain Matrix
+reports-cross-db-matrix-description = Matrix showing domains present across all databases, whether as primary or backup domains
+reports-database-header = Database
+reports-primary-domain = Domain
+reports-backup-domain = Backup
+reports-not-present = Not Present
+
+# Cross-Database User Distribution Report
+reports-cross-db-user-distribution-title = Cross-Database User Distribution
+reports-cross-db-user-distribution-description = Shows how users are distributed across databases, highlighting duplicates and single-database users
+reports-user-header = User
+reports-present = Present
+reports-no-users = No users found
+reports-no-users-description = No users are configured in the system
+
+# Cross-Database Feature Toggle Report
+reports-cross-db-feature-toggle-title = Cross-Database Feature Toggle Compliance
+reports-cross-db-feature-toggle-description = Shows feature toggle settings across all databases and compliance with organizational policies
+reports-read-only = Read Only
+reports-no-new-users = No New Users
+reports-no-new-domains = No New Domains
+reports-no-password-updates = No Password Updates
+reports-database-status-header = Database Status
+reports-enabled = Enabled
+reports-disabled = Disabled
+
+# Cross-Database Migration Report
+reports-cross-db-migration-title = Cross-Database Migration Status
+reports-cross-db-migration-description = Tracks migration status across all databases and identifies which need updates
+reports-status-header = Status
+reports-last-migration-header = Last Migration
+reports-migration-count-header = Migration Count
+
+# Domain Alias Report
+domains-alias-report-title = Alias Report
+domains-alias-report-description = Overview of all aliases for this domain, including catch-all, required, and common aliases
+domains-existing-aliases-header = Existing Aliases
+
+# Configuration
+config-title = Configuration
+config-description = Manage required aliases and domain-specific overrides.
+config-required-aliases-header = Required Aliases
+config-common-aliases-header = Common Aliases
+config-domain-overrides-header = Domain Overrides
+config-save-button = Save Configuration
+config-cancel-button = Cancel
+config-add-required-alias-button = Add Required Alias
+config-add-common-alias-button = Add Common Alias
+config-remove-alias-button = Remove
+config-promote-button = Promote to Required
+config-demote-button = Demote to Common
+config-required-aliases-description = These aliases are essential for email standards compliance (RFC requirements).
+config-common-aliases-description = These aliases are commonly expected by users and services but not strictly required.
+config-domain-overrides-description = Override required aliases for specific domains.
+config-add-domain-override-button = Add Domain Override
+config-remove-domain-button = Remove Domain
+config-required-aliases-label = Required Aliases
+config-common-aliases-label = Common Aliases
+config-remove-button = Remove
+config-add-alias-button = Add Alias
+config-placeholder-required-alias = Enter new required alias (e.g., postmaster)
+config-placeholder-common-alias = Enter new common alias (e.g., admin)
+config-placeholder-domain = Enter domain (e.g., example.com)
+config-placeholder-domain-alias = Enter alias for {domain}
+
+# Global Feature Toggles
+config-global-features-header = Global Feature Toggles
+config-global-features-description = These settings apply to all databases unless overridden by database-specific settings.
+config-feature-read-only = Read Only
+config-feature-no-new-users = No New Users
+config-feature-no-new-domains = No New Domains
+config-feature-no-password-updates = No Password Updates
+config-feature-database-disabled = Database Disabled
+config-status-enabled = Enabled
+config-status-disabled = Disabled
+
+# Database Feature Toggles
+config-database-features-header = Database Feature Toggles
+config-database-features-description = Database-specific feature restrictions. These override global settings when enabled.
+config-database-disabled-badge = Disabled

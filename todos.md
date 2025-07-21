@@ -134,6 +134,10 @@ In the run_tests.sh does run_unit_tests actually test anything different than ru
 
 In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
 
+✅ If a domain has a catchall then the required and common aliases are not missing in the alias reports. - IMPLEMENTED
+
+✅ Can we reorder the English messages.ftl, there seems to be two about sections etc, it would be good if they where joined. And the same for other sections. - IMPLEMENTED
+
 Improve theme slightly
 - maybe add a subtle background where applicable
 - maybe a different light mode colour scheme

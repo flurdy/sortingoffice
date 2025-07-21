@@ -1031,25 +1031,32 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
         // Get required aliases for this specific domain
         let domain_required_aliases = config.get_required_aliases_for_domain(&domain.domain);
         let domain_common_aliases = config.get_common_aliases_for_domain(&domain.domain);
-        let _domain_all_aliases = config.get_all_aliases_for_domain(&domain.domain);
 
-        // Find missing required aliases
-        let existing_aliases: std::collections::HashSet<String> = domain_aliases
-            .iter()
-            .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
-            .collect();
+        // Find missing required aliases only if there's no catch-all
+        let (missing_required_aliases, missing_common_aliases) = if catch_all_alias.is_none() {
+            let existing_aliases: std::collections::HashSet<String> = domain_aliases
+                .iter()
+                .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+                .collect();
 
-        let missing_required_aliases: Vec<String> = domain_required_aliases
-            .iter()
-            .filter(|required| !existing_aliases.contains(*required))
-            .cloned()
-            .collect();
+            let mut missing_required = domain_required_aliases
+                .iter()
+                .filter(|required| !existing_aliases.contains(*required))
+                .cloned()
+                .collect::<Vec<String>>();
+            missing_required.sort();
 
-        let missing_common_aliases: Vec<String> = domain_common_aliases
-            .iter()
-            .filter(|common| !existing_aliases.contains(*common))
-            .cloned()
-            .collect();
+            let mut missing_common = domain_common_aliases
+                .iter()
+                .filter(|common| !existing_aliases.contains(*common))
+                .cloned()
+                .collect::<Vec<String>>();
+            missing_common.sort();
+
+            (missing_required, missing_common)
+        } else {
+            (Vec::new(), Vec::new())
+        };
 
         let domain_report = DomainAliasReport {
             domain: domain.domain,
@@ -1199,25 +1206,31 @@ pub fn get_domain_alias_report(
     let domain_required_aliases = config.get_required_aliases_for_domain(domain_name);
     let domain_common_aliases = config.get_common_aliases_for_domain(domain_name);
 
-    // Find missing required aliases
-    let existing_aliases: std::collections::HashSet<String> = domain_aliases
-        .iter()
-        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
-        .collect();
+    // Find missing required aliases only if there's no catch-all
+    let (missing_required_aliases, missing_common_aliases) = if catch_all_alias.is_none() {
+        let existing_aliases: std::collections::HashSet<String> = domain_aliases
+            .iter()
+            .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+            .collect();
 
-    let mut missing_required_aliases: Vec<String> = domain_required_aliases
-        .iter()
-        .filter(|required| !existing_aliases.contains(*required))
-        .cloned()
-        .collect();
-    missing_required_aliases.sort();
+        let mut missing_required = domain_required_aliases
+            .iter()
+            .filter(|required| !existing_aliases.contains(*required))
+            .cloned()
+            .collect::<Vec<String>>();
+        missing_required.sort();
 
-    let mut missing_common_aliases: Vec<String> = domain_common_aliases
-        .iter()
-        .filter(|common| !existing_aliases.contains(*common))
-        .cloned()
-        .collect();
-    missing_common_aliases.sort();
+        let mut missing_common = domain_common_aliases
+            .iter()
+            .filter(|common| !existing_aliases.contains(*common))
+            .cloned()
+            .collect::<Vec<String>>();
+        missing_common.sort();
+
+        (missing_required, missing_common)
+    } else {
+        (Vec::new(), Vec::new())
+    };
 
     Ok(DomainAliasReport {
         domain: domain_name.to_string(),

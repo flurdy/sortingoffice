@@ -104,4 +104,6 @@ pub struct DomainFormTemplate<'a> {
     pub form_tooltip_domain: &'a str,
     pub form_tooltip_transport: &'a str,
     pub form_tooltip_enable: &'a str,
+    pub form_enabled: &'a str,
+    pub form_disabled: &'a str,
 }

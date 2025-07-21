@@ -1,5 +1,21 @@
-use crate::templates::domains::*;
-use crate::{db, i18n::get_translation, models::*, render_template_with_title, AppState};
+use crate::{
+    db,
+    handlers::{
+        utils::{
+            get_field_translations,
+            get_entity_form_translations,
+        },
+    },
+    i18n::get_translation,
+    models::{PaginatedResult, PaginationParams, DomainForm, NewDomain},
+    templates::{
+        domains::{
+            DomainFormTemplate, DomainsListTemplate, DomainShowTemplate,
+        },
+    },
+    AppState,
+    render_template_with_title,
+};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},
@@ -208,6 +224,8 @@ async fn handle_domain_form_error(
         form_tooltip_domain: &form_tooltip_domain,
         form_tooltip_transport: &form_tooltip_transport,
         form_tooltip_enable: &form_tooltip_enable,
+        form_enabled: &form_translations["form-enabled"],
+        form_disabled: &form_translations["form-disabled"],
     };
 
     crate::handlers::utils::render_form_template(
@@ -322,9 +340,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     };
 
     // Use helper functions to fetch translations in batches
-    let form_translations =
-        crate::handlers::utils::get_entity_form_translations(&state, &locale, "domains").await;
-    let field_translations = crate::handlers::utils::get_field_translations(
+    let mut form_translations = get_entity_form_translations(&state, &locale, "domains").await;
+    let field_translations = get_field_translations(
         &state,
         &locale,
         "domains",
@@ -332,23 +349,28 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     )
     .await;
 
+    // Merge field translations into form translations
+    form_translations.extend(field_translations);
+
     let content_template = DomainFormTemplate {
-        title: &form_translations["domains-new-domain"],
+        title: &form_translations["domains-add-title"],
         domain: None,
         form,
         error: None,
         form_error: &form_translations["form-error"],
-        form_domain: &field_translations["domains-field-domain"],
-        form_transport: &field_translations["domains-field-transport"],
-        form_active: &field_translations["domains-field-active"],
+        form_domain: &form_translations["domains-field-domain"],
+        form_transport: &form_translations["domains-field-transport"],
+        form_active: &form_translations["domains-field-active"],
         form_cancel: &form_translations["form-cancel"],
-        form_create_domain: &form_translations["action-save"],
-        form_update_domain: &form_translations["action-save"],
-        form_placeholder_domain: &field_translations["domains-placeholder-domain"],
-        form_placeholder_transport: &field_translations["domains-placeholder-transport"],
-        form_tooltip_domain: &field_translations["domains-field-domain-help"],
-        form_tooltip_transport: &field_translations["domains-field-transport-help"],
-        form_tooltip_enable: &field_translations["domains-field-active-help"],
+        form_create_domain: &form_translations["form-create-domain"],
+        form_update_domain: &form_translations["form-update-domain"],
+        form_placeholder_domain: &form_translations["form-placeholder-domain"],
+        form_placeholder_transport: &form_translations["form-placeholder-transport"],
+        form_tooltip_domain: &form_translations["domains-field-domain-help"],
+        form_tooltip_transport: &form_translations["domains-field-transport-help"],
+        form_tooltip_enable: &form_translations["domains-field-active-help"],
+        form_enabled: &form_translations["form-enabled"],
+        form_disabled: &form_translations["form-disabled"],
     };
 
     // Use helper function for template rendering
@@ -357,7 +379,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         &state,
         &locale,
         &headers,
-        form_translations["domains-new-domain"].clone(),
+        form_translations["domains-add-title"].clone(),
     )
     .await
 }
@@ -417,8 +439,10 @@ pub async fn show(
         destination_header: &translations["reports-destination-header"],
         required_aliases_header: &translations["reports-required-aliases-header"],
         missing_aliases_header: &translations["reports-missing-aliases-header"],
-        missing_required_alias_header: &translations["reports-missing-required-aliases-header"],
-        missing_common_aliases_header: &translations["reports-missing-common-aliases-header"],
+        missing_required_alias_header: &translations
+            ["reports-missing-required-aliases-header"],
+        missing_common_aliases_header: &translations
+            ["reports-missing-common-aliases-header"],
         mail_header: &translations["reports-mail-header"],
         status_header: &translations["reports-status-header"],
         enabled_header: &translations["reports-enabled-header"],
@@ -516,6 +540,8 @@ pub async fn edit(
         form_tooltip_domain: &field_translations["domains-field-domain-help"],
         form_tooltip_transport: &field_translations["domains-field-transport-help"],
         form_tooltip_enable: &field_translations["domains-field-active-help"],
+        form_enabled: &form_translations["form-enabled"],
+        form_disabled: &form_translations["form-disabled"],
     };
 
     // Use helper function for template rendering
