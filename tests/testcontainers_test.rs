@@ -15,9 +15,9 @@ mod tests {
         result: i32,
     }
 
-    #[test]
-    fn test_testcontainers_mysql_works() {
-        let container = setup_test_db();
+    #[tokio::test]
+    async fn test_testcontainers_mysql_works() {
+        let container = setup_test_db().await;
         let pool = container.get_pool();
 
         // Test that we can connect and execute a simple query
@@ -30,9 +30,9 @@ mod tests {
         cleanup_test_db(&container);
     }
 
-    #[test]
-    fn test_testcontainers_tables_exist() {
-        let container = setup_test_db();
+    #[tokio::test]
+    async fn test_testcontainers_tables_exist() {
+        let container = setup_test_db().await;
         let pool = container.get_pool();
 
         let mut conn = pool.get().expect("Failed to get connection");
@@ -59,13 +59,13 @@ mod tests {
         cleanup_test_db(&container);
     }
 
-    #[test]
-    fn test_testcontainers_isolation() {
+    #[tokio::test]
+    async fn test_testcontainers_isolation() {
         // Test that each test gets its own isolated database
-        let container1 = setup_test_db();
+        let container1 = setup_test_db().await;
         let pool1 = container1.get_pool();
 
-        let container2 = setup_test_db();
+        let container2 = setup_test_db().await;
         let pool2 = container2.get_pool();
 
         // Insert data in first container

@@ -1,6 +1,8 @@
 use anyhow::Result;
 use reqwest;
-use testcontainers::{clients, Container, GenericImage};
+use testcontainers::core::ContainerPort;
+use testcontainers::runners::AsyncRunner;
+use testcontainers::GenericImage;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
@@ -49,13 +51,14 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
     }
 }
 
-async fn setup_driver<'a>(
-    docker: &'a clients::Cli,
-) -> Result<(WebDriver, Container<'a, GenericImage>, u16)> {
+async fn setup_driver() -> Result<(WebDriver, u16)> {
     // Start Selenium standalone Chrome container
-    let selenium = docker
-        .run(GenericImage::new("selenium/standalone-chrome", "latest").with_exposed_port(4444));
-    let port = selenium.get_host_port_ipv4(4444);
+    let selenium = AsyncRunner::start(
+        GenericImage::new("selenium/standalone-chrome", "latest")
+            .with_exposed_port(ContainerPort::Tcp(4444)),
+    )
+    .await?;
+    let port = selenium.get_host_port_ipv4(4444).await?;
 
     // Wait for Selenium to be ready
     if let Err(e) = wait_for_selenium_ready(port, Duration::from_secs(20)).await {
@@ -84,7 +87,7 @@ async fn setup_driver<'a>(
     )
     .await??;
     println!("✅ Connected to Selenium at http://localhost:{}", port);
-    Ok((driver, selenium, APP_PORT))
+    Ok((driver, APP_PORT))
 }
 
 // Helper function to authenticate the driver
@@ -180,8 +183,7 @@ where
 async fn test_homepage_loads_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🌐 Testing homepage loads in headless browser...");
 
@@ -217,8 +219,7 @@ async fn test_homepage_loads_headless() -> Result<()> {
 async fn test_aliases_list_page_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("📧 Testing aliases list page in headless browser...");
 
@@ -254,8 +255,7 @@ async fn test_aliases_list_page_headless() -> Result<()> {
 async fn test_dashboard_navigation_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🧭 Testing dashboard navigation in headless browser...");
 
@@ -288,8 +288,7 @@ async fn test_dashboard_navigation_headless() -> Result<()> {
 async fn test_domains_list_page_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🌍 Testing domains list page in headless browser...");
 
@@ -325,8 +324,7 @@ async fn test_domains_list_page_headless() -> Result<()> {
 async fn test_users_list_page_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("👥 Testing users list page in headless browser...");
 
@@ -362,8 +360,7 @@ async fn test_users_list_page_headless() -> Result<()> {
 async fn test_clients_list_page_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("💻 Testing clients list page in headless browser...");
 
@@ -400,8 +397,7 @@ async fn test_responsive_design_headless() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _container, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
             // Test desktop viewport
             timeout10s!(
                 driver.set_window_rect(0, 0, 1920, 1080),
@@ -439,8 +435,7 @@ async fn test_responsive_design_headless() -> Result<()> {
 async fn test_error_pages_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🚫 Testing error pages in headless browser...");
 
@@ -473,8 +468,7 @@ async fn test_error_pages_headless() -> Result<()> {
 async fn test_form_validation_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("📝 Testing form validation in headless browser...");
 
@@ -514,8 +508,7 @@ async fn test_form_validation_headless() -> Result<()> {
 async fn test_navigation_menu_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🧭 Testing navigation menu in headless browser...");
 
@@ -551,8 +544,7 @@ async fn test_navigation_menu_headless() -> Result<()> {
 async fn test_page_titles_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("📄 Testing page titles in headless browser...");
 
@@ -587,8 +579,7 @@ async fn test_page_titles_headless() -> Result<()> {
 async fn test_loading_states_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("⏳ Testing loading states in headless browser...");
 
@@ -620,8 +611,7 @@ async fn test_loading_states_headless() -> Result<()> {
 async fn test_accessibility_basics_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("♿ Testing accessibility basics in headless browser...");
 
@@ -652,8 +642,7 @@ async fn test_accessibility_basics_headless() -> Result<()> {
 async fn test_cross_browser_compatibility_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🌐 Testing cross-browser compatibility in headless browser...");
 
@@ -697,8 +686,7 @@ async fn test_cross_browser_compatibility_headless() -> Result<()> {
 async fn test_htmx_compatibility_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("⚡ Testing HTMX compatibility in headless browser...");
 
@@ -738,8 +726,7 @@ async fn test_htmx_compatibility_headless() -> Result<()> {
 async fn test_performance_metrics_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("⚡ Testing performance metrics in headless browser...");
 
@@ -771,8 +758,7 @@ async fn test_performance_metrics_headless() -> Result<()> {
 async fn test_add_alias_domain_search_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🔎 Testing domain search in add alias form (headless)...");
 
@@ -860,8 +846,7 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
 async fn test_database_dropdown_selection_headless() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _selenium, app_port) = setup_driver(&docker).await?;
+            let (driver, app_port) = setup_driver().await?;
 
             println!("🗄️ Testing database dropdown selection in headless browser...");
 

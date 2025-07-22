@@ -19,16 +19,14 @@ mod tests {
 
     async fn create_test_app() -> (Router, AppState, TestContainer) {
         // Use testcontainers for proper isolation
-        let container = setup_test_db();
+        let container = setup_test_db().await;
+        let port = container.get_mysql_port().await;
         let _pool = container.get_pool();
 
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!(
-                "mysql://root@127.0.0.1:{}/mysql",
-                container.get_mysql_port()
-            ),
+            url: format!("mysql://root@127.0.0.1:{}/mysql", port),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -52,7 +50,8 @@ mod tests {
         let expiry = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() + 3600; // 1 hour in the future
+            .as_secs()
+            + 3600; // 1 hour in the future
         let cookie = format!(
             "authenticated={}:edit:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax",
             expiry

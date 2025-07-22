@@ -85,9 +85,9 @@ run_integration_tests() {
     export RUST_BACKTRACE=1
     export RUST_TEST_THREADS=1
 
-    # Run the integration tests from tests/ directory
+    # Run only the integration tests (excluding UI tests)
     print_status "Running integration tests with cargo..."
-    cargo test --test '*' --verbose
+    cargo test --test integration --test handlers --test testcontainers_test --verbose
 
     print_success "Integration tests completed successfully!"
 }
@@ -301,8 +301,8 @@ run_all_tests() {
     run_integration_tests
     echo ""
     
-    # Run containerized UI tests
-    run_containerized_ui_tests
+    # Run UI tests (both headless and containerized)
+    run_ui_tests
 }
 
 # Main script logic

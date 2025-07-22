@@ -152,6 +152,12 @@ In the run_tests.sh does run_ui_containerized which uses databases in testcontai
 
 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 
+First column of aliases list (mail) is missing translations.
+
+Like the users table where there is a domain column which is extracted from the id, can we add a similar domain column to the aliases list, extracted from the mail field?
+
+Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail.
+
 Any way we can ensure no seeding happens on prod databases?
 
 Any way we can block migrations on prod databases?
@@ -159,3 +165,7 @@ Any way we can block migrations on prod databases?
 Can we make certain tables optional? Relays, relocated and clients are not in every db.
 
 On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough.
+
+For clients and relays, the status is either OK, or REJECT.
+
+In the UI I seem unable to edit a relay and relocated.

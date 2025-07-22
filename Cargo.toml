@@ -76,8 +76,8 @@ bigdecimal = { version = "0.4.8", features = ["serde"] }
 r2d2 = "0.8.10"
 
 # Testcontainers for isolated test databases
-testcontainers = "0.15"
-testcontainers-modules = { version = "0.3", features = ["mysql"] }
+testcontainers = { version = "0.24", features = ["blocking"] }
+testcontainers-modules = { version = "0.12.1", features = ["mysql"] }
 
 [dev-dependencies]
 tokio-test = "0.4"

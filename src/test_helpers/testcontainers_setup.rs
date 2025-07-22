@@ -3,8 +3,8 @@ use diesel::mysql::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::Once;
-use testcontainers::{clients::Cli, Container};
-use testcontainers_modules;
+use testcontainers::runners::AsyncRunner;
+use testcontainers::ContainerAsync;
 use testcontainers_modules::mysql::Mysql;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
@@ -13,29 +13,27 @@ static INIT: Once = Once::new();
 
 pub struct TestContainer {
     pub pool: DbPool,
-    _docker: Box<Cli>,
-    _container: Container<'static, Mysql>,
+    _container: ContainerAsync<Mysql>,
 }
 
 impl TestContainer {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         INIT.call_once(|| {
             std::env::set_var("RUST_LOG", "debug");
             let _ = tracing_subscriber::fmt::try_init();
         });
 
-        // Start testcontainers client (not static)
-        let docker = Box::new(Cli::default());
-        // SAFETY: We must extend the container's lifetime to 'static for the struct, so we leak the container only (not the client)
-        let mysql_container: Container<'static, Mysql> = unsafe {
-            std::mem::transmute::<Container<'_, Mysql>, Container<'static, Mysql>>(
-                docker.run(Mysql::default()),
-            )
-        };
+        // Start MySQL container using AsyncRunner
+        let mysql_container = AsyncRunner::start(Mysql::default())
+            .await
+            .expect("Failed to start MySQL container");
 
         // Get connection details
         let host = "127.0.0.1";
-        let port = mysql_container.get_host_port_ipv4(3306);
+        let port = mysql_container
+            .get_host_port_ipv4(3306)
+            .await
+            .expect("get port");
 
         // Create database URL
         let database_url = format!("mysql://root@{}:{}/mysql", host, port);
@@ -55,7 +53,6 @@ impl TestContainer {
 
         TestContainer {
             pool,
-            _docker: docker,
             _container: mysql_container,
         }
     }
@@ -64,19 +61,24 @@ impl TestContainer {
         &self.pool
     }
 
-    pub fn get_mysql_port(&self) -> u16 {
-        self._container.get_host_port_ipv4(3306)
+    pub async fn get_mysql_port(&self) -> u16 {
+        self._container
+            .get_host_port_ipv4(3306)
+            .await
+            .expect("get port")
     }
 }
 
 impl Default for TestContainer {
     fn default() -> Self {
-        Self::new()
+        // This is a fallback for when async is not available
+        // In practice, we should use setup_test_db().await
+        panic!("TestContainer::default() is not supported. Use setup_test_db().await instead.")
     }
 }
 
-pub fn setup_test_db() -> TestContainer {
-    TestContainer::new()
+pub async fn setup_test_db() -> TestContainer {
+    TestContainer::new().await
 }
 
 pub fn cleanup_test_db(_container: &TestContainer) {

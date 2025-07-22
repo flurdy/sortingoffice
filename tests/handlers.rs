@@ -16,10 +16,22 @@ mod tests {
         AppState,
     };
 
-    use sortingoffice::test_helpers::common::{cleanup_test_db, setup_test_db, unique_test_id};
+    use sortingoffice::test_helpers::common::{cleanup_test_db, unique_test_id};
+    use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
+
+    // Store the TestContainer at the module level so it lives for all tests
+    static mut TEST_CONTAINER: Option<TestContainer> = None;
 
     async fn create_test_app() -> (Router, AppState) {
-        let _pool = setup_test_db();
+        // SAFETY: Only used in test context, single-threaded
+        let container = unsafe {
+            if TEST_CONTAINER.is_none() {
+                TEST_CONTAINER = Some(setup_test_db().await);
+            }
+            TEST_CONTAINER.as_ref().unwrap()
+        };
+        let port = container.get_mysql_port().await;
+        let _pool = container.get_pool();
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
         // Load translation files for testing
@@ -34,11 +46,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: std::env::var("TEST_DATABASE_URL")
-                .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| {
-                    "mysql://root:password@localhost/sortingoffice_test".to_string()
-                }),
+            url: format!("mysql://root@127.0.0.1:{}/mysql", port),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -56,7 +64,10 @@ mod tests {
         (app, state)
     }
 
-    async fn create_test_app_with_dbs(db_configs: Vec<DatabaseConfig>) -> (Router, AppState) {
+    async fn create_test_app_with_dbs(
+        db_configs: Vec<DatabaseConfig>,
+        port: u16,
+    ) -> (Router, AppState) {
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
         // Load translation files for testing
@@ -66,6 +77,15 @@ mod tests {
         let _ = i18n.load_locale("fr-FR").await;
         let _ = i18n.load_locale("de-DE").await;
         let config = Config::default();
+        // Update all db_configs to use the dynamic port
+        let db_configs: Vec<DatabaseConfig> = db_configs
+            .into_iter()
+            .map(|mut cfg| {
+                let url = cfg.url.replace(":3306", &format!(":{}", port));
+                cfg.url = url;
+                cfg
+            })
+            .collect();
         let db_manager = DatabaseManager::new(db_configs)
             .await
             .expect("Failed to create database manager");
@@ -88,7 +108,8 @@ mod tests {
         let expiry = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() + 3600; // 1 hour in the future
+            .as_secs()
+            + 3600; // 1 hour in the future
         let role_str = match role {
             AdminRole::ReadOnly => "read-only",
             AdminRole::Edit => "edit",
@@ -104,7 +125,7 @@ mod tests {
     #[tokio::test]
     async fn test_domains_list() {
         let (app, _state) = create_test_app().await;
-        let _pool = setup_test_db();
+        let container = setup_test_db().await;
 
         // Create test domain with unique name
         let unique_id = unique_test_id();
@@ -113,7 +134,8 @@ mod tests {
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
-        let _domain = db::create_domain(&_pool, new_domain).unwrap();
+        let pool = container.get_pool();
+        let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
             .oneshot(
@@ -130,8 +152,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was created
-        let _pool = setup_test_db();
-        let domains = db::get_domains(&_pool).unwrap();
+        let domains = db::get_domains(&pool).unwrap();
         assert!(!domains.is_empty());
         assert!(domains
             .iter()
@@ -1363,7 +1384,7 @@ mod tests {
         use sortingoffice::handlers::auth::{login, LoginRequest};
         use sortingoffice::AppState;
 
-        let _pool = setup_test_db();
+        let _pool = setup_test_db().await;
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config {
             admins: vec![AdminCredentials {
@@ -1421,7 +1442,7 @@ mod tests {
         use sortingoffice::handlers::auth::{login, LoginRequest};
         use sortingoffice::AppState;
 
-        let _pool = setup_test_db();
+        let _pool = setup_test_db().await;
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
         let db_config = vec![DatabaseConfig {
@@ -1828,8 +1849,8 @@ mod tests {
     async fn test_database_dropdown() {
         use diesel::RunQueryDsl;
         use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-        let container = setup_test_db();
-        let port = container.get_mysql_port();
+        let container = setup_test_db().await;
+        let port = container.get_mysql_port().await;
         let url1 = format!("mysql://root@127.0.0.1:{}/testdb1", port);
         let url2 = format!("mysql://root@127.0.0.1:{}/testdb2", port);
         // Create both databases in the container
@@ -1858,7 +1879,7 @@ mod tests {
             field_map: std::collections::HashMap::new(),
         };
         let (app, _state) =
-            create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()]).await;
+            create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()], port).await;
 
         let response = app
             .oneshot(

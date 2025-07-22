@@ -430,10 +430,8 @@ pub async fn show(
         destination_header: &translations["reports-destination-header"],
         required_aliases_header: &translations["reports-required-aliases-header"],
         missing_aliases_header: &translations["reports-missing-aliases-header"],
-        missing_required_alias_header: &translations
-            ["reports-missing-required-aliases-header"],
-        missing_common_aliases_header: &translations
-            ["reports-missing-common-aliases-header"],
+        missing_required_alias_header: &translations["reports-missing-required-aliases-header"],
+        missing_common_aliases_header: &translations["reports-missing-common-aliases-header"],
         mail_header: &translations["reports-mail-header"],
         status_header: &translations["reports-status-header"],
         enabled_header: &translations["reports-enabled-header"],
@@ -515,24 +513,69 @@ pub async fn edit(
     .await;
 
     let content_template = DomainFormTemplate {
-        title: form_translations.get("domains-edit-domain").map(|s| s.as_str()).unwrap_or("Edit Domain"),
+        title: form_translations
+            .get("domains-edit-domain")
+            .map(|s| s.as_str())
+            .unwrap_or("Edit Domain"),
         domain: Some(domain),
         form,
         error: None,
-        form_error: form_translations.get("form-error").map(|s| s.as_str()).unwrap_or("Form Error"),
-        form_domain: field_translations.get("domains-field-domain").map(|s| s.as_str()).unwrap_or("Domain"),
-        form_transport: field_translations.get("domains-field-transport").map(|s| s.as_str()).unwrap_or("Transport"),
-        form_active: field_translations.get("domains-field-active").map(|s| s.as_str()).unwrap_or("Active"),
-        form_cancel: form_translations.get("form-cancel").map(|s| s.as_str()).unwrap_or("Cancel"),
-        form_create_domain: form_translations.get("action-save").map(|s| s.as_str()).unwrap_or("Save"),
-        form_update_domain: form_translations.get("action-save").map(|s| s.as_str()).unwrap_or("Save"),
-        form_placeholder_domain: field_translations.get("domains-placeholder-domain").map(|s| s.as_str()).unwrap_or("example.com"),
-        form_placeholder_transport: field_translations.get("domains-placeholder-transport").map(|s| s.as_str()).unwrap_or("virtual"),
-        form_tooltip_domain: field_translations.get("domains-field-domain-help").map(|s| s.as_str()).unwrap_or("Domain tooltip"),
-        form_tooltip_transport: field_translations.get("domains-field-transport-help").map(|s| s.as_str()).unwrap_or("Transport tooltip"),
-        form_tooltip_enable: field_translations.get("domains-field-active-help").map(|s| s.as_str()).unwrap_or("Active tooltip"),
-        form_enabled: form_translations.get("form-enabled").map(|s| s.as_str()).unwrap_or("Enabled"),
-        form_disabled: form_translations.get("form-disabled").map(|s| s.as_str()).unwrap_or("Disabled"),
+        form_error: form_translations
+            .get("form-error")
+            .map(|s| s.as_str())
+            .unwrap_or("Form Error"),
+        form_domain: field_translations
+            .get("domains-field-domain")
+            .map(|s| s.as_str())
+            .unwrap_or("Domain"),
+        form_transport: field_translations
+            .get("domains-field-transport")
+            .map(|s| s.as_str())
+            .unwrap_or("Transport"),
+        form_active: field_translations
+            .get("domains-field-active")
+            .map(|s| s.as_str())
+            .unwrap_or("Active"),
+        form_cancel: form_translations
+            .get("form-cancel")
+            .map(|s| s.as_str())
+            .unwrap_or("Cancel"),
+        form_create_domain: form_translations
+            .get("action-save")
+            .map(|s| s.as_str())
+            .unwrap_or("Save"),
+        form_update_domain: form_translations
+            .get("action-save")
+            .map(|s| s.as_str())
+            .unwrap_or("Save"),
+        form_placeholder_domain: field_translations
+            .get("domains-placeholder-domain")
+            .map(|s| s.as_str())
+            .unwrap_or("example.com"),
+        form_placeholder_transport: field_translations
+            .get("domains-placeholder-transport")
+            .map(|s| s.as_str())
+            .unwrap_or("virtual"),
+        form_tooltip_domain: field_translations
+            .get("domains-field-domain-help")
+            .map(|s| s.as_str())
+            .unwrap_or("Domain tooltip"),
+        form_tooltip_transport: field_translations
+            .get("domains-field-transport-help")
+            .map(|s| s.as_str())
+            .unwrap_or("Transport tooltip"),
+        form_tooltip_enable: field_translations
+            .get("domains-field-active-help")
+            .map(|s| s.as_str())
+            .unwrap_or("Active tooltip"),
+        form_enabled: form_translations
+            .get("form-enabled")
+            .map(|s| s.as_str())
+            .unwrap_or("Enabled"),
+        form_disabled: form_translations
+            .get("form-disabled")
+            .map(|s| s.as_str())
+            .unwrap_or("Disabled"),
     };
 
     // Use helper function for template rendering

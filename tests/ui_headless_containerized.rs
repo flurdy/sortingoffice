@@ -1,6 +1,10 @@
 use anyhow::Result;
 use reqwest;
-use testcontainers::{clients, Container, GenericImage};
+use testcontainers::core::Mount;
+use testcontainers::core::{ContainerPort, Host};
+use testcontainers::runners::AsyncRunner;
+use testcontainers::GenericImage;
+use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
@@ -67,7 +71,7 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
                 if resp.status().is_success() {
                     if let Ok(json) = resp.json::<serde_json::Value>().await {
                         if json["value"]["ready"].as_bool().unwrap_or(false) {
-                            println!("✅ Selenium is ready on port {}", port);
+                            println!("✅ Selenium is ready on port {:?}", port);
                             return Ok(());
                         }
                     }
@@ -85,47 +89,55 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
     }
 }
 
-async fn setup_containerized_test<'a>(
-    docker: &'a clients::Cli,
-) -> Result<(WebDriver, Container<'a, GenericImage>, u16)> {
+async fn setup_containerized_test() -> Result<(WebDriver, u16)> {
     // Start MySQL container for the application
-    let mysql = docker.run(
-        GenericImage::new("mysql", "8.0")
-            .with_env_var("MYSQL_ROOT_PASSWORD", "rootpassword")
-            .with_env_var("MYSQL_DATABASE", "sortingoffice")
-            .with_env_var("MYSQL_USER", "sortingoffice")
-            .with_env_var("MYSQL_PASSWORD", "sortingoffice")
-            .with_exposed_port(3306),
+    let mysql_image = GenericImage::new("mysql", "8.0")
+        .with_env_var("MYSQL_ROOT_PASSWORD", "rootpassword")
+        .with_env_var("MYSQL_DATABASE", "sortingoffice")
+        .with_env_var("MYSQL_USER", "sortingoffice")
+        .with_env_var("MYSQL_PASSWORD", "sortingoffice")
+        .with_mapped_port(3306, ContainerPort::Tcp(3306));
+    let mysql = AsyncRunner::start(mysql_image).await?;
+    let mysql_port = mysql.get_host_port_ipv4(3306).await?;
+
+    // Print the dynamic port for debugging and for use in seed scripts
+    println!(
+        "[testcontainers] MySQL is running on dynamic port: {}",
+        mysql_port
     );
-    let mysql_port = mysql.get_host_port_ipv4(3306);
+    println!("[testcontainers] Use this connection string for DB access: mysql://sortingoffice:sortingoffice@localhost:{}/sortingoffice", mysql_port);
+    // NOTE: Use this port for any DB connections or seed scripts in this test run.
 
     // Wait for MySQL to be ready
-    println!("⏳ Waiting for MySQL to be ready on port {}...", mysql_port);
+    println!(
+        "⏳ Waiting for MySQL to be ready on port {:?}...",
+        mysql_port
+    );
     tokio::time::sleep(Duration::from_secs(10)).await;
 
     // Start Selenium standalone Chrome container
-    let selenium = docker.run(
-        GenericImage::new("selenium/standalone-chrome", "latest")
-            .with_exposed_port(4444)
-            .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-            .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-            .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-            .with_env_var("SE_START_XVFB", "false")
-            .with_env_var("SE_SCREEN_WIDTH", "1920")
-            .with_env_var("SE_SCREEN_HEIGHT", "1080")
-            .with_env_var("SE_SCREEN_DEPTH", "24")
-            .with_env_var("SE_SCREEN_DPI", "96")
-            .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-            .with_env_var("SE_VNC_NO_PASSWORD", "1")
-            .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-            .with_env_var("SE_NODE_HOST", "localhost")
-            .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-            .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-            .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-            .with_env_var("SE_OPTS", "--host-resolver-rules='MAP * 127.0.0.1'")
-            .with_volume("/dev/shm", "/dev/shm"),
-    );
-    let selenium_port = selenium.get_host_port_ipv4(4444);
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+        .with_env_var("SE_START_XVFB", "false")
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1")
+        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+        .with_env_var("SE_OPTS", "--host-resolver-rules='MAP * 127.0.0.1'")
+        .with_host("host.docker.internal", Host::HostGateway)
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
+        .with_mapped_port(4444, ContainerPort::Tcp(4444));
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
 
     // Wait for Selenium to be ready
     timeout30s!(
@@ -149,7 +161,7 @@ async fn setup_containerized_test<'a>(
 
     let driver = timeout(
         Duration::from_secs(10),
-        WebDriver::new(&format!("http://localhost:{}", selenium_port), caps),
+        WebDriver::new(&format!("http://localhost:{:?}", selenium_port), caps),
     )
     .await??;
     println!(
@@ -157,7 +169,7 @@ async fn setup_containerized_test<'a>(
         selenium_port
     );
 
-    Ok((driver, mysql, mysql_port))
+    Ok((driver, mysql_port))
 }
 
 // Helper function to authenticate the driver
@@ -253,8 +265,7 @@ where
 async fn test_homepage_loads_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _mysql, _mysql_port) = setup_containerized_test(&docker).await?;
+            let (driver, _mysql_port) = setup_containerized_test().await?;
 
             println!("🌐 Testing homepage loads with containerized database...");
 
@@ -292,8 +303,7 @@ async fn test_homepage_loads_containerized() -> Result<()> {
 async fn test_domain_search_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _mysql, _mysql_port) = setup_containerized_test(&docker).await?;
+            let (driver, _mysql_port) = setup_containerized_test().await?;
 
             println!("🔍 Testing domain search with containerized database...");
 
@@ -348,8 +358,7 @@ async fn test_domain_search_containerized() -> Result<()> {
 async fn test_navigation_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let docker = clients::Cli::default();
-            let (driver, _mysql, _mysql_port) = setup_containerized_test(&docker).await?;
+            let (driver, _mysql_port) = setup_containerized_test().await?;
 
             println!("🧭 Testing navigation with containerized database...");
 
@@ -395,4 +404,14 @@ async fn test_navigation_containerized() -> Result<()> {
         Duration::from_secs(90),
     )
     .await
+}
+
+#[tokio::test]
+async fn test_minimal_async_testcontainers() {
+    use testcontainers::{runners::AsyncRunner, GenericImage};
+    let image = GenericImage::new("hello-world", "latest");
+    let _container = AsyncRunner::start(image)
+        .await
+        .expect("Failed to start hello-world container");
+    // If this compiles and runs, async API is available
 }
