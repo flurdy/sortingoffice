@@ -39,7 +39,7 @@ help:
 	@echo "  make install    - Install dependencies"
 	@echo "  make test       - Run all tests (unit + integration + UI)"
 	@echo "  make test-unit  - Run only unit tests"
-	@echo "  make test-integration - Run only integration tests"
+	@echo "  make test-integration - Run only integration tests (set TEST_THREADS=N for parallelism, default 8)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-ui-dev - Run only headless UI tests"
 	@echo "  make test-all   - Run all tests (unit + integration + UI)"
@@ -106,7 +106,7 @@ test-unit:
 .PHONY: test-integration
 test-integration:
 	@echo "Running integration tests..."
-	@tests/run_tests.sh integration
+	@TEST_THREADS=$${TEST_THREADS:-8} tests/run_tests.sh integration
 
 .PHONY: test-ui
 test-ui:

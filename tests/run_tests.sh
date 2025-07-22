@@ -59,15 +59,27 @@ run_unit_tests() {
     print_status "Running unit tests for sortingoffice..."
     
     # Set test environment
-    export RUST_LOG=debug
+    export RUST_LOG=error
     export RUST_BACKTRACE=1
     export RUST_TEST_THREADS=1
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
 
     # Run only the unit tests (tests in source files)
     print_status "Running unit tests with cargo..."
-    cargo test --lib --verbose
-
-    print_success "Unit tests completed successfully!"
+    start_time=$(date +%s)
+    if cargo test --lib; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Unit tests completed successfully in ${duration}s!"
+        echo "[CI-SUMMARY] UNIT PASS ${duration}s"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Unit tests failed in ${duration}s!"
+        echo "[CI-SUMMARY] UNIT FAIL ${duration}s"
+        exit 1
+    fi
 }
 
 # Function to run integration tests
@@ -81,15 +93,27 @@ run_integration_tests() {
     fi
 
     # Set test environment
-    export RUST_LOG=debug
+    export RUST_LOG=error
     export RUST_BACKTRACE=1
-    export RUST_TEST_THREADS=1
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
+    TEST_THREADS="${TEST_THREADS:-8}"
 
     # Run only the integration tests (excluding UI tests)
-    print_status "Running integration tests with cargo..."
-    cargo test --test integration --test handlers --test testcontainers_test --verbose
-
-    print_success "Integration tests completed successfully!"
+    print_status "Running integration tests with cargo (threads: $TEST_THREADS)..."
+    start_time=$(date +%s)
+    if cargo test --test integration --test handlers --test testcontainers_test -- --test-threads=$TEST_THREADS; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Integration tests completed successfully in ${duration}s!"
+        echo "[CI-SUMMARY] INTEGRATION PASS ${duration}s"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Integration tests failed in ${duration}s!"
+        echo "[CI-SUMMARY] INTEGRATION FAIL ${duration}s"
+        exit 1
+    fi
 }
 
 # Function to check if application is healthy
@@ -156,10 +180,17 @@ run_ui_tests() {
 
     # Run the headless UI tests (now the only UI tests)
     print_status "Running headless UI tests with testcontainers..."
+    start_time=$(date +%s)
     if cargo test --test ui_headless -- --nocapture --test-threads=1; then
-        print_success "Headless UI tests passed!"
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Headless UI tests passed in ${duration}s!"
+        echo "[CI-SUMMARY] UI PASS ${duration}s"
     else
-        print_error "Headless UI tests failed!"
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Headless UI tests failed in ${duration}s!"
+        echo "[CI-SUMMARY] UI FAIL ${duration}s"
         exit 1
     fi
 
@@ -292,17 +323,16 @@ setup_ui_tests() {
 # Function to run all tests
 run_all_tests() {
     print_status "Running all tests..."
-    
-    # Run unit tests first
+    start_all=$(date +%s)
     run_unit_tests
     echo ""
-    
-    # Run integration tests
     run_integration_tests
     echo ""
-    
-    # Run UI tests (both headless and containerized)
     run_ui_tests
+    end_all=$(date +%s)
+    duration_all=$((end_all - start_all))
+    print_success "All tests completed in ${duration_all}s!"
+    echo "[CI-SUMMARY] ALL PASS ${duration_all}s"
 }
 
 # Main script logic

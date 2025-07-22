@@ -18,15 +18,15 @@ mod tests {
     use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
 
     async fn create_test_app() -> (Router, AppState, TestContainer) {
-        // Use testcontainers for proper isolation
         let container = setup_test_db().await;
-        let port = container.get_mysql_port().await;
-        let _pool = container.get_pool();
+        let _ = container.get_pool(); // keep for possible future use
+        let schema = container.get_schema();
+        let port = container.get_port();
 
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/mysql", port),
+            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];

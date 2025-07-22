@@ -17,21 +17,12 @@ mod tests {
     };
 
     use sortingoffice::test_helpers::common::{cleanup_test_db, unique_test_id};
-    use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
-
-    // Store the TestContainer at the module level so it lives for all tests
-    static mut TEST_CONTAINER: Option<TestContainer> = None;
+    use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 
     async fn create_test_app() -> (Router, AppState) {
-        // SAFETY: Only used in test context, single-threaded
-        let container = unsafe {
-            if TEST_CONTAINER.is_none() {
-                TEST_CONTAINER = Some(setup_test_db().await);
-            }
-            TEST_CONTAINER.as_ref().unwrap()
-        };
-        let port = container.get_mysql_port().await;
-        let _pool = container.get_pool();
+        let container = setup_test_db().await;
+        let schema = container.get_schema();
+        let port = container.get_port();
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
         // Load translation files for testing
@@ -46,7 +37,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/mysql", port),
+            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -1850,7 +1841,7 @@ mod tests {
         use diesel::RunQueryDsl;
         use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
         let container = setup_test_db().await;
-        let port = container.get_mysql_port().await;
+        let port = container.get_port();
         let url1 = format!("mysql://root@127.0.0.1:{}/testdb1", port);
         let url2 = format!("mysql://root@127.0.0.1:{}/testdb2", port);
         // Create both databases in the container

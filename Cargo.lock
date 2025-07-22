@@ -3284,6 +3284,7 @@ dependencies = [
  "fantoccini",
  "hyper 1.6.0",
  "log",
+ "once_cell",
  "r2d2",
  "reqwest 0.11.27",
  "serde",

@@ -2,6 +2,7 @@
 mod tests {
     use diesel::{QueryableByName, RunQueryDsl};
     use sortingoffice::test_helpers::testcontainers_setup::{cleanup_test_db, setup_test_db};
+    // No changes needed to connection string, as these tests use the pool directly
 
     #[derive(QueryableByName)]
     struct CountResult {

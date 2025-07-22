@@ -1,88 +1,104 @@
 use crate::DbPool;
 use diesel::mysql::MysqlConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::RunQueryDsl;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::Once;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::ContainerAsync;
 use testcontainers_modules::mysql::Mysql;
+use tokio::sync::OnceCell;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 static INIT: Once = Once::new();
+static SHARED_CONTAINER: OnceCell<ContainerAsync<Mysql>> = OnceCell::const_new();
+static SHARED_PORT: OnceCell<u16> = OnceCell::const_new();
 
 pub struct TestContainer {
     pub pool: DbPool,
-    _container: ContainerAsync<Mysql>,
+    pub schema: String,
+    pub port: u16,
 }
 
 impl TestContainer {
-    pub async fn new() -> Self {
-        INIT.call_once(|| {
-            std::env::set_var("RUST_LOG", "debug");
-            let _ = tracing_subscriber::fmt::try_init();
-        });
-
-        // Start MySQL container using AsyncRunner
-        let mysql_container = AsyncRunner::start(Mysql::default())
-            .await
-            .expect("Failed to start MySQL container");
-
-        // Get connection details
-        let host = "127.0.0.1";
-        let port = mysql_container
-            .get_host_port_ipv4(3306)
-            .await
-            .expect("get port");
-
-        // Create database URL
-        let database_url = format!("mysql://root@{}:{}/mysql", host, port);
-
-        // Create connection pool
-        let manager = ConnectionManager::<MysqlConnection>::new(database_url);
-        let pool = Pool::builder()
-            .max_size(5)
-            .min_idle(Some(1))
-            .build(manager)
-            .expect("Failed to create pool");
-
-        // Run migrations
-        let mut conn = pool.get().expect("Failed to get connection");
-        conn.run_pending_migrations(MIGRATIONS)
-            .expect("Failed to run migrations");
-
-        TestContainer {
-            pool,
-            _container: mysql_container,
-        }
-    }
-
     pub fn get_pool(&self) -> &DbPool {
         &self.pool
     }
-
-    pub async fn get_mysql_port(&self) -> u16 {
-        self._container
-            .get_host_port_ipv4(3306)
-            .await
-            .expect("get port")
+    pub fn get_schema(&self) -> &str {
+        &self.schema
+    }
+    pub fn get_port(&self) -> u16 {
+        self.port
     }
 }
 
 impl Default for TestContainer {
     fn default() -> Self {
-        // This is a fallback for when async is not available
-        // In practice, we should use setup_test_db().await
         panic!("TestContainer::default() is not supported. Use setup_test_db().await instead.")
     }
 }
 
+pub async fn get_shared_mysql_port() -> u16 {
+    let container = SHARED_CONTAINER
+        .get_or_init(|| async {
+            AsyncRunner::start(Mysql::default())
+                .await
+                .expect("Failed to start MySQL container")
+        })
+        .await;
+    let port = container.get_host_port_ipv4(3306).await.expect("get port");
+    SHARED_PORT.get_or_init(|| async { port }).await;
+    port
+}
+
 pub async fn setup_test_db() -> TestContainer {
-    TestContainer::new().await
+    INIT.call_once(|| {
+        std::env::set_var("RUST_LOG", "error,testcontainers=error,bollard=error");
+        let _ = tracing_subscriber::fmt::try_init();
+    });
+
+    // Start or get the shared MySQL container and port
+    let port = get_shared_mysql_port().await;
+    let host = "127.0.0.1";
+
+    // Create a unique schema/database for this test
+    let schema = unique_test_id();
+    let admin_url = format!("mysql://root@{}:{}/mysql", host, port);
+    let test_url = format!("mysql://root@{}:{}/{}", host, port, schema);
+
+    // Create the schema
+    {
+        let manager = ConnectionManager::<MysqlConnection>::new(&admin_url);
+        let pool = Pool::builder()
+            .max_size(2)
+            .min_idle(Some(1))
+            .build(manager)
+            .expect("Failed to create admin pool");
+        let mut conn = pool.get().expect("Failed to get admin connection");
+        diesel::sql_query(format!("CREATE DATABASE IF NOT EXISTS `{}`", schema))
+            .execute(&mut conn)
+            .expect("Failed to create test schema");
+    }
+
+    // Create connection pool for the test schema
+    let manager = ConnectionManager::<MysqlConnection>::new(&test_url);
+    let pool = Pool::builder()
+        .max_size(5)
+        .min_idle(Some(1))
+        .build(manager)
+        .expect("Failed to create pool");
+
+    // Run migrations on the new schema
+    let mut conn = pool.get().expect("Failed to get connection");
+    conn.run_pending_migrations(MIGRATIONS)
+        .expect("Failed to run migrations");
+
+    TestContainer { pool, schema, port }
 }
 
 pub fn cleanup_test_db(_container: &TestContainer) {
-    // The container will be automatically cleaned up when it goes out of scope
+    // Optionally drop the schema after the test (not implemented for now)
 }
 
 pub fn unique_test_id() -> String {
@@ -91,5 +107,5 @@ pub fn unique_test_id() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    format!("test-{}", timestamp)
+    format!("test_{}", timestamp)
 }
