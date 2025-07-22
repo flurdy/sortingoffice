@@ -159,21 +159,6 @@ run_ui_tests() {
         exit 1
     fi
 
-    # Ensure seed data is loaded for UI tests
-    print_status "Ensuring seed data is loaded for UI tests..."
-    if [ -f "seed_data/all.sql" ]; then
-        # Try to load seed data using the default database configuration
-        if mysql -uroot -prootpassword -h127.0.0.1 -P3306 sortingoffice < seed_data/all.sql 2>/dev/null; then
-            print_success "Seed data loaded successfully!"
-        else
-            print_warning "Could not load seed data automatically. UI tests may fail if database is empty."
-            print_status "You can manually load seed data with: make seed"
-        fi
-    else
-        print_warning "No seed data found. UI tests may fail if database is empty."
-        print_status "You can create seed data with: make create-seed-data"
-    fi
-
     # Set environment variables
     export RUST_TEST_THREADS=1
     export RUST_LOG=info
@@ -262,22 +247,9 @@ run_containerized_ui_tests() {
         exit 1
     fi
 
-    # Check if the application is healthy
-    if ! check_app_health; then
-        print_warning "Application is not healthy on localhost:3000"
-        print_status "Please start the application first:"
-        echo "  cargo run"
-        echo "  # or"
-        echo "  docker-compose up"
-        echo ""
-        print_status "Then run this script again."
-        exit 1
-    fi
-
     # Set environment variables
     export RUST_TEST_THREADS=1
     export RUST_LOG=info
-    export DATABASE_URL="mysql://sortingoffice:sortingoffice@localhost:33419/sortingoffice"
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."

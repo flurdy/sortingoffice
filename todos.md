@@ -140,6 +140,8 @@ The current dashboard quick actions are a bit repetitive, perhaps invert it.
 
 Provide some timings of the unit, integration, ui-headless and ui-containerized.
 
+Why then compiling is there multiple axum versions? 
+
 In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
 
 ✅ If a domain has a catchall then the required and common aliases are not missing in the alias reports. - IMPLEMENTED

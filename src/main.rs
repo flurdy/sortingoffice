@@ -25,8 +25,9 @@ async fn main() {
     // Create app
     let app = sortingoffice::handlers::create_app(state);
 
-    // Bind to all interfaces
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    // Bind to port from env or default 3000
+    let port = std::env::var("PORT").ok().and_then(|p| p.parse().ok()).unwrap_or(3000);
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await.unwrap();
     println!("Listening on {}", addr);
 

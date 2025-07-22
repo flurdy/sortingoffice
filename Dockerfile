@@ -15,17 +15,11 @@ WORKDIR /app
 # Copy dependency files
 COPY Cargo.toml Cargo.lock ./
 
-# Create a dummy main.rs to build dependencies
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-
-# Build dependencies (this layer will be cached)
-RUN cargo build --release
-
-# Remove dummy main.rs and copy actual source code
-RUN rm src/main.rs
+# Copy the full source code and other needed files before building
 COPY src/ ./src/
 COPY templates/ ./templates/
 COPY migrations/ ./migrations/
+COPY resources/ ./resources/
 
 # Build the application
 RUN cargo build --release
@@ -53,6 +47,7 @@ COPY --from=builder /app/target/release/sortingoffice /app/sortingoffice
 # Copy templates and migrations
 COPY --from=builder /app/templates /app/templates
 COPY --from=builder /app/migrations /app/migrations
+COPY --from=builder /app/resources /app/resources
 
 # Change ownership to non-root user
 RUN chown -R sortingoffice:sortingoffice /app

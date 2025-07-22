@@ -4,8 +4,8 @@
 
 -- Seed data for domains (must be first due to foreign key constraints)
 INSERT INTO domains (domain, transport, enabled) VALUES
-('example.com', 'virtual', 1),
-('example.org', 'virtual', 1),
+('example.com', 'virtual:', 1),
+('example.org', 'virtual:', 1),
 ('test.com', 'smtp:localhost', 1);
 
 -- Seed data for users (no longer depends on domains)
@@ -51,11 +51,11 @@ INSERT INTO relays (recipient, status, enabled) VALUES
 
 -- Seed data for clients (no foreign key constraints)
 INSERT INTO clients (client, status) VALUES
-('192.168.1.100', 'allowed'),
-('192.168.1.101', 'allowed'),
-('10.0.0.50', 'allowed'),
-('172.16.0.25', 'rejected'),
-('203.0.113.10', 'allowed'),
-('198.51.100.5', 'rejected');
+('192.168.1.100', 'OK'),
+('192.168.1.101', 'OK'),
+('10.0.0.50', 'OK'),
+('172.16.0.25', 'REJECT'),
+('203.0.113.10', 'OK'),
+('198.51.100.5', 'REJECT');
 
 -- Note: The crypt field contains bcrypt hashes for 'password123'

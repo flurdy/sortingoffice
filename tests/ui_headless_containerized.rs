@@ -5,8 +5,108 @@ use testcontainers::core::{ContainerPort, Host};
 use testcontainers::runners::AsyncRunner;
 use testcontainers::GenericImage;
 use testcontainers::ImageExt;
+use testcontainers::{ContainerAsync};
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
+use tokio::sync::OnceCell;
+use rand::Rng;
+use std::process::{Child, Command, Stdio};
+use std::net::TcpListener;
+use std::io::{BufRead, BufReader};
+use std::thread;
+
+static MYSQL_CONTAINER: OnceCell<testcontainers::ContainerAsync<GenericImage>> = OnceCell::const_new();
+static MYSQL_PORT: OnceCell<u16> = OnceCell::const_new();
+
+fn find_free_port() -> u16 {
+    TcpListener::bind("127.0.0.1:0")
+        .expect("Failed to bind to random port")
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
+// Replace start_app_subprocess with Docker-based launch
+async fn start_app_container(database_url: &str, port: u16) -> anyhow::Result<ContainerAsync<GenericImage>> {
+    let app_image = GenericImage::new("sortingoffice", "latest")
+        .with_env_var("DATABASE_URL", database_url)
+        .with_env_var("PORT", port.to_string())
+        .with_mapped_port(port, 3000.into());
+    let container = testcontainers::runners::AsyncRunner::start(app_image).await?;
+    // Wait for the app to be ready on the mapped port
+    let mapped_port = container.get_host_port_ipv4(3000).await.expect("get port");
+    wait_for_app_ready(mapped_port, Duration::from_secs(30)).await.expect("wait for app");
+    Ok(container)
+}
+
+async fn get_shared_mysql_container() -> (&'static testcontainers::ContainerAsync<GenericImage>, u16) {
+    let container = MYSQL_CONTAINER
+        .get_or_init(|| async {
+            let mysql_image = GenericImage::new("mysql", "8.0")
+                .with_env_var("MYSQL_ROOT_PASSWORD", "rootpassword")
+                .with_env_var("MYSQL_DATABASE", "sortingoffice")
+                .with_env_var("MYSQL_USER", "sortingoffice")
+                .with_env_var("MYSQL_PASSWORD", "sortingoffice");
+            let c = AsyncRunner::start(mysql_image).await.expect("Failed to start MySQL container");
+            // Wait for MySQL to be ready (try to connect, up to 30s)
+            let port = c.get_host_port_ipv4(3306).await.expect("get port");
+            let start = std::time::Instant::now();
+            let mut ready = false;
+            while start.elapsed() < std::time::Duration::from_secs(30) {
+                let url = format!("mysql://root:rootpassword@127.0.0.1:{}/mysql", port);
+                let opts = mysql_async::Opts::from_url(&url).unwrap();
+                let pool = mysql_async::Pool::new(opts);
+                match pool.get_conn().await {
+                    Ok(mut conn) => {
+                        if mysql_async::prelude::Queryable::ping(&mut conn).await.is_ok() {
+                            ready = true;
+                            drop(conn);
+                            let _ = pool.disconnect().await;
+                            break;
+                        }
+                        drop(conn);
+                        let _ = pool.disconnect().await;
+                    }
+                    Err(_) => {}
+                }
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+            if !ready {
+                panic!("MySQL container did not become ready in 30s");
+            }
+            c
+        })
+        .await;
+    let port = *MYSQL_PORT
+        .get_or_init(|| async {
+            container.get_host_port_ipv4(3306).await.expect("get port")
+        })
+        .await;
+    (container, port)
+}
+
+async fn create_unique_schema() -> String {
+    let (_container, port) = get_shared_mysql_container().await;
+    let charset = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let schema: String = format!(
+        "test_{}",
+        (0..8)
+            .map(|_| {
+                let idx = rand::thread_rng().gen_range(0..charset.len());
+                charset[idx] as char
+            })
+            .collect::<String>()
+    );
+    let url = format!("mysql://root:rootpassword@127.0.0.1:{}/mysql", port);
+    let opts = mysql_async::Opts::from_url(&url).unwrap();
+    let pool = mysql_async::Pool::new(opts);
+    let mut conn = pool.get_conn().await.unwrap();
+    let sql = format!("CREATE DATABASE IF NOT EXISTS `{}`;", schema);
+    mysql_async::prelude::Queryable::query_drop(&mut conn, sql).await.unwrap();
+    drop(conn);
+    pool.disconnect().await.unwrap();
+    schema
+}
 
 // Helper macro for 10s timeout on Selenium actions
 macro_rules! timeout10s {
@@ -26,33 +126,31 @@ macro_rules! timeout30s {
     };
 }
 
-#[allow(dead_code)]
+macro_rules! timeout90s {
+    ($expr:expr, $desc:expr) => {
+        timeout(Duration::from_secs(90), $expr)
+            .await
+            .map_err(|_| anyhow::anyhow!(concat!("Timeout (90s) on: ", $desc)))?
+    };
+}
+
 async fn wait_for_app_ready(port: u16, max_wait: Duration) -> Result<()> {
     let client = reqwest::Client::new();
-    let url = format!("http://localhost:{}", port);
+    let url = format!("http://localhost:{}/", port);
     let start = std::time::Instant::now();
     loop {
-        match client
-            .get(&url)
-            .timeout(Duration::from_secs(2))
-            .send()
-            .await
-        {
+        match client.get(&url).timeout(Duration::from_secs(2)).send().await {
             Ok(resp) => {
                 if resp.status().is_success() {
-                    println!("✅ Application is ready on port {}", port);
                     return Ok(());
                 }
             }
             Err(_) => {}
         }
         if start.elapsed() > max_wait {
-            return Err(anyhow::anyhow!(
-                "Timed out waiting for application to be ready on port {}",
-                port
-            ));
+            return Err(anyhow::anyhow!("Timed out waiting for app on port {}", port));
         }
-        tokio::time::sleep(Duration::from_millis(1000)).await;
+        tokio::time::sleep(Duration::from_millis(500)).await;
     }
 }
 
@@ -73,11 +171,19 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
                         if json["value"]["ready"].as_bool().unwrap_or(false) {
                             println!("✅ Selenium is ready on port {:?}", port);
                             return Ok(());
+                        } else {
+                            println!("[DEBUG] Selenium /status not ready: {:?}", json);
                         }
+                    } else {
+                        println!("[DEBUG] Could not parse Selenium /status JSON");
                     }
+                } else {
+                    println!("[DEBUG] Selenium /status HTTP status: {}", resp.status());
                 }
             }
-            Err(_) => {}
+            Err(e) => {
+                println!("[DEBUG] Error connecting to Selenium /status: {}", e);
+            }
         }
         if start.elapsed() > max_wait {
             return Err(anyhow::anyhow!(
@@ -89,33 +195,8 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
     }
 }
 
-async fn setup_containerized_test() -> Result<(WebDriver, u16)> {
-    // Start MySQL container for the application
-    let mysql_image = GenericImage::new("mysql", "8.0")
-        .with_env_var("MYSQL_ROOT_PASSWORD", "rootpassword")
-        .with_env_var("MYSQL_DATABASE", "sortingoffice")
-        .with_env_var("MYSQL_USER", "sortingoffice")
-        .with_env_var("MYSQL_PASSWORD", "sortingoffice")
-        .with_mapped_port(3306, ContainerPort::Tcp(3306));
-    let mysql = AsyncRunner::start(mysql_image).await?;
-    let mysql_port = mysql.get_host_port_ipv4(3306).await?;
-
-    // Print the dynamic port for debugging and for use in seed scripts
-    println!(
-        "[testcontainers] MySQL is running on dynamic port: {}",
-        mysql_port
-    );
-    println!("[testcontainers] Use this connection string for DB access: mysql://sortingoffice:sortingoffice@localhost:{}/sortingoffice", mysql_port);
-    // NOTE: Use this port for any DB connections or seed scripts in this test run.
-
-    // Wait for MySQL to be ready
-    println!(
-        "⏳ Waiting for MySQL to be ready on port {:?}...",
-        mysql_port
-    );
-    tokio::time::sleep(Duration::from_secs(10)).await;
-
-    // Start Selenium standalone Chrome container
+// Helper to start Selenium container and return WebDriver
+async fn setup_selenium_driver() -> Result<WebDriver> {
     let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
         .with_env_var("SE_NODE_MAX_SESSIONS", "1")
         .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
@@ -132,20 +213,12 @@ async fn setup_containerized_test() -> Result<(WebDriver, u16)> {
         .with_env_var("SE_EVENT_BUS_HOST", "localhost")
         .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
         .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_env_var("SE_OPTS", "--host-resolver-rules='MAP * 127.0.0.1'")
         .with_host("host.docker.internal", Host::HostGateway)
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
-        .with_mapped_port(4444, ContainerPort::Tcp(4444));
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
     let selenium = AsyncRunner::start(selenium_image).await?;
     let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-
-    // Wait for Selenium to be ready
-    timeout30s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(20)),
-        "Wait for selenium ready"
-    )?;
-
-    // Configure Chrome options for headless mode
+    println!("[DEBUG] Selenium mapped port: {}", selenium_port);
+    timeout90s!(wait_for_selenium_ready(selenium_port, Duration::from_secs(90)), "Wait for selenium ready")?;
     let mut caps = DesiredCapabilities::chrome();
     caps.add_arg("--headless=new")?;
     caps.add_arg("--no-sandbox")?;
@@ -158,18 +231,8 @@ async fn setup_containerized_test() -> Result<(WebDriver, u16)> {
     caps.add_arg("--remote-debugging-port=9222")?;
     caps.add_arg("--whitelisted-ips=")?;
     caps.add_arg("--disable-features=VizDisplayCompositor")?;
-
-    let driver = timeout(
-        Duration::from_secs(10),
-        WebDriver::new(&format!("http://localhost:{:?}", selenium_port), caps),
-    )
-    .await??;
-    println!(
-        "✅ Connected to Selenium at http://localhost:{}",
-        selenium_port
-    );
-
-    Ok((driver, mysql_port))
+    let driver = timeout(Duration::from_secs(10), WebDriver::new(&format!("http://localhost:{}", selenium_port), caps)).await??;
+    Ok(driver)
 }
 
 // Helper function to authenticate the driver
@@ -177,7 +240,7 @@ async fn authenticate_driver(driver: &WebDriver, app_port: u16) -> Result<()> {
     println!("🔐 Authenticating with headless browser...");
 
     // Navigate to login page using Docker host gateway
-    let login_url = format!("http://host.docker.internal:{}/login", app_port);
+    let login_url = format!("http://host.docker.internal:{}", app_port);
     println!("Navigating to login page: {}", login_url);
     timeout10s!(driver.get(&login_url), "Navigate to login page")?;
 
@@ -265,33 +328,22 @@ where
 async fn test_homepage_loads_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let (driver, _mysql_port) = setup_containerized_test().await?;
-
-            println!("🌐 Testing homepage loads with containerized database...");
-
-            // Use the default application port (3000)
-            let app_port = 3000;
-
-            // Navigate to homepage using Docker host gateway
-            let home_url = format!("http://host.docker.internal:{}", app_port);
-            println!("Navigating to homepage: {}", home_url);
-            timeout10s!(driver.get(&home_url), "Navigate to homepage")?;
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Check if we're on the dashboard
+            let (_container, mysql_port) = get_shared_mysql_container().await;
+            let schema = create_unique_schema().await;
+            let port = find_free_port();
+            let database_url = format!("mysql://root:rootpassword@127.0.0.1:{}/{}", mysql_port, schema);
+            let app_container = start_app_container(&database_url, port).await?;
+            let driver = setup_selenium_driver().await?;
+            let app_url = format!("http://host.docker.internal:{}", port);
+            // Test logic:
+            timeout10s!(driver.get(&app_url), "Navigate to homepage")?;
+            authenticate_driver(&driver, port).await?;
             let page_title = timeout10s!(driver.title(), "Get page title")?;
-            println!("Page title: {}", page_title);
-
             let page_source = timeout10s!(driver.source(), "Get page source")?;
-            println!("Page source length: {} characters", page_source.len());
-
-            // Verify we're on the dashboard
             assert!(page_source.contains("Dashboard"));
             assert!(page_source.contains("Quick Actions"));
-
-            println!("✅ Homepage loads successfully with containerized database!");
+            // Cleanup:
+            drop(app_container);
             Ok(())
         },
         Duration::from_secs(60),
@@ -303,50 +355,24 @@ async fn test_homepage_loads_containerized() -> Result<()> {
 async fn test_domain_search_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let (driver, _mysql_port) = setup_containerized_test().await?;
-
-            println!("🔍 Testing domain search with containerized database...");
-
-            // Use the default application port (3000)
-            let app_port = 3000;
-
-            // Navigate to aliases page using Docker host gateway
-            let aliases_url = format!("http://host.docker.internal:{}/aliases", app_port);
-            println!("Navigating to aliases page: {}", aliases_url);
-            timeout10s!(driver.get(&aliases_url), "Navigate to aliases page")?;
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Wait for page to load
+            let (_container, mysql_port) = get_shared_mysql_container().await;
+            let schema = create_unique_schema().await;
+            let port = find_free_port();
+            let database_url = format!("mysql://root:rootpassword@127.0.0.1:{}/{}", mysql_port, schema);
+            let app_container = start_app_container(&database_url, port).await;
+            let driver = setup_selenium_driver().await?;
+            let app_url = format!("http://host.docker.internal:{}/aliases", port);
+            timeout10s!(driver.get(&app_url), "Navigate to aliases page")?;
+            authenticate_driver(&driver, port).await?;
             tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
-
-            // Find the mail input field and type "@exa"
-            println!("Looking for mail input field...");
-            let mail_input = timeout10s!(
-                driver.find(By::Css("input[name='mail']")),
-                "Find mail input field"
-            )?;
-
+            let mail_input = timeout10s!(driver.find(By::Css("input[name='mail']")), "Find mail input field")?;
             timeout10s!(mail_input.send_keys("@exa"), "Type @exa in mail field")?;
-            println!("Typed @exa in mail field");
-
-            // Wait for domain search to trigger
             tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-
-            // Check if domain suggestions appear
             let page_source = timeout10s!(driver.source(), "Get page source")?;
-            println!("Page source length: {} characters", page_source.len());
-
-            // In a containerized environment, we might not have seed data loaded
-            // So we'll check for the domain search functionality rather than specific results
             if page_source.contains("domain-search-results") || page_source.contains("No domains found") {
-                println!("✅ Domain search functionality is working!");
-            } else {
-                println!("⚠️ Domain search results not found, but this might be expected without seed data");
+                // ok
             }
-
-            println!("✅ Domain search test completed with containerized database!");
+            drop(app_container);
             Ok(())
         },
         Duration::from_secs(60),
@@ -358,47 +384,29 @@ async fn test_domain_search_containerized() -> Result<()> {
 async fn test_navigation_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
-            let (driver, _mysql_port) = setup_containerized_test().await?;
-
-            println!("🧭 Testing navigation with containerized database...");
-
-            // Use the default application port (3000)
-            let app_port = 3000;
-
-            // Navigate to homepage using Docker host gateway
-            let home_url = format!("http://host.docker.internal:{}", app_port);
-            println!("Navigating to homepage: {}", home_url);
-            timeout10s!(driver.get(&home_url), "Navigate to homepage")?;
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Test navigation to different pages
+            let (_container, mysql_port) = get_shared_mysql_container().await;
+            let schema = create_unique_schema().await;
+            let port = find_free_port();
+            let database_url = format!("mysql://root:rootpassword@127.0.0.1:{}/{}", mysql_port, schema);
+            let app_container = start_app_container(&database_url, port).await;
+            let driver = setup_selenium_driver().await?;
+            let app_url = format!("http://host.docker.internal:{}", port);
+            timeout10s!(driver.get(&app_url), "Navigate to homepage")?;
+            authenticate_driver(&driver, port).await?;
             let pages = vec![
                 ("/domains", "Domains"),
                 ("/users", "Users"),
                 ("/aliases", "Aliases"),
                 ("/stats", "Statistics"),
             ];
-
             for (path, expected_title) in pages {
-                println!("Testing navigation to {}", path);
-                let url = format!("http://host.docker.internal:{}{}", app_port, path);
+                let url = format!("http://host.docker.internal:{}{}", port, path);
                 timeout10s!(driver.get(&url), "Navigate to page")?;
-
-                // Wait for page to load
                 tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-
                 let page_source = timeout10s!(driver.source(), "Get page source")?;
-                assert!(
-                    page_source.contains(expected_title),
-                    "Page should contain {}",
-                    expected_title
-                );
-                println!("✅ Navigation to {} successful", path);
+                assert!(page_source.contains(expected_title), "Page should contain {}", expected_title);
             }
-
-            println!("✅ Navigation test completed with containerized database!");
+            drop(app_container);
             Ok(())
         },
         Duration::from_secs(90),
