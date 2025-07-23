@@ -19,6 +19,7 @@ help:
 	@echo "  make logs       - Show logs from all services"
 	@echo "  make status     - Show service status"
 	@echo "  make clean      - Remove all containers and volumes"
+	@echo "  make test-clean - Remove all test containers"
 	@echo ""
 	@echo "Development:"
 	@echo "  make dev        - Start development environment"
@@ -76,6 +77,9 @@ status:
 
 clean:
 	./docker.sh clean
+
+test-clean:
+	./docker.sh test-clean
 
 # Development environment
 dev:

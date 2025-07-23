@@ -46,6 +46,7 @@ show_usage() {
     echo "  shell          Open shell in application container"
     echo "  db-shell       Open MySQL shell"
     echo "  clean          Remove all containers and volumes"
+    echo "  test-clean     Remove all test containers"
     echo "  dev            Start development environment"
     echo "  dev-down       Stop development environment"
     echo "  status         Show status of all services"
@@ -149,6 +150,32 @@ clean_up() {
     fi
 }
 
+test-clean_up() {
+    print_warning "This will remove all orphaned test containers and volumes."
+    # read -r response
+    # if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        # print_status "Cleaning up Docker Test resources..."
+        # Remove orphaned MySQL test containers
+        mysql_containers=$(docker ps -a --format '{{.ID}} {{.Image}} {{.Names}}' | grep -v sortingoffice | grep ' mysql' | awk '{print $1}')
+        if [ -n "$mysql_containers" ]; then
+            echo "$mysql_containers" | xargs docker rm -f
+        else
+            print_status "No orphaned MySQL test containers found."
+        fi
+        # Remove orphaned Selenium test containers
+        selenium_containers=$(docker ps -a --format '{{.ID}} {{.Image}} {{.Names}}' | grep -v sortingoffice | grep ' selenium' | awk '{print $1}')
+        if [ -n "$selenium_containers" ]; then
+            echo "$selenium_containers" | xargs docker rm -f
+        else
+            print_status "No orphaned Selenium test containers found."
+        fi
+        # docker system prune -f
+        print_success "Cleanup completed!"
+    # else
+    #     print_status "Cleanup cancelled."
+    # fi
+}
+
 # Function to start development environment
 start_dev() {
     print_status "Starting development environment..."
@@ -208,6 +235,9 @@ main() {
             ;;
         clean)
             clean_up
+            ;;
+        test-clean)
+            test-clean_up
             ;;
         dev)
             start_dev

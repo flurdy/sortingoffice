@@ -21,6 +21,12 @@ COPY templates/ ./templates/
 COPY migrations/ ./migrations/
 COPY resources/ ./resources/
 
+# Copy minimal Docker/test config as the default config
+COPY config/config.docker.toml /app/config/config.toml
+
+# Copy static assets
+COPY static /app/static
+
 # Build the application
 RUN cargo build --release
 

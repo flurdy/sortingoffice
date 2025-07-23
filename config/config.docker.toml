@@ -1,0 +1,17 @@
+# Minimal Sorting Office config for Docker/test builds
+
+# Database connection (use a test DB, can be overridden by env var)
+[[databases]]
+id = "primary"
+label = "Test DB"
+url = "${DATABASE_URL}"
+
+# Admin user (overridable by env vars)
+[[admins]]
+# Username can be overridden by ADMIN_USERNAME env var
+username = "${ADMIN_USERNAME:-admin}"
+# Password hash for 'admin123', can be overridden by ADMIN_PASSWORD_HASH env var
+password_hash = "${ADMIN_PASSWORD_HASH:-$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO}"
+role = "edit"
+
+# Note: The app must support env var substitution in config for this to work. 
