@@ -19,6 +19,7 @@ pub struct TestContainer {
     pub pool: DbPool,
     pub schema: String,
     pub port: u16,
+    pub bridge_ip: String,
 }
 
 impl TestContainer {
@@ -36,6 +37,12 @@ impl TestContainer {
 impl Default for TestContainer {
     fn default() -> Self {
         panic!("TestContainer::default() is not supported. Use setup_test_db().await instead.")
+    }
+}
+
+impl TestContainer {
+    pub fn get_bridge_ip(&self) -> &str {
+        &self.bridge_ip
     }
 }
 
@@ -94,7 +101,30 @@ pub async fn setup_test_db() -> TestContainer {
     conn.run_pending_migrations(MIGRATIONS)
         .expect("Failed to run migrations");
 
-    TestContainer { pool, schema, port }
+    // Get the MySQL container's bridge IP
+    let container = SHARED_CONTAINER
+        .get()
+        .expect("Shared container not initialized");
+    let bridge_ip = {
+        use std::process::Command;
+        let output = Command::new("docker")
+            .args([
+                "inspect",
+                "-f",
+                "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
+                &container.id(),
+            ])
+            .output()
+            .expect("Failed to get MySQL container bridge IP");
+        String::from_utf8_lossy(&output.stdout).trim().to_string()
+    };
+
+    TestContainer {
+        pool,
+        schema,
+        port,
+        bridge_ip,
+    }
 }
 
 pub fn cleanup_test_db(_container: &TestContainer) {

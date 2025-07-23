@@ -29,7 +29,7 @@ common_aliases = [
     "marketing",
     "hr",
     "finance",
-    "legal",
+    "legal", 
     "privacy",
     "dmca",
     "spam"

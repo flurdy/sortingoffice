@@ -1,4 +1,5 @@
 use crate::models::RequiredAliasConfig;
+use envsubst::substitute;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -142,6 +143,14 @@ impl Config {
             databases: vec![],
             global_features: GlobalFeatures::default(),
         })
+    }
+
+    /// Load config with environment variable substitution
+    pub fn load_config_with_env(path: &str) -> Result<Config, anyhow::Error> {
+        let raw = fs::read_to_string(path)?;
+        let substituted = substitute(&raw, &std::env::vars().collect())?;
+        let config: Config = toml::from_str(&substituted)?;
+        Ok(config)
     }
 
     /// Get required aliases for a specific domain

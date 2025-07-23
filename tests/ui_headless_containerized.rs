@@ -1,17 +1,17 @@
 use anyhow::Result;
 use reqwest;
+use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
+use std::env;
+use std::net::TcpListener;
+use std::process::Command;
+use std::time::Instant;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
+use testcontainers::ContainerAsync;
 use testcontainers::GenericImage;
 use testcontainers::ImageExt;
-use testcontainers::{ContainerAsync};
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
-use tokio::sync::OnceCell;
-use rand::Rng;
-use std::net::TcpListener;
-use std::time::Instant;
-use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 
 fn find_free_port() -> u16 {
     TcpListener::bind("127.0.0.1:0")
@@ -19,20 +19,6 @@ fn find_free_port() -> u16 {
         .local_addr()
         .unwrap()
         .port()
-}
-
-// Replace start_app_subprocess with Docker-based launch
-async fn start_app_container(database_url: &str, host_port: u16) -> anyhow::Result<ContainerAsync<GenericImage>> {
-    let app_image = GenericImage::new("sortingoffice", "latest")
-        .with_env_var("DATABASE_URL", database_url)
-        .with_env_var("PORT", "3000") // Always 3000 inside the container
-        .with_mapped_port(host_port, 3000.into());
-    let container = testcontainers::runners::AsyncRunner::start(app_image).await?;
-    let mapped_port = container.get_host_port_ipv4(3000).await.expect("get port");
-    match wait_for_app_ready(mapped_port, Duration::from_secs(30)).await {
-        Ok(_) => Ok(container),
-        Err(e) => Err(e),
-    }
 }
 
 // Helper macro for 10s timeout on Selenium actions
@@ -52,31 +38,8 @@ macro_rules! timeout90s {
     };
 }
 
-// Update wait_for_app_ready to log progress
-async fn wait_for_app_ready(port: u16, timeout: Duration) -> anyhow::Result<()> {
-    let start = Instant::now();
-    let mut last_log = Instant::now();
-    let client = reqwest::Client::new();
-    let url = format!("http://localhost:{}/", port);
-    loop {
-        match client.get(&url).timeout(Duration::from_secs(10)).send().await {
-            Ok(resp) if resp.status().is_success() => return Ok(()),
-            _ => {
-                if last_log.elapsed().as_secs() >= 5 {
-                    println!("[WAIT] Still waiting for app to be ready on port {} ({}s elapsed)", port, start.elapsed().as_secs());
-                    last_log = Instant::now();
-                }
-                if start.elapsed() > timeout {
-                    return Err(anyhow::anyhow!("Timed out waiting for app on port {}", port));
-                }
-                tokio::time::sleep(Duration::from_millis(500)).await;
-            }
-        }
-    }
-}
-
 async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
-    let client = reqwest::Client::new();
+    let _client = reqwest::Client::new();
     let url = format!("http://localhost:{}/status", port);
     let start = std::time::Instant::now();
     while start.elapsed() < max_wait {
@@ -87,54 +50,18 @@ async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
             }
         }
     }
-    Err(anyhow::anyhow!("Timed out waiting for Selenium on port {}", port))
-}
-
-// Helper to start Selenium container and return WebDriver
-async fn setup_selenium_driver() -> Result<WebDriver> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    println!("[DEBUG] Selenium mapped port: {}", selenium_port);
-    timeout90s!(wait_for_selenium_ready(selenium_port, Duration::from_secs(90)), "Wait for selenium ready")?;
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--host-resolver-rules=MAP * 127.0.0.1")?;
-    caps.add_arg("--remote-debugging-port=9222")?;
-    caps.add_arg("--whitelisted-ips=")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    let driver = timeout(Duration::from_secs(10), WebDriver::new(&format!("http://localhost:{}", selenium_port), caps)).await??;
-    Ok(driver)
+    Err(anyhow::anyhow!(
+        "Timed out waiting for Selenium on port {}",
+        port
+    ))
 }
 
 // Helper function to authenticate the driver
-async fn authenticate_driver(driver: &WebDriver, app_port: u16) -> Result<()> {
+async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
     println!("🔐 Authenticating with headless browser...");
 
-    // Navigate to login page using Docker host gateway
-    let login_url = format!("http://host.docker.internal:{}", app_port);
+    // Navigate to login page using the provided base_url
+    let login_url = format!("{}/login", base_url.trim_end_matches('/'));
     println!("Navigating to login page: {}", login_url);
     timeout60s!(driver.get(&login_url), "Navigate to login page")?;
 
@@ -218,15 +145,98 @@ where
         .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?
 }
 
-/// Helper to set up an isolated test DB and app container for UI tests
-async fn setup_ui_test_env(host_port: u16) -> anyhow::Result<(String, ContainerAsync<GenericImage>)> {
-    // 1. Start a fresh MySQL test DB (shared container, unique schema)
-    let test_db = setup_test_db().await;
-    let db_url = format!("mysql://root@127.0.0.1:{}/{}", test_db.port, test_db.schema);
+/// Helper to get the bridge IP address of a running container by its ID
+async fn get_container_bridge_ip(container_id: &str) -> anyhow::Result<String> {
+    let output = Command::new("docker")
+        .args([
+            "inspect",
+            "-f",
+            "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
+            container_id,
+        ])
+        .output()?;
+    if !output.status.success() {
+        return Err(anyhow::anyhow!(
+            "Failed to inspect container IP: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let ip = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if ip.is_empty() {
+        return Err(anyhow::anyhow!(
+            "No IP address found for container {}",
+            container_id
+        ));
+    }
+    Ok(ip)
+}
 
-    // 2. Start the app container, passing the test DB URL
-    let app_container = start_app_container(&db_url, host_port).await?;
-    Ok((db_url, app_container))
+/// Centralized helper to start the app container with all required env/config
+async fn setup_app_container(
+    db_url: &str,
+    host_port: u16,
+    admin_username: &str,
+    admin_password_hash: &str,
+    config_path: &str,
+    container_name: &str,
+) -> anyhow::Result<(ContainerAsync<GenericImage>, String /* bridge IP */)> {
+    let app_image = GenericImage::new("sortingoffice", "latest")
+        .with_env_var("DATABASE_URL", db_url)
+        .with_env_var("PORT", "4000")
+        .with_env_var("ADMIN_USERNAME", admin_username)
+        .with_env_var("ADMIN_PASSWORD_HASH", admin_password_hash)
+        .with_mapped_port(host_port, 4000.into())
+        .with_container_name(container_name)
+        .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
+    let app_container = AsyncRunner::start(app_image).await?;
+    let app_id = app_container.id();
+    let app_ip = get_container_bridge_ip(&app_id).await?;
+    Ok((app_container, app_ip))
+}
+
+/// Centralized helper to start Selenium container and return (container, WebDriver, port)
+async fn setup_selenium_container_and_driver(
+) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+        .with_env_var("SE_START_XVFB", "false")
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1")
+        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    timeout90s!(
+        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
+        "Wait for selenium ready"
+    )?;
+    let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--headless=new")?;
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+    caps.add_arg("--disable-web-security")?;
+    caps.add_arg("--allow-running-insecure-content")?;
+    caps.add_arg("--remote-debugging-port=9222")?;
+    caps.add_arg("--whitelisted-ips=")?;
+    caps.add_arg("--disable-features=VizDisplayCompositor")?;
+    let driver = timeout(
+        Duration::from_secs(20),
+        WebDriver::new(&format!("http://localhost:{}", selenium_port), caps),
+    )
+    .await??;
+    Ok((selenium, driver, selenium_port))
 }
 
 #[tokio::test]
@@ -234,18 +244,39 @@ async fn test_homepage_loads_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
             let port = find_free_port();
-            let (_db_url, app_container) = setup_ui_test_env(port).await?;
-            let mapped_port = app_container.get_host_port_ipv4(3000).await.expect("get port");
-            let driver = setup_selenium_driver().await?;
-            // Test logic:
-            timeout60s!(driver.get(&format!("http://host.docker.internal:{}", port)), "Navigate to homepage")?;
-            authenticate_driver(&driver, port).await?;
+            let test_db = setup_test_db().await;
+            let db_url = format!(
+                "mysql://root@{}:3306/{}",
+                test_db.get_bridge_ip(),
+                test_db.schema
+            );
+            let config_path = env::current_dir()
+                .unwrap()
+                .join("config/config.docker.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let unique_app_name = format!("app-{}", port);
+            let admin_username = "admin";
+            let admin_password_hash =
+                "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
+            let (app_container, app_ip) = setup_app_container(
+                &db_url,
+                port,
+                admin_username,
+                admin_password_hash,
+                config_path_str,
+                &unique_app_name,
+            )
+            .await?;
+            let (selenium, driver, _selenium_port) = setup_selenium_container_and_driver().await?;
+            let app_url = format!("http://{}:4000", app_ip);
+            timeout60s!(driver.get(&app_url), "Navigate to homepage (bridge IP)")?;
+            authenticate_driver(&driver, &app_url).await?;
             let _page_title = timeout60s!(driver.title(), "Get page title")?;
             let page_source = timeout60s!(driver.source(), "Get page source")?;
             assert!(page_source.contains("Dashboard"));
             assert!(page_source.contains("Quick Actions"));
-            // Cleanup:
             drop(app_container);
+            drop(selenium);
             Ok(())
         },
         Duration::from_secs(120),
@@ -258,21 +289,48 @@ async fn test_domain_search_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
             let port = find_free_port();
-            let (_db_url, app_container) = setup_ui_test_env(port).await?;
-            let mapped_port = app_container.get_host_port_ipv4(3000).await.expect("get port");
-            let driver = setup_selenium_driver().await?;
-            let app_url = format!("http://host.docker.internal:{}/aliases", port);
+            let test_db = setup_test_db().await;
+            let db_url = format!(
+                "mysql://root@{}:3306/{}",
+                test_db.get_bridge_ip(),
+                test_db.schema
+            );
+            let config_path = env::current_dir()
+                .unwrap()
+                .join("config/config.docker.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let unique_app_name = format!("app-{}", port);
+            let admin_username = "admin";
+            let admin_password_hash =
+                "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
+            let (app_container, app_ip) = setup_app_container(
+                &db_url,
+                port,
+                admin_username,
+                admin_password_hash,
+                config_path_str,
+                &unique_app_name,
+            )
+            .await?;
+            let (selenium, driver, _selenium_port) = setup_selenium_container_and_driver().await?;
+            let app_url = format!("http://{}:4000/aliases", app_ip);
             timeout60s!(driver.get(&app_url), "Navigate to aliases page")?;
-            authenticate_driver(&driver, port).await?;
+            authenticate_driver(&driver, &format!("http://{}:4000", app_ip)).await?;
             tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
-            let mail_input = timeout60s!(driver.find(By::Css("input[name='mail']")), "Find mail input field")?;
+            let mail_input = timeout60s!(
+                driver.find(By::Css("input[name='mail']")),
+                "Find mail input field"
+            )?;
             timeout60s!(mail_input.send_keys("@exa"), "Type @exa in mail field")?;
             tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
             let page_source = timeout60s!(driver.source(), "Get page source")?;
-            if page_source.contains("domain-search-results") || page_source.contains("No domains found") {
+            if page_source.contains("domain-search-results")
+                || page_source.contains("No domains found")
+            {
                 // ok
             }
             drop(app_container);
+            drop(selenium);
             Ok(())
         },
         Duration::from_secs(60),
@@ -285,12 +343,33 @@ async fn test_navigation_containerized() -> Result<()> {
     run_test_with_timeout(
         async {
             let port = find_free_port();
-            let (_db_url, app_container) = setup_ui_test_env(port).await?;
-            let mapped_port = app_container.get_host_port_ipv4(3000).await.expect("get port");
-            let driver = setup_selenium_driver().await?;
-            let app_url = format!("http://host.docker.internal:{}", port);
+            let test_db = setup_test_db().await;
+            let db_url = format!(
+                "mysql://root@{}:3306/{}",
+                test_db.get_bridge_ip(),
+                test_db.schema
+            );
+            let config_path = env::current_dir()
+                .unwrap()
+                .join("config/config.docker.toml");
+            let config_path_str = config_path.to_str().unwrap();
+            let unique_app_name = format!("app-{}", port);
+            let admin_username = "admin";
+            let admin_password_hash =
+                "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
+            let (app_container, app_ip) = setup_app_container(
+                &db_url,
+                port,
+                admin_username,
+                admin_password_hash,
+                config_path_str,
+                &unique_app_name,
+            )
+            .await?;
+            let (selenium, driver, _selenium_port) = setup_selenium_container_and_driver().await?;
+            let app_url = format!("http://{}:4000", app_ip);
             timeout60s!(driver.get(&app_url), "Navigate to homepage")?;
-            authenticate_driver(&driver, port).await?;
+            authenticate_driver(&driver, &app_url).await?;
             let pages = vec![
                 ("/domains", "Domains"),
                 ("/users", "Users"),
@@ -298,13 +377,18 @@ async fn test_navigation_containerized() -> Result<()> {
                 ("/stats", "Statistics"),
             ];
             for (path, expected_title) in pages {
-                let url = format!("http://host.docker.internal:{}{}", port, path);
+                let url = format!("http://{}:4000{}", app_ip, path);
                 timeout60s!(driver.get(&url), "Navigate to page")?;
                 tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
                 let page_source = timeout60s!(driver.source(), "Get page source")?;
-                assert!(page_source.contains(expected_title), "Page should contain {}", expected_title);
+                assert!(
+                    page_source.contains(expected_title),
+                    "Page should contain {}",
+                    expected_title
+                );
             }
             drop(app_container);
+            drop(selenium);
             Ok(())
         },
         Duration::from_secs(90),
@@ -320,4 +404,141 @@ async fn test_minimal_async_testcontainers() {
         .await
         .expect("Failed to start hello-world container");
     // If this compiles and runs, async API is available
+}
+
+#[tokio::test]
+async fn test_selenium_container_starts_and_wait() -> Result<()> {
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+        .with_env_var("SE_START_XVFB", "false")
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1")
+        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    println!("[DEBUG] Selenium mapped port: {}", selenium_port);
+    println!("[DEBUG] Sleeping for 60 seconds. Inspect the container now.");
+    tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_selenium_container_starts_and_status() -> Result<()> {
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+        .with_env_var("SE_START_XVFB", "false")
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1")
+        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    println!("[DEBUG] Selenium mapped port: {}", selenium_port);
+    // Wait a bit for Selenium to be ready
+    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+    // Try to fetch /status
+    let url = format!("http://localhost:{}/status", selenium_port);
+    let resp = reqwest::get(&url).await;
+    match resp {
+        Ok(r) => {
+            println!("[DEBUG] /status response: {}", r.status());
+            let text = r
+                .text()
+                .await
+                .unwrap_or_else(|_| "<failed to read body>".to_string());
+            println!("[DEBUG] /status body: {}", text);
+        }
+        Err(e) => {
+            println!("[DEBUG] Error fetching /status: {}", e);
+        }
+    }
+    // println!("[DEBUG] Sleeping for 30 seconds. Inspect the container now if needed.");
+    // tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_minimal_webdriver_session() -> Result<()> {
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
+        .with_env_var("SE_START_XVFB", "false")
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1")
+        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
+        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
+        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    println!("[DEBUG] Selenium mapped port: {}", selenium_port);
+    timeout90s!(
+        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
+        "Wait for selenium ready"
+    )?;
+    let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--headless=new")?;
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+    caps.add_arg("--disable-web-security")?;
+    caps.add_arg("--allow-running-insecure-content")?;
+    caps.add_arg("--remote-debugging-port=9222")?;
+    caps.add_arg("--whitelisted-ips=")?;
+    caps.add_arg("--disable-features=VizDisplayCompositor")?;
+    println!("[DEBUG] Attempting to create minimal WebDriver session...");
+    let driver_result = timeout(
+        Duration::from_secs(20),
+        WebDriver::new(&format!("http://localhost:{}", selenium_port), caps),
+    )
+    .await;
+    match driver_result {
+        Ok(Ok(_driver)) => {
+            println!("[DEBUG] Minimal WebDriver session created successfully.");
+            Ok(())
+        }
+        Ok(Err(e)) => {
+            println!("[DEBUG] Minimal WebDriver::new error: {:#?}", e);
+            Err(e.into())
+        }
+        Err(e) => {
+            println!(
+                "[DEBUG] Timeout waiting for minimal WebDriver::new: {:#?}",
+                e
+            );
+            Err(anyhow::anyhow!(
+                "Timeout waiting for minimal WebDriver::new: {:#?}",
+                e
+            ))
+        }
+    }
 }
