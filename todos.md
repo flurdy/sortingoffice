@@ -27,7 +27,7 @@ In the run_tests.sh does run_ui_containerized which uses databases in testcontai
 
 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 
-First column of aliases list (mail) is missing translations.
+First column of aliases list (mail) is missing translations. So is the alias-empty-title and description.
 
 Like the users table where there is a domain column which is extracted from the id, can we add a similar domain column to the aliases list, extracted from the mail field?
 

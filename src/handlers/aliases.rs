@@ -129,6 +129,12 @@ pub async fn new(
         .and_then(|r| r.to_str().ok())
         .filter(|r| r.contains("/domains/"))
         .map(|r| r.to_string());
+    log::info!(
+        "Add Alias form requested. prefill: alias={:?}, domain={:?}, referer={:?}",
+        prefill.alias,
+        prefill.domain,
+        return_url
+    );
     let mail = match (&prefill.alias, &prefill.domain) {
         (Some(alias), Some(domain)) => format!("{alias}@{domain}"),
         (Some(alias), None) => alias.clone(),

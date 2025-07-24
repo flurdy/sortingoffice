@@ -54,6 +54,8 @@ COPY --from=builder /app/target/release/sortingoffice /app/sortingoffice
 COPY --from=builder /app/templates /app/templates
 COPY --from=builder /app/migrations /app/migrations
 COPY --from=builder /app/resources /app/resources
+COPY --from=builder /app/static /app/static
+COPY --from=builder /app/config /app/config
 
 # Change ownership to non-root user
 RUN chown -R sortingoffice:sortingoffice /app

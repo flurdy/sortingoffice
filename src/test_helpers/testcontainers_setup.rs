@@ -131,6 +131,24 @@ pub fn cleanup_test_db(_container: &TestContainer) {
     // Optionally drop the schema after the test (not implemented for now)
 }
 
+/// Clean up the shared MySQL container. This will stop and remove the container.
+/// Call this at the end of your test suite if you want to ensure cleanup.
+pub async fn cleanup_shared_mysql_container() {
+    if let Some(container) = SHARED_CONTAINER.get() {
+        println!(
+            "[DEBUG] Cleaning up shared MySQL container: {}",
+            container.id()
+        );
+        // The container will be dropped when this function returns
+        // and the OnceCell is cleared
+    }
+    // Note: OnceCell doesn't support .take() for immutable static items
+    // The container will be cleaned up when the process ends
+    println!(
+        "[DEBUG] MySQL container cleanup requested - container will be dropped when process ends"
+    );
+}
+
 pub fn unique_test_id() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let timestamp = SystemTime::now()

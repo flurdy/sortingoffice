@@ -143,46 +143,6 @@ check_app_health() {
     return 1
 }
 
-# Function to run UI tests
-run_ui_tests() {
-    print_status "Running UI tests for sortingoffice..."
-    
-    # Check if the application is healthy
-    if ! check_app_health; then
-        print_warning "Application is not healthy on localhost:3000"
-        print_status "Please start the application first:"
-        echo "  cargo run"
-        echo "  # or"
-        echo "  docker-compose up"
-        echo ""
-        print_status "Then run this script again."
-        exit 1
-    fi
-
-    # Set environment variables
-    export RUST_TEST_THREADS=1
-    export RUST_LOG=info
-
-    # Run the headless UI tests (now the only UI tests)
-    print_status "Running headless UI tests with testcontainers..."
-    start_time=$(date +%s)
-    if cargo test --test ui_headless -- --nocapture --test-threads=1; then
-        end_time=$(date +%s)
-        duration=$((end_time - start_time))
-        print_success "Headless UI tests passed in ${duration}s!"
-        echo "[CI-SUMMARY] UI PASS ${duration}s"
-    else
-        end_time=$(date +%s)
-        duration=$((end_time - start_time))
-        print_error "Headless UI tests failed in ${duration}s!"
-        echo "[CI-SUMMARY] UI FAIL ${duration}s"
-        exit 1
-    fi
-
-    echo ""
-    print_success "All UI tests completed successfully! 🎉"
-}
-
 # Function to run headless UI tests
 run_headless_ui_tests() {
     print_status "Running headless UI tests for sortingoffice..."
@@ -220,7 +180,7 @@ run_headless_ui_tests() {
 
     # Run the headless UI tests (uses testcontainers automatically)
     print_status "Running headless UI tests with testcontainers..."
-    if cargo test --test ui_headless -- --nocapture --test-threads=1; then
+    if cargo test --test ui_headless -- --nocapture --test-threads=$RUST_TEST_THREADS; then
         print_success "Headless UI tests passed!"
     else
         print_error "Headless UI tests failed!"
@@ -248,12 +208,12 @@ run_containerized_ui_tests() {
     fi
 
     # Set environment variables
-    export RUST_TEST_THREADS=1
+    export RUST_TEST_THREADS="${TEST_THREADS:-4}"
     export RUST_LOG=info
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."
-    if cargo test --test ui_headless_containerized -- --nocapture --test-threads=1; then
+    if cargo test --test ui_headless_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS --ignored; then
         print_success "Containerized UI tests passed!"
     else
         print_error "Containerized UI tests failed!"
