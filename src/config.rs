@@ -483,7 +483,7 @@ mod tests {
     #[test]
     fn test_optional_tables_availability() {
         let mut config = Config::default();
-        
+
         // Add a test database
         let db_config = DatabaseConfig {
             id: "test".to_string(),
@@ -543,5 +543,179 @@ mod tests {
         assert!(config.is_relays_available("nonexistent"));
         assert!(config.is_relocated_available("nonexistent"));
         assert!(config.is_clients_available("nonexistent"));
+    }
+
+    #[test]
+    fn test_seeding_blocked() {
+        let mut config = Config::default();
+
+        // Add a test database
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test default (should not be blocked)
+        assert!(!config.is_seeding_blocked("test"));
+
+        // Test with global read_only = true
+        let mut config = Config::default();
+        config.global_features.read_only = true;
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test global read_only blocks seeding
+        assert!(config.is_seeding_blocked("test"));
+
+        // Test with database-specific no_seeding = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                no_seeding: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test database-specific no_seeding blocks seeding
+        assert!(config.is_seeding_blocked("test"));
+
+        // Test with database-specific disabled = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                disabled: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test disabled database blocks seeding
+        assert!(config.is_seeding_blocked("test"));
+
+        // Test with database-specific read_only = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                read_only: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test database-specific read_only blocks seeding
+        assert!(config.is_seeding_blocked("test"));
+
+        // Test non-existent database (should not be blocked by default)
+        assert!(!config.is_seeding_blocked("nonexistent"));
+    }
+
+    #[test]
+    fn test_migration_blocked() {
+        let mut config = Config::default();
+
+        // Add a test database
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test default (should not be blocked)
+        assert!(!config.is_migration_blocked("test"));
+
+        // Test with global read_only = true
+        let mut config = Config::default();
+        config.global_features.read_only = true;
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test global read_only blocks migrations
+        assert!(config.is_migration_blocked("test"));
+
+        // Test with database-specific no_migrations = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                no_migrations: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test database-specific no_migrations blocks migrations
+        assert!(config.is_migration_blocked("test"));
+
+        // Test with database-specific disabled = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                disabled: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test disabled database blocks migrations
+        assert!(config.is_migration_blocked("test"));
+
+        // Test with database-specific read_only = true
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                read_only: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test database-specific read_only blocks migrations
+        assert!(config.is_migration_blocked("test"));
+
+        // Test non-existent database (should not be blocked by default)
+        assert!(!config.is_migration_blocked("nonexistent"));
     }
 }
