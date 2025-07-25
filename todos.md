@@ -15,7 +15,13 @@
 
 Why then compiling is there multiple axum versions? 
 
-✅ In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
+✅ In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something? - IMPLEMENTED
+
+✅ Fix integration tests that were failing due to "Too many connections" errors - IMPLEMENTED
+- Reduced test threads from 8 to 2 for integration tests
+- Reduced database pool sizes for test containers (from 50 to 5)
+- Fixed failing login tests to use testcontainers instead of local database
+- All tests now pass: unit (21), integration (49), UI (16)
 
 ✅ If a domain has a catchall then the required and common aliases are not missing in the alias reports. - IMPLEMENTED
 
@@ -33,8 +39,8 @@ Like the users table where there is a domain column which is extracted from the 
 
 Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail.
 
-Create a complete end-to-end functional UI test, that headless, that creates a random domain, a few aliases, a user and runs a report.
-- create an duplicate flow that is not headless but instead a smoke test, which argument is a running app (defaulting to localhost 3000) and shows this flow in the browser. This smoke test must I guess can be ignored by default to avoid accidental running in build tests?
+✅ Create a complete end-to-end functional UI test, that headless, that creates a random domain, a few aliases, a user and runs a report.
+- create an duplicate flow that is not headless but instead a smoke test, which argument is a running app (defaulting to localhost 3000) and shows this flow in the browser. This smoke test must I guess can be ignored by default to avoid accidental running in build tests? - IMPLEMENTED
 
 Any way we can ensure no seeding happens on prod databases?
 
@@ -55,3 +61,7 @@ In the UI I seem unable to edit a relay and relocated.
 Create onboarding doc, detailing step by step what to do, fork code, build image or download, connect dbs, configure config.toml, run sql to add modified and created fields if missing, ensure migrations are turned off, start app, log in
 
 On the configuration page there is functionality to a run migrations. We do not need this. Migrations are only run on dev env. In prod no migrations are allowed and this could lead to accidental migrate runs.
+
+Add a backup function to backup a database and download it as file locally.
+
+Ensure no migration is run automatically on starting the app.

@@ -301,7 +301,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
     // Get app URL from environment or use default
     let app_url = std::env::var("SMOKE_TEST_APP_URL")
         .unwrap_or_else(|_| "http://host.docker.internal:3000".to_string());
-    
+
     println!("[SMOKE TEST] Starting smoke test against: {}", app_url);
 
     // Setup Chrome capabilities for visible browser

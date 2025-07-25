@@ -1426,7 +1426,9 @@ mod tests {
         use sortingoffice::handlers::auth::{login, LoginRequest};
         use sortingoffice::AppState;
 
-        let _pool = setup_test_db().await;
+        let container = setup_test_db().await;
+        let schema = container.get_schema();
+        let port = container.get_port();
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config {
             admins: vec![AdminCredentials {
@@ -1440,11 +1442,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: std::env::var("TEST_DATABASE_URL")
-                .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| {
-                    "mysql://root:password@localhost/sortingoffice_test".to_string()
-                }),
+            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -1484,17 +1482,15 @@ mod tests {
         use sortingoffice::handlers::auth::{login, LoginRequest};
         use sortingoffice::AppState;
 
-        let _pool = setup_test_db().await;
+        let container = setup_test_db().await;
+        let schema = container.get_schema();
+        let port = container.get_port();
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
         let config = Config::default();
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: std::env::var("TEST_DATABASE_URL")
-                .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| {
-                    "mysql://root:password@localhost/sortingoffice_test".to_string()
-                }),
+            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];

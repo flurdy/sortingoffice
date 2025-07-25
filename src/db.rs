@@ -33,6 +33,8 @@ impl DatabaseManager {
         for config in &configs {
             let manager = ConnectionManager::<MysqlConnection>::new(&config.url);
             let pool = r2d2::Pool::builder()
+                .max_size(10)
+                .min_idle(Some(1))
                 .build(manager)
                 .map_err(|e| format!("Failed to create pool for {}: {}", config.id, e))?;
 
