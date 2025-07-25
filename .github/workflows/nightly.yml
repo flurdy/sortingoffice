@@ -14,22 +14,6 @@ jobs:
   nightly-test:
     name: Nightly Comprehensive Test
     runs-on: ubuntu-latest
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: sortingoffice_test
-          MYSQL_USER: sortingoffice
-          MYSQL_PASSWORD: sortingoffice
-        options: >-
-          --health-cmd "mysqladmin ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 3306:3306
 
     steps:
     - name: Checkout code
@@ -53,49 +37,26 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
 
-    - name: Install MySQL client
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y default-mysql-client
-
-    - name: Install Diesel CLI
-      run: cargo install diesel_cli --no-default-features --features mysql
-
-    - name: Wait for MySQL
-      run: |
-        while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
-          sleep 1
-        done
-
-    - name: Run database migrations
-      env:
-        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
-      run: diesel migration run
-
     - name: Check code formatting
       run: cargo fmt --all -- --check
 
     - name: Run clippy with all warnings
       run: cargo clippy --all-targets --all-features -- -D warnings -A clippy::too-many-arguments
 
-    - name: Run unit tests with coverage
+    - name: Run unit tests
       env:
-        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
         RUST_LOG: debug
-        CARGO_INCREMENTAL: 0
-        RUSTFLAGS: "-Cinstrument-coverage"
-        LLVM_PROFILE_FILE: "cargo-test-%p-%m.profraw"
-      run: |
-        cargo test --verbose
-        grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/
+      run: make test-unit
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage/coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+    - name: Run integration tests
+      env:
+        RUST_LOG: debug
+      run: make test-integration
+
+    - name: Run UI tests
+      env:
+        RUST_LOG: debug
+      run: make test-ui
 
     - name: Build release version
       run: cargo build --release
@@ -111,7 +72,6 @@ jobs:
         name: nightly-build
         path: |
           target/release/sortingoffice
-          coverage/
         retention-days: 30
 
   dependency-update:

@@ -112,9 +112,15 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
   - Database-specific read_only = true is set
 - Force commands require explicit confirmation to bypass protection
 
-Update the github workflows. 
-- they most likely wont need to do any db stuff as that is handled with testcontainers.
-- the UI tests has been renamed.
+✅ Update the github workflows. - IMPLEMENTED
+- Removed database setup from all workflows since tests now use testcontainers
+- Updated CI workflow to use `make test-unit` and `make test-integration` commands
+- Updated UI tests workflow to use `make test-ui` command (containerized tests)
+- Updated nightly workflow to include all test types (unit, integration, UI)
+- Removed MySQL service dependencies and Diesel CLI installation
+- Updated workflows README to reflect current test structure and testcontainers usage
+- All workflows now rely on testcontainers for isolated database testing
+- Simplified workflow configuration and reduced external dependencies
 
 Can we make certain tables optional? Relays, relocated and clients are not in every db.
 

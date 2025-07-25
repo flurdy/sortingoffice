@@ -5,33 +5,32 @@ This directory contains GitHub Actions workflows for the Sorting Office project.
 ## Workflows Overview
 
 ### 1. CI (`ci.yml`)
-**Triggers:** Push to `main`/`develop`, Pull Requests
+**Triggers:** Push to `master`, Pull Requests
 **Purpose:** Continuous Integration pipeline
 
 **Jobs:**
-- **Test and Lint**: Runs unit tests, code formatting checks, and clippy linting
+- **Test and Lint**: Runs unit tests, integration tests, code formatting checks, and clippy linting
 - **Security Audit**: Performs security vulnerability scanning with `cargo audit`
 - **Docker Build**: Tests Docker image building
 
 **Features:**
-- MySQL database service for testing
+- Uses testcontainers for isolated database testing
 - Rust dependency caching
 - Code quality checks (fmt, clippy)
 - Security scanning
 - Build artifact upload
 
 ### 2. UI Tests (`ui-tests.yml`)
-**Triggers:** Push to `main`/`develop`, Pull Requests, Manual dispatch
-**Purpose:** End-to-end UI testing with Selenium
+**Triggers:** Push to `master`, Pull Requests, Manual dispatch
+**Purpose:** End-to-end UI testing with containerized environment
 
 **Jobs:**
-- **UI Tests with Selenium**: Runs comprehensive UI tests using Selenium WebDriver
+- **UI Tests (Containerized)**: Runs comprehensive UI tests using testcontainers
 
 **Features:**
-- MySQL database service
-- Selenium WebDriver service (Chrome)
+- Uses testcontainers for isolated database and application testing
+- Docker-based test environment
 - Application startup and health checks
-- Basic and advanced UI test suites
 - Screenshot capture on failure
 
 ### 3. Release (`release.yml`)
@@ -52,21 +51,19 @@ This directory contains GitHub Actions workflows for the Sorting Office project.
 **Purpose:** Comprehensive nightly testing and dependency monitoring
 
 **Jobs:**
-- **Nightly Comprehensive Test**: Full test suite with code coverage
+- **Nightly Comprehensive Test**: Full test suite including unit, integration, and UI tests
 - **Check for Dependency Updates**: Monitors for outdated dependencies
 
 **Features:**
-- Code coverage reporting
+- Uses testcontainers for isolated testing
 - Dependency update checking
 - Extended testing scenarios
 - Long-term artifact retention
 
-
-
 ## Usage
 
 ### Automatic Triggers
-- **Push to main/develop**: Triggers CI and UI tests
+- **Push to master**: Triggers CI and UI tests
 - **Pull Requests**: Triggers CI and UI tests
 - **Release creation**: Triggers release workflow
 - **Daily schedule**: Triggers nightly build
@@ -81,29 +78,43 @@ This directory contains GitHub Actions workflows for the Sorting Office project.
 - `GITHUB_TOKEN`: Automatically provided by GitHub
 
 ### Environment Variables
-- `DATABASE_URL`: MySQL connection string for tests
 - `RUST_LOG`: Logging level (debug/info)
 - `RUST_BACKTRACE`: Backtrace generation
+- `RUST_TEST_THREADS`: Number of test threads (default: 2 for integration tests)
+
+## Test Structure
+
+### Test Types
+- **Unit Tests**: Located in `src/` files, run with `make test-unit`
+- **Integration Tests**: Located in `tests/` directory, run with `make test-integration`
+- **UI Tests**: Containerized tests using testcontainers, run with `make test-ui`
+
+### Test Isolation
+All tests use testcontainers to ensure:
+- Isolated database instances per test
+- No interference between test runs
+- Consistent test environment
+- No external database dependencies
 
 ## Customization
 
 ### Adding New Tests
-1. Add test files to `tests/` directory
-2. Update `ci.yml` to include new test commands
-3. Consider adding to UI tests if they require browser interaction
-
-
+1. Add unit tests to `src/` files
+2. Add integration tests to `tests/` directory
+3. Add UI tests to `tests/ui_containerized.rs` or `tests/ui_smoke.rs`
+4. Update `Makefile` if new test commands are needed
 
 ### Adding New Workflows
 1. Create new `.yml` file in `.github/workflows/`
 2. Follow existing patterns for consistency
-3. Update this README with documentation
+3. Use testcontainers for any database-dependent tests
+4. Update this README with documentation
 
 ## Troubleshooting
 
 ### Common Issues
-1. **MySQL connection failures**: Check service health checks and connection strings
-2. **Selenium timeouts**: Verify Selenium service is running and accessible
+1. **Testcontainers failures**: Check Docker daemon and container resource limits
+2. **UI test timeouts**: Verify testcontainers are starting correctly
 3. **Docker build failures**: Check Dockerfile syntax and dependencies
 4. **Test failures**: Review test logs and ensure all dependencies are available
 
@@ -119,4 +130,5 @@ This directory contains GitHub Actions workflows for the Sorting Office project.
 2. **Fail fast**: Put critical checks early in the pipeline
 3. **Use specific versions**: Pin action versions for stability
 4. **Test locally**: Use `act` or similar tools to test workflows locally
-5. **Monitor regularly**: Check workflow success rates and performance 
+5. **Monitor regularly**: Check workflow success rates and performance
+6. **Use testcontainers**: Ensure test isolation and reproducibility 

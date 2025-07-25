@@ -14,25 +14,8 @@ env:
 
 jobs:
   ui-tests:
-    name: UI Tests (Headless)
+    name: UI Tests (Containerized)
     runs-on: ubuntu-latest
-    
-    services:
-      # MySQL Database
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: sortingoffice_test
-          MYSQL_USER: sortingoffice
-          MYSQL_PASSWORD: sortingoffice
-        options: >-
-          --health-cmd "mysqladmin ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 3306:3306
 
     steps:
     - name: Checkout code
@@ -69,64 +52,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
 
-    - name: Install MySQL client
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y default-mysql-client
-
-    - name: Install Diesel CLI
-      run: cargo install diesel_cli --no-default-features --features mysql
-
-    - name: Wait for MySQL
-      run: |
-        while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
-          sleep 1
-        done
-
-    - name: Run database migrations
-      env:
-        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
-      run: diesel migration run
-
-    - name: Build application
-      run: cargo build --release
-
-    - name: Start application
-      env:
-        DATABASE_URL: mysql://sortingoffice:sortingoffice@127.0.0.1:3306/sortingoffice_test
-        RUST_LOG: info
-        HOST: 0.0.0.0
-        PORT: 3000
-      run: |
-        nohup cargo run --release > app.log 2>&1 &
-        echo $! > app.pid
-        sleep 5
-
-    - name: Wait for application
-      run: |
-        for i in {1..30}; do
-          if curl -s http://localhost:3000/ > /dev/null; then
-            echo "Application is ready"
-            break
-          fi
-          echo "Waiting for application... ($i/30)"
-          sleep 2
-        done
-
-    - name: Run headless UI tests
+    - name: Run containerized UI tests
       env:
         RUST_TEST_THREADS: 1
         RUST_LOG: info
       run: |
-        cargo test --test ui_headless -- --nocapture --test-threads=1
-
-    - name: Stop application
-      if: always()
-      run: |
-        if [ -f app.pid ]; then
-          kill $(cat app.pid) || true
-          rm app.pid
-        fi
+        make test-ui
 
     - name: Upload test artifacts
       if: failure()
