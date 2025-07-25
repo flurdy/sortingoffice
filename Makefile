@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-ui-dev test-all test-ui-setup test-ui-compose test-ui-cleanup test-ui-failfast
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke selenium-up selenium-down selenium-logs selenium-clean
 
 # Default target
 help:
@@ -42,6 +42,7 @@ help:
 	@echo "  make test-unit  - Run only unit tests"
 	@echo "  make test-integration - Run only integration tests (set TEST_THREADS=N for parallelism, default 8)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
+	@echo "  make test-smoke - Run end-to-end smoke test against running app"
 	@echo "  make test-all   - Run all tests (unit + integration + UI)"
 	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
 	@echo ""
@@ -113,6 +114,16 @@ test-ui:
 	@echo "Running UI tests..."
 	@tests/run_tests.sh ui
 
+.PHONY: test-smoke
+test-smoke:
+	@echo "Running end-to-end smoke test..."
+	@echo "Prerequisites:"
+	@echo "  1. Start Selenium: make selenium-up"
+	@echo "  2. Start app: cargo run (in another terminal)"
+	@echo "  3. Ensure app is running on http://localhost:3000"
+	@echo ""
+	@tests/run_tests.sh smoke
+
 .PHONY: test-all
 test-all: test-unit test-integration test-ui
 	@echo "All tests completed!"
@@ -166,3 +177,15 @@ info:
 
 test-ui-failfast:
 	./tests/run_tests.sh ui --fail-fast
+
+selenium-up:
+	docker compose --profile test up -d selenium
+
+selenium-down:
+	docker compose --profile test stop selenium
+
+selenium-logs:
+	docker logs -f sortingoffice-selenium
+
+selenium-clean:
+	docker rm -f sortingoffice-selenium || true

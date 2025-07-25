@@ -37,6 +37,7 @@ show_usage() {
     echo "  unit              Run only unit tests (tests in source files)"
     echo "  integration       Run only integration tests (tests in tests/ directory)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
+    echo "  smoke             Run end-to-end smoke test against running app"
     echo "  all               Run all tests (unit + integration + UI)"
     echo "  help              Show this help message"
     echo ""
@@ -45,6 +46,7 @@ show_usage() {
     echo "  $0 unit           # Run unit tests"
     echo "  $0 integration    # Run integration tests"
     echo "  $0 ui             # Run containerized UI tests"
+    echo "  $0 smoke          # Run end-to-end smoke test"
     echo "  $0 all            # Run all tests"
 }
 
@@ -170,6 +172,47 @@ run_ui_tests() {
     echo ""
     print_success "Containerized UI tests completed successfully! 🎉"
 }
+
+# Function to run smoke test
+run_smoke_test() {
+    print_status "Running end-to-end smoke test for sortingoffice..."
+    
+    # Check if Docker is available
+    if ! command -v docker > /dev/null 2>&1; then
+        print_error "Docker is not available. Please install Docker and try again."
+        exit 1
+    fi
+
+    # Check if Docker daemon is running
+    if ! docker info > /dev/null 2>&1; then
+        print_error "Docker daemon is not running. Please start Docker and try again."
+        exit 1
+    fi
+
+    # Check if Selenium container is running
+    if ! docker ps --format "table {{.Names}}" | grep -q "sortingoffice-selenium"; then
+        print_warning "Selenium container is not running. Starting it now..."
+        docker compose --profile test up -d selenium
+        sleep 5
+    fi
+
+    # Set environment variables
+    export RUST_LOG=info
+    export RUST_BACKTRACE=0
+
+    # Run the smoke test
+    print_status "Running smoke test with Selenium..."
+    if SMOKE_TEST_APP_URL=http://host.docker.internal:3000 cargo test ui_smoke_e2e_flow -- --ignored --nocapture; then
+        print_success "Smoke test passed!"
+    else
+        print_error "Smoke test failed!"
+        exit 1
+    fi
+
+    echo ""
+    print_success "Smoke test completed successfully! 🎉"
+}
+
 # Function to run all tests
 run_all_tests() {
     print_status "Running all tests..."
@@ -198,6 +241,9 @@ case "${1:-unit}" in
         ;;
     "ui-containerized")
         run_ui_tests
+        ;;
+    "smoke")
+        run_smoke_test
         ;;
     "all")
         run_all_tests

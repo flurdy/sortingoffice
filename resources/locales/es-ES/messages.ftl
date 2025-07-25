@@ -665,3 +665,19 @@ clients-status-disabled = Deshabilitado
 
 not-found-title = Página no encontrada
 not-found-message = Lo sentimos, la página que solicitó no existe o puede haber sido movida.
+
+# Etiquetas de campos del formulario de usuario (añadidas para traducción completa)
+users-field-id = ID de usuario
+users-field-password = Contraseña
+users-field-name = Nombre de usuario
+users-field-active = Activo
+users-field-maildir = Directorio de correo
+users-field-home = Directorio principal
+
+# Ayudas de campos de usuario (añadidas para traducción completa)
+users-field-id-help = La dirección de correo electrónico de la cuenta de usuario (p.ej. usuario@ejemplo.com)
+users-field-password-help = La contraseña de la cuenta de usuario (dejar vacío para mantener la existente al editar)
+users-field-name-help = El nombre de usuario de la cuenta
+users-field-active-help = Activar esta cuenta de usuario
+users-field-maildir-help = El nombre del directorio de correo del usuario
+users-field-home-help = El directorio raíz que contiene los buzones

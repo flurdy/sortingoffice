@@ -390,6 +390,22 @@ users-confirm-password-label = Confirm Password
 users-confirm-password-placeholder = Confirm new password
 users-cancel-button = Cancel
 
+# User form field labels (added for user form translation completeness)
+users-field-id = User ID
+users-field-password = Password
+users-field-name = Username
+users-field-active = Active
+users-field-maildir = Maildir
+users-field-home = Home directory
+
+# User form field tooltips (added for user form translation completeness)
+users-field-id-help = The email address for the user account (e.g., user@example.com)
+users-field-password-help = The password for the user account (leave empty to keep existing password when editing)
+users-field-name-help = The username for the user account
+users-field-active-help = Enable this user account
+users-field-maildir-help = The name of the user's mailbox folder
+users-field-home-help = The root folder containing mailboxes
+
 # Relays
 relays-title = Relays
 relays-add = Add Relay

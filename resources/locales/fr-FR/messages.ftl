@@ -960,3 +960,19 @@ pagination-results = résultats
 
 not-found-title = Page non trouvée
 not-found-message = Désolé, la page demandée n'existe pas ou a peut-être été déplacée.
+
+# Étiquettes des champs du formulaire utilisateur (ajoutées pour la complétude de la traduction)
+users-field-id = ID utilisateur
+users-field-password = Mot de passe
+users-field-name = Nom d'utilisateur
+users-field-active = Actif
+users-field-maildir = Dossier mail
+users-field-home = Répertoire personnel
+
+# Info-bulles des champs utilisateur (ajoutées pour la complétude de la traduction)
+users-field-id-help = L'adresse e-mail du compte utilisateur (ex. utilisateur@exemple.com)
+users-field-password-help = Le mot de passe du compte utilisateur (laisser vide pour conserver l'existant lors de la modification)
+users-field-name-help = Le nom d'utilisateur du compte
+users-field-active-help = Activer ce compte utilisateur
+users-field-maildir-help = Le nom du dossier mail de l'utilisateur
+users-field-home-help = Le dossier racine contenant les boîtes aux lettres

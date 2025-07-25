@@ -322,6 +322,22 @@ users-tooltip-home = Rotmappen som inneholder postbokser
 users-placeholder-home = f.eks. /var/spool/mail/maildir
 users-placeholder-password = Skriv inn nytt passord (la stå tomt for å beholde eksisterende)
 
+# Feltetiketter for bruker (lagt til for fullstendig oversettelse)
+users-field-id = Bruker-ID
+users-field-password = Passord
+users-field-name = Brukernavn
+users-field-active = Aktiv
+users-field-maildir = Maildir
+users-field-home = Hjemmemappe
+
+# Verktøytips for brukerfelt (lagt til for fullstendig oversettelse)
+users-field-id-help = E-postadressen for brukerkontoen (f.eks. bruker@eksempel.no)
+users-field-password-help = Passordet for brukerkontoen (la stå tomt for å beholde eksisterende passord ved redigering)
+users-field-name-help = Brukernavnet for brukerkontoen
+users-field-active-help = Aktiver denne brukerkontoen
+users-field-maildir-help = Navnet på brukerens postboksmappe
+users-field-home-help = Rotmappen som inneholder postbokser
+
 # Relays
 relays-title = Videresendinger
 relays-add = Legg til videresending

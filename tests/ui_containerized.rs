@@ -1103,16 +1103,32 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
             tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
 
             // 1. Create a new domain
-            let domain_input = timeout30s!(env.driver.find(By::Css("input[name='domain']")), "Find domain input")?;
-            assert!(domain_input.is_displayed().await.unwrap_or(false), "Domain input is not displayed");    
+            let domain_input = timeout30s!(
+                env.driver.find(By::Css("input[name='domain']")),
+                "Find domain input"
+            )?;
+            assert!(
+                domain_input.is_displayed().await.unwrap_or(false),
+                "Domain input is not displayed"
+            );
             timeout60s!(domain_input.send_keys(&domain_name), "Type domain name")?;
-            let submit_btn = timeout60s!(env.driver.find(By::Id("domain-submit-button")), "Find submit button")?;
-            assert!(submit_btn.is_displayed().await.unwrap_or(false), "Domain submit button is not displayed");
+            let submit_btn = timeout60s!(
+                env.driver.find(By::Id("domain-submit-button")),
+                "Find submit button"
+            )?;
+            assert!(
+                submit_btn.is_displayed().await.unwrap_or(false),
+                "Domain submit button is not displayed"
+            );
             timeout60s!(submit_btn.click(), "Submit domain form")?;
             tokio::time::sleep(Duration::from_millis(500)).await;
 
-            let page_source = timeout60s!(env.driver.source(), "Get page source after domain create")?;
-            assert!(page_source.contains(&domain_name), "Domain should appear after creation");
+            let page_source =
+                timeout60s!(env.driver.source(), "Get page source after domain create")?;
+            assert!(
+                page_source.contains(&domain_name),
+                "Domain should appear after creation"
+            );
 
             let alias1domain = format!("{}@{}", alias1, domain_name);
 
@@ -1120,15 +1136,30 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
             let aliases_url = format!("{}/aliases", env.app_url);
             timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
 
-            let add_alias_btn = timeout60s!(env.driver.find(By::Id("add-alias-button")), "Find Add Alias button")?;
+            let add_alias_btn = timeout60s!(
+                env.driver.find(By::Id("add-alias-button")),
+                "Find Add Alias button"
+            )?;
             timeout30s!(add_alias_btn.click(), "Click Add Alias button")?;
             tokio::time::sleep(Duration::from_millis(200)).await;
 
-            let mail_input = timeout30s!(env.driver.find(By::Css("input[name='mail']")), "Find mail input field")?;
+            let mail_input = timeout30s!(
+                env.driver.find(By::Css("input[name='mail']")),
+                "Find mail input field"
+            )?;
             timeout60s!(mail_input.send_keys(&alias1domain), "Type alias1")?;
-            let dest_input = timeout60s!(env.driver.find(By::Css("input[name='destination']")), "Find destination input")?;
-            timeout60s!(dest_input.send_keys(&user_email), "Type destination for alias1")?;
-            let submit_btn = timeout60s!(env.driver.find(By::Id("alias-submit-button")), "Find submit button for alias1")?;
+            let dest_input = timeout60s!(
+                env.driver.find(By::Css("input[name='destination']")),
+                "Find destination input"
+            )?;
+            timeout60s!(
+                dest_input.send_keys(&user_email),
+                "Type destination for alias1"
+            )?;
+            let submit_btn = timeout60s!(
+                env.driver.find(By::Id("alias-submit-button")),
+                "Find submit button for alias1"
+            )?;
             timeout60s!(submit_btn.click(), "Submit alias1 form")?;
             tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -1139,42 +1170,88 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
             let alias2domain = format!("{}@{}", alias2, domain_name);
 
             // Add second alias
-            let add_alias_btn2 = timeout60s!(env.driver.find(By::Id("add-alias-button")), "Find Add Alias button again")?;
+            let add_alias_btn2 = timeout60s!(
+                env.driver.find(By::Id("add-alias-button")),
+                "Find Add Alias button again"
+            )?;
             timeout30s!(add_alias_btn2.click(), "Click Add Alias button again")?;
-            let mail_input2 = timeout30s!(env.driver.find(By::Css("input[name='mail']")), "Find mail input field for alias2")?;
+            let mail_input2 = timeout30s!(
+                env.driver.find(By::Css("input[name='mail']")),
+                "Find mail input field for alias2"
+            )?;
             timeout60s!(mail_input2.send_keys(&alias2domain), "Type alias2")?;
-            let dest_input2 = timeout60s!(env.driver.find(By::Css("input[name='destination']")), "Find destination input for alias2")?;
-            timeout60s!(dest_input2.send_keys(&user_email), "Type destination for alias2")?;
-            let submit_btn2 = timeout60s!(env.driver.find(By::Id("alias-submit-button")), "Find submit button for alias2")?;
+            let dest_input2 = timeout60s!(
+                env.driver.find(By::Css("input[name='destination']")),
+                "Find destination input for alias2"
+            )?;
+            timeout60s!(
+                dest_input2.send_keys(&user_email),
+                "Type destination for alias2"
+            )?;
+            let submit_btn2 = timeout60s!(
+                env.driver.find(By::Id("alias-submit-button")),
+                "Find submit button for alias2"
+            )?;
             timeout60s!(submit_btn2.click(), "Submit alias2 form")?;
             tokio::time::sleep(Duration::from_millis(500)).await;
 
-            let aliases_page_source = timeout60s!(env.driver.source(), "Get page source after alias create")?;
-            assert!(aliases_page_source.contains(&alias1domain) && aliases_page_source.contains(&alias2domain), "Aliases should appear after creation");
+            let aliases_page_source =
+                timeout60s!(env.driver.source(), "Get page source after alias create")?;
+            assert!(
+                aliases_page_source.contains(&alias1domain)
+                    && aliases_page_source.contains(&alias2domain),
+                "Aliases should appear after creation"
+            );
 
             // 3. Create a user for the domain
             let users_url = format!("{}/users", env.app_url);
             timeout60s!(env.driver.get(&users_url), "Navigate to users page")?;
-            let add_user_btn = timeout60s!(env.driver.find(By::Id("add-user-button")), "Find Add User button")?;
+            let add_user_btn = timeout60s!(
+                env.driver.find(By::Id("add-user-button")),
+                "Find Add User button"
+            )?;
             timeout30s!(add_user_btn.click(), "Click Add User button")?;
-            let user_id_input = timeout60s!(env.driver.find(By::Css("input[name='id']")), "Find user id input")?;
+            let user_id_input = timeout60s!(
+                env.driver.find(By::Css("input[name='id']")),
+                "Find user id input"
+            )?;
             timeout60s!(user_id_input.send_keys(&user_email), "Type user id")?;
-            let user_mail_input = timeout60s!(env.driver.find(By::Css("input[name='name']")), "Find user name input")?;
+            let user_mail_input = timeout60s!(
+                env.driver.find(By::Css("input[name='name']")),
+                "Find user name input"
+            )?;
             timeout60s!(user_mail_input.send_keys(&user_name), "Type user name")?;
-            let user_maildir_input = timeout60s!(env.driver.find(By::Css("input[name='maildir']")), "Find user maildir input")?;
-            timeout60s!(user_maildir_input.send_keys(&user_maildir), "Type user maildir")?;
-            let user_submit_btn = timeout60s!(env.driver.find(By::Id("user-submit-button")), "Find submit button for user")?;
+            let user_maildir_input = timeout60s!(
+                env.driver.find(By::Css("input[name='maildir']")),
+                "Find user maildir input"
+            )?;
+            timeout60s!(
+                user_maildir_input.send_keys(&user_maildir),
+                "Type user maildir"
+            )?;
+            let user_submit_btn = timeout60s!(
+                env.driver.find(By::Id("user-submit-button")),
+                "Find submit button for user"
+            )?;
             timeout60s!(user_submit_btn.click(), "Submit user form")?;
             tokio::time::sleep(Duration::from_millis(500)).await;
-            
-            let user_page_source = timeout60s!(env.driver.source(), "Get page source after user create")?;
-            assert!(user_page_source.contains(&user_email), "User should appear after creation");
+
+            let user_page_source =
+                timeout60s!(env.driver.source(), "Get page source after user create")?;
+            assert!(
+                user_page_source.contains(&user_email),
+                "User should appear after creation"
+            );
 
             // 4. Run a report (e.g., aliases report)
             let reports_url = format!("{}/reports", env.app_url);
             timeout60s!(env.driver.get(&reports_url), "Navigate to reports page")?;
-            let reports_page_source = timeout60s!(env.driver.source(), "Get page source for reports")?;
-            assert!(reports_page_source.contains("Reports") || reports_page_source.contains("Alias"), "Reports page should load");
+            let reports_page_source =
+                timeout60s!(env.driver.source(), "Get page source for reports")?;
+            assert!(
+                reports_page_source.contains("Reports") || reports_page_source.contains("Alias"),
+                "Reports page should load"
+            );
 
             drop(env.app_container);
             drop(env.selenium_container);

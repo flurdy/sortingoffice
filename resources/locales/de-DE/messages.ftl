@@ -682,3 +682,19 @@ pagination-results = Ergebnissen
 
 not-found-title = Seite nicht gefunden
 not-found-message = Entschuldigung, die angeforderte Seite existiert nicht oder wurde verschoben.
+
+# Benutzerformular-Feldbezeichnungen (hinzugefügt für vollständige Übersetzung)
+users-field-id = Benutzer-ID
+users-field-password = Passwort
+users-field-name = Benutzername
+users-field-active = Aktiv
+users-field-maildir = Mailverzeichnis
+users-field-home = Home-Verzeichnis
+
+# Benutzerformular-Feldhinweise (hinzugefügt für vollständige Übersetzung)
+users-field-id-help = Die E-Mail-Adresse für das Benutzerkonto (z.B. benutzer@example.com)
+users-field-password-help = Das Passwort für das Benutzerkonto (leer lassen, um das bestehende Passwort beim Bearbeiten zu behalten)
+users-field-name-help = Der Benutzername für das Benutzerkonto
+users-field-active-help = Dieses Benutzerkonto aktivieren
+users-field-maildir-help = Der Name des Mailverzeichnisses des Benutzers
+users-field-home-help = Das Stammverzeichnis, das die Postfächer enthält
