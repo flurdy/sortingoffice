@@ -72,6 +72,7 @@ pub async fn list(
             "aliases-description",
             "aliases-add",
             "aliases-table-header-mail",
+            "aliases-table-header-domain",
             "aliases-table-header-destination",
             "aliases-table-header-enabled",
             "aliases-table-header-actions",
@@ -105,6 +106,7 @@ pub async fn list(
         description: &translations["aliases-description"],
         add_alias: &translations["aliases-add"],
         table_header_mail: &translations["aliases-table-header-mail"],
+        table_header_domain: &translations["aliases-table-header-domain"],
         table_header_destination: &translations["aliases-table-header-destination"],
         table_header_enabled: &translations["aliases-table-header-enabled"],
         table_header_actions: &translations["aliases-table-header-actions"],
@@ -529,6 +531,8 @@ pub async fn create(
                         get_translation(&state, &locale, "aliases-table-header-mail").await;
                     let table_header_destination =
                         get_translation(&state, &locale, "aliases-table-header-destination").await;
+                    let table_header_domain =
+                        get_translation(&state, &locale, "aliases-table-header-domain").await;
                     let table_header_enabled =
                         get_translation(&state, &locale, "aliases-table-header-enabled").await;
                     let table_header_actions =
@@ -558,6 +562,7 @@ pub async fn create(
                         description: &description,
                         add_alias: &add_alias,
                         table_header_mail: &table_header_mail,
+                        table_header_domain: &table_header_domain,
                         table_header_destination: &table_header_destination,
                         table_header_enabled: &table_header_enabled,
                         table_header_actions: &table_header_actions,
@@ -823,6 +828,8 @@ pub async fn delete(
                 get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination =
                 get_translation(&state, &locale, "aliases-table-header-destination").await;
+            let table_header_domain =
+                get_translation(&state, &locale, "aliases-table-header-domain").await;
             let table_header_enabled =
                 get_translation(&state, &locale, "aliases-table-header-enabled").await;
             let table_header_actions =
@@ -850,6 +857,7 @@ pub async fn delete(
                 description: &description,
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
+                table_header_domain: &table_header_domain,
                 table_header_destination: &table_header_destination,
                 table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,
@@ -1009,6 +1017,8 @@ pub async fn toggle_enabled_list(
                 get_translation(&state, &locale, "aliases-table-header-mail").await;
             let table_header_destination =
                 get_translation(&state, &locale, "aliases-table-header-destination").await;
+            let table_header_domain =
+                get_translation(&state, &locale, "aliases-table-header-domain").await;
             let table_header_enabled =
                 get_translation(&state, &locale, "aliases-table-header-enabled").await;
             let table_header_actions =
@@ -1036,6 +1046,7 @@ pub async fn toggle_enabled_list(
                 description: &description,
                 add_alias: &add_alias,
                 table_header_mail: &table_header_mail,
+                table_header_domain: &table_header_domain,
                 table_header_destination: &table_header_destination,
                 table_header_enabled: &table_header_enabled,
                 table_header_actions: &table_header_actions,

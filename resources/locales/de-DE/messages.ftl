@@ -241,6 +241,7 @@ aliases-add-title = Alias hinzufügen
 aliases-edit-title = Alias bearbeiten
 aliases-show-title = Alias
 aliases-table-header-mail = E-Mail
+aliases-table-header-domain = Domain
 aliases-table-header-enabled = Aktiviert
 aliases-enable-alias = Aktivieren
 aliases-disable-alias = Deaktivieren

@@ -228,6 +228,7 @@ aliases-title = Alias
 aliases-description = Gérer les alias de courrier électronique et leurs paramètres.
 aliases-add = Ajouter un Alias
 aliases-table-header-mail = Adresse de Courrier
+aliases-table-header-domain = Domaine
 aliases-table-header-enabled = Activé
 aliases-table-header-destination = Destination
 aliases-table-header-status = Statut

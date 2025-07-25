@@ -221,6 +221,7 @@ aliases-title = Aliaser
 aliases-description = Administrer e-postaliaser og videresendingsregler.
 aliases-add = Legg til alias
 aliases-table-header-mail = E-post
+aliases-table-header-domain = Domene
 aliases-table-header-destination = Destinasjon
 aliases-table-header-enabled = Aktivert
 aliases-table-header-status = Status

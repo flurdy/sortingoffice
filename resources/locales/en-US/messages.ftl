@@ -279,6 +279,7 @@ aliases-title = Aliases
 aliases-description = Manage your email aliases and forwarding rules.
 aliases-add = Add Alias
 aliases-table-header-mail = Mail
+aliases-table-header-domain = Domain
 aliases-table-header-destination = Destination
 aliases-table-header-enabled = Enabled
 aliases-enable-alias = Enable

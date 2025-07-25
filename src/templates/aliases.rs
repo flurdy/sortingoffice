@@ -12,6 +12,7 @@ pub struct AliasesListTemplate<'a> {
     pub description: &'a str,
     pub add_alias: &'a str,
     pub table_header_mail: &'a str,
+    pub table_header_domain: &'a str,
     pub table_header_destination: &'a str,
     pub table_header_enabled: &'a str,
     pub table_header_actions: &'a str,

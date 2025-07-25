@@ -48,7 +48,23 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Includes hover effects for better interactivity
 - Maintains dark mode compatibility
 
-Like the users table where there is a domain column which is extracted from the id, can we add a similar domain column to the aliases list, extracted from the mail field?
+✅ Like the users table where there is a domain column which is extracted from the id, can we add a similar domain column to the aliases list, extracted from the mail field? - IMPLEMENTED
+- Added domain column to aliases list table
+- Extracts domain from alias.mail using `alias.mail.split('@').last().unwrap_or("")`
+- Added translations for "aliases-table-header-domain" in all languages:
+  - English: "Domain"
+  - Spanish: "Dominio" 
+  - German: "Domain"
+  - French: "Domaine"
+  - Norwegian: "Domene"
+- Updated template struct and handler to pass domain header translation
+- Adjusted column widths to accommodate new domain column
+
+✅ Fix aliases handler panic due to missing translation key - IMPLEMENTED
+- Fixed "no entry found for key" panic in aliases list handler
+- Added missing "aliases-table-header-domain" key to get_translations_batch call
+- Verified fix with unit tests (21 passed), integration tests (49 passed), and manual curl testing
+- Confirmed domain column header now displays correctly in aliases table
 
 Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail.
 
