@@ -4,7 +4,7 @@
 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
   {% for alias in aliases %}
   <li
-    class="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
+    class="p-3 {% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
     data-alias="{{ alias.mail }}"
     data-destination="{{ alias.destination }}"
   >

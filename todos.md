@@ -33,7 +33,20 @@ Why then compiling is there multiple axum versions?
 
 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
 
-First column of aliases list (mail) is missing translations. So is the alias-empty-title and description.
+✅ First column of aliases list (mail) is missing translations. So is the alias-empty-title and description. - IMPLEMENTED
+- Added missing translations to English messages.ftl:
+  - aliases-table-header-mail = Mail
+  - aliases-empty-title = No aliases  
+  - aliases-empty-description = Get started by creating a new alias.
+- Other language files already had these translations
+
+✅ Can the resource lists be striped in row style for easier reading - IMPLEMENTED
+- Added alternating row background colors to all resource list tables
+- Applied to: aliases, domains, users, relays, clients, relocated lists
+- Also applied to search result lists (aliases search, domain search)
+- Uses: even rows = white/gray-800, odd rows = gray-50/gray-700
+- Includes hover effects for better interactivity
+- Maintains dark mode compatibility
 
 Like the users table where there is a domain column which is extracted from the id, can we add a similar domain column to the aliases list, extracted from the mail field?
 
