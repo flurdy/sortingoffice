@@ -11,7 +11,6 @@ The test suite is organized into several modules:
 - **Handler Tests** (`src/tests/handlers.rs`): Tests for HTTP request handling and responses
 - **Utility Tests** (`src/tests/utils.rs`): Tests for helper functions and validation logic
 - **Integration Tests** (`src/tests/integration.rs`): End-to-end workflow tests
-- **Headless UI Tests** (`tests/ui_headless.rs`): Comprehensive UI tests using testcontainers and thirtyfour
 
 ## Running Tests
 

@@ -11,11 +11,11 @@
   - Updating run_tests.sh to use --lib for unit tests and --test for integration tests
   - Updating Makefile to properly separate test types
 
-Provide some timings of the unit, integration, ui-headless and ui-containerized.
+✅ Provide some timings of the unit, integration, ui-headless and ui-containerized.
 
 Why then compiling is there multiple axum versions? 
 
-In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
+✅ In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something?
 
 ✅ If a domain has a catchall then the required and common aliases are not missing in the alias reports. - IMPLEMENTED
 
@@ -44,3 +44,7 @@ On the configuration page there is functionality to add and remove, promote and 
 For clients and relays, the status is either OK, or REJECT.
 
 In the UI I seem unable to edit a relay and relocated.
+
+Create onboarding doc, detailing step by step what to do, fork code, build image or download, connect dbs, configure config.toml, run sql to add modified and created fields if missing, ensure migrations are turned off, start app, log in
+
+On the configuration page there is functionality to a run migrations. We do not need this. Migrations are only run on dev env. In prod no migrations are allowed and this could lead to accidental migrate runs.

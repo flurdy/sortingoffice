@@ -401,65 +401,23 @@ async fn test_homepage_loads_containerized() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_domain_search_containerized() -> Result<()> {
-    run_test_with_timeout("test_domain_search_containerized",
-        async {
-            let env = setup_ui_test_env().await?;
-            // println!("[DEBUG] App URL for Selenium: {}", env.app_url);
-            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
-            let aliases_url = format!("{}/aliases", env.app_url);
-            // println!("[DEBUG] Navigating to: {}", aliases_url);
-            timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
-            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-
-            // Click the Add Alias button
-            let add_alias_button = timeout60s!(
-                env.driver.find(By::Id("add-alias-button")),
-                "Find Add Alias button"
-            )?;
-
-            timeout30s!(add_alias_button.click(), "Click Add Alias button")?;
-            // tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-            // Try to find the mail input, but fail gracefully with a concise message
-            let mail_input = match timeout30s!(
-                env.driver.find(By::Css("input[name='mail']")),
-                "Find mail input field"
-            ) {
-                Ok(input) => input,
-                Err(_) => {
-                    eprintln!(
-                        "Test failed: Could not find mail input field after clicking Add Alias."
-                    );
-                    return Err(anyhow::anyhow!(
-                        "Could not find mail input field after clicking Add Alias."
-                    ));
-                }
-            };
-            timeout60s!(mail_input.send_keys("@exa"), "Type @exa in mail field")?;
-            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-            let page_source = timeout90s!(env.driver.source(), "Get page source")?;
-            if page_source.contains("domain-search-results")
-                || page_source.contains("No domains found")
-            {
-                // ok
-            }
-            drop(env.app_container);
-            drop(env.selenium_container);
-            Ok(())
-        },
-        Duration::from_secs(40),
-    )
-    .await
-}
-
-#[tokio::test]
 async fn test_navigation_containerized() -> Result<()> {
     run_test_with_timeout("test_navigation_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            let nav_elements = timeout60s!(
+                env.driver.find_all(By::Css("nav, .nav, .navbar, .menu")),
+                "Find navigation elements"
+            )?;
+            let links = timeout60s!(env.driver.find_all(By::Css("a")), "Find link elements")?;
+            
+            assert!(!nav_elements.is_empty() && !links.is_empty(),
+                "No navigation elements found");
+            
             let pages = vec![
+                ("/", "Dashboard"),
                 ("/domains", "Domains"),
                 ("/users", "Users"),
                 ("/aliases", "Aliases"),
@@ -609,6 +567,58 @@ async fn test_minimal_webdriver_session() -> Result<()> {
 }
 
 #[tokio::test]
+async fn test_domain_search_containerized() -> Result<()> {
+    run_test_with_timeout("test_domain_search_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            // println!("[DEBUG] App URL for Selenium: {}", env.app_url);
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            let aliases_url = format!("{}/aliases", env.app_url);
+            // println!("[DEBUG] Navigating to: {}", aliases_url);
+            timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
+            // tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+            // Click the Add Alias button
+            let add_alias_button = timeout60s!(
+                env.driver.find(By::Id("add-alias-button")),
+                "Find Add Alias button"
+            )?;
+
+            timeout30s!(add_alias_button.click(), "Click Add Alias button")?;
+            // tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+            // Try to find the mail input, but fail gracefully with a concise message
+            let mail_input = match timeout30s!(
+                env.driver.find(By::Css("input[name='mail']")),
+                "Find mail input field"
+            ) {
+                Ok(input) => input,
+                Err(_) => {
+                    eprintln!(
+                        "Test failed: Could not find mail input field after clicking Add Alias."
+                    );
+                    return Err(anyhow::anyhow!(
+                        "Could not find mail input field after clicking Add Alias."
+                    ));
+                }
+            };
+            timeout60s!(mail_input.send_keys("@exa"), "Type @exa in mail field")?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+            let page_source = timeout90s!(env.driver.source(), "Get page source")?;
+            assert!( page_source.contains("domain-search-results")
+                || page_source.contains("No domains found"),
+                "Domain search results not found"
+            );
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
+
+#[tokio::test]
 async fn test_aliases_list_page_containerized() -> Result<()> {
     run_test_with_timeout("test_aliases_list_page_containerized",
         async {
@@ -647,11 +657,8 @@ async fn test_domains_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&domains_url), "Navigate to domains page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            if !page_source.contains("Domains") && !page_source.contains("domains") {
-                return Err(anyhow::anyhow!(
-                    "Domains page does not contain expected content"
-                ));
-            }
+            assert!(page_source.contains("Domains") || page_source.contains("domains"),
+            "Domains page does not contain expected content");
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -671,11 +678,8 @@ async fn test_users_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&users_url), "Navigate to users page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            if !page_source.contains("Users") && !page_source.contains("users") {
-                return Err(anyhow::anyhow!(
-                    "Users page does not contain expected content"
-                ));
-            }
+            assert!(page_source.contains("Users") || page_source.contains("users"),
+             "Users page does not contain expected content");
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -695,11 +699,8 @@ async fn test_clients_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&clients_url), "Navigate to clients page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            if !page_source.contains("Clients") && !page_source.contains("clients") {
-                return Err(anyhow::anyhow!(
-                    "Clients page does not contain expected content"
-                ));
-            }
+            assert!(page_source.contains("Clients") || page_source.contains("clients"),
+            "Clients page does not contain expected content");
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())

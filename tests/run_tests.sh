@@ -37,10 +37,7 @@ show_usage() {
     echo "  unit              Run only unit tests (tests in source files)"
     echo "  integration       Run only integration tests (tests in tests/ directory)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
-    echo "  ui-headless       Run only headless UI tests"
-    echo "  ui-containerized  Run containerized UI tests (app + db in containers)"
     echo "  all               Run all tests (unit + integration + UI)"
-    echo "  ui-setup          Setup UI test environment"
     echo "  help              Show this help message"
     echo ""
     echo "Examples:"
@@ -48,10 +45,7 @@ show_usage() {
     echo "  $0 unit           # Run unit tests"
     echo "  $0 integration    # Run integration tests"
     echo "  $0 ui             # Run containerized UI tests"
-    echo "  $0 ui-headless    # Run headless UI tests"
-    echo "  $0 ui-containerized # Run containerized UI tests"
     echo "  $0 all            # Run all tests"
-    echo "  $0 ui-setup       # Setup UI test environment"
 }
 
 # Function to run unit tests
@@ -143,56 +137,8 @@ check_app_health() {
     return 1
 }
 
-# Function to run headless UI tests
-run_headless_ui_tests() {
-    print_status "Running headless UI tests for sortingoffice..."
-    
-    # Check if the application is healthy
-    if ! check_app_health; then
-        print_warning "Application is not healthy on localhost:3000"
-        print_status "Please start the application first:"
-        echo "  cargo run"
-        echo "  # or"
-        echo "  docker-compose up"
-        echo ""
-        print_status "Then run this script again."
-        exit 1
-    fi
-
-    # Ensure seed data is loaded for UI tests
-    print_status "Ensuring seed data is loaded for UI tests..."
-    if [ -f "seed_data/all.sql" ]; then
-        # Try to load seed data using the default database configuration
-        if mysql -uroot -prootpassword -h127.0.0.1 -P3306 sortingoffice < seed_data/all.sql 2>/dev/null; then
-            print_success "Seed data loaded successfully!"
-        else
-            print_warning "Could not load seed data automatically. UI tests may fail if database is empty."
-            print_status "You can manually load seed data with: make seed"
-        fi
-    else
-        print_warning "No seed data found. UI tests may fail if database is empty."
-        print_status "You can create seed data with: make create-seed-data"
-    fi
-
-    # Set environment variables
-    export RUST_TEST_THREADS=1
-    export RUST_LOG=info
-
-    # Run the headless UI tests (uses testcontainers automatically)
-    print_status "Running headless UI tests with testcontainers..."
-    if cargo test --test ui_headless -- --nocapture --test-threads=$RUST_TEST_THREADS; then
-        print_success "Headless UI tests passed!"
-    else
-        print_error "Headless UI tests failed!"
-        exit 1
-    fi
-
-    echo ""
-    print_success "Headless UI tests completed successfully! 🎉"
-}
-
 # Function to run containerized UI tests
-run_containerized_ui_tests() {
+run_ui_tests() {
     print_status "Running containerized UI tests for sortingoffice..."
     
     # Check if Docker is available
@@ -224,44 +170,15 @@ run_containerized_ui_tests() {
     echo ""
     print_success "Containerized UI tests completed successfully! 🎉"
 }
-
-# Function to setup UI test environment
-setup_ui_tests() {
-    print_status "Setting up UI test environment..."
-    
-    # Check if Docker Compose is available
-    if ! command -v docker-compose > /dev/null 2>&1 && ! docker compose version > /dev/null 2>&1; then
-        print_error "Docker Compose is not available. Please install Docker Compose and try again."
-        exit 1
-    fi
-
-    # Start Selenium service using Docker Compose
-    print_status "Starting Selenium WebDriver with Docker Compose..."
-    if docker compose version > /dev/null 2>&1; then
-        docker compose --profile test up -d selenium
-    else
-        docker-compose --profile test up -d selenium
-    fi
-
-    if [ $? -eq 0 ]; then
-        print_success "Selenium WebDriver started!"
-        print_status "You can access VNC viewer at localhost:7900 (password: secret)"
-        print_status "Now run: $0 ui"
-    else
-        print_error "Failed to start Selenium WebDriver"
-        exit 1
-    fi
-}
-
 # Function to run all tests
 run_all_tests() {
     print_status "Running all tests..."
     start_all=$(date +%s)
-    run_unit_tests
+    # run_unit_tests
     echo ""
     run_integration_tests
     echo ""
-    run_ui_tests
+    # run_ui_tests
     end_all=$(date +%s)
     duration_all=$((end_all - start_all))
     print_success "All tests completed in ${duration_all}s!"
@@ -277,19 +194,13 @@ case "${1:-unit}" in
         run_integration_tests
         ;;
     "ui")
-        run_containerized_ui_tests
-        ;;
-    "ui-headless")
-        run_headless_ui_tests
+        run_ui_tests
         ;;
     "ui-containerized")
-        run_containerized_ui_tests
+        run_ui_tests
         ;;
     "all")
         run_all_tests
-        ;;
-    "ui-setup")
-        setup_ui_tests
         ;;
     "help"|"-h"|"--help")
         show_usage

@@ -42,11 +42,7 @@ help:
 	@echo "  make test-unit  - Run only unit tests"
 	@echo "  make test-integration - Run only integration tests (set TEST_THREADS=N for parallelism, default 8)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
-	@echo "  make test-ui-dev - Run only headless UI tests"
 	@echo "  make test-all   - Run all tests (unit + integration + UI)"
-	@echo "  make test-ui-setup - Setup Selenium for UI tests"
-	@echo "  make test-ui-compose - Run UI tests with Docker Compose"
-	@echo "  make test-ui-cleanup - Clean up UI test environment"
 	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
 	@echo ""
 	@echo "Code Quality:"
@@ -99,7 +95,7 @@ db-shell:
 install:
 	cargo install diesel_cli --no-default-features --features mysql
 
-test: test-db-setup
+test: 
 	./tests/run_tests.sh all
 
 .PHONY: test-unit
@@ -120,18 +116,6 @@ test-ui:
 .PHONY: test-all
 test-all: test-unit test-integration test-ui
 	@echo "All tests completed!"
-
-test-ui-setup:
-	@echo "🔧 Setting up UI test environment..."
-	@echo "Note: UI tests now use testcontainers and don't require external Selenium setup"
-
-# Docker Compose UI test commands (deprecated - now using testcontainers)
-test-ui-compose:
-	@echo "🧪 Running UI tests with testcontainers..."
-	./tests/run_tests.sh ui-containerized
-
-test-ui-cleanup:
-	@echo "🧹 UI test cleanup not needed - testcontainers auto-cleanup"
 
 run:
 	cargo watch -d 5 -x run

@@ -38,16 +38,6 @@ These tests cover more complex user interactions with **enhanced Selenium readin
 - **Keyboard Navigation**: Tests accessibility and keyboard shortcuts
 - **Performance**: Measures page load times and responsiveness
 
-### Headless UI Tests (`tests/ui_headless.rs`) - **NEW**
-
-These tests use the **thirtyfour** WebDriver client for improved headless browser testing:
-
-- **Modern WebDriver Client**: Uses thirtyfour instead of fantoccini for better stability
-- **Enhanced Headless Mode**: Optimized Chrome configuration for headless operation
-- **Improved Error Handling**: Better timeout and retry mechanisms
-- **Same Test Coverage**: All the same functionality as regular UI tests
-- **Faster Execution**: Optimized for CI/CD environments
-
 ## Prerequisites
 
 ### Required Software
@@ -116,10 +106,7 @@ This script will:
 # Run only basic UI tests (with Selenium readiness checks)
 ./tests/run_tests.sh ui
 
-# Run only headless UI tests (recommended for CI/CD)
-./tests/run_tests.sh ui-headless
-
-# Run all UI tests (basic + advanced + headless)
+# Run all UI tests (basic + advanced)
 ./tests/run_tests.sh ui
 
 # Setup UI test environment
@@ -153,9 +140,6 @@ If you prefer to run tests manually:
    
    # Advanced UI tests with readiness checks
    cargo test --test ui_advanced -- --nocapture
-   
-   # Headless UI tests (recommended)
-   cargo test --test ui_headless -- --nocapture
    ```
 
 ### Running Specific Tests
@@ -170,15 +154,9 @@ Run only advanced UI tests:
 cargo test --test ui_advanced
 ```
 
-Run only headless UI tests:
-```bash
-cargo test --test ui_headless
-```
-
 Run a specific test:
 ```bash
 cargo test --test ui test_homepage_loads
-cargo test --test ui_headless test_homepage_loads_headless
 ```
 
 ## Test Configuration

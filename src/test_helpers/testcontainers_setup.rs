@@ -91,7 +91,7 @@ pub async fn setup_test_db() -> TestContainer {
     // Create connection pool for the test schema
     let manager = ConnectionManager::<MysqlConnection>::new(&test_url);
     let pool = Pool::builder()
-        .max_size(5)
+        .max_size(20)
         .min_idle(Some(1))
         .build(manager)
         .expect("Failed to create pool");
