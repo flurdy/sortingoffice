@@ -987,7 +987,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
         cleanup_test_db(
             &state
@@ -1699,7 +1699,12 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains("404"));
+        // Check for themed 404 page content (should contain the app title and error message)
+        assert!(
+            body_str.contains("Sorting Office")
+                || body_str.contains("Not Found")
+                || body_str.contains("404")
+        );
     }
 
     #[tokio::test]

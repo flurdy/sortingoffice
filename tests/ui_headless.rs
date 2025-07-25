@@ -249,46 +249,6 @@ async fn test_dashboard_navigation_headless() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_form_validation_headless() -> Result<()> {
-    run_test_with_timeout(
-        async {
-            let (driver, app_port) = setup_driver().await?;
-
-            println!("📝 Testing form validation in headless browser...");
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Navigate to domain creation form
-            let form_url = format!("http://172.17.0.1:{}/domains/new", app_port);
-            println!("Navigating to domain creation form: {}", form_url);
-            timeout10s!(driver.get(&form_url), "Navigate to domain form");
-
-            // Check for form elements
-            let forms = timeout10s!(driver.find_all(By::Css("form")), "Find form elements");
-            if forms.is_empty() {
-                return Err(anyhow::anyhow!("Domain creation form not found"));
-            }
-
-            // Check for input elements
-            let inputs = timeout10s!(
-                driver.find_all(By::Css("input, textarea, select")),
-                "Find input elements"
-            );
-            if inputs.is_empty() {
-                return Err(anyhow::anyhow!("Form should have input elements"));
-            }
-
-            println!("✅ Form validation works correctly in headless browser");
-            timeout10s!(driver.quit(), "Quit driver");
-            Ok(())
-        },
-        Duration::from_secs(30),
-    )
-    .await
-}
-
-#[tokio::test]
 async fn test_navigation_menu_headless() -> Result<()> {
     run_test_with_timeout(
         async {
@@ -320,41 +280,6 @@ async fn test_navigation_menu_headless() -> Result<()> {
             Ok(())
         },
         Duration::from_secs(30),
-    )
-    .await
-}
-
-#[tokio::test]
-async fn test_page_titles_headless() -> Result<()> {
-    run_test_with_timeout(
-        async {
-            let (driver, app_port) = setup_driver().await?;
-
-            println!("📄 Testing page titles in headless browser...");
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Test main pages have titles
-            let pages = ["/", "/domains", "/users", "/aliases", "/clients"];
-
-            for page in pages {
-                let page_url = format!("http://172.17.0.1:{}{}", app_port, page);
-                println!("Testing page: {}", page_url);
-                timeout10s!(driver.get(&page_url), "Navigate to page");
-
-                let title = timeout10s!(driver.title(), "Get page title");
-                if title.is_empty() {
-                    return Err(anyhow::anyhow!("Page {} should have a title", page));
-                }
-                println!("Page title: {}", title);
-            }
-
-            println!("✅ All pages have proper titles in headless browser");
-            timeout10s!(driver.quit(), "Quit driver");
-            Ok(())
-        },
-        Duration::from_secs(60),
     )
     .await
 }
@@ -423,50 +348,6 @@ async fn test_accessibility_basics_headless() -> Result<()> {
 }
 
 #[tokio::test]
-async fn test_cross_browser_compatibility_headless() -> Result<()> {
-    run_test_with_timeout(
-        async {
-            let (driver, app_port) = setup_driver().await?;
-
-            println!("🌐 Testing cross-browser compatibility in headless browser...");
-
-            // Test different viewport sizes
-            let viewports = [
-                (1920, 1080),
-                (1366, 768),
-                (1024, 768),
-                (768, 1024),
-                (375, 667),
-            ];
-
-            for (width, height) in viewports {
-                println!("Testing viewport: {}x{}", width, height);
-                timeout10s!(driver.set_window_rect(0, 0, width, height), "Set viewport");
-
-                let home_url = format!("http://172.17.0.1:{}", app_port);
-                timeout10s!(driver.get(&home_url), "Navigate to homepage");
-
-                // Should load without errors
-                let current_url = timeout10s!(driver.current_url(), "Get current URL");
-                if !current_url.as_str().contains("3000") {
-                    return Err(anyhow::anyhow!(
-                        "Page should load correctly at {}x{} viewport",
-                        width,
-                        height
-                    ));
-                }
-            }
-
-            println!("✅ Cross-browser compatibility works in headless browser");
-            timeout10s!(driver.quit(), "Quit driver");
-            Ok(())
-        },
-        Duration::from_secs(60),
-    )
-    .await
-}
-
-#[tokio::test]
 async fn test_htmx_compatibility_headless() -> Result<()> {
     run_test_with_timeout(
         async {
@@ -498,38 +379,6 @@ async fn test_htmx_compatibility_headless() -> Result<()> {
             }
 
             println!("✅ HTMX compatibility works in headless browser");
-            timeout10s!(driver.quit(), "Quit driver");
-            Ok(())
-        },
-        Duration::from_secs(30),
-    )
-    .await
-}
-
-#[tokio::test]
-async fn test_performance_metrics_headless() -> Result<()> {
-    run_test_with_timeout(
-        async {
-            let (driver, app_port) = setup_driver().await?;
-
-            println!("⚡ Testing performance metrics in headless browser...");
-
-            // Navigate to homepage and measure load time
-            let home_url = format!("http://172.17.0.1:{}", app_port);
-            println!("Navigating to homepage: {}", home_url);
-
-            let start_time = std::time::Instant::now();
-            timeout10s!(driver.get(&home_url), "Navigate to homepage");
-            let load_time = start_time.elapsed();
-
-            println!("Page load time: {:?}", load_time);
-
-            // Basic performance check - page should load within 10 seconds
-            if load_time > Duration::from_secs(10) {
-                return Err(anyhow::anyhow!("Page load time too slow: {:?}", load_time));
-            }
-
-            println!("✅ Performance metrics are acceptable in headless browser");
             timeout10s!(driver.quit(), "Quit driver");
             Ok(())
         },
@@ -622,116 +471,6 @@ async fn test_add_alias_domain_search_headless() -> Result<()> {
             Ok(())
         },
         Duration::from_secs(40),
-    )
-    .await
-}
-
-#[tokio::test]
-async fn test_database_dropdown_selection_headless() -> Result<()> {
-    run_test_with_timeout(
-        async {
-            let (driver, app_port) = setup_driver().await?;
-
-            println!("🗄️ Testing database dropdown selection in headless browser...");
-
-            // Authenticate first
-            authenticate_driver(&driver, app_port).await?;
-
-            // Navigate to a page that has the database dropdown (dashboard)
-            let dashboard_url = format!("http://172.17.0.1:{}", app_port);
-            println!("Navigating to dashboard: {}", dashboard_url);
-            timeout10s!(driver.get(&dashboard_url), "Navigate to dashboard");
-
-            // Wait for page to load
-            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
-
-            // Find and click the database dropdown button
-            println!("Looking for database dropdown button...");
-            let dropdown_btn = timeout10s!(
-                driver.find(By::Id("db-dropdown-btn")),
-                "Find database dropdown button"
-            );
-            timeout10s!(dropdown_btn.click(), "Click database dropdown button");
-
-            // Wait for dropdown to appear
-            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
-
-            // Check if dropdown is visible
-            let dropdown_list = timeout10s!(
-                driver.find(By::Id("db-dropdown-list")),
-                "Find database dropdown list"
-            );
-            let is_displayed =
-                timeout10s!(dropdown_list.is_displayed(), "Check dropdown visibility");
-            if !is_displayed {
-                return Err(anyhow::anyhow!(
-                    "Database dropdown should be visible after clicking"
-                ));
-            }
-
-            // Find all database options in the dropdown
-            let database_options = timeout10s!(
-                driver.find_all(By::Css("#db-dropdown-list button")),
-                "Find database options"
-            );
-            println!("Found {} database options", database_options.len());
-
-            if database_options.len() < 2 {
-                return Err(anyhow::anyhow!(
-                    "Should have at least 2 database options to test selection"
-                ));
-            }
-
-            // Get the current URL before selection
-            let current_url = timeout10s!(driver.current_url(), "Get current URL before selection");
-            println!("Current URL before selection: {}", current_url);
-
-            // Click on the second database option (if different from current)
-            let second_option = &database_options[1];
-            let option_text = timeout10s!(second_option.text(), "Get second option text");
-            println!("Selecting database: {}", option_text);
-
-            timeout10s!(second_option.click(), "Click second database option");
-
-            // Wait for the page to reload/redirect
-            tokio::time::sleep(tokio::time::Duration::from_millis(3000)).await;
-
-            // Check that we're still on the same page (dashboard) with sidebar preserved
-            let new_url = timeout10s!(driver.current_url(), "Get URL after selection");
-            println!("URL after selection: {}", new_url);
-
-            // Should still be on the dashboard
-            if !new_url.as_str().contains("3000") {
-                return Err(anyhow::anyhow!(
-                    "Should still be on the application after database selection"
-                ));
-            }
-
-            // Check that the sidebar/navigation is still present
-            let sidebar = timeout10s!(
-                driver.find(By::Css("nav, .sidebar, .navigation")),
-                "Find sidebar/navigation"
-            );
-            let sidebar_displayed = timeout10s!(sidebar.is_displayed(), "Check sidebar visibility");
-            if !sidebar_displayed {
-                return Err(anyhow::anyhow!(
-                    "Sidebar should still be visible after database selection"
-                ));
-            }
-
-            // Verify the page content is still there (dashboard content)
-            let page_source = timeout10s!(driver.source(), "Get page source after selection");
-            if !page_source.contains("Dashboard") && !page_source.contains("dashboard") {
-                return Err(anyhow::anyhow!(
-                    "Dashboard content should still be present after database selection"
-                ));
-            }
-
-            println!("✅ Database dropdown selection works correctly in headless browser");
-            timeout10s!(driver.quit(), "Quit driver");
-            Ok(())
-        },
-        Duration::from_secs(60),
     )
     .await
 }

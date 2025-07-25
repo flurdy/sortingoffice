@@ -1,0 +1,37 @@
+# Minimal Sorting Office config for Docker/test builds
+
+# Required aliases that must exist for all domains
+required_aliases = [
+    "postmaster",
+    "abuse",
+    "hostmaster"
+]
+
+# Common aliases that are typically useful
+common_aliases = [
+    "webmaster",
+    "admin",
+    "support"
+]
+
+[[databases]]
+id = "primary"
+label = "Test DB"
+url = "${DATABASE_URL}"
+
+[[databases]]
+id = "secondary"
+label = "Secondary Test DB"
+url = "${DATABASE_URL_SECONDARY}"
+
+# Admin user (overridable by env vars)
+[[admins]]
+# Username can be overridden by ADMIN_USERNAME env var
+username = "admin"
+# username = "${ADMIN_USERNAME}"
+# Password hash for 'admin123', can be overridden by ADMIN_PASSWORD_HASH env var
+password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
+# password_hash = "${ADMIN_PASSWORD_HASH}"
+role = "edit"
+
+# Note: The app must support env var substitution in config for this to work. 

@@ -208,7 +208,7 @@ run_containerized_ui_tests() {
     fi
 
     # Set environment variables
-    export RUST_TEST_THREADS="${TEST_THREADS:-4}"
+    export RUST_TEST_THREADS="${TEST_THREADS:-8}"
     export RUST_LOG=info
     export RUST_BACKTRACE=0
 

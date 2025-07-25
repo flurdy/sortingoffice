@@ -1,7 +1,6 @@
 use anyhow::Result;
 use reqwest;
-use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-use std::env;
+use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
 use std::net::TcpListener;
 use std::process::Command;
 
@@ -152,13 +151,18 @@ async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
 }
 
 // Helper function to run a test with timeout
-async fn run_test_with_timeout<F, T>(test_fn: F, timeout_duration: Duration) -> Result<T>
+async fn run_test_with_timeout<F, T>(test_name: &str, test_fn: F, timeout_duration: Duration) -> Result<T>
 where
     F: std::future::Future<Output = Result<T>>,
 {
-    timeout(timeout_duration, test_fn)
+    let start = std::time::Instant::now();
+    let result = timeout(timeout_duration, test_fn)
         .await
-        .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?
+        .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?;
+    let duration = start.elapsed();
+    let secs = duration.as_secs_f64();
+    println!("[TEST-TIME] {} took {:.2}s", test_name, secs);
+    result
 }
 
 /// Helper to get the bridge IP address of a running container by its ID
@@ -195,16 +199,9 @@ async fn setup_app_container(
     _admin_password_hash: &str,
     config_path: &str,
     container_name: &str,
+    extra_env: &[(&str, &str)],
 ) -> anyhow::Result<(ContainerAsync<GenericImage>, String /* bridge IP */)> {
-    // println!("[DEBUG] setup_app_container called with:");
-    // println!("  db_url: {}", db_url);
-    // println!("  host_port: {}", host_port);
-    // println!("  admin_username: {}", admin_username);
-    // println!("  admin_password_hash: {}", admin_password_hash);
-    // println!("  config_path: {}", config_path);
-    // println!("  container_name: {}", container_name);
-    // println!("[DEBUG] Starting app container with image: sortingoffice:latest");
-    let app_image = GenericImage::new("sortingoffice", "latest")
+    let mut app_image = GenericImage::new("sortingoffice", "latest")
         .with_env_var("DATABASE_URL", db_url)
         .with_env_var("PORT", "4000")
         // .with_env_var("ADMIN_USERNAME", admin_username)
@@ -212,12 +209,11 @@ async fn setup_app_container(
         .with_mapped_port(host_port, 4000.into())
         .with_container_name(container_name)
         .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
-    // println!("[DEBUG] Attempting to start app container...");
+    for (key, value) in extra_env {
+        app_image = app_image.with_env_var(*key, *value);
+    }
     let app_container = match AsyncRunner::start(app_image).await {
-        Ok(c) => {
-            // println!("[DEBUG] App container started: id={}", c.id());
-            c
-        }
+        Ok(c) => c,
         Err(e) => {
             println!("[ERROR] Failed to start app container: {:?}", e);
             return Err(e.into());
@@ -225,8 +221,6 @@ async fn setup_app_container(
     };
     let app_id = app_container.id();
     let app_ip = get_container_bridge_ip(&app_id).await?;
-    // println!("[DEBUG] App container bridge IP: {}", app_ip);
-    // Wait for the app to be healthy before returning
     let health_url = format!("http://{}:4000/health", app_ip);
     let client = reqwest::Client::new();
     let start = std::time::Instant::now();
@@ -234,21 +228,11 @@ async fn setup_app_container(
     loop {
         match client.get(&health_url).send().await {
             Ok(resp) if resp.status().is_success() => {
-                // println!("[DEBUG] App /health is healthy!");
                 break;
             }
-            Ok(resp) => {
-                println!("[DEBUG] /health status: {}", resp.status());
-            }
-            Err(e) => {
-                println!("[DEBUG] /health error: {}", e);
-            }
+            Ok(_) | Err(_) => {}
         }
         if start.elapsed() > timeout {
-            println!(
-                "[ERROR] App /health did not become healthy in time: {}",
-                health_url
-            );
             return Err(anyhow::anyhow!("App /health not healthy after 30s"));
         }
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -315,6 +299,23 @@ async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<(
     Ok(())
 }
 
+async fn seed_test_db(container: &TestContainer) {
+    let db_name = &container.schema;
+    let db_ip = container.get_bridge_ip();
+    let status = std::process::Command::new("mysql")
+        .arg("-uroot")
+        .arg("-h")
+        .arg(db_ip)
+        .arg("-P")
+        .arg("3306")
+        .arg(db_name)
+        .arg("-e")
+        .arg(format!("source seed_data/all.sql"))
+        .status()
+        .expect("Failed to run mysql seed command");
+    assert!(status.success(), "Seeding DB failed with status: {:?}", status);
+}
+
 struct TestEnv {
     app_container: ContainerAsync<GenericImage>,
     selenium_container: ContainerAsync<GenericImage>,
@@ -322,30 +323,45 @@ struct TestEnv {
     app_url: String,
 }
 
-async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
-    let port = find_free_port();
-    let test_db = setup_test_db().await;
+async fn setup_ui_test_env_with_dbs(db_count: usize, config_path: &str) -> anyhow::Result<TestEnv> {
+    let mut dbs = Vec::new();
+    for _ in 0..db_count {
+        dbs.push(setup_test_db().await);
+    }
     let db_url = format!(
         "mysql://root@{}:3306/{}",
-        test_db.get_bridge_ip(),
-        test_db.schema
+        dbs[0].get_bridge_ip(),
+        dbs[0].schema
     );
-    let config_path = env::current_dir()
-        .unwrap()
-        .join("config/config.docker.toml");
-    let config_path_str = config_path.to_str().unwrap();
+    let db_url_secondary = if db_count > 1 {
+        Some(format!(
+            "mysql://root@{}:3306/{}",
+            dbs[1].get_bridge_ip(),
+            dbs[1].schema
+        ))
+    } else {
+        None
+    };
+    let port = find_free_port();
     let unique_app_name = format!("app-{}", port);
     let admin_username = "admin";
     let admin_password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
+    let mut extra_env = vec![];
+    if let Some(ref db2) = db_url_secondary {
+        extra_env.push(("DATABASE_URL_SECONDARY", db2.as_str()));
+    }
     let (app_container, app_ip) = setup_app_container(
         &db_url,
         port,
         admin_username,
         admin_password_hash,
-        config_path_str,
+        config_path,
         &unique_app_name,
-    )
-    .await?;
+        &extra_env,
+    ).await?;
+    for db in &dbs {
+        seed_test_db(db).await;
+    }
     let (selenium_container, driver, _selenium_port) =
         setup_selenium_container_and_driver().await?;
     let app_url = format!("http://{}:4000", app_ip);
@@ -357,9 +373,17 @@ async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
     })
 }
 
+async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.toml");
+    let config_path_str = config_path.to_str().unwrap();
+    setup_ui_test_env_with_dbs(1, config_path_str).await
+}
+
 #[tokio::test]
 async fn test_homepage_loads_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_homepage_loads_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -378,7 +402,7 @@ async fn test_homepage_loads_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_domain_search_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_domain_search_containerized",
         async {
             let env = setup_ui_test_env().await?;
             // println!("[DEBUG] App URL for Selenium: {}", env.app_url);
@@ -431,7 +455,7 @@ async fn test_domain_search_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_navigation_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_navigation_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -586,7 +610,7 @@ async fn test_minimal_webdriver_session() -> Result<()> {
 
 #[tokio::test]
 async fn test_aliases_list_page_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_aliases_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -615,7 +639,7 @@ async fn test_aliases_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_domains_list_page_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_domains_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -639,7 +663,7 @@ async fn test_domains_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_users_list_page_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_users_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -663,7 +687,7 @@ async fn test_users_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_clients_list_page_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_clients_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -688,7 +712,7 @@ async fn test_clients_list_page_containerized() -> Result<()> {
 #[tokio::test]
 async fn test_responsive_design_containerized() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
-    run_test_with_timeout(
+    run_test_with_timeout("test_responsive_design_containerized",
         async {
             let env = setup_ui_test_env().await?;
             // Test desktop viewport
@@ -729,7 +753,7 @@ async fn test_responsive_design_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_not_found_pages_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_not_found_pages_containerized",
         async {
             let env = setup_ui_test_env().await?;
 
@@ -776,7 +800,7 @@ async fn test_not_found_pages_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_unauthorized_pages_containerized() -> Result<()> {
-    run_test_with_timeout(
+    run_test_with_timeout("test_unauthorized_pages_containerized",
         async {
             let env = setup_ui_test_env().await?;
 
@@ -796,6 +820,205 @@ async fn test_unauthorized_pages_containerized() -> Result<()> {
             Ok(())
         },
         Duration::from_secs(40),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_domain_form_validation_containerized() -> Result<()> {
+    run_test_with_timeout("test_domain_form_validation_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            // Navigate to domain creation form
+            let form_url = format!("{}/domains/new", env.app_url);
+            timeout60s!(env.driver.get(&form_url), "Navigate to domain form")?;
+            // Check for form elements
+            let forms = timeout60s!(env.driver.find_all(By::Css("form")), "Find form elements")?;
+            if forms.is_empty() {
+                return Err(anyhow::anyhow!("Domain creation form not found"));
+            }
+            // Check for input elements
+            let inputs = timeout60s!(
+                env.driver.find_all(By::Css("input, textarea, select")),
+                "Find input elements"
+            )?;
+            if inputs.is_empty() {
+                return Err(anyhow::anyhow!("Form should have input elements"));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_page_titles_containerized() -> Result<()> {
+    run_test_with_timeout("test_page_titles_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            // Test main pages have titles
+            let pages = ["/", "/domains", "/users", "/aliases", "/clients"];
+            for page in pages.iter() {
+                let page_url = format!("{}{}", env.app_url, page);
+                timeout60s!(env.driver.get(&page_url), "Navigate to page")?;
+                let title = timeout60s!(env.driver.title(), "Get page title")?;
+                if title.is_empty() {
+                    return Err(anyhow::anyhow!("Page {} should have a title", page));
+                }
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(60),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_cross_browser_compatibility_containerized() -> Result<()> {
+    run_test_with_timeout("test_cross_browser_compatibility_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            // Test different viewport sizes
+            let viewports = [
+                (1920, 1080),
+                (1366, 768),
+                (1024, 768),
+                (768, 1024),
+                (375, 667),
+            ];
+            for (width, height) in viewports.iter() {
+                timeout60s!(
+                    env.driver.set_window_rect(0, 0, *width, *height),
+                    "Set viewport"
+                )?;
+                let home_url = format!("{}/", env.app_url);
+                timeout60s!(env.driver.get(&home_url), "Navigate to homepage")?;
+                // Should load without errors
+                let current_url = timeout60s!(env.driver.current_url(), "Get current URL")?;
+                if !current_url.as_str().contains("4000") {
+                    return Err(anyhow::anyhow!(
+                        "Page should load correctly at {}x{} viewport",
+                        width,
+                        height
+                    ));
+                }
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(60),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_performance_metrics_containerized() -> Result<()> {
+    run_test_with_timeout("test_performance_metrics_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            let home_url = format!("{}/", env.app_url);
+            let start_time = std::time::Instant::now();
+            timeout60s!(env.driver.get(&home_url), "Navigate to homepage")?;
+            let load_time = start_time.elapsed();
+            // Basic performance check - page should load within 10 seconds
+            if load_time > Duration::from_secs(10) {
+                return Err(anyhow::anyhow!("Page load time too slow: {:?}", load_time));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(30),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_database_dropdown_selection_containerized() -> Result<()> {
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.multidb.toml");
+    let config_path_str = config_path.to_str().unwrap();
+    run_test_with_timeout("test_database_dropdown_selection_containerized",
+        async {
+            let env = setup_ui_test_env_with_dbs(2, config_path_str).await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            // Navigate to a page that has the database dropdown (dashboard)
+            let dashboard_url = format!("{}/", env.app_url);
+            timeout60s!(env.driver.get(&dashboard_url), "Navigate to dashboard")?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+            // Find and click the database dropdown button
+            let dropdown_btn = timeout60s!(
+                env.driver.find(By::Id("db-dropdown-btn")),
+                "Find database dropdown button"
+            )?;
+            timeout60s!(dropdown_btn.click(), "Click database dropdown button")?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+            // Check if dropdown is visible
+            let dropdown_list = timeout60s!(
+                env.driver.find(By::Id("db-dropdown-list")),
+                "Find database dropdown list"
+            )?;
+            let is_displayed = timeout60s!(dropdown_list.is_displayed(), "Check dropdown visibility")?;
+            if !is_displayed {
+                return Err(anyhow::anyhow!(
+                    "Database dropdown should be visible after clicking"
+                ));
+            }
+            // Find all database options in the dropdown
+            let database_options = timeout60s!(
+                env.driver.find_all(By::Css("#db-dropdown-list button")),
+                "Find database options"
+            )?;
+            if database_options.len() < 2 {
+                return Err(anyhow::anyhow!(
+                    "Should have at least 2 database options to test selection"
+                ));
+            }
+            // Get the current URL before selection
+            // let _current_url = timeout60s!(env.driver.current_url(), "Get current URL before selection")?;
+            // Click on the second database option (if different from current)
+            let second_option = &database_options[1];
+            timeout60s!(second_option.click(), "Click second database option")?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(3000)).await;
+            // Check that we're still on the same page (dashboard) with sidebar preserved
+            let new_url = timeout60s!(env.driver.current_url(), "Get URL after selection")?;
+            if !new_url.as_str().contains("4000") {
+                return Err(anyhow::anyhow!(
+                    "Should still be on the application after database selection"
+                ));
+            }
+            // Check that the sidebar/navigation is still present
+            let sidebar = timeout60s!(
+                env.driver.find(By::Css("nav, .sidebar, .navigation")),
+                "Find sidebar/navigation"
+            )?;
+            let sidebar_displayed = timeout60s!(sidebar.is_displayed(), "Check sidebar visibility")?;
+            if !sidebar_displayed {
+                return Err(anyhow::anyhow!(
+                    "Sidebar should still be visible after database selection"
+                ));
+            }
+            // Verify the page content is still there (dashboard content)
+            let page_source = timeout60s!(env.driver.source(), "Get page source after selection")?;
+            if !page_source.contains("Dashboard") && !page_source.contains("dashboard") {
+                return Err(anyhow::anyhow!(
+                    "Dashboard content should still be present after database selection"
+                ));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(60),
     )
     .await
 }
