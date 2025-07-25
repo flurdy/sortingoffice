@@ -26,7 +26,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
+            url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -53,8 +53,7 @@ mod tests {
             .as_secs()
             + 3600; // 1 hour in the future
         let cookie = format!(
-            "authenticated={}:edit:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax",
-            expiry
+            "authenticated={expiry}:edit:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax"
         );
         axum::http::HeaderValue::from_str(&cookie).unwrap()
     }
@@ -153,7 +152,7 @@ mod tests {
         // Step 6: Verify the update
         let updated_domain = db::get_domain(_pool, domain.pkid).unwrap();
         assert_eq!(updated_domain.domain, "updated-integration.com");
-        assert_eq!(updated_domain.enabled, false);
+        assert!(!updated_domain.enabled);
 
         // Step 7: Toggle the domain active status
         let toggle_response = app
@@ -174,7 +173,7 @@ mod tests {
 
         // Step 8: Verify the toggle
         let toggled_domain = db::get_domain(_pool, domain.pkid).unwrap();
-        assert_eq!(toggled_domain.enabled, true);
+        assert!(toggled_domain.enabled);
 
         // Step 9: Delete the domain
         let delete_response = app
@@ -318,8 +317,8 @@ mod tests {
             updated_user.id, updated_user.enabled, updated_user.change_password
         );
         assert_eq!(updated_user.id, "updateduser@integration-user-test.com");
-        assert_eq!(updated_user.enabled, false);
-        assert_eq!(updated_user.change_password, true);
+        assert!(!updated_user.enabled);
+        assert!(updated_user.change_password);
 
         // Step 8: Toggle the user active status
         let toggle_response = app
@@ -344,7 +343,7 @@ mod tests {
             "DEBUG: Toggled user - id: {}, enabled: {}",
             toggled_user.id, toggled_user.enabled
         );
-        assert_eq!(toggled_user.enabled, true);
+        assert!(toggled_user.enabled);
         // Note: change_password field is not affected by toggle operation
     }
 
@@ -461,7 +460,7 @@ mod tests {
         // Step 7: Verify the update
         let updated_alias = db::get_alias(_pool, alias.pkid).unwrap();
         assert_eq!(updated_alias.mail, "updated@integration-alias-test.com");
-        assert_eq!(updated_alias.enabled, false);
+        assert!(!updated_alias.enabled);
 
         // Step 8: Toggle the alias active status
         let toggle_response = app
@@ -482,7 +481,7 @@ mod tests {
 
         // Step 9: Verify the toggle
         let toggled_alias = db::get_alias(_pool, alias.pkid).unwrap();
-        assert_eq!(toggled_alias.enabled, true);
+        assert!(toggled_alias.enabled);
     }
 
     #[tokio::test]
@@ -648,8 +647,7 @@ mod tests {
 
         for (_email, username, password) in users_data {
             let form_data = format!(
-                "id={}&password={}&name={}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
-                username, password, username
+                "id={username}&password={password}&name={username}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
             );
 
             let response = app
@@ -678,7 +676,7 @@ mod tests {
         ];
 
         for (alias, destination) in aliases_data {
-            let form_data = format!("mail={}&destination={}&enabled=on", alias, destination);
+            let form_data = format!("mail={alias}&destination={destination}&enabled=on");
 
             let response = app
                 .clone()
@@ -725,7 +723,7 @@ mod tests {
 
         // Verify toggle
         let toggled_domain = db::get_domain(_pool, primary_domain.pkid).unwrap();
-        assert_eq!(toggled_domain.enabled, false);
+        assert!(!toggled_domain.enabled);
 
         // Step 6: Test statistics
         let stats_response = app
@@ -820,7 +818,7 @@ mod tests {
         ];
 
         for (alias, username) in aliases_data {
-            let form_data = format!("mail={}&destination={}&enabled=on", alias, username);
+            let form_data = format!("mail={alias}&destination={username}&enabled=on");
 
             let response = app
                 .clone()
@@ -864,7 +862,7 @@ mod tests {
 
         // Verify toggle
         let toggled_john = db::get_user(_pool, john.id.clone()).unwrap();
-        assert_eq!(toggled_john.enabled, false);
+        assert!(!toggled_john.enabled);
 
         // Step 5: Test alias management
         let aliases = db::get_aliases(_pool).unwrap();
@@ -892,7 +890,7 @@ mod tests {
 
         // Verify alias toggle
         let toggled_alias = db::get_alias(_pool, john_alias.pkid).unwrap();
-        assert_eq!(toggled_alias.enabled, false);
+        assert!(!toggled_alias.enabled);
 
         // Step 6: Test statistics
         let stats_response = app
@@ -1021,7 +1019,7 @@ mod tests {
         // Verify we have the expected domains
         let _pool = container.get_pool();
         let final_domains = db::get_domains(_pool).unwrap();
-        assert!(final_domains.len() >= 1); // At least duplicate-test.com
+        assert!(!final_domains.is_empty()); // At least duplicate-test.com
     }
 
     #[tokio::test]
@@ -1036,7 +1034,7 @@ mod tests {
         ];
 
         for (domain, transport) in database_domains {
-            let form_data = format!("domain={}&transport={}&enabled=on", domain, transport);
+            let form_data = format!("domain={domain}&transport={transport}&enabled=on");
 
             let response = app
                 .clone()
@@ -1065,8 +1063,7 @@ mod tests {
 
         for (username, password, name) in database_users {
             let form_data = format!(
-                "id={}&password={}&name={}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
-                username, password, name
+                "id={username}&password={password}&name={name}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
             );
 
             let response = app
@@ -1095,7 +1092,7 @@ mod tests {
         ];
 
         for (alias, destination) in database_aliases {
-            let form_data = format!("mail={}&destination={}&enabled=on", alias, destination);
+            let form_data = format!("mail={alias}&destination={destination}&enabled=on");
 
             let response = app
                 .clone()
@@ -1119,7 +1116,7 @@ mod tests {
         let cross_database_aliases = vec![("cross@db1-domain.com", "db2-user@db2-domain.com")];
 
         for (alias, destination) in cross_database_aliases {
-            let form_data = format!("mail={}&destination={}&enabled=on", alias, destination);
+            let form_data = format!("mail={alias}&destination={destination}&enabled=on");
 
             let response = app
                 .clone()
@@ -1147,7 +1144,7 @@ mod tests {
         ];
 
         for (alias, destination) in bulk_aliases {
-            let form_data = format!("mail={}&destination={}&enabled=on", alias, destination);
+            let form_data = format!("mail={alias}&destination={destination}&enabled=on");
 
             let response = app
                 .clone()

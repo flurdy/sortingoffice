@@ -6,7 +6,7 @@ use tokio::net::TcpListener;
 async fn main() {
     let config_path = "config/config.toml";
     let config = Config::load_config_with_env(config_path)
-        .unwrap_or_else(|e| panic!("Failed to load configuration: {:?}", e));
+        .unwrap_or_else(|e| panic!("Failed to load configuration: {e:?}"));
 
     // Debug: log all loaded database configs
     fn mask_db_url(url: &str) -> String {
@@ -17,7 +17,7 @@ async fn main() {
                 let (userpass, hostrest) = rest.split_at(at_idx);
                 if let Some(colon_idx) = userpass.find(':') {
                     let (user, _pass) = userpass.split_at(colon_idx);
-                    return format!("{}{}:***{}", scheme, user, hostrest);
+                    return format!("{scheme}{user}:***{hostrest}");
                 }
             }
         }
@@ -64,7 +64,7 @@ async fn main() {
         .unwrap_or(3000);
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await.unwrap();
-    println!("Listening on {}", addr);
+    println!("Listening on {addr}");
 
     // Start server
     axum::serve(listener, app).await.unwrap();

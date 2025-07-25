@@ -71,8 +71,8 @@ pub async fn setup_test_db() -> TestContainer {
 
     // Create a unique schema/database for this test
     let schema = unique_test_id();
-    let admin_url = format!("mysql://root@{}:{}/mysql", host, port);
-    let test_url = format!("mysql://root@{}:{}/{}", host, port, schema);
+    let admin_url = format!("mysql://root@{host}:{port}/mysql");
+    let test_url = format!("mysql://root@{host}:{port}/{schema}");
 
     // Create the schema
     {
@@ -83,7 +83,7 @@ pub async fn setup_test_db() -> TestContainer {
             .build(manager)
             .expect("Failed to create admin pool");
         let mut conn = pool.get().expect("Failed to get admin connection");
-        diesel::sql_query(format!("CREATE DATABASE IF NOT EXISTS `{}`", schema))
+        diesel::sql_query(format!("CREATE DATABASE IF NOT EXISTS `{schema}`"))
             .execute(&mut conn)
             .expect("Failed to create test schema");
     }
@@ -112,7 +112,7 @@ pub async fn setup_test_db() -> TestContainer {
                 "inspect",
                 "-f",
                 "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
-                &container.id(),
+                container.id(),
             ])
             .output()
             .expect("Failed to get MySQL container bridge IP");
@@ -155,5 +155,5 @@ pub fn unique_test_id() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    format!("test_{}", timestamp)
+    format!("test_{timestamp}")
 }

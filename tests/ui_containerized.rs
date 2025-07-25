@@ -1,5 +1,4 @@
 use anyhow::Result;
-use reqwest;
 use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
 use std::net::TcpListener;
 use std::process::Command;
@@ -55,7 +54,7 @@ macro_rules! timeout90s {
 
 async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
     let _client = reqwest::Client::new();
-    let url = format!("http://localhost:{}/status", port);
+    let url = format!("http://localhost:{port}/status");
     let start = std::time::Instant::now();
     while start.elapsed() < max_wait {
         match reqwest::get(&url).await {
@@ -165,7 +164,7 @@ where
         .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?;
     let duration = start.elapsed();
     let secs = duration.as_secs_f64();
-    println!("[TEST-TIME] {} took {:.2}s", test_name, secs);
+    println!("[TEST-TIME] {test_name} took {secs:.2}s");
     result
 }
 
@@ -219,13 +218,13 @@ async fn setup_app_container(
     let app_container = match AsyncRunner::start(app_image).await {
         Ok(c) => c,
         Err(e) => {
-            println!("[ERROR] Failed to start app container: {:?}", e);
+            println!("[ERROR] Failed to start app container: {e:?}");
             return Err(e.into());
         }
     };
     let app_id = app_container.id();
-    let app_ip = get_container_bridge_ip(&app_id).await?;
-    let health_url = format!("http://{}:4000/health", app_ip);
+    let app_ip = get_container_bridge_ip(app_id).await?;
+    let health_url = format!("http://{app_ip}:4000/health");
     let client = reqwest::Client::new();
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_secs(30);
@@ -283,7 +282,7 @@ async fn setup_selenium_container_and_driver(
     caps.add_arg("--disable-features=VizDisplayCompositor")?;
     let driver = timeout(
         Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{}", selenium_port), caps),
+        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
     )
     .await??;
     Ok((selenium, driver, selenium_port))
@@ -314,13 +313,12 @@ async fn seed_test_db(container: &TestContainer) {
         .arg("3306")
         .arg(db_name)
         .arg("-e")
-        .arg(format!("source seed_data/all.sql"))
+        .arg("source seed_data/all.sql".to_string())
         .status()
         .expect("Failed to run mysql seed command");
     assert!(
         status.success(),
-        "Seeding DB failed with status: {:?}",
-        status
+        "Seeding DB failed with status: {status:?}"
     );
 }
 
@@ -351,7 +349,7 @@ async fn setup_ui_test_env_with_dbs(db_count: usize, config_path: &str) -> anyho
         None
     };
     let port = find_free_port();
-    let unique_app_name = format!("app-{}", port);
+    let unique_app_name = format!("app-{port}");
     let admin_username = "admin";
     let admin_password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
     let mut extra_env = vec![];
@@ -373,7 +371,7 @@ async fn setup_ui_test_env_with_dbs(db_count: usize, config_path: &str) -> anyho
     }
     let (selenium_container, driver, _selenium_port) =
         setup_selenium_container_and_driver().await?;
-    let app_url = format!("http://{}:4000", app_ip);
+    let app_url = format!("http://{app_ip}:4000");
     Ok(TestEnv {
         app_container,
         selenium_container,
@@ -443,8 +441,7 @@ async fn test_navigation_containerized() -> Result<()> {
                 let page_source = timeout60s!(env.driver.source(), "Get page source")?;
                 assert!(
                     page_source.contains(expected_title),
-                    "Page should contain {}",
-                    expected_title
+                    "Page should contain {expected_title}"
                 );
             }
             drop(env.app_container);
@@ -493,7 +490,7 @@ async fn test_selenium_container_starts_and_status() -> Result<()> {
     // Wait a bit for Selenium to be ready
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
     // Try to fetch /status
-    let url = format!("http://localhost:{}/status", selenium_port);
+    let url = format!("http://localhost:{selenium_port}/status");
     let resp = reqwest::get(&url).await;
     match resp {
         Ok(r) => {
@@ -505,7 +502,7 @@ async fn test_selenium_container_starts_and_status() -> Result<()> {
             // println!("[DEBUG] /status body: {}", text);
         }
         Err(e) => {
-            println!("[DEBUG] Error fetching /status: {}", e);
+            println!("[DEBUG] Error fetching /status: {e}");
         }
     }
     // println!("[DEBUG] Sleeping for 30 seconds. Inspect the container now if needed.");
@@ -554,7 +551,7 @@ async fn test_minimal_webdriver_session() -> Result<()> {
     // println!("[DEBUG] Attempting to create minimal WebDriver session...");
     let driver_result = timeout(
         Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{}", selenium_port), caps),
+        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
     )
     .await;
     match driver_result {
@@ -563,13 +560,12 @@ async fn test_minimal_webdriver_session() -> Result<()> {
             Ok(())
         }
         Ok(Err(e)) => {
-            println!("[DEBUG] Minimal WebDriver::new error: {:#?}", e);
+            println!("[DEBUG] Minimal WebDriver::new error: {e:#?}");
             Err(e.into())
         }
         Err(e) => {
             println!(
-                "[DEBUG] Timeout waiting for minimal WebDriver::new: {:#?}",
-                e
+                "[DEBUG] Timeout waiting for minimal WebDriver::new: {e:#?}"
             );
             Err(anyhow::anyhow!(
                 "Timeout waiting for minimal WebDriver::new: {:#?}",
@@ -797,8 +793,7 @@ async fn test_not_found_pages_containerized() -> Result<()> {
                 page_source_404_logged_in.contains("404")
                     || page_source_404_logged_in.contains("Not Found")
                     || page_source_404_logged_in.contains("Error"),
-                "404 page does not contain expected error content. Source: {}",
-                title_404_logged_in
+                "404 page does not contain expected error content. Source: {title_404_logged_in}"
             );
 
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -813,8 +808,7 @@ async fn test_not_found_pages_containerized() -> Result<()> {
                 page_source_404.contains("404")
                     || page_source_404.contains("Not Found")
                     || page_source_404.contains("Error"),
-                "404 page does not contain expected not found. Source: {}",
-                title_404
+                "404 page does not contain expected not found. Source: {title_404}"
             );
 
             drop(env.app_container);
@@ -840,8 +834,7 @@ async fn test_unauthorized_pages_containerized() -> Result<()> {
             assert!(title_401.contains("Sign in"));
             assert!(
                 page_source_401.contains("login"),
-                "401 page does not contain expected login content. Title: {}",
-                title_401
+                "401 page does not contain expected login content. Title: {title_401}"
             );
 
             drop(env.app_container);
@@ -1089,7 +1082,7 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
             let alias2 = format!("alias2-{}", rand_str());
             let user_name = format!("user-{}", rand_str());
             let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
-            let user_email = format!("{}@{}", user_name, domain_name);
+            let user_email = format!("{user_name}@{domain_name}");
 
             let domain_url = format!("{}/domains", env.app_url);
             timeout60s!(env.driver.get(&domain_url), "Navigate to domains list page")?;
@@ -1130,7 +1123,7 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
                 "Domain should appear after creation"
             );
 
-            let alias1domain = format!("{}@{}", alias1, domain_name);
+            let alias1domain = format!("{alias1}@{domain_name}");
 
             // 2. Create two aliases for the domain
             let aliases_url = format!("{}/aliases", env.app_url);
@@ -1167,7 +1160,7 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
             let aliases_url = format!("{}/aliases", env.app_url);
             timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
 
-            let alias2domain = format!("{}@{}", alias2, domain_name);
+            let alias2domain = format!("{alias2}@{domain_name}");
 
             // Add second alias
             let add_alias_btn2 = timeout60s!(

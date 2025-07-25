@@ -150,8 +150,7 @@ impl DatabaseManager {
         // Check if migrations are blocked for this database
         if config.is_migration_blocked(db_id) {
             return Err(format!(
-                "Migrations blocked for database: {} (read-only, disabled, or no_migrations=true)",
-                db_id
+                "Migrations blocked for database: {db_id} (read-only, disabled, or no_migrations=true)"
             )
             .into());
         }
@@ -1569,8 +1568,8 @@ pub fn get_aliases_paginated(
     // Post-process for domain sorting if needed
     if sort_by == Some("domain") {
         aliases.sort_by(|a, b| {
-            let domain_a = a.mail.split('@').last().unwrap_or("");
-            let domain_b = b.mail.split('@').last().unwrap_or("");
+            let domain_a = a.mail.split('@').next_back().unwrap_or("");
+            let domain_b = b.mail.split('@').next_back().unwrap_or("");
             let domain_cmp = if sort_order == Some("desc") {
                 domain_b.cmp(domain_a)
             } else {
@@ -1692,11 +1691,8 @@ pub fn table_exists(pool: &DbPool, table_name: &str) -> bool {
     };
 
     // Try to query the table to see if it exists
-    let query = format!("SELECT 1 FROM {} LIMIT 1", table_name);
-    match diesel::sql_query(query).execute(&mut conn) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    let query = format!("SELECT 1 FROM {table_name} LIMIT 1");
+    diesel::sql_query(query).execute(&mut conn).is_ok()
 }
 
 pub fn relays_table_exists(pool: &DbPool) -> bool {

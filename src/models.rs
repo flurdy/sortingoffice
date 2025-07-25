@@ -938,7 +938,7 @@ mod tests {
 
         assert_eq!(new_domain.domain, "test.com");
         assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
-        assert_eq!(new_domain.enabled, true);
+        assert!(new_domain.enabled);
     }
 
     #[test]
@@ -993,7 +993,7 @@ mod tests {
 
         assert_eq!(form.domain, "test.com");
         assert_eq!(form.transport, "smtp:localhost");
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
     }
 
     #[test]
@@ -1003,7 +1003,7 @@ mod tests {
 
         assert_eq!(form.domain, "test.com");
         assert_eq!(form.transport, "smtp:localhost");
-        assert_eq!(form.enabled, false); // Default value
+        assert!(!form.enabled); // Default value
     }
 
     #[test]
@@ -1016,7 +1016,7 @@ mod tests {
         assert_eq!(form.password, "secret123");
         assert_eq!(form.name, "Test User");
         assert_eq!(form.maildir, "testdir");
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
     }
 
     #[test]
@@ -1026,7 +1026,7 @@ mod tests {
 
         assert_eq!(form.mail, "test@example.com");
         assert_eq!(form.destination, "user@example.com");
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
     }
 
     #[test]
@@ -1034,27 +1034,27 @@ mod tests {
         // Test form data deserialization with "on" value
         let form_data = "domain=test.com&transport=smtp:localhost&enabled=on";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
 
         // Test form data deserialization with "true" value
         let form_data = "domain=test.com&transport=smtp:localhost&enabled=true";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
 
         // Test form data deserialization with "1" value
         let form_data = "domain=test.com&transport=smtp:localhost&enabled=1";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
 
         // Test form data deserialization with missing values
         let form_data = "domain=test.com&transport=smtp:localhost";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-        assert_eq!(form.enabled, false);
+        assert!(!form.enabled);
 
         // Test form data deserialization with "off" value
         let form_data = "domain=test.com&transport=smtp:localhost&enabled=off";
         let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-        assert_eq!(form.enabled, false);
+        assert!(!form.enabled);
     }
 
     #[test]
@@ -1161,7 +1161,7 @@ mod tests {
             new_backup.transport,
             Some("smtp:relay.test.com".to_string())
         );
-        assert_eq!(new_backup.enabled, true);
+        assert!(new_backup.enabled);
     }
 
     #[test]
@@ -1171,7 +1171,7 @@ mod tests {
 
         assert_eq!(form.domain, "backup.test.com");
         assert_eq!(form.transport, "smtp:relay.test.com");
-        assert_eq!(form.enabled, true);
+        assert!(form.enabled);
     }
 
     #[test]
@@ -1181,7 +1181,7 @@ mod tests {
 
         assert_eq!(form.domain, "backup.test.com");
         assert_eq!(form.transport, "smtp:relay.test.com");
-        assert_eq!(form.enabled, false); // Default value
+        assert!(!form.enabled); // Default value
     }
 
     #[test]

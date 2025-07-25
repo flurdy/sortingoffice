@@ -145,7 +145,7 @@ async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
 }
 
 async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str) -> Result<()> {
-    let domain_url = format!("{}/domains", app_url);
+    let domain_url = format!("{app_url}/domains");
     timeout60s!(driver.get(&domain_url), "Navigate to domains list page")?;
 
     let add_domain_button = timeout60s!(
@@ -191,7 +191,7 @@ async fn create_alias(
     alias_email: &str,
     destination: &str,
 ) -> Result<()> {
-    let aliases_url = format!("{}/aliases", app_url);
+    let aliases_url = format!("{app_url}/aliases");
     timeout60s!(driver.get(&aliases_url), "Navigate to aliases page")?;
 
     let add_alias_btn = timeout60s!(
@@ -236,7 +236,7 @@ async fn create_user(
     user_name: &str,
     user_maildir: &str,
 ) -> Result<()> {
-    let users_url = format!("{}/users", app_url);
+    let users_url = format!("{app_url}/users");
     timeout60s!(driver.get(&users_url), "Navigate to users page")?;
 
     let add_user_btn = timeout60s!(
@@ -283,7 +283,7 @@ async fn create_user(
 }
 
 async fn check_reports_page(driver: &WebDriver, app_url: &str) -> Result<()> {
-    let reports_url = format!("{}/reports", app_url);
+    let reports_url = format!("{app_url}/reports");
     timeout60s!(driver.get(&reports_url), "Navigate to reports page")?;
 
     let reports_page_source = timeout60s!(driver.source(), "Get page source for reports")?;
@@ -302,7 +302,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
     let app_url = std::env::var("SMOKE_TEST_APP_URL")
         .unwrap_or_else(|_| "http://host.docker.internal:3000".to_string());
 
-    println!("[SMOKE TEST] Starting smoke test against: {}", app_url);
+    println!("[SMOKE TEST] Starting smoke test against: {app_url}");
 
     // Setup Chrome capabilities for visible browser
     let mut caps = DesiredCapabilities::chrome();
@@ -335,11 +335,10 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             let alias2 = format!("alias2-{}", rand_str());
             let user_name = format!("user-{}", rand_str());
             let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
-            let user_email = format!("{}@{}", user_name, domain_name);
+            let user_email = format!("{user_name}@{domain_name}");
 
             println!(
-                "[SMOKE TEST] Test data generated: domain={}, user={}",
-                domain_name, user_email
+                "[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}"
             );
 
             // 1. Create a new domain
@@ -348,8 +347,8 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             println!("[SMOKE TEST] Domain created successfully");
 
             // 2. Create two aliases for the domain
-            let alias1domain = format!("{}@{}", alias1, domain_name);
-            let alias2domain = format!("{}@{}", alias2, domain_name);
+            let alias1domain = format!("{alias1}@{domain_name}");
+            let alias2domain = format!("{alias2}@{domain_name}");
 
             println!("[SMOKE TEST] Creating first alias...");
             create_alias(&driver, &app_url, &alias1domain, &user_email).await?;
@@ -382,15 +381,14 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             println!("[SMOKE TEST] WebDriver quit successfully");
         }
         Ok(Err(e)) => {
-            eprintln!("[SMOKE TEST] Failed to quit WebDriver: {:?}", e);
+            eprintln!("[SMOKE TEST] Failed to quit WebDriver: {e:?}");
             // Force kill Chrome processes if quit failed
             if let Err(kill_err) = std::process::Command::new("docker")
-                .args(&["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
+                .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
                 .output()
             {
                 eprintln!(
-                    "[SMOKE TEST] Failed to kill Chrome processes: {:?}",
-                    kill_err
+                    "[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}"
                 );
             } else {
                 println!("[SMOKE TEST] Force killed Chrome processes");
@@ -400,12 +398,11 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             eprintln!("[SMOKE TEST] WebDriver quit timed out after 10 seconds");
             // Force kill Chrome processes if quit timed out
             if let Err(kill_err) = std::process::Command::new("docker")
-                .args(&["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
+                .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
                 .output()
             {
                 eprintln!(
-                    "[SMOKE TEST] Failed to kill Chrome processes: {:?}",
-                    kill_err
+                    "[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}"
                 );
             } else {
                 println!("[SMOKE TEST] Force killed Chrome processes after timeout");
@@ -420,12 +417,12 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             Ok(())
         }
         Ok(Err(e)) => {
-            eprintln!("[SMOKE TEST] Test failed: {:?}", e);
+            eprintln!("[SMOKE TEST] Test failed: {e:?}");
             Err(e)
         }
         Err(_) => {
             let err = anyhow::anyhow!("Test timed out after 5 minutes");
-            eprintln!("[SMOKE TEST] Test failed: {:?}", err);
+            eprintln!("[SMOKE TEST] Test failed: {err:?}");
             Err(err)
         }
     }

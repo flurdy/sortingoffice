@@ -69,5 +69,5 @@ pub fn unique_test_id() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    format!("test-{}", timestamp)
+    format!("test-{timestamp}")
 }

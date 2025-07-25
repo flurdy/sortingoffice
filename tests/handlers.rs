@@ -37,7 +37,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
+            url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -72,7 +72,7 @@ mod tests {
         let db_configs: Vec<DatabaseConfig> = db_configs
             .into_iter()
             .map(|mut cfg| {
-                let url = cfg.url.replace(":3306", &format!(":{}", port));
+                let url = cfg.url.replace(":3306", &format!(":{port}"));
                 cfg.url = url;
                 cfg
             })
@@ -107,8 +107,7 @@ mod tests {
         };
         let db_id = "test";
         let cookie = format!(
-            "authenticated={}:{}:{}; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax",
-            expiry, role_str, db_id
+            "authenticated={expiry}:{role_str}:{db_id}; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax"
         );
         axum::http::HeaderValue::from_str(&cookie).unwrap()
     }
@@ -121,12 +120,12 @@ mod tests {
         // Create test domain with unique name
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("list-test-{}.com", unique_id),
+            domain: format!("list-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let pool = container.get_pool();
-        let _domain = db::create_domain(&pool, new_domain).unwrap();
+        let _domain = db::create_domain(pool, new_domain).unwrap();
 
         let response = app
             .clone()
@@ -145,11 +144,11 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         // Verify domain was created
-        let domains = db::get_domains(&pool).unwrap();
+        let domains = db::get_domains(pool).unwrap();
         assert!(!domains.is_empty());
         assert!(domains
             .iter()
-            .any(|d| d.domain == format!("list-test-{}.com", unique_id)));
+            .any(|d| d.domain == format!("list-test-{unique_id}.com")));
     }
 
     #[tokio::test]
@@ -166,8 +165,7 @@ mod tests {
 
         let unique_id = unique_test_id();
         let form_data = format!(
-            "domain=create-test-{}.com&transport=smtp%3Alocalhost&enabled=on",
-            unique_id
+            "domain=create-test-{unique_id}.com&transport=smtp%3Alocalhost&enabled=on"
         );
 
         let response = app
@@ -197,7 +195,7 @@ mod tests {
         assert!(!domains.is_empty());
         assert!(domains
             .iter()
-            .any(|d| d.domain == format!("create-test-{}.com", unique_id)));
+            .any(|d| d.domain == format!("create-test-{unique_id}.com")));
 
         cleanup_test_db(&pool);
     }
@@ -217,7 +215,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("show-test-{}.com", unique_id),
+            domain: format!("show-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -243,7 +241,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains(&format!("show-test-{}.com", unique_id)));
+        assert!(body_str.contains(&format!("show-test-{unique_id}.com")));
 
         cleanup_test_db(&pool);
     }
@@ -263,7 +261,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("edit-test-{}.com", unique_id),
+            domain: format!("edit-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -289,7 +287,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains(&format!("edit-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("edit-test-{unique_id}")));
         assert!(body_str.contains("Edit Domain"));
 
         cleanup_test_db(&pool);
@@ -310,15 +308,14 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("update-test-{}.com", unique_id),
+            domain: format!("update-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
-            "domain=updated-test-{}.com&transport=smtp%3Aupdated&enabled=on",
-            unique_id
+            "domain=updated-test-{unique_id}.com&transport=smtp%3Aupdated&enabled=on"
         );
 
         let response = app
@@ -342,7 +339,7 @@ mod tests {
         let updated_domain = db::get_domain(&pool, _domain.pkid).unwrap();
         assert_eq!(
             updated_domain.domain,
-            format!("updated-test-{}.com", unique_id)
+            format!("updated-test-{unique_id}.com")
         );
         assert_eq!(updated_domain.transport, Some("smtp:updated".to_string()));
 
@@ -364,7 +361,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("toggle-test-{}.com", unique_id),
+            domain: format!("toggle-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -389,7 +386,7 @@ mod tests {
 
         // Verify domain was toggled
         let toggled_domain = db::get_domain(&pool, _domain.pkid).unwrap();
-        assert_eq!(toggled_domain.enabled, false);
+        assert!(!toggled_domain.enabled);
 
         cleanup_test_db(&pool);
     }
@@ -409,7 +406,7 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("list-test-{}.com", unique_id),
+            domain: format!("list-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -417,7 +414,7 @@ mod tests {
 
         // Create test user with unique name
         let user_form = UserForm {
-            id: format!("testuser@list-test-{}.com", unique_id),
+            id: format!("testuser@list-test-{unique_id}.com"),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -447,7 +444,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains(&format!("list-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("list-test-{unique_id}")));
 
         cleanup_test_db(&pool);
     }
@@ -467,15 +464,14 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("create-test-{}.com", unique_id),
+            domain: format!("create-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let form_data = format!(
-            "id=testuser@create-test-{}.com&password=password123&name=Test+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
-            unique_id
+            "id=testuser@create-test-{unique_id}.com&password=password123&name=Test+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
         );
 
         let response = app
@@ -500,7 +496,7 @@ mod tests {
         assert!(!users.is_empty());
         assert!(users
             .iter()
-            .any(|u| u.id == format!("testuser@create-test-{}.com", unique_id)));
+            .any(|u| u.id == format!("testuser@create-test-{unique_id}.com")));
 
         cleanup_test_db(&pool);
     }
@@ -520,7 +516,7 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("show-test-{}.com", unique_id),
+            domain: format!("show-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -528,7 +524,7 @@ mod tests {
 
         // Create test user
         let user_form = UserForm {
-            id: format!("testuser@show-test-{}.com", unique_id),
+            id: format!("testuser@show-test-{unique_id}.com"),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -558,7 +554,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains(&format!("show-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("show-test-{unique_id}")));
 
         cleanup_test_db(&pool);
     }
@@ -578,7 +574,7 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("edit-test-{}.com", unique_id),
+            domain: format!("edit-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -586,7 +582,7 @@ mod tests {
 
         // Create test user
         let user_form = UserForm {
-            id: format!("testuser@edit-test-{}.com", unique_id),
+            id: format!("testuser@edit-test-{unique_id}.com"),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -616,7 +612,7 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains(&format!("edit-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("edit-test-{unique_id}")));
         assert!(body_str.contains("Edit User"));
 
         cleanup_test_db(&pool);
@@ -637,7 +633,7 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("update-test-{}.com", unique_id),
+            domain: format!("update-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -645,7 +641,7 @@ mod tests {
 
         // Create test user
         let user_form = UserForm {
-            id: format!("testuser@update-test-{}.com", unique_id),
+            id: format!("testuser@update-test-{unique_id}.com"),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -656,8 +652,7 @@ mod tests {
         let _user = db::create_user(&pool, user_form).unwrap();
 
         let form_data = format!(
-            "id=updateduser@update-test-{}.com&password=password123&name=Updated+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on",
-            unique_id
+            "id=updateduser@update-test-{unique_id}.com&password=password123&name=Updated+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
         );
 
         let response = app
@@ -679,13 +674,13 @@ mod tests {
 
         // Verify user was updated
         let updated_user =
-            db::get_user(&pool, format!("updateduser@update-test-{}.com", unique_id)).unwrap();
+            db::get_user(&pool, format!("updateduser@update-test-{unique_id}.com")).unwrap();
         assert_eq!(
             updated_user.id,
-            format!("updateduser@update-test-{}.com", unique_id)
+            format!("updateduser@update-test-{unique_id}.com")
         );
         assert_eq!(updated_user.name, "Updated User");
-        assert_eq!(updated_user.enabled, true);
+        assert!(updated_user.enabled);
 
         cleanup_test_db(&pool);
     }
@@ -705,7 +700,7 @@ mod tests {
         // Create test domain first
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("toggle-test-{}.com", unique_id),
+            domain: format!("toggle-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -713,7 +708,7 @@ mod tests {
 
         // Create test user
         let user_form = UserForm {
-            id: format!("testuser@toggle-test-{}.com", unique_id),
+            id: format!("testuser@toggle-test-{unique_id}.com"),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -742,7 +737,7 @@ mod tests {
 
         // Verify user was toggled
         let toggled_user = db::get_user(&pool, _user.id).unwrap();
-        assert_eq!(toggled_user.enabled, false);
+        assert!(!toggled_user.enabled);
 
         cleanup_test_db(&pool);
     }
@@ -1214,7 +1209,7 @@ mod tests {
 
         // Verify backup was toggled
         let toggled_backup = db::get_backup(&pool, _backup.pkid).unwrap();
-        assert_eq!(toggled_backup.enabled, false);
+        assert!(!toggled_backup.enabled);
 
         cleanup_test_db(&pool);
     }
@@ -1376,7 +1371,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("domain-backup-test-{}.com", unique_id),
+            domain: format!("domain-backup-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1384,7 +1379,7 @@ mod tests {
 
         // Create test backup
         let new_backup = NewBackup {
-            domain: format!("backup-domain-test-{}.com", unique_id),
+            domain: format!("backup-domain-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1411,8 +1406,8 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         // Should contain both domain and backup
-        assert!(body_str.contains(&format!("domain-backup-test-{}", unique_id)));
-        assert!(body_str.contains(&format!("backup-domain-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("domain-backup-test-{unique_id}")));
+        assert!(body_str.contains(&format!("backup-domain-test-{unique_id}")));
 
         cleanup_test_db(&pool);
     }
@@ -1442,7 +1437,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
+            url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -1490,7 +1485,7 @@ mod tests {
         let db_config = vec![DatabaseConfig {
             id: "test".to_string(),
             label: "Test Database".to_string(),
-            url: format!("mysql://root@127.0.0.1:{}/{}", port, schema),
+            url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
         }];
@@ -1523,7 +1518,7 @@ mod tests {
             .unwrap()
             .as_secs();
         let expiry = now + 3600;
-        let cookie = format!("authenticated={}:edit:test", expiry);
+        let cookie = format!("authenticated={expiry}:edit:test");
         let mut headers = HeaderMap::new();
         let header_value = cookie.parse().unwrap();
         headers.insert("cookie", header_value);
@@ -1535,7 +1530,7 @@ mod tests {
         use axum::http::HeaderMap;
         use sortingoffice::handlers::auth::is_authenticated;
         let expiry = 1; // long expired
-        let cookie = format!("authenticated={}:edit:test", expiry);
+        let cookie = format!("authenticated={expiry}:edit:test");
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
         assert!(!is_authenticated(&headers));
@@ -1551,7 +1546,7 @@ mod tests {
             .unwrap()
             .as_secs();
         let expiry = now + 3600;
-        let cookie = format!("authenticated={}:read-only:test", expiry);
+        let cookie = format!("authenticated={expiry}:read-only:test");
         let mut headers = HeaderMap::new();
         let header_value = cookie.parse().unwrap();
         headers.insert("cookie", header_value);
@@ -1570,7 +1565,7 @@ mod tests {
         let expiry = now + 3600;
 
         // Test edit role
-        let cookie = format!("authenticated={}:edit:test", expiry);
+        let cookie = format!("authenticated={expiry}:edit:test");
         let mut headers = HeaderMap::new();
         let header_value = cookie.parse().unwrap();
         headers.insert("cookie", header_value);
@@ -1578,7 +1573,7 @@ mod tests {
         assert!(has_edit_permissions(&headers));
 
         // Test read-only role
-        let cookie = format!("authenticated={}:read-only:test", expiry);
+        let cookie = format!("authenticated={expiry}:read-only:test");
         let mut headers = HeaderMap::new();
         let header_value = cookie.parse().unwrap();
         headers.insert("cookie", header_value);
@@ -1606,7 +1601,7 @@ mod tests {
         let expiry = now + 3600;
 
         // Test read-only user can access read-only routes
-        let cookie = format!("authenticated={}:read-only:test", expiry);
+        let cookie = format!("authenticated={expiry}:read-only:test");
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
 
@@ -1646,7 +1641,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::FORBIDDEN);
 
         // Test edit user can access edit routes
-        let cookie = format!("authenticated={}:edit:test", expiry);
+        let cookie = format!("authenticated={expiry}:edit:test");
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
 
@@ -1718,7 +1713,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("search-test-{}.com", unique_id),
+            domain: format!("search-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1726,7 +1721,7 @@ mod tests {
 
         // Create test aliases for search
         let alias1 = AliasForm {
-            mail: format!("admin@search-test-{}.com", unique_id),
+            mail: format!("admin@search-test-{unique_id}.com"),
             destination: "user@company.com".to_string(),
             enabled: true,
             return_url: None,
@@ -1734,7 +1729,7 @@ mod tests {
         let _alias1 = db::create_alias(&pool, alias1).unwrap();
 
         let alias2 = AliasForm {
-            mail: format!("support@search-test-{}.com", unique_id),
+            mail: format!("support@search-test-{unique_id}.com"),
             destination: "helpdesk@company.com".to_string(),
             enabled: true,
             return_url: None,
@@ -1747,7 +1742,7 @@ mod tests {
             .with_state(state.clone())
             .oneshot(
                 Request::builder()
-                    .uri(format!("/aliases/search?destination=user"))
+                    .uri("/aliases/search?destination=user".to_string())
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -1827,7 +1822,7 @@ mod tests {
             .with_state(state.clone())
             .oneshot(
                 Request::builder()
-                    .uri(format!("/aliases/search?destination=admin"))
+                    .uri("/aliases/search?destination=admin".to_string())
                     .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
                     .body(Body::empty())
                     .unwrap(),
@@ -1863,7 +1858,7 @@ mod tests {
         // Create test domain
         let unique_id = unique_test_id();
         let new_domain = NewDomain {
-            domain: format!("search-test-{}.com", unique_id),
+            domain: format!("search-test-{unique_id}.com"),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1877,8 +1872,7 @@ mod tests {
                 Request::builder()
                     .method("GET")
                     .uri(format!(
-                        "/aliases/domain-search?domain=search-test-{}",
-                        unique_id
+                        "/aliases/domain-search?domain=search-test-{unique_id}"
                     ))
                     .header("cookie", create_auth_cookie(AdminRole::Edit))
                     .body(Body::empty())
@@ -1895,7 +1889,7 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         // Should contain domain search results
-        assert!(body_str.contains(&format!("search-test-{}", unique_id)));
+        assert!(body_str.contains(&format!("search-test-{unique_id}")));
 
         cleanup_test_db(&pool);
     }
@@ -1906,8 +1900,8 @@ mod tests {
         use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
         let container = setup_test_db().await;
         let port = container.get_port();
-        let url1 = format!("mysql://root@127.0.0.1:{}/testdb1", port);
-        let url2 = format!("mysql://root@127.0.0.1:{}/testdb2", port);
+        let url1 = format!("mysql://root@127.0.0.1:{port}/testdb1");
+        let url2 = format!("mysql://root@127.0.0.1:{port}/testdb2");
         // Create both databases in the container
         {
             let _pool = container.get_pool();

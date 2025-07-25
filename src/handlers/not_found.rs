@@ -26,11 +26,10 @@ pub async fn not_found(headers: HeaderMap, State(state): State<AppState>) -> Res
         .unwrap_or_else(|| current_db_id.clone());
     let content = format!(
         r#"<div class='text-center py-16'>
-            <h1 class='text-5xl font-bold text-primary-600 mb-4'>{}</h1>
-            <p class='text-lg text-gray-700 dark:text-gray-300 mb-8'>{}</p>
+            <h1 class='text-5xl font-bold text-primary-600 mb-4'>{title}</h1>
+            <p class='text-lg text-gray-700 dark:text-gray-300 mb-8'>{message}</p>
             <a href='/' class='inline-block px-6 py-3 bg-primary-600 text-white rounded shadow hover:bg-primary-700 transition'>Go to Dashboard</a>
-        </div>"#,
-        title, message
+        </div>"#
     );
     let template = BaseTemplate::with_i18n(
         title,

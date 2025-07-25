@@ -12,7 +12,7 @@ mod tests {
 
         for (form_data, expected) in test_cases {
             let form: DomainForm = serde_urlencoded::from_str(form_data).unwrap();
-            assert_eq!(form.enabled, expected, "Failed for input: {}", form_data);
+            assert_eq!(form.enabled, expected, "Failed for input: {form_data}");
         }
     }
 
@@ -76,7 +76,7 @@ mod tests {
 
         assert_eq!(domain.pkid, 1);
         assert_eq!(domain.domain, "example.com");
-        assert_eq!(domain.enabled, true);
+        assert!(domain.enabled);
         assert_eq!(domain.created, now);
         assert_eq!(domain.modified, now);
 
@@ -98,8 +98,8 @@ mod tests {
         assert_eq!(user.id, "testuser@example.com");
         assert_eq!(user.name, "Test User");
         assert_eq!(user.maildir, "testuser/");
-        assert_eq!(user.enabled, true);
-        assert_eq!(user.change_password, false);
+        assert!(user.enabled);
+        assert!(!user.change_password);
 
         // Test Alias model creation
         let alias = Alias {
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(alias.pkid, 1);
         assert_eq!(alias.mail, "test@example.com");
         assert_eq!(alias.destination, "user@example.com");
-        assert_eq!(alias.enabled, true);
+        assert!(alias.enabled);
     }
 
     #[test]
@@ -127,7 +127,7 @@ mod tests {
         };
         assert_eq!(new_domain.domain, "example.com");
         assert_eq!(new_domain.transport, Some("smtp:localhost".to_string()));
-        assert_eq!(new_domain.enabled, true);
+        assert!(new_domain.enabled);
 
         // Test NewUser creation
         let new_user = NewUser {
@@ -146,8 +146,8 @@ mod tests {
         assert_eq!(new_user.crypt, "hashed_password");
         assert_eq!(new_user.name, "Test User");
         assert_eq!(new_user.maildir, "testuser/");
-        assert_eq!(new_user.enabled, true);
-        assert_eq!(new_user.change_password, false);
+        assert!(new_user.enabled);
+        assert!(!new_user.change_password);
 
         // Test NewAlias creation
         let new_alias = NewAlias {
@@ -158,7 +158,7 @@ mod tests {
 
         assert_eq!(new_alias.mail, "test@example.com");
         assert_eq!(new_alias.destination, "user@example.com");
-        assert_eq!(new_alias.enabled, true);
+        assert!(new_alias.enabled);
     }
 
     #[test]
@@ -259,18 +259,16 @@ mod tests {
         ];
 
         for email in valid_emails {
-            assert!(email.contains('@'), "Email should contain @: {}", email);
+            assert!(email.contains('@'), "Email should contain @: {email}");
             let parts: Vec<&str> = email.split('@').collect();
-            assert_eq!(parts.len(), 2, "Email should have exactly one @: {}", email);
+            assert_eq!(parts.len(), 2, "Email should have exactly one @: {email}");
             assert!(
                 !parts[0].is_empty(),
-                "Local part should not be empty: {}",
-                email
+                "Local part should not be empty: {email}"
             );
             assert!(
                 !parts[1].is_empty(),
-                "Domain part should not be empty: {}",
-                email
+                "Domain part should not be empty: {email}"
             );
         }
 
@@ -307,21 +305,18 @@ mod tests {
         ];
 
         for domain in valid_domains {
-            assert!(!domain.is_empty(), "Domain should not be empty: {}", domain);
+            assert!(!domain.is_empty(), "Domain should not be empty: {domain}");
             assert!(
                 !domain.starts_with('.'),
-                "Domain should not start with dot: {}",
-                domain
+                "Domain should not start with dot: {domain}"
             );
             assert!(
                 !domain.ends_with('.'),
-                "Domain should not end with dot: {}",
-                domain
+                "Domain should not end with dot: {domain}"
             );
             assert!(
                 domain.contains('.'),
-                "Domain should contain at least one dot: {}",
-                domain
+                "Domain should contain at least one dot: {domain}"
             );
         }
 
@@ -346,7 +341,7 @@ mod tests {
         let valid_quotas = vec![0, 1000, 1000000, 1000000000];
 
         for quota in valid_quotas {
-            assert!(quota >= 0, "Quota should be non-negative: {}", quota);
+            assert!(quota >= 0, "Quota should be non-negative: {quota}");
         }
 
         // Test quota relationships
@@ -365,8 +360,8 @@ mod tests {
         let valid_ids = vec!["user", "user123", "user-name", "user_name", "user.name"];
 
         for id in valid_ids {
-            assert!(!id.is_empty(), "Id should not be empty: {}", id);
-            assert!(id.len() <= 64, "Id should not be too long: {}", id);
+            assert!(!id.is_empty(), "Id should not be empty: {id}");
+            assert!(id.len() <= 64, "Id should not be too long: {id}");
             // Add more specific validation rules as needed
         }
 
