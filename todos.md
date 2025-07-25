@@ -66,7 +66,17 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Verified fix with unit tests (21 passed), integration tests (49 passed), and manual curl testing
 - Confirmed domain column header now displays correctly in aliases table
 
-Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail.
+✅ Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail. - IMPLEMENTED
+- Added sorting parameters to PaginationParams struct (sort_by, sort_order)
+- Updated get_aliases_paginated function to support sorting by mail, destination, and domain
+- Implemented proper domain sorting by extracting domain from mail field and post-processing results
+- Added secondary sorting by mail when domains are equal (as requested)
+- Added secondary sorting by mail when destinations are equal (enhancement)
+- Made column headers clickable with visual indicators (up/down arrows)
+- Implemented toggle functionality (asc/desc) when clicking the same column
+- Updated pagination links to preserve sorting parameters
+- Added sorting state to AliasesListTemplate
+- Verified functionality with unit tests (21 passed), integration tests (49 passed), and manual curl testing
 
 ✅ Create a complete end-to-end functional UI test, that headless, that creates a random domain, a few aliases, a user and runs a report.
 - create an duplicate flow that is not headless but instead a smoke test, which argument is a running app (defaulting to localhost 3000) and shows this flow in the browser. This smoke test must I guess can be ignored by default to avoid accidental running in build tests? - IMPLEMENTED

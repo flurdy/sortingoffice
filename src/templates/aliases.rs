@@ -23,6 +23,8 @@ pub struct AliasesListTemplate<'a> {
     pub disable_alias: &'a str,
     pub empty_title: &'a str,
     pub empty_description: &'a str,
+    pub current_sort_by: &'a str,
+    pub current_sort_order: &'a str,
 }
 
 #[derive(Template)]

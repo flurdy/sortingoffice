@@ -59,10 +59,13 @@ pub async fn list(
         .expect("Failed to get database pool");
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
-    let paginated_aliases = match db::get_aliases_paginated(&pool, page, per_page) {
-        Ok(aliases) => aliases,
-        Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
-    };
+    let sort_by = params.sort_by.as_deref();
+    let sort_order = params.sort_order.as_deref();
+    let paginated_aliases =
+        match db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order) {
+            Ok(aliases) => aliases,
+            Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
+        };
     let locale = get_user_locale(&headers);
     let translations = get_translations_batch(
         &state,
@@ -117,6 +120,8 @@ pub async fn list(
         disable_alias: &translations["aliases-disable-alias"],
         empty_title: &translations["aliases-empty-title"],
         empty_description: &translations["aliases-empty-description"],
+        current_sort_by: sort_by.unwrap_or("mail"),
+        current_sort_order: sort_order.unwrap_or("asc"),
     };
     render_list_template(content_template, &state, &locale, &headers).await
 }
@@ -573,6 +578,8 @@ pub async fn create(
                         disable_alias: &disable_alias,
                         empty_title: &empty_title,
                         empty_description: &empty_description,
+                        current_sort_by: "mail",
+                        current_sort_order: "asc",
                     };
                     let content = content_template.render().unwrap();
 
@@ -868,6 +875,8 @@ pub async fn delete(
                 disable_alias: &disable_alias,
                 empty_title: &empty_title,
                 empty_description: &empty_description,
+                current_sort_by: "mail",
+                current_sort_order: "asc",
             };
             let content = content_template.render().unwrap();
 
@@ -1057,6 +1066,8 @@ pub async fn toggle_enabled_list(
                 disable_alias: &disable_alias,
                 empty_title: &empty_title,
                 empty_description: &empty_description,
+                current_sort_by: "mail",
+                current_sort_order: "asc",
             };
             let content = content_template.render().unwrap();
 

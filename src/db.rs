@@ -8,6 +8,7 @@ use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::result::Error;
 use diesel::sql_query;
+
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -1472,6 +1473,8 @@ pub fn get_aliases_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    sort_by: Option<&str>,
+    sort_order: Option<&str>,
 ) -> Result<PaginatedResult<Alias>, Error> {
     let mut conn = pool.get().unwrap();
 
@@ -1480,13 +1483,73 @@ pub fn get_aliases_paginated(
     // Get total count
     let total_count: i64 = aliases::table.count().get_result(&mut conn)?;
 
+    // Build the query with sorting
+    let mut query = aliases::table.select(Alias::as_select()).into_boxed();
+
+    // Apply sorting
+    match sort_by {
+        Some("mail") => {
+            if sort_order == Some("desc") {
+                query = query.order(aliases::mail.desc());
+            } else {
+                query = query.order(aliases::mail.asc());
+            }
+        }
+        Some("destination") => {
+            if sort_order == Some("desc") {
+                query = query
+                    .order(aliases::destination.desc())
+                    .order(aliases::mail.desc());
+            } else {
+                query = query
+                    .order(aliases::destination.asc())
+                    .order(aliases::mail.asc());
+            }
+        }
+        Some("domain") => {
+            // For domain sorting, we need to sort by the domain part of the mail field
+            // Since we can't easily use SQL functions in Diesel, we'll sort by mail
+            // and then post-process to group by domain. This is a limitation of the current setup.
+            if sort_order == Some("desc") {
+                query = query.order(aliases::mail.desc());
+            } else {
+                query = query.order(aliases::mail.asc());
+            }
+        }
+        _ => {
+            // Default sorting by mail ascending
+            query = query.order(aliases::mail.asc());
+        }
+    }
+
     // Get paginated results
-    let aliases = aliases::table
-        .select(Alias::as_select())
-        .order(aliases::mail.asc())
+    let mut aliases = query
         .limit(per_page)
         .offset(offset)
         .load::<Alias>(&mut conn)?;
+
+    // Post-process for domain sorting if needed
+    if sort_by == Some("domain") {
+        aliases.sort_by(|a, b| {
+            let domain_a = a.mail.split('@').last().unwrap_or("");
+            let domain_b = b.mail.split('@').last().unwrap_or("");
+            let domain_cmp = if sort_order == Some("desc") {
+                domain_b.cmp(domain_a)
+            } else {
+                domain_a.cmp(domain_b)
+            };
+            // If domains are equal, sort by mail as secondary
+            if domain_cmp == std::cmp::Ordering::Equal {
+                if sort_order == Some("desc") {
+                    b.mail.cmp(&a.mail)
+                } else {
+                    a.mail.cmp(&b.mail)
+                }
+            } else {
+                domain_cmp
+            }
+        });
+    }
 
     Ok(PaginatedResult::new(aliases, total_count, page, per_page))
 }
