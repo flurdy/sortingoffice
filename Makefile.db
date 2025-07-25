@@ -17,6 +17,30 @@ DATABASE_URL_ARG ?=
 
 # General database operations
 migrate:
+	@if [ "$(ENVIRONMENT)" = "production" ] || [ "$(ENVIRONMENT)" = "prod" ]; then \
+		echo "❌ MIGRATIONS BLOCKED: Cannot run migrations on production database!"; \
+		echo "   Set ENVIRONMENT=development to override this protection."; \
+		echo "   Or use make migrate-force to bypass this check (not recommended)."; \
+		exit 1; \
+	fi
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Running migrations on $(DATABASE_URL_ARG)..."; \
+		diesel migration run --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Running migrations on default database..."; \
+		diesel migration run; \
+	fi
+
+# Force migration (bypasses production protection - use with caution!)
+migrate-force:
+	@echo "⚠️  FORCE MIGRATION: Bypassing production protection!"
+	@echo "   This will run migrations even on production databases."
+	@echo "   Are you sure you want to continue? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Operation cancelled."; \
+		exit 0; \
+	fi
 	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
 		echo "Running migrations on $(DATABASE_URL_ARG)..."; \
 		diesel migration run --database-url=$(DATABASE_URL_ARG); \
@@ -26,6 +50,30 @@ migrate:
 	fi
 
 migrate-revert:
+	@if [ "$(ENVIRONMENT)" = "production" ] || [ "$(ENVIRONMENT)" = "prod" ]; then \
+		echo "❌ MIGRATION REVERT BLOCKED: Cannot revert migrations on production database!"; \
+		echo "   Set ENVIRONMENT=development to override this protection."; \
+		echo "   Or use make migrate-revert-force to bypass this check (not recommended)."; \
+		exit 1; \
+	fi
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Reverting last migration on $(DATABASE_URL_ARG)..."; \
+		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Reverting last migration on default database..."; \
+		diesel migration revert; \
+	fi
+
+# Force migration revert (bypasses production protection - use with caution!)
+migrate-revert-force:
+	@echo "⚠️  FORCE MIGRATION REVERT: Bypassing production protection!"
+	@echo "   This will revert migrations even on production databases."
+	@echo "   Are you sure you want to continue? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Operation cancelled."; \
+		exit 0; \
+	fi
 	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
 		echo "Reverting last migration on $(DATABASE_URL_ARG)..."; \
 		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
@@ -35,6 +83,32 @@ migrate-revert:
 	fi
 
 migrate-reset:
+	@if [ "$(ENVIRONMENT)" = "production" ] || [ "$(ENVIRONMENT)" = "prod" ]; then \
+		echo "❌ MIGRATION RESET BLOCKED: Cannot reset migrations on production database!"; \
+		echo "   Set ENVIRONMENT=development to override this protection."; \
+		echo "   Or use make migrate-reset-force to bypass this check (not recommended)."; \
+		exit 1; \
+	fi
+	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
+		echo "Resetting migrations on $(DATABASE_URL_ARG)..."; \
+		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
+		diesel migration run --database-url=$(DATABASE_URL_ARG); \
+	else \
+		echo "Resetting migrations on default database..."; \
+		diesel migration revert; \
+		diesel migration run; \
+	fi
+
+# Force migration reset (bypasses production protection - use with caution!)
+migrate-reset-force:
+	@echo "⚠️  FORCE MIGRATION RESET: Bypassing production protection!"
+	@echo "   This will reset migrations even on production databases."
+	@echo "   Are you sure you want to continue? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Operation cancelled."; \
+		exit 0; \
+	fi
 	@if [ -n "$(DATABASE_URL_ARG)" ]; then \
 		echo "Resetting migrations on $(DATABASE_URL_ARG)..."; \
 		diesel migration revert --database-url=$(DATABASE_URL_ARG); \
@@ -47,6 +121,28 @@ migrate-reset:
 
 # Run migrations on all configured databases
 migrate-all:
+	@if [ "$(ENVIRONMENT)" = "production" ] || [ "$(ENVIRONMENT)" = "prod" ]; then \
+		echo "❌ MIGRATIONS BLOCKED: Cannot run migrations on production databases!"; \
+		echo "   Set ENVIRONMENT=development to override this protection."; \
+		echo "   Or use make migrate-all-force to bypass this check (not recommended)."; \
+		exit 1; \
+	fi
+	@echo "🔄 Running migrations on all configured databases..."
+	@cargo run --bin migrate-all-databases 2>/dev/null || \
+	(echo "⚠️  Migration binary not found, running via application startup..."; \
+	 echo "   This will start the application briefly to run migrations."; \
+	 timeout 30s cargo run --quiet 2>/dev/null || echo "✅ Migrations completed or application started successfully")
+
+# Force migrate all (bypasses production protection - use with caution!)
+migrate-all-force:
+	@echo "⚠️  FORCE MIGRATE ALL: Bypassing production protection!"
+	@echo "   This will run migrations on all databases even in production."
+	@echo "   Are you sure you want to continue? (y/N)"
+	@read -p "" confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Operation cancelled."; \
+		exit 0; \
+	fi
 	@echo "🔄 Running migrations on all configured databases..."
 	@cargo run --bin migrate-all-databases 2>/dev/null || \
 	(echo "⚠️  Migration binary not found, running via application startup..."; \
@@ -330,13 +426,15 @@ db-help:
 	@echo "================================"
 	@echo ""
 	@echo "Migrations:"
-	@echo "  make migrate           - Run pending migrations (default database or specify DATABASE_URL)"
-	@echo "      e.g. make migrate DATABASE_URL=..."
-	@echo "  make migrate-revert    - Revert last migration (default database or specify DATABASE_URL)"
-	@echo "      e.g. make migrate-revert DATABASE_URL=..."
-	@echo "  make migrate-reset     - Reset database (revert all, then run all; default or specify DATABASE_URL)"
-	@echo "      e.g. make migrate-reset DATABASE_URL=..."
-	@echo "  make migrate-all       - Run migrations on all configured databases"
+	@echo "  make migrate           - Run pending migrations (development only, blocked in production)"
+	@echo "      e.g. make migrate DATABASE_URL_ARG=mysql://user:pass@host/db"
+	@echo "  make migrate-force     - Force run migrations (bypasses production protection)"
+	@echo "  make migrate-revert    - Revert last migration (development only, blocked in production)"
+	@echo "  make migrate-revert-force - Force revert migration (bypasses production protection)"
+	@echo "  make migrate-reset     - Reset database (development only, blocked in production)"
+	@echo "  make migrate-reset-force - Force reset migrations (bypasses production protection)"
+	@echo "  make migrate-all       - Run migrations on all databases (development only, blocked in production)"
+	@echo "  make migrate-all-force - Force run migrations on all databases (bypasses production protection)"
 	@echo ""
 	@echo "Seed Data:"
 	@echo "  make seed              - Seed database with all initial data (development only, blocked in production)"

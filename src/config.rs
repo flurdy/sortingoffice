@@ -53,6 +53,8 @@ pub struct DatabaseFeatures {
     pub disabled: bool,
     #[serde(default)]
     pub no_seeding: bool,
+    #[serde(default)]
+    pub no_migrations: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -322,6 +324,21 @@ impl Config {
         // Check database-specific features
         if let Some(features) = self.get_database_features(database_id) {
             return features.no_seeding || features.disabled || features.read_only;
+        }
+
+        false
+    }
+
+    /// Check if migrations are blocked for a database
+    pub fn is_migration_blocked(&self, database_id: &str) -> bool {
+        // Check global features first
+        if self.global_features.read_only {
+            return true;
+        }
+
+        // Check database-specific features
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.no_migrations || features.disabled || features.read_only;
         }
 
         false

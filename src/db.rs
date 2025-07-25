@@ -1,4 +1,4 @@
-use crate::config::DatabaseConfig;
+use crate::config::{Config, DatabaseConfig};
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
@@ -79,30 +79,40 @@ impl DatabaseManager {
     /// Run migrations on all configured databases
     pub async fn run_migrations_on_all_databases(
         &self,
+        config: &Config,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
         let pools = self.pools.read().await;
 
-        for config in &self.configs {
-            if let Some(pool) = pools.get(&config.id) {
-                tracing::info!("Running migrations on database: {}", config.id);
+        for db_config in &self.configs {
+            // Check if migrations are blocked for this database
+            if config.is_migration_blocked(&db_config.id) {
+                tracing::warn!(
+                    "⚠️  Migrations blocked for database: {} (read-only, disabled, or no_migrations=true)",
+                    db_config.id
+                );
+                continue;
+            }
+
+            if let Some(pool) = pools.get(&db_config.id) {
+                tracing::info!("Running migrations on database: {}", db_config.id);
 
                 match pool.get() {
                     Ok(mut conn) => match conn.run_pending_migrations(MIGRATIONS) {
                         Ok(_) => tracing::info!(
                             "✅ Migrations completed successfully for database: {}",
-                            config.id
+                            db_config.id
                         ),
                         Err(e) => {
                             tracing::error!(
                                 "❌ Failed to run migrations on database {}: {}",
-                                config.id,
+                                db_config.id,
                                 e
                             );
                             return Err(format!(
                                 "Failed to run migrations on database {}: {}",
-                                config.id, e
+                                db_config.id, e
                             )
                             .into());
                         }
@@ -110,18 +120,18 @@ impl DatabaseManager {
                     Err(e) => {
                         tracing::error!(
                             "❌ Failed to get connection for database {}: {}",
-                            config.id,
+                            db_config.id,
                             e
                         );
                         return Err(format!(
                             "Failed to get connection for database {}: {}",
-                            config.id, e
+                            db_config.id, e
                         )
                         .into());
                     }
                 }
             } else {
-                tracing::warn!("⚠️  No pool found for database: {}", config.id);
+                tracing::warn!("⚠️  No pool found for database: {}", db_config.id);
             }
         }
 
@@ -133,8 +143,18 @@ impl DatabaseManager {
     pub async fn run_migrations_on_database(
         &self,
         db_id: &str,
+        config: &Config,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+
+        // Check if migrations are blocked for this database
+        if config.is_migration_blocked(db_id) {
+            return Err(format!(
+                "Migrations blocked for database: {} (read-only, disabled, or no_migrations=true)",
+                db_id
+            )
+            .into());
+        }
 
         let pools = self.pools.read().await;
 

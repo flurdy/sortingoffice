@@ -103,7 +103,11 @@ pub async fn run_migrations(
                 return Err(StatusCode::BAD_REQUEST);
             }
 
-            match state.db_manager.run_migrations_on_database(&db_id).await {
+            match state
+                .db_manager
+                .run_migrations_on_database(&db_id, &state.config)
+                .await
+            {
                 Ok(_) => {
                     tracing::info!("Migrations completed successfully for database: {}", db_id);
                     Ok(axum::response::Response::builder()
@@ -120,7 +124,11 @@ pub async fn run_migrations(
         }
         None => {
             // Run migrations on all databases
-            match state.db_manager.run_migrations_on_all_databases().await {
+            match state
+                .db_manager
+                .run_migrations_on_all_databases(&state.config)
+                .await
+            {
                 Ok(_) => {
                     tracing::info!("Migrations completed successfully on all databases");
                     Ok(axum::response::Response::builder()

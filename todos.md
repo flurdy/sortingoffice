@@ -13,7 +13,7 @@
 
 ✅ Provide some timings of the unit, integration, ui-headless and ui-containerized.
 
-Why then compiling is there multiple axum versions? 
+Why when compiling is there multiple axum versions? 
 
 ✅ In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something? - IMPLEMENTED
 
@@ -96,7 +96,21 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
   - Database-specific disabled = true is set
   - Database-specific read_only = true is set
 
-Any way we can block migrations on prod databases?
+✅ Any way we can block migrations on prod databases? - IMPLEMENTED
+- Added `no_migrations` feature flag to DatabaseFeatures struct
+- Added `is_migration_blocked()` method to Config to check for migration restrictions
+- Modified `make migrate` to block migrations when ENVIRONMENT=production or ENVIRONMENT=prod
+- Added force migration commands: `make migrate-force`, `make migrate-revert-force`, `make migrate-reset-force`, `make migrate-all-force`
+- Updated migration functions in `src/db.rs` to check for migration restrictions before running
+- Updated database handler to pass config to migration functions
+- Updated config.toml.example with migration protection documentation
+- Migrations are automatically blocked when:
+  - ENVIRONMENT=production or ENVIRONMENT=prod is set
+  - Global read_only = true is set
+  - Database-specific no_migrations = true is set
+  - Database-specific disabled = true is set
+  - Database-specific read_only = true is set
+- Force commands require explicit confirmation to bypass protection
 
 Update the github workflows. 
 - they most likely wont need to do any db stuff as that is handled with testcontainers.
@@ -106,7 +120,7 @@ Can we make certain tables optional? Relays, relocated and clients are not in ev
 
 On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough.
 
-For clients and relays, the status is either OK, or REJECT.
+For clients and relays, the status is either OK, or REJECT, not to be confused with the enabled field.
 
 In the UI I seem unable to edit a relay and relocated.
 
