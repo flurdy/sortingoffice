@@ -17,7 +17,7 @@ mod tests {
 
     use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
 
-    async fn create_test_app() -> (Router, AppState, TestContainer) {
+    async fn create_test_app() -> (Router<AppState>, AppState, TestContainer) {
         let container = setup_test_db().await;
         let _ = container.get_pool(); // keep for possible future use
         let schema = container.get_schema();
@@ -61,13 +61,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_domain_workflow() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create a domain via HTTP POST
         let form_data = "domain=integration-domain.com&transport=smtp%3Aintegration&enabled=on";
 
         let create_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -85,6 +86,7 @@ mod tests {
         // Step 2: Verify domain was created by checking the list
         let list_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/domains")
@@ -114,6 +116,7 @@ mod tests {
         // Step 4: View the domain details
         let show_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}", domain.pkid))
@@ -132,6 +135,7 @@ mod tests {
 
         let update_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -154,6 +158,7 @@ mod tests {
         // Step 7: Toggle the domain active status
         let toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -174,6 +179,7 @@ mod tests {
         // Step 9: Delete the domain
         let delete_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("DELETE")
@@ -196,7 +202,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_user_workflow() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create a domain first (required for users)
         let domain_form_data =
@@ -204,6 +210,7 @@ mod tests {
 
         let _domain_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -221,6 +228,7 @@ mod tests {
 
         let create_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -238,6 +246,7 @@ mod tests {
         // Step 3: Verify user was created
         let list_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/users")
@@ -267,6 +276,7 @@ mod tests {
         // Step 5: View the user details
         let show_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}", user.id))
@@ -285,6 +295,7 @@ mod tests {
 
         let update_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -313,6 +324,7 @@ mod tests {
         // Step 8: Toggle the user active status
         let toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -338,7 +350,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_full_alias_workflow() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create a domain first (required for aliases)
         let domain_form_data =
@@ -346,6 +358,7 @@ mod tests {
 
         let _domain_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -363,6 +376,7 @@ mod tests {
 
         let create_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -380,6 +394,7 @@ mod tests {
         // Step 3: Verify alias was created
         let list_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/aliases")
@@ -409,6 +424,7 @@ mod tests {
         // Step 5: View the alias details
         let show_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/aliases/{}", alias.pkid))
@@ -427,6 +443,7 @@ mod tests {
 
         let update_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -449,6 +466,7 @@ mod tests {
         // Step 8: Toggle the alias active status
         let toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -469,7 +487,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_stats_integration() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create test data
         let domain_form_data =
@@ -477,6 +495,7 @@ mod tests {
 
         let _domain_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -494,6 +513,7 @@ mod tests {
 
         let _user_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -510,6 +530,7 @@ mod tests {
 
         let _alias_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -525,6 +546,7 @@ mod tests {
         // Step 2: Test stats endpoint
         let stats_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")
@@ -555,7 +577,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_complex_domain_management_journey() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create multiple domains with different configurations
         let domains_data = vec![
@@ -576,6 +598,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -595,6 +618,7 @@ mod tests {
         // Step 2: Verify all domains were created
         let list_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/domains")
@@ -630,6 +654,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -657,6 +682,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -683,6 +709,7 @@ mod tests {
         // Toggle domain status
         let toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -703,6 +730,7 @@ mod tests {
         // Step 6: Test statistics
         let stats_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")
@@ -728,12 +756,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_user_management_with_aliases_journey() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create a domain
         let domain_form = "domain=user-test.com&transport=smtp%3Alocalhost&enabled=on";
         let domain_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -766,6 +795,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -794,6 +824,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -817,6 +848,7 @@ mod tests {
         // Toggle user status
         let toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -844,6 +876,7 @@ mod tests {
         // Toggle alias status
         let alias_toggle_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -864,6 +897,7 @@ mod tests {
         // Step 6: Test statistics
         let stats_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")
@@ -889,12 +923,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_error_handling_and_edge_cases_journey() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Test duplicate domain creation (should fail gracefully)
         let domain_form = "domain=duplicate-test.com&transport=smtp%3Alocalhost&enabled=on";
         let first_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -912,6 +947,7 @@ mod tests {
         // Try to create the same domain again (should fail)
         let second_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -938,6 +974,7 @@ mod tests {
         let empty_domain_form = "domain=&transport=smtp%3Alocalhost&enabled=on";
         let empty_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -960,6 +997,7 @@ mod tests {
         // Step 3: Test statistics with mixed data
         let stats_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")
@@ -988,7 +1026,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_multi_database_workflow_journey() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, state, container) = create_test_app().await;
 
         // Step 1: Create domains in different "virtual databases" (simulated by different naming patterns)
         let database_domains = vec![
@@ -1002,6 +1040,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -1032,6 +1071,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -1059,6 +1099,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -1082,6 +1123,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -1109,6 +1151,7 @@ mod tests {
 
             let response = app
                 .clone()
+                .with_state(state.clone())
                 .oneshot(
                     Request::builder()
                         .method("POST")
@@ -1127,6 +1170,7 @@ mod tests {
         // Step 6: Test statistics across "databases"
         let stats_response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")

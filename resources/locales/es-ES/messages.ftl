@@ -662,3 +662,6 @@ clients-action-enable = Habilitar
 clients-action-disable = Deshabilitar
 clients-status-enabled = Habilitado
 clients-status-disabled = Deshabilitado
+
+not-found-title = Página no encontrada
+not-found-message = Lo sentimos, la página que solicitó no existe o puede haber sido movida.

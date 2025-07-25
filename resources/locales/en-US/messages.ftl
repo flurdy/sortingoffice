@@ -650,3 +650,6 @@ dashboard-field-domain = Domain
 dashboard-field-domain-help = The domain name for this dashboard entry (e.g., example.com)
 dashboard-field-enabled = Enabled
 dashboard-field-enabled-help = Whether this dashboard entry is enabled
+
+not-found-title = Page Not Found
+not-found-message = Sorry, the page you requested does not exist or may have been moved.

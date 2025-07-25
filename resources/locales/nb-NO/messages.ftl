@@ -590,3 +590,6 @@ login-error-invalid-credentials = Ugyldig brukernavn eller passord. Vennligst pr
 login-error-empty-fields = Vennligst skriv inn både brukernavn og passord.
 
 # Roles and Permissions
+
+not-found-title = Siden finnes ikke
+not-found-message = Beklager, siden du ba om finnes ikke eller kan ha blitt flyttet.

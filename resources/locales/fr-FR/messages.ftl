@@ -957,3 +957,6 @@ pagination-of = sur
 pagination-results = résultats
 
 # Roles and Permissions
+
+not-found-title = Page non trouvée
+not-found-message = Désolé, la page demandée n'existe pas ou a peut-être été déplacée.

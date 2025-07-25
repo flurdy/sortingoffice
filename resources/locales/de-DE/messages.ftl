@@ -679,3 +679,6 @@ pagination-showing = Zeige
 pagination-to = bis
 pagination-of = von
 pagination-results = Ergebnissen
+
+not-found-title = Seite nicht gefunden
+not-found-message = Entschuldigung, die angeforderte Seite existiert nicht oder wurde verschoben.

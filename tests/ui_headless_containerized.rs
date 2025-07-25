@@ -22,6 +22,14 @@ fn find_free_port() -> u16 {
 }
 
 // Helper macro for 10s timeout on Selenium actions
+macro_rules! timeout10s {
+    ($expr:expr, $desc:expr) => {
+        timeout(Duration::from_secs(10), $expr)
+            .await
+            .map_err(|_| anyhow::anyhow!(concat!("Timeout (10s) on: ", $desc)))?
+    };
+}
+
 macro_rules! timeout60s {
     ($expr:expr, $desc:expr) => {
         timeout(Duration::from_secs(60), $expr)
@@ -139,7 +147,7 @@ async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
         ));
     }
 
-    println!("✅ Authentication successful!");
+    // println!("✅ Authentication successful!");
     Ok(())
 }
 
@@ -576,18 +584,218 @@ async fn test_minimal_webdriver_session() -> Result<()> {
     }
 }
 
-// #[tokio::test]
-// async fn test_mysql_container_cleanup() -> Result<()> {
-//     // This test demonstrates the cleanup functionality
-//     // In a real test suite, you might call this at the end of all tests
+#[tokio::test]
+async fn test_aliases_list_page_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            let aliases_url = format!("{}/aliases", env.app_url);
+            timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
+            let page_title = timeout60s!(env.driver.title(), "Get page title")?;
+            if !page_title.contains("Aliases") && !page_title.contains("aliases") {
+                return Err(anyhow::anyhow!(
+                    "Aliases page does not contain expected content"
+                ));
+            }
+            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
+            if !page_source.contains("Aliases") && !page_source.contains("aliases") {
+                return Err(anyhow::anyhow!(
+                    "Aliases page does not contain expected content"
+                ));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
 
-//     // First, ensure a MySQL container is started
-//     let _test_db = setup_test_db().await;
-//     println!("[DEBUG] MySQL container started for cleanup test");
+#[tokio::test]
+async fn test_domains_list_page_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            let domains_url = format!("{}/domains", env.app_url);
+            timeout60s!(env.driver.get(&domains_url), "Navigate to domains page")?;
+            let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
+            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
+            if !page_source.contains("Domains") && !page_source.contains("domains") {
+                return Err(anyhow::anyhow!(
+                    "Domains page does not contain expected content"
+                ));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
 
-//     // Now clean it up
-//     cleanup_shared_mysql_container().await;
-//     println!("[DEBUG] MySQL container cleanup completed");
+#[tokio::test]
+async fn test_users_list_page_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            let users_url = format!("{}/users", env.app_url);
+            timeout60s!(env.driver.get(&users_url), "Navigate to users page")?;
+            let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
+            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
+            if !page_source.contains("Users") && !page_source.contains("users") {
+                return Err(anyhow::anyhow!(
+                    "Users page does not contain expected content"
+                ));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
 
-//     Ok(())
-// }
+#[tokio::test]
+async fn test_clients_list_page_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+            let clients_url = format!("{}/clients", env.app_url);
+            timeout60s!(env.driver.get(&clients_url), "Navigate to clients page")?;
+            let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
+            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
+            if !page_source.contains("Clients") && !page_source.contains("clients") {
+                return Err(anyhow::anyhow!(
+                    "Clients page does not contain expected content"
+                ));
+            }
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_responsive_design_containerized() -> Result<()> {
+    let test_timeout = Duration::from_secs(60);
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+            // Test desktop viewport
+            timeout60s!(
+                env.driver.set_window_rect(0, 0, 1920, 1080),
+                "set window rect to desktop"
+            )?;
+            timeout60s!(
+                env.driver.get(&env.app_url),
+                "navigate to homepage for desktop viewport"
+            )?;
+
+            // Test mobile viewport
+            timeout60s!(
+                env.driver.set_window_rect(0, 0, 375, 667),
+                "set window rect to mobile"
+            )?;
+            timeout60s!(
+                env.driver.get(&env.app_url),
+                "navigate to homepage for mobile viewport"
+            )?;
+
+            // Both should load without errors
+            let current_url = timeout60s!(
+                env.driver.current_url(),
+                "get current url after responsive nav"
+            )?;
+            assert!(current_url.as_str().contains(":4000"));
+
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        test_timeout,
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_not_found_pages_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+
+            let error_url_404_logged_in = format!("{}/nonexistent-page", env.app_url);
+            timeout10s!(
+                env.driver.get(&error_url_404_logged_in),
+                "Navigate to 404 page"
+            )?;
+            let page_source_404_logged_in =
+                timeout10s!(env.driver.source(), "Get 404 page source")?;
+            let title_404_logged_in = timeout10s!(env.driver.title(), "Get 404 page title")?;
+            assert!(
+                page_source_404_logged_in.contains("404")
+                    || page_source_404_logged_in.contains("Not Found")
+                    || page_source_404_logged_in.contains("Error"),
+                "404 page does not contain expected error content. Source: {}",
+                title_404_logged_in
+            );
+
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
+
+            let error_url_404 = format!("{}/nonexistent-page", env.app_url);
+            timeout60s!(env.driver.get(&error_url_404), "Navigate to 404 page")?;
+            let page_source_404 = timeout10s!(env.driver.source(), "Get 404 page source")?;
+            let title_404 = timeout10s!(env.driver.title(), "Get 404 page title")?;
+            assert!(
+                page_source_404.contains("404")
+                    || page_source_404.contains("Not Found")
+                    || page_source_404.contains("Error"),
+                "404 page does not contain expected not found. Source: {}",
+                title_404
+            );
+
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}
+
+#[tokio::test]
+async fn test_unauthorized_pages_containerized() -> Result<()> {
+    run_test_with_timeout(
+        async {
+            let env = setup_ui_test_env().await?;
+
+            let error_url_401 = format!("{}/", env.app_url);
+            timeout60s!(env.driver.get(&error_url_401), "Navigate to a 401 page")?;
+            let page_source_401 = timeout10s!(env.driver.source(), "Get 401 page source")?;
+            let title_401 = timeout10s!(env.driver.title(), "Get 401 page title")?;
+            assert!(title_401.contains("Sign in"));
+            assert!(
+                page_source_401.contains("login"),
+                "401 page does not contain expected login content. Title: {}",
+                title_401
+            );
+
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(40),
+    )
+    .await
+}

@@ -72,7 +72,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::AppState;
 
-pub fn create_app(app_state: AppState) -> Router {
+pub fn create_app(app_state: AppState) -> Router<AppState> {
     // Create read-only routes (require authentication but not edit permissions)
     let read_only_routes = Router::new()
         .route("/", axum::routing::get(dashboard_index))
@@ -294,7 +294,7 @@ pub fn create_app(app_state: AppState) -> Router {
         // Merge read-only and edit routes
         .merge(read_only_routes)
         .merge(edit_routes)
-        .with_state(app_state)
+        .with_state(app_state.clone())
         .layer(TraceLayer::new_for_http())
-        .fallback(not_found)
+        .fallback(|headers, state| async move { not_found(headers, state).await })
 }

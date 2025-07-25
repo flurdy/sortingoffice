@@ -19,7 +19,7 @@ mod tests {
     use sortingoffice::test_helpers::common::{cleanup_test_db, unique_test_id};
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 
-    async fn create_test_app() -> (Router, AppState) {
+    async fn create_test_app() -> (Router<AppState>, AppState) {
         let container = setup_test_db().await;
         let schema = container.get_schema();
         let port = container.get_port();
@@ -58,7 +58,7 @@ mod tests {
     async fn create_test_app_with_dbs(
         db_configs: Vec<DatabaseConfig>,
         port: u16,
-    ) -> (Router, AppState) {
+    ) -> (Router<AppState>, AppState) {
         let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
 
         // Load translation files for testing
@@ -129,6 +129,8 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
+            .clone()
+            .with_state(_state.clone())
             .oneshot(
                 Request::builder()
                     .method("GET")
@@ -169,6 +171,8 @@ mod tests {
         );
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -220,6 +224,8 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}", _domain.pkid))
@@ -264,6 +270,8 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/domains/{}/edit", _domain.pkid))
@@ -314,6 +322,8 @@ mod tests {
         );
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -363,6 +373,7 @@ mod tests {
         // Toggle to disabled
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -417,6 +428,8 @@ mod tests {
         let _user = db::create_user(&pool, user_form).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/users")
@@ -466,6 +479,8 @@ mod tests {
         );
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -524,6 +539,8 @@ mod tests {
         let _user = db::create_user(&pool, user_form).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}", _user.id))
@@ -580,6 +597,8 @@ mod tests {
         let _user = db::create_user(&pool, user_form).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/users/{}/edit", _user.id))
@@ -642,6 +661,8 @@ mod tests {
         );
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -705,6 +726,7 @@ mod tests {
         // Toggle to disabled
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -754,6 +776,8 @@ mod tests {
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/aliases")
@@ -800,6 +824,8 @@ mod tests {
         let form_data = "mail=test%40aliases-create-test.com&destination=user%40aliases-create-test.com&enabled=on";
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -864,6 +890,8 @@ mod tests {
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/stats")
@@ -898,6 +926,8 @@ mod tests {
         cleanup_test_db(&pool);
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("GET")
@@ -917,6 +947,8 @@ mod tests {
         let (app, _state) = create_test_app().await;
 
         let response = app
+            .clone()
+            .with_state(_state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/about")
@@ -943,6 +975,8 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/notfound")
@@ -979,6 +1013,8 @@ mod tests {
         let form_data = "domain=backup-create-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -1022,6 +1058,8 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/backups/{}", _backup.pkid))
@@ -1065,6 +1103,8 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/backups/{}/edit", _backup.pkid))
@@ -1111,6 +1151,8 @@ mod tests {
         let form_data = "domain=backup-updated-test.com&transport=smtp%3Aupdated&enabled=on";
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -1156,6 +1198,7 @@ mod tests {
         // Toggle to disabled
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -1191,6 +1234,8 @@ mod tests {
         let form_data = "domain=backup-redirect-test.com&transport=smtp%3Alocalhost&enabled=on";
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -1240,6 +1285,8 @@ mod tests {
             "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("PUT")
@@ -1288,6 +1335,8 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("DELETE")
@@ -1342,6 +1391,8 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/domains")
@@ -1565,6 +1616,7 @@ mod tests {
 
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/domains")
@@ -1580,6 +1632,7 @@ mod tests {
         // Test read-only user gets 403 for edit routes
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -1602,6 +1655,8 @@ mod tests {
         headers.insert("cookie", cookie.parse().unwrap());
 
         let response = app
+            .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -1626,6 +1681,8 @@ mod tests {
         let (app, _state) = create_test_app().await;
 
         let response = app
+            .clone()
+            .with_state(_state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/notfound")
@@ -1686,6 +1743,7 @@ mod tests {
         // Test 1: Search with valid query
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/aliases/search?destination=user"))
@@ -1709,6 +1767,7 @@ mod tests {
         // Test 2: Search with short query (should return empty results, not error)
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/aliases/search?destination=a")
@@ -1732,6 +1791,7 @@ mod tests {
         // Test 3: Search with empty query (should not cause 400 error)
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/aliases/search?destination=")
@@ -1747,6 +1807,7 @@ mod tests {
         // Test 4: Search without query parameter (should not cause 400 error)
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/aliases/search")
@@ -1762,6 +1823,7 @@ mod tests {
         // Test 5: Search in mail field (should find results)
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .uri(format!("/aliases/search?destination=admin"))
@@ -1809,6 +1871,7 @@ mod tests {
         // Test domain search with a query
         let response = app
             .clone()
+            .with_state(state.clone())
             .oneshot(
                 Request::builder()
                     .method("GET")
@@ -1873,6 +1936,8 @@ mod tests {
             create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()], port).await;
 
         let response = app
+            .clone()
+            .with_state(_state.clone())
             .oneshot(
                 Request::builder()
                     .uri("/database/dropdown")

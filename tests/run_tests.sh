@@ -210,10 +210,11 @@ run_containerized_ui_tests() {
     # Set environment variables
     export RUST_TEST_THREADS="${TEST_THREADS:-4}"
     export RUST_LOG=info
+    export RUST_BACKTRACE=0
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."
-    if cargo test --test ui_headless_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS --ignored; then
+    if cargo test --test ui_headless_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS; then
         print_success "Containerized UI tests passed!"
     else
         print_error "Containerized UI tests failed!"

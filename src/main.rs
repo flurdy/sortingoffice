@@ -54,7 +54,8 @@ async fn main() {
     };
 
     // Create app
-    let app = sortingoffice::handlers::create_app(state);
+    let app = sortingoffice::handlers::create_app(state.clone());
+    let app = app.with_state(state);
 
     // Bind to port from env or default 3000
     let port = std::env::var("PORT")
