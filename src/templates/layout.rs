@@ -31,6 +31,9 @@ pub struct BaseTemplate {
     pub current_locale: String,
     pub current_db_label: String,
     pub current_db_id: String,
+    pub relays_available: bool,
+    pub relocated_available: bool,
+    pub clients_available: bool,
 }
 
 #[derive(Template)]
@@ -64,6 +67,9 @@ pub struct LayoutTemplate<'a> {
     pub current_locale: &'a str,
     pub current_db_label: &'a str,
     pub current_db_id: &'a str,
+    pub relays_available: bool,
+    pub relocated_available: bool,
+    pub clients_available: bool,
 }
 
 impl BaseTemplate {
@@ -104,7 +110,10 @@ impl BaseTemplate {
             language_german: crate::i18n::get_translation(state, locale, "language-german").await,
             current_locale: locale.to_string(),
             current_db_label,
-            current_db_id,
+            current_db_id: current_db_id.clone(),
+            relays_available: state.config.is_relays_available(&current_db_id),
+            relocated_available: state.config.is_relocated_available(&current_db_id),
+            clients_available: state.config.is_clients_available(&current_db_id),
         })
     }
 }

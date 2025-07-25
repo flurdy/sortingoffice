@@ -70,4 +70,7 @@ pub struct DashboardTemplate<'a> {
     pub help_description: &'a str,
     pub help_read_guide: &'a str,
     pub stats: SystemStats,
+    pub relays_available: bool,
+    pub relocated_available: bool,
+    pub clients_available: bool,
 }

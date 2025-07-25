@@ -577,50 +577,68 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         .count()
         .get_result(&mut conn)?;
 
-    // Relays
-    let total_relays: i64 = relays::table.count().get_result(&mut conn)?;
-    let enabled_relays: i64 = relays::table
-        .filter(relays::enabled.eq(true))
-        .count()
-        .get_result(&mut conn)?;
-    let disabled_relays: i64 = relays::table
-        .filter(relays::enabled.eq(false))
-        .count()
-        .get_result(&mut conn)?;
-    let recent_relays: i64 = relays::table
-        .filter(relays::created.ge(week_ago))
-        .count()
-        .get_result(&mut conn)?;
+    // Relays (optional table)
+    let (total_relays, enabled_relays, disabled_relays, recent_relays) =
+        if relays_table_exists(pool) {
+            let total: i64 = relays::table.count().get_result(&mut conn)?;
+            let enabled: i64 = relays::table
+                .filter(relays::enabled.eq(true))
+                .count()
+                .get_result(&mut conn)?;
+            let disabled: i64 = relays::table
+                .filter(relays::enabled.eq(false))
+                .count()
+                .get_result(&mut conn)?;
+            let recent: i64 = relays::table
+                .filter(relays::created.ge(week_ago))
+                .count()
+                .get_result(&mut conn)?;
+            (total, enabled, disabled, recent)
+        } else {
+            (0, 0, 0, 0) // Table doesn't exist
+        };
 
-    // Relocated
-    let total_relocated: i64 = relocated::table.count().get_result(&mut conn)?;
-    let enabled_relocated: i64 = relocated::table
-        .filter(relocated::enabled.eq(true))
-        .count()
-        .get_result(&mut conn)?;
-    let disabled_relocated: i64 = relocated::table
-        .filter(relocated::enabled.eq(false))
-        .count()
-        .get_result(&mut conn)?;
-    let recent_relocated: i64 = relocated::table
-        .filter(relocated::created.ge(week_ago))
-        .count()
-        .get_result(&mut conn)?;
+    // Relocated (optional table)
+    let (total_relocated, enabled_relocated, disabled_relocated, recent_relocated) =
+        if relocated_table_exists(pool) {
+            let total: i64 = relocated::table.count().get_result(&mut conn)?;
+            let enabled: i64 = relocated::table
+                .filter(relocated::enabled.eq(true))
+                .count()
+                .get_result(&mut conn)?;
+            let disabled: i64 = relocated::table
+                .filter(relocated::enabled.eq(false))
+                .count()
+                .get_result(&mut conn)?;
+            let recent: i64 = relocated::table
+                .filter(relocated::created.ge(week_ago))
+                .count()
+                .get_result(&mut conn)?;
+            (total, enabled, disabled, recent)
+        } else {
+            (0, 0, 0, 0) // Table doesn't exist
+        };
 
-    // Clients
-    let total_clients: i64 = clients::table.count().get_result(&mut conn)?;
-    let enabled_clients: i64 = clients::table
-        .filter(clients::enabled.eq(true))
-        .count()
-        .get_result(&mut conn)?;
-    let disabled_clients: i64 = clients::table
-        .filter(clients::enabled.eq(false))
-        .count()
-        .get_result(&mut conn)?;
-    let recent_clients: i64 = clients::table
-        .filter(clients::created_at.ge(week_ago))
-        .count()
-        .get_result(&mut conn)?;
+    // Clients (optional table)
+    let (total_clients, enabled_clients, disabled_clients, recent_clients) =
+        if clients_table_exists(pool) {
+            let total: i64 = clients::table.count().get_result(&mut conn)?;
+            let enabled: i64 = clients::table
+                .filter(clients::enabled.eq(true))
+                .count()
+                .get_result(&mut conn)?;
+            let disabled: i64 = clients::table
+                .filter(clients::enabled.eq(false))
+                .count()
+                .get_result(&mut conn)?;
+            let recent: i64 = clients::table
+                .filter(clients::created_at.ge(week_ago))
+                .count()
+                .get_result(&mut conn)?;
+            (total, enabled, disabled, recent)
+        } else {
+            (0, 0, 0, 0) // Table doesn't exist
+        };
 
     // Quota (still 0, as not implemented)
     let total_quota: i64 = 0;
@@ -1664,6 +1682,33 @@ pub fn get_relocated_paginated(
         .load::<Relocated>(&mut conn)?;
 
     Ok(PaginatedResult::new(relocated, total_count, page, per_page))
+}
+
+// Helper functions for optional tables
+pub fn table_exists(pool: &DbPool, table_name: &str) -> bool {
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return false,
+    };
+
+    // Try to query the table to see if it exists
+    let query = format!("SELECT 1 FROM {} LIMIT 1", table_name);
+    match diesel::sql_query(query).execute(&mut conn) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+pub fn relays_table_exists(pool: &DbPool) -> bool {
+    table_exists(pool, "relays")
+}
+
+pub fn relocated_table_exists(pool: &DbPool) -> bool {
+    table_exists(pool, "relocated")
+}
+
+pub fn clients_table_exists(pool: &DbPool) -> bool {
+    table_exists(pool, "clients")
 }
 
 // Additional report functions

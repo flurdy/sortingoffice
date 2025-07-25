@@ -14,6 +14,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
 
     // Get user's preferred locale
     let locale = crate::handlers::utils::get_user_locale(&headers);
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Use the batch translation fetcher for common translations
     let common_translations = crate::handlers::utils::get_translations_batch(
@@ -125,6 +127,9 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         help_description: &common_translations["help-description"],
         help_read_guide: &common_translations["help-read-guide"],
         stats,
+        relays_available: state.config.is_relays_available(&current_db_id),
+        relocated_available: state.config.is_relocated_available(&current_db_id),
+        clients_available: state.config.is_clients_available(&current_db_id),
     };
 
     // Use the new render template macro with title

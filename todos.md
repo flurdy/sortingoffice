@@ -122,7 +122,16 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - All workflows now rely on testcontainers for isolated database testing
 - Simplified workflow configuration and reduced external dependencies
 
-Can we make certain tables optional? Relays, relocated and clients are not in every db.
+✅ Can we make certain tables optional? Relays, relocated and clients are not in every db. - IMPLEMENTED
+- Added optional table feature flags to DatabaseFeatures struct (no_relays, no_relocated, no_clients)
+- Added methods to Config to check table availability (is_relays_available, is_relocated_available, is_clients_available)
+- Updated database functions to handle missing tables gracefully in stats collection
+- Added helper functions to check if tables exist (table_exists, relays_table_exists, etc.)
+- Updated handlers to check table availability before processing requests
+- Added conditional rendering in UI templates (navigation menu, dashboard cards)
+- Added translation keys for "not available" messages
+- Updated configuration example with documentation for optional tables
+- All tests pass: unit (21), integration (49)
 
 On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough.
 

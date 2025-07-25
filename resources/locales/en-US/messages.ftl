@@ -437,6 +437,7 @@ relays-placeholder-recipient = Enter recipient address
 relays-placeholder-status = Enter status code
 relays-field-recipient-help = The recipient address for this relay (e.g., user@example.com)
 relays-field-status-help = The status code for this relay (e.g., active, disabled, etc.)
+relays-not-available = Relays table is not available for this database
 
 # Relocated
 relocated-title = Relocated
@@ -470,6 +471,7 @@ relocated-new-relocated = New Relocated Address
 relocated-edit-relocated = Edit Relocated Address
 relocated-not-found = Relocated address not found
 relocated-create-error = Failed to create relocated address
+relocated-not-available = Relocated table is not available for this database
 
 # Clients
 clients-title = Clients
@@ -512,6 +514,7 @@ clients-action-enable = Enable
 clients-action-disable = Disable
 clients-status-enabled = Enabled
 clients-status-disabled = Disabled
+clients-not-available = Clients table is not available for this database
 
 # Domain Search
 domains-search-no-results = No domains found

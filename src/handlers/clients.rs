@@ -29,6 +29,15 @@ pub async fn list_clients(
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check if clients table is available for this database
+    if !state.config.is_clients_available(&current_db_id) {
+        let not_available_msg =
+            crate::i18n::get_translation(&state, &locale, "clients-not-available").await;
+        return Html(not_available_msg);
+    }
 
     // Parse pagination parameters
     let page = params.page.unwrap_or(1);

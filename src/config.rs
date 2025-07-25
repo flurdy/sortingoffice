@@ -55,6 +55,12 @@ pub struct DatabaseFeatures {
     pub no_seeding: bool,
     #[serde(default)]
     pub no_migrations: bool,
+    #[serde(default)]
+    pub no_relays: bool,
+    #[serde(default)]
+    pub no_relocated: bool,
+    #[serde(default)]
+    pub no_clients: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -343,6 +349,42 @@ impl Config {
 
         false
     }
+
+    /// Check if relays table is available (not disabled)
+    pub fn is_relays_available(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return false; // Disabled databases don't have any tables
+            }
+            return !features.no_relays;
+        }
+        true // Default to available if no features specified
+    }
+
+    /// Check if relocated table is available (not disabled)
+    pub fn is_relocated_available(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return false; // Disabled databases don't have any tables
+            }
+            return !features.no_relocated;
+        }
+        true // Default to available if no features specified
+    }
+
+    /// Check if clients table is available (not disabled)
+    pub fn is_clients_available(&self, database_id: &str) -> bool {
+        // Check if database is disabled first
+        if let Some(features) = self.get_database_features(database_id) {
+            if features.disabled {
+                return false; // Disabled databases don't have any tables
+            }
+            return !features.no_clients;
+        }
+        true // Default to available if no features specified
+    }
 }
 
 impl Default for Config {
@@ -431,5 +473,75 @@ impl DatabaseConfig {
 
         // Fall back to the original field name
         field
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_optional_tables_availability() {
+        let mut config = Config::default();
+        
+        // Add a test database
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test default availability (should be true)
+        assert!(config.is_relays_available("test"));
+        assert!(config.is_relocated_available("test"));
+        assert!(config.is_clients_available("test"));
+
+        // Test with disabled tables
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                no_relays: true,
+                no_relocated: true,
+                no_clients: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test disabled availability (should be false)
+        assert!(!config.is_relays_available("test"));
+        assert!(!config.is_relocated_available("test"));
+        assert!(!config.is_clients_available("test"));
+
+        // Test with disabled database
+        let mut config = Config::default();
+        let db_config = DatabaseConfig {
+            id: "test".to_string(),
+            label: "Test DB".to_string(),
+            url: "mysql://test:test@localhost/test".to_string(),
+            features: DatabaseFeatures {
+                disabled: true,
+                ..Default::default()
+            },
+            field_map: std::collections::HashMap::new(),
+        };
+        config.databases.push(db_config);
+
+        // Test disabled database (should be false for all tables)
+        assert!(!config.is_relays_available("test"));
+        assert!(!config.is_relocated_available("test"));
+        assert!(!config.is_clients_available("test"));
+
+        // Test non-existent database (should be true by default)
+        assert!(config.is_relays_available("nonexistent"));
+        assert!(config.is_relocated_available("nonexistent"));
+        assert!(config.is_clients_available("nonexistent"));
     }
 }

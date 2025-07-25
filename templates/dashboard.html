@@ -149,6 +149,7 @@
         <div class="mb-6">
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{{ advanced_management }}</h3>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {% if relays_available %}
                 <!-- Relay Management -->
                 <a href="/relays" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-teal-400 dark:hover:border-teal-500">
                     <div class="flex items-center space-x-3">
@@ -165,7 +166,9 @@
                         </div>
                     </div>
                 </a>
+                {% endif %}
 
+                {% if relocated_available %}
                 <!-- Relocated Management -->
                 <a href="/relocated" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-red-400 dark:hover:border-red-500">
                     <div class="flex items-center space-x-3">
@@ -182,7 +185,9 @@
                         </div>
                     </div>
                 </a>
+                {% endif %}
 
+                {% if clients_available %}
                 <!-- Client Management -->
                 <a href="/clients" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-yellow-400 dark:hover:border-yellow-500">
                     <div class="flex items-center space-x-3">
@@ -199,6 +204,7 @@
                         </div>
                     </div>
                 </a>
+                {% endif %}
 
                 <!-- Configuration -->
                 <a href="/config" class="group relative rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500">

@@ -23,8 +23,16 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     debug!("Handling relocated list request");
+
+    // Check if relocated table is available for this database
+    if !state.config.is_relocated_available(&current_db_id) {
+        let not_available_msg = get_translation(&state, &locale, "relocated-not-available").await;
+        return Html(not_available_msg);
+    }
 
     let relocated = match db::get_relocated(&pool) {
         Ok(relocated) => {
