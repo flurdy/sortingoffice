@@ -1058,3 +1058,129 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
     )
     .await
 }
+
+#[tokio::test]
+async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> {
+    use rand::Rng;
+    use thirtyfour::prelude::*;
+    use tokio::time::Duration;
+
+    // Helper for random string
+    fn rand_str() -> String {
+        const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let mut rng = rand::rng();
+        (0..8)
+            .map(|_| {
+                let idx = rng.random_range(0..CHARSET.len());
+                CHARSET[idx] as char
+            })
+            .collect()
+    }
+
+    run_test_with_timeout(
+        "test_e2e_create_domain_aliases_user_and_report",
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            // Generate random domain and alias/user names
+            let domain_name = format!("{}.test.com", rand_str()).to_lowercase();
+            let alias1 = format!("alias1-{}", rand_str());
+            let alias2 = format!("alias2-{}", rand_str());
+            let user_name = format!("user-{}", rand_str());
+            let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
+            let user_email = format!("{}@{}", user_name, domain_name);
+
+            let domain_url = format!("{}/domains", env.app_url);
+            timeout60s!(env.driver.get(&domain_url), "Navigate to domains list page")?;
+
+            let add_domain_button = timeout60s!(
+                env.driver.find(By::Id("add-domain-button")),
+                "Find Add Domain button"
+            )?;
+
+            timeout30s!(add_domain_button.click(), "Click Add Domain button")?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+
+            // 1. Create a new domain
+            let domain_input = timeout30s!(env.driver.find(By::Css("input[name='domain']")), "Find domain input")?;
+            assert!(domain_input.is_displayed().await.unwrap_or(false), "Domain input is not displayed");    
+            timeout60s!(domain_input.send_keys(&domain_name), "Type domain name")?;
+            let submit_btn = timeout60s!(env.driver.find(By::Id("domain-submit-button")), "Find submit button")?;
+            assert!(submit_btn.is_displayed().await.unwrap_or(false), "Domain submit button is not displayed");
+            timeout60s!(submit_btn.click(), "Submit domain form")?;
+            tokio::time::sleep(Duration::from_millis(500)).await;
+
+            let page_source = timeout60s!(env.driver.source(), "Get page source after domain create")?;
+            assert!(page_source.contains(&domain_name), "Domain should appear after creation");
+
+            let alias1domain = format!("{}@{}", alias1, domain_name);
+
+            // 2. Create two aliases for the domain
+            let aliases_url = format!("{}/aliases", env.app_url);
+            timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
+
+            let add_alias_btn = timeout60s!(env.driver.find(By::Id("add-alias-button")), "Find Add Alias button")?;
+            timeout30s!(add_alias_btn.click(), "Click Add Alias button")?;
+            tokio::time::sleep(Duration::from_millis(200)).await;
+
+            let mail_input = timeout30s!(env.driver.find(By::Css("input[name='mail']")), "Find mail input field")?;
+            timeout60s!(mail_input.send_keys(&alias1domain), "Type alias1")?;
+            let dest_input = timeout60s!(env.driver.find(By::Css("input[name='destination']")), "Find destination input")?;
+            timeout60s!(dest_input.send_keys(&user_email), "Type destination for alias1")?;
+            let submit_btn = timeout60s!(env.driver.find(By::Id("alias-submit-button")), "Find submit button for alias1")?;
+            timeout60s!(submit_btn.click(), "Submit alias1 form")?;
+            tokio::time::sleep(Duration::from_millis(500)).await;
+
+            // 2. Create two aliases for the domain
+            let aliases_url = format!("{}/aliases", env.app_url);
+            timeout60s!(env.driver.get(&aliases_url), "Navigate to aliases page")?;
+
+            let alias2domain = format!("{}@{}", alias2, domain_name);
+
+            // Add second alias
+            let add_alias_btn2 = timeout60s!(env.driver.find(By::Id("add-alias-button")), "Find Add Alias button again")?;
+            timeout30s!(add_alias_btn2.click(), "Click Add Alias button again")?;
+            let mail_input2 = timeout30s!(env.driver.find(By::Css("input[name='mail']")), "Find mail input field for alias2")?;
+            timeout60s!(mail_input2.send_keys(&alias2domain), "Type alias2")?;
+            let dest_input2 = timeout60s!(env.driver.find(By::Css("input[name='destination']")), "Find destination input for alias2")?;
+            timeout60s!(dest_input2.send_keys(&user_email), "Type destination for alias2")?;
+            let submit_btn2 = timeout60s!(env.driver.find(By::Id("alias-submit-button")), "Find submit button for alias2")?;
+            timeout60s!(submit_btn2.click(), "Submit alias2 form")?;
+            tokio::time::sleep(Duration::from_millis(500)).await;
+
+            let aliases_page_source = timeout60s!(env.driver.source(), "Get page source after alias create")?;
+            assert!(aliases_page_source.contains(&alias1domain) && aliases_page_source.contains(&alias2domain), "Aliases should appear after creation");
+
+            // 3. Create a user for the domain
+            let users_url = format!("{}/users", env.app_url);
+            timeout60s!(env.driver.get(&users_url), "Navigate to users page")?;
+            let add_user_btn = timeout60s!(env.driver.find(By::Id("add-user-button")), "Find Add User button")?;
+            timeout30s!(add_user_btn.click(), "Click Add User button")?;
+            let user_id_input = timeout60s!(env.driver.find(By::Css("input[name='id']")), "Find user id input")?;
+            timeout60s!(user_id_input.send_keys(&user_email), "Type user id")?;
+            let user_mail_input = timeout60s!(env.driver.find(By::Css("input[name='name']")), "Find user name input")?;
+            timeout60s!(user_mail_input.send_keys(&user_name), "Type user name")?;
+            let user_maildir_input = timeout60s!(env.driver.find(By::Css("input[name='maildir']")), "Find user maildir input")?;
+            timeout60s!(user_maildir_input.send_keys(&user_maildir), "Type user maildir")?;
+            let user_submit_btn = timeout60s!(env.driver.find(By::Id("user-submit-button")), "Find submit button for user")?;
+            timeout60s!(user_submit_btn.click(), "Submit user form")?;
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            
+            let user_page_source = timeout60s!(env.driver.source(), "Get page source after user create")?;
+            assert!(user_page_source.contains(&user_email), "User should appear after creation");
+
+            // 4. Run a report (e.g., aliases report)
+            let reports_url = format!("{}/reports", env.app_url);
+            timeout60s!(env.driver.get(&reports_url), "Navigate to reports page")?;
+            let reports_page_source = timeout60s!(env.driver.source(), "Get page source for reports")?;
+            assert!(reports_page_source.contains("Reports") || reports_page_source.contains("Alias"), "Reports page should load");
+
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(90),
+    )
+    .await
+}
