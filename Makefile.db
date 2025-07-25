@@ -55,6 +55,12 @@ migrate-all:
 
 # Seed data management
 seed:
+	@if [ "$(ENVIRONMENT)" = "production" ] || [ "$(ENVIRONMENT)" = "prod" ]; then \
+		echo "❌ SEEDING BLOCKED: Cannot seed production database!"; \
+		echo "   Set ENVIRONMENT=development to override this protection."; \
+		echo "   Or use make seed-force to bypass this check (not recommended)."; \
+		exit 1; \
+	fi
 	@if [ -n "$(MYSQL_DATABASE)" ]; then \
 		echo "🌱 Seeding database $(MYSQL_DATABASE) with initial data..."; \
 		if [ -f "seed_data/all.sql" ]; then \
@@ -67,6 +73,31 @@ seed:
 		fi \
 	else \
 		echo "🌱 Seeding default database with initial data..."; \
+		if [ -f "seed_data/all.sql" ]; then \
+			echo "Running seed data from seed_data/all.sql..."; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			echo "✅ Seed data loaded successfully!"; \
+		else \
+			echo "❌ No seed data found. Creating default seed data..."; \
+			make create-seed-data; \
+		fi \
+	fi
+
+# Force seed (bypasses production protection - use with caution!)
+seed-force:
+	@echo "⚠️  WARNING: Force seeding database (bypassing production protection)..."
+	@if [ -n "$(MYSQL_DATABASE)" ]; then \
+		echo "🌱 Force seeding database $(MYSQL_DATABASE) with initial data..."; \
+		if [ -f "seed_data/all.sql" ]; then \
+			echo "Running seed data from seed_data/all.sql..."; \
+			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/all.sql; \
+			echo "✅ Seed data loaded successfully!"; \
+		else \
+			echo "❌ No seed data found. Creating default seed data..."; \
+			make create-seed-data; \
+		fi \
+	else \
+		echo "🌱 Force seeding default database with initial data..."; \
 		if [ -f "seed_data/all.sql" ]; then \
 			echo "Running seed data from seed_data/all.sql..."; \
 			mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/all.sql; \
@@ -204,8 +235,19 @@ prod-db-setup:
 	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
 	@echo "Running migrations on production database..."
 	@diesel migration run
-	@echo "Seeding production database..."
-	@make seed
+	@echo "✅ Production database setup complete!"
+	@echo "⚠️  Note: Seed data is not automatically loaded in production for safety."
+	@echo "   Use 'make seed' (development only) or 'make seed-force' (use with caution) if needed."
+
+# Development database setup (includes seeding)
+dev-db-setup:
+	@echo "🛠️  Setting up development database..."
+	@echo "Creating development database if it doesn't exist..."
+	@mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) -e "CREATE DATABASE IF NOT EXISTS sortingoffice;"
+	@echo "Running migrations on development database..."
+	@diesel migration run
+	@echo "Seeding development database..."
+	@ENVIRONMENT=development make seed
 
 prod-db-reset:
 	@echo "⚠️  WARNING: This will reset the production database!"
@@ -297,8 +339,9 @@ db-help:
 	@echo "  make migrate-all       - Run migrations on all configured databases"
 	@echo ""
 	@echo "Seed Data:"
-	@echo "  make seed              - Seed database with all initial data (default or specify MYSQL_DATABASE, MYSQL_HOST, MYSQL_PORT)"
+	@echo "  make seed              - Seed database with all initial data (development only, blocked in production)"
 	@echo "      e.g. make seed MYSQL_DATABASE=sortingoffice_dev MYSQL_HOST=127.0.0.1 MYSQL_PORT=3308"
+	@echo "  make seed-force        - Force seed database (bypasses production protection - use with caution!)"
 	@echo "  make seed-domains      - Seed only domains table"
 	@echo "  make seed-users        - Seed only users table"
 	@echo "  make seed-aliases      - Seed only aliases table"
@@ -315,7 +358,8 @@ db-help:
 	@echo ""
 	@echo "Production Database:"
 	@echo "  make prod-db-create    - Create production database"
-	@echo "  make prod-db-setup     - Setup production database with seed data"
+	@echo "  make prod-db-setup     - Setup production database (migrations only, no seeding)"
+	@echo "  make dev-db-setup      - Setup development database (includes seeding)"
 	@echo "  make prod-db-clean     - Clean production database (WARNING: destructive)"
 	@echo "  make prod-db-reset     - Reset production database (WARNING: destructive) with seed data"
 	@echo ""

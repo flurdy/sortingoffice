@@ -81,7 +81,20 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 ✅ Create a complete end-to-end functional UI test, that headless, that creates a random domain, a few aliases, a user and runs a report.
 - create an duplicate flow that is not headless but instead a smoke test, which argument is a running app (defaulting to localhost 3000) and shows this flow in the browser. This smoke test must I guess can be ignored by default to avoid accidental running in build tests? - IMPLEMENTED
 
-Any way we can ensure no seeding happens on prod databases?
+✅ Any way we can ensure no seeding happens on prod databases? - IMPLEMENTED
+- Added `no_seeding` feature flag to DatabaseFeatures struct
+- Added `is_seeding_blocked()` method to Config to check for seeding restrictions
+- Modified `make seed` to block seeding when ENVIRONMENT=production or ENVIRONMENT=prod
+- Added `make seed-force` command to bypass production protection (use with caution)
+- Updated `prod-db-setup` to not automatically seed (migrations only)
+- Added `dev-db-setup` command for development database setup (includes seeding)
+- Updated config.toml.example with production safety documentation
+- Seeding is automatically blocked when:
+  - ENVIRONMENT=production or ENVIRONMENT=prod is set
+  - Global read_only = true is set
+  - Database-specific no_seeding = true is set
+  - Database-specific disabled = true is set
+  - Database-specific read_only = true is set
 
 Any way we can block migrations on prod databases?
 

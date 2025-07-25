@@ -51,6 +51,8 @@ pub struct DatabaseFeatures {
     pub no_password_updates: bool,
     #[serde(default)]
     pub disabled: bool,
+    #[serde(default)]
+    pub no_seeding: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -307,6 +309,21 @@ impl Config {
         if let Some(features) = self.get_database_features(database_id) {
             return features.disabled;
         }
+        false
+    }
+
+    /// Check if seeding is blocked for a database
+    pub fn is_seeding_blocked(&self, database_id: &str) -> bool {
+        // Check global features first
+        if self.global_features.read_only {
+            return true;
+        }
+
+        // Check database-specific features
+        if let Some(features) = self.get_database_features(database_id) {
+            return features.no_seeding || features.disabled || features.read_only;
+        }
+
         false
     }
 }
