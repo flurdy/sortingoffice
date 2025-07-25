@@ -397,7 +397,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: cargo test --test ui_headless  # Use headless tests for CI
+      - run: cargo test --test ui_containerized  # Use headless tests for CI
       - run: cargo test --test ui_advanced
 ```
 
@@ -447,7 +447,7 @@ When adding new UI tests:
 1. **Choose the right test file**:
    - `tests/ui.rs` for basic functionality
    - `tests/ui_advanced.rs` for complex workflows
-   - `tests/ui_headless.rs` for headless testing
+   - `tests/ui_containerized.rs` for headless testing
 
 2. **Include readiness checks**: All tests should verify Selenium is ready
 
@@ -465,13 +465,13 @@ If you have existing UI tests, they should continue to work with the new readine
 
 1. **Automatic readiness verification**: Tests now check Selenium status automatically
 2. **Better error messages**: More descriptive error messages for connection issues
-3. **New headless option**: Consider using `tests/ui_headless.rs` for new tests
+3. **New headless option**: Consider using `tests/ui_containerized.rs` for new tests
 
 ### To Headless Tests
 
 To migrate from Selenium tests to headless tests:
 
-1. **Copy test logic**: Copy test functions from `ui.rs` to `ui_headless.rs`
+1. **Copy test logic**: Copy test functions from `ui.rs` to `ui_containerized.rs`
 2. **Update API calls**: Replace `find_element` with `find`, `find_elements` with `find_all`
 3. **Update window sizing**: Replace `set_window_size` with `set_window_rect`
 4. **Test thoroughly**: Verify all functionality works in headless mode
@@ -501,7 +501,7 @@ curl http://localhost:4444/status
 cargo run -- --log-level debug
 
 # Use headless tests which are more stable
-cargo test --test ui_headless
+cargo test --test ui_containerized
 ```
 
 ### Memory Issues
@@ -511,5 +511,5 @@ cargo test --test ui_headless
 # In Docker Desktop: Settings -> Resources -> Memory -> 4GB
 
 # Or use headless tests which use less memory
-cargo test --test ui_headless
+cargo test --test ui_containerized
 ``` 

@@ -33,6 +33,9 @@ Like the users table where there is a domain column which is extracted from the 
 
 Can the mail, destination and domain column header be clickable in the aliases to sort by that column. If clicking domain, it will secondary sort by mail.
 
+Create a complete end-to-end functional UI test, that headless, that creates a random domain, a few aliases, a user and runs a report.
+- create an duplicate flow that is not headless but instead a smoke test, which argument is a running app (defaulting to localhost 3000) and shows this flow in the browser. This smoke test must I guess can be ignored by default to avoid accidental running in build tests?
+
 Any way we can ensure no seeding happens on prod databases?
 
 Any way we can block migrations on prod databases?

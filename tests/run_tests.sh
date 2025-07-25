@@ -88,10 +88,10 @@ run_integration_tests() {
 
     # Set test environment
     export RUST_LOG=error
-    export RUST_BACKTRACE=1
+    export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
-    TEST_THREADS="${TEST_THREADS:-8}"
+    TEST_THREADS=8
 
     # Run only the integration tests (excluding UI tests)
     print_status "Running integration tests with cargo (threads: $TEST_THREADS)..."
@@ -160,7 +160,7 @@ run_ui_tests() {
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."
-    if cargo test --test ui_headless_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS; then
+    if cargo test --test ui_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS; then
         print_success "Containerized UI tests passed!"
     else
         print_error "Containerized UI tests failed!"
@@ -174,11 +174,11 @@ run_ui_tests() {
 run_all_tests() {
     print_status "Running all tests..."
     start_all=$(date +%s)
-    # run_unit_tests
+    run_unit_tests
     echo ""
     run_integration_tests
     echo ""
-    # run_ui_tests
+    run_ui_tests
     end_all=$(date +%s)
     duration_all=$((end_all - start_all))
     print_success "All tests completed in ${duration_all}s!"

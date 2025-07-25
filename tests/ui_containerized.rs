@@ -151,7 +151,11 @@ async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
 }
 
 // Helper function to run a test with timeout
-async fn run_test_with_timeout<F, T>(test_name: &str, test_fn: F, timeout_duration: Duration) -> Result<T>
+async fn run_test_with_timeout<F, T>(
+    test_name: &str,
+    test_fn: F,
+    timeout_duration: Duration,
+) -> Result<T>
 where
     F: std::future::Future<Output = Result<T>>,
 {
@@ -313,7 +317,11 @@ async fn seed_test_db(container: &TestContainer) {
         .arg(format!("source seed_data/all.sql"))
         .status()
         .expect("Failed to run mysql seed command");
-    assert!(status.success(), "Seeding DB failed with status: {:?}", status);
+    assert!(
+        status.success(),
+        "Seeding DB failed with status: {:?}",
+        status
+    );
 }
 
 struct TestEnv {
@@ -358,7 +366,8 @@ async fn setup_ui_test_env_with_dbs(db_count: usize, config_path: &str) -> anyho
         config_path,
         &unique_app_name,
         &extra_env,
-    ).await?;
+    )
+    .await?;
     for db in &dbs {
         seed_test_db(db).await;
     }
@@ -383,7 +392,8 @@ async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
 
 #[tokio::test]
 async fn test_homepage_loads_containerized() -> Result<()> {
-    run_test_with_timeout("test_homepage_loads_containerized",
+    run_test_with_timeout(
+        "test_homepage_loads_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -402,7 +412,8 @@ async fn test_homepage_loads_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_navigation_containerized() -> Result<()> {
-    run_test_with_timeout("test_navigation_containerized",
+    run_test_with_timeout(
+        "test_navigation_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -412,10 +423,12 @@ async fn test_navigation_containerized() -> Result<()> {
                 "Find navigation elements"
             )?;
             let links = timeout60s!(env.driver.find_all(By::Css("a")), "Find link elements")?;
-            
-            assert!(!nav_elements.is_empty() && !links.is_empty(),
-                "No navigation elements found");
-            
+
+            assert!(
+                !nav_elements.is_empty() && !links.is_empty(),
+                "No navigation elements found"
+            );
+
             let pages = vec![
                 ("/", "Dashboard"),
                 ("/domains", "Domains"),
@@ -568,7 +581,8 @@ async fn test_minimal_webdriver_session() -> Result<()> {
 
 #[tokio::test]
 async fn test_domain_search_containerized() -> Result<()> {
-    run_test_with_timeout("test_domain_search_containerized",
+    run_test_with_timeout(
+        "test_domain_search_containerized",
         async {
             let env = setup_ui_test_env().await?;
             // println!("[DEBUG] App URL for Selenium: {}", env.app_url);
@@ -605,8 +619,9 @@ async fn test_domain_search_containerized() -> Result<()> {
             timeout60s!(mail_input.send_keys("@exa"), "Type @exa in mail field")?;
             tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
             let page_source = timeout90s!(env.driver.source(), "Get page source")?;
-            assert!( page_source.contains("domain-search-results")
-                || page_source.contains("No domains found"),
+            assert!(
+                page_source.contains("domain-search-results")
+                    || page_source.contains("No domains found"),
                 "Domain search results not found"
             );
             drop(env.app_container);
@@ -620,7 +635,8 @@ async fn test_domain_search_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_aliases_list_page_containerized() -> Result<()> {
-    run_test_with_timeout("test_aliases_list_page_containerized",
+    run_test_with_timeout(
+        "test_aliases_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -649,7 +665,8 @@ async fn test_aliases_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_domains_list_page_containerized() -> Result<()> {
-    run_test_with_timeout("test_domains_list_page_containerized",
+    run_test_with_timeout(
+        "test_domains_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -657,8 +674,10 @@ async fn test_domains_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&domains_url), "Navigate to domains page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            assert!(page_source.contains("Domains") || page_source.contains("domains"),
-            "Domains page does not contain expected content");
+            assert!(
+                page_source.contains("Domains") || page_source.contains("domains"),
+                "Domains page does not contain expected content"
+            );
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -670,7 +689,8 @@ async fn test_domains_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_users_list_page_containerized() -> Result<()> {
-    run_test_with_timeout("test_users_list_page_containerized",
+    run_test_with_timeout(
+        "test_users_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -678,8 +698,10 @@ async fn test_users_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&users_url), "Navigate to users page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            assert!(page_source.contains("Users") || page_source.contains("users"),
-             "Users page does not contain expected content");
+            assert!(
+                page_source.contains("Users") || page_source.contains("users"),
+                "Users page does not contain expected content"
+            );
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -691,7 +713,8 @@ async fn test_users_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_clients_list_page_containerized() -> Result<()> {
-    run_test_with_timeout("test_clients_list_page_containerized",
+    run_test_with_timeout(
+        "test_clients_list_page_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -699,8 +722,10 @@ async fn test_clients_list_page_containerized() -> Result<()> {
             timeout60s!(env.driver.get(&clients_url), "Navigate to clients page")?;
             let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
             let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            assert!(page_source.contains("Clients") || page_source.contains("clients"),
-            "Clients page does not contain expected content");
+            assert!(
+                page_source.contains("Clients") || page_source.contains("clients"),
+                "Clients page does not contain expected content"
+            );
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -713,7 +738,8 @@ async fn test_clients_list_page_containerized() -> Result<()> {
 #[tokio::test]
 async fn test_responsive_design_containerized() -> Result<()> {
     let test_timeout = Duration::from_secs(60);
-    run_test_with_timeout("test_responsive_design_containerized",
+    run_test_with_timeout(
+        "test_responsive_design_containerized",
         async {
             let env = setup_ui_test_env().await?;
             // Test desktop viewport
@@ -754,7 +780,8 @@ async fn test_responsive_design_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_not_found_pages_containerized() -> Result<()> {
-    run_test_with_timeout("test_not_found_pages_containerized",
+    run_test_with_timeout(
+        "test_not_found_pages_containerized",
         async {
             let env = setup_ui_test_env().await?;
 
@@ -801,7 +828,8 @@ async fn test_not_found_pages_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_unauthorized_pages_containerized() -> Result<()> {
-    run_test_with_timeout("test_unauthorized_pages_containerized",
+    run_test_with_timeout(
+        "test_unauthorized_pages_containerized",
         async {
             let env = setup_ui_test_env().await?;
 
@@ -827,7 +855,8 @@ async fn test_unauthorized_pages_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_domain_form_validation_containerized() -> Result<()> {
-    run_test_with_timeout("test_domain_form_validation_containerized",
+    run_test_with_timeout(
+        "test_domain_form_validation_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -858,7 +887,8 @@ async fn test_domain_form_validation_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_page_titles_containerized() -> Result<()> {
-    run_test_with_timeout("test_page_titles_containerized",
+    run_test_with_timeout(
+        "test_page_titles_containerized",
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -883,7 +913,8 @@ async fn test_page_titles_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_cross_browser_compatibility_containerized() -> Result<()> {
-    run_test_with_timeout("test_cross_browser_compatibility_containerized",
+    run_test_with_timeout(
+        "test_cross_browser_compatibility_containerized",
         async {
             let env = setup_ui_test_env().await?;
             // Test different viewport sizes
@@ -922,7 +953,8 @@ async fn test_cross_browser_compatibility_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_performance_metrics_containerized() -> Result<()> {
-    run_test_with_timeout("test_performance_metrics_containerized",
+    run_test_with_timeout(
+        "test_performance_metrics_containerized",
         async {
             let env = setup_ui_test_env().await?;
             let home_url = format!("{}/", env.app_url);
@@ -948,7 +980,8 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
         .unwrap()
         .join("config/config.docker.multidb.toml");
     let config_path_str = config_path.to_str().unwrap();
-    run_test_with_timeout("test_database_dropdown_selection_containerized",
+    run_test_with_timeout(
+        "test_database_dropdown_selection_containerized",
         async {
             let env = setup_ui_test_env_with_dbs(2, config_path_str).await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
@@ -968,7 +1001,8 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
                 env.driver.find(By::Id("db-dropdown-list")),
                 "Find database dropdown list"
             )?;
-            let is_displayed = timeout60s!(dropdown_list.is_displayed(), "Check dropdown visibility")?;
+            let is_displayed =
+                timeout60s!(dropdown_list.is_displayed(), "Check dropdown visibility")?;
             if !is_displayed {
                 return Err(anyhow::anyhow!(
                     "Database dropdown should be visible after clicking"
@@ -1002,7 +1036,8 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
                 env.driver.find(By::Css("nav, .sidebar, .navigation")),
                 "Find sidebar/navigation"
             )?;
-            let sidebar_displayed = timeout60s!(sidebar.is_displayed(), "Check sidebar visibility")?;
+            let sidebar_displayed =
+                timeout60s!(sidebar.is_displayed(), "Check sidebar visibility")?;
             if !sidebar_displayed {
                 return Err(anyhow::anyhow!(
                     "Sidebar should still be visible after database selection"
