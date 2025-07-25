@@ -6,107 +6,7 @@
                 <p class="text-lg text-gray-600 dark:text-gray-400">{{ description }}</p>
             </div>
 
-            <form method="POST" action="/config/update" class="space-y-8">
-                <!-- Required Aliases Section -->
-                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                            {{ required_aliases_header }}
-                        </h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            {{ required_aliases_description }}
-                        </p>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-gray-700">
-                        <div class="px-4 py-5 sm:px-6">
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-4">
-                                    <input type="text"
-                                           name="new_required_alias"
-                                           placeholder="{{ placeholder_required_alias }}"
-                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <button type="button"
-                                            onclick="addRequiredAlias()"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                        {{ add_required_alias_button }}
-                                    </button>
-                                </div>
-
-                                <div id="required-aliases-list" class="space-y-2">
-                                    {% for alias in config.required_aliases %}
-                                    <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
-                                        <span class="text-sm font-medium text-red-900 dark:text-red-100">{{ alias }}</span>
-                                        <div class="flex items-center space-x-2">
-                                            <button type="button"
-                                                    onclick="demoteToCommon('{{ alias }}')"
-                                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs">
-                                                {{ demote_button }}
-                                            </button>
-                                            <button type="button"
-                                                    onclick="removeRequiredAlias('{{ alias }}')"
-                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                {{ remove_alias_button }}
-                                            </button>
-                                        </div>
-                                        <input type="hidden" name="required_aliases[]" value="{{ alias }}">
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Common Aliases Section -->
-                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                            {{ common_aliases_header }}
-                        </h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            {{ common_aliases_description }}
-                        </p>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-gray-700">
-                        <div class="px-4 py-5 sm:px-6">
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-4">
-                                    <input type="text"
-                                           name="new_common_alias"
-                                           placeholder="{{ placeholder_common_alias }}"
-                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <button type="button"
-                                            onclick="addCommonAlias()"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                                        {{ add_common_alias_button }}
-                                    </button>
-                                </div>
-
-                                <div id="common-aliases-list" class="space-y-2">
-                                    {% for alias in config.common_aliases %}
-                                    <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
-                                        <span class="text-sm font-medium text-yellow-900 dark:text-yellow-100">{{ alias }}</span>
-                                        <div class="flex items-center space-x-2">
-                                            <button type="button"
-                                                    onclick="promoteToRequired('{{ alias }}')"
-                                                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-xs">
-                                                {{ promote_button }}
-                                            </button>
-                                            <button type="button"
-                                                    onclick="removeCommonAlias('{{ alias }}')"
-                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                {{ remove_alias_button }}
-                                            </button>
-                                        </div>
-                                        <input type="hidden" name="common_aliases[]" value="{{ alias }}">
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="space-y-8">
                 <!-- Domain Overrides Section -->
                 <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
@@ -387,12 +287,8 @@
                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         {{ cancel_button }}
                     </a>
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        {{ save_button }}
-                    </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

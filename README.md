@@ -511,7 +511,7 @@ Sorting Office allows you to configure which email aliases are considered "requi
    # another-domain.com = ["postmaster", "support", "info"]
    ```
 
-3. **Web Interface**: Access the configuration page at `/config` to manage required aliases through the web interface.
+3. **Web Interface**: Access the configuration page at `/config` to view current configuration and domain-specific overrides (read-only).
 
 #### Default Required Aliases
 

@@ -133,7 +133,14 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Updated configuration example with documentation for optional tables
 - All tests pass: unit (21), integration (49)
 
-On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough.
+✅ On the configuration page there is functionality to add and remove, promote and demote, required and common aliases. We do not need this. Configuring it in config.toml offline is enough. - IMPLEMENTED
+- Removed required and common aliases management sections from config template
+- Removed related fields from ConfigTemplate struct
+- Removed unused translations from config handler
+- Removed JavaScript functions for required/common alias management
+- Kept domain overrides and feature toggles functionality
+- Removed form action since no update handler exists
+- All tests pass: unit (24), integration (49)
 
 For clients and relays, the status is either OK, or REJECT, not to be confused with the enabled field.
 
