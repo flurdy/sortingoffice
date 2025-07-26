@@ -13,6 +13,7 @@ nav-clients = "Clientes"
 nav-statistics = "Estadísticas"
 nav-reports = "Informes"
 nav-config = "Configuración"
+nav-database-backup = "Respaldo de Base de Datos"
 nav-database = "Selección de Base de Datos"
 nav-about = "Acerca de"
 nav-logout = "Cerrar Sesión"
@@ -667,6 +668,33 @@ clients-status-disabled = Deshabilitado
 
 not-found-title = Página no encontrada
 not-found-message = Lo sentimos, la página que solicitó no existe o puede haber sido movida.
+
+# Gestión de Respaldo
+database-backup-title = Respaldo de Base de Datos
+database-backup-description = Crear y gestionar respaldos de bases de datos. Los respaldos se almacenan localmente y se pueden descargar.
+database-backup-database-select = Seleccionar Base de Datos
+database-backup-create-button = Crear Respaldo
+database-backup-download-button = Descargar Respaldo
+database-backup-status-success = ¡Respaldo creado exitosamente!
+database-backup-status-error = El respaldo falló.
+database-backup-no-databases = No hay bases de datos configuradas.
+database-backup-create-new-section = Crear Nuevo Respaldo
+database-backup-existing-section = Respaldos Existentes
+database-backup-select-placeholder = Seleccionar una base de datos...
+database-backup-loading = Cargando respaldos...
+database-backup-please-select = Por favor seleccione una base de datos.
+database-backup-creating = Creando respaldo...
+database-backup-session-expired = Sesión expirada. Por favor actualice la página e intente de nuevo.
+database-backup-unexpected-response = Formato de respuesta inesperado. Por favor intente de nuevo.
+database-backup-failed-create = Error al crear respaldo:
+database-backup-session-expired-load = Sesión expirada. Por favor actualice la página.
+database-backup-failed-load = Error al cargar respaldos: Formato de respuesta inesperado.
+database-backup-no-backups = No se encontraron respaldos.
+database-backup-failed-load-error = Error al cargar respaldos:
+database-backup-confirm-delete = ¿Está seguro de que desea eliminar este respaldo?
+database-backup-session-expired-delete = Sesión expirada. Por favor actualice la página.
+database-backup-failed-delete = Error al eliminar respaldo: Formato de respuesta inesperado.
+database-backup-failed-delete-error = Error al eliminar respaldo:
 
 # Etiquetas de campos del formulario de usuario (añadidas para traducción completa)
 users-field-id = ID de usuario

@@ -1,0 +1,33 @@
+use crate::config::DatabaseConfig;
+use askama::Template;
+
+#[derive(Template)]
+#[template(path = "backup/index.html", escape = "html")]
+pub struct BackupTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub database_select: &'a str,
+    pub create_button: &'a str,
+    pub download_button: &'a str,
+    pub status_success: &'a str,
+    pub status_error: &'a str,
+    pub no_databases: &'a str,
+    pub create_new_section: &'a str,
+    pub existing_section: &'a str,
+    pub select_placeholder: &'a str,
+    pub loading: &'a str,
+    pub please_select: &'a str,
+    pub creating: &'a str,
+    pub session_expired: &'a str,
+    pub unexpected_response: &'a str,
+    pub failed_create: &'a str,
+    pub session_expired_load: &'a str,
+    pub failed_load: &'a str,
+    pub no_backups: &'a str,
+    pub failed_load_error: &'a str,
+    pub confirm_delete: &'a str,
+    pub session_expired_delete: &'a str,
+    pub failed_delete: &'a str,
+    pub failed_delete_error: &'a str,
+    pub databases: Vec<DatabaseConfig>,
+}

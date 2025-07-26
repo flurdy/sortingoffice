@@ -183,6 +183,20 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Migrations can now only be run via command line tools (make migrate, etc.)
 - All tests pass: unit (24), integration (49)
 
-Add a backup function to backup a database and download it as file locally.
+✅ Add a backup function to backup a database and download it as file locally.
+- Implemented complete database backup functionality with web interface
+- Added backup creation using mysqldump with proper error handling
+- Added backup download functionality with security checks
+- Added backup listing and deletion capabilities
+- Created backup management UI with database selection
+- Added proper authentication and authorization for backup operations
+- Implemented backup file naming with timestamps (format: database_id_database_YYYYMMDD_HHMMSS.sql)
+- Added automatic backup directory creation
+- Renamed "Backup" to "Database Backup" to avoid confusion with "Backups" table
+- Updated all translation files (en-US, es-ES, de-DE, fr-FR, nb-NO) with new naming
+- Fixed JSON error handling in backup functionality
+- All tests pass: unit (24), integration (49)
 
 Ensure no migration is run automatically on starting the app.
+
+Order the message bundles alphabetically by key.

@@ -1,6 +1,7 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
+pub mod backup;
 pub mod backups;
 pub mod clients;
 pub mod config;
@@ -25,6 +26,9 @@ pub use aliases::{
     toggle_enabled_domain_show, toggle_enabled_list, toggle_enabled_show, update,
 };
 pub use auth::{login, login_form, logout, require_auth, require_edit_permissions};
+pub use backup::{
+    create_backup, delete_backup, download_backup, index as backup_index, list_backups,
+};
 pub use clients::{
     create_client, create_client_form, delete_client, edit_client_form, list_clients, show_client,
     toggle_client, update_client,
@@ -135,6 +139,18 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/database/select", axum::routing::post(select))
         .route("/database/dropdown", axum::routing::get(dropdown))
         .route("/api/databases", axum::routing::get(list_databases))
+        // Backup management
+        .route("/backup", axum::routing::get(backup_index))
+        .route("/backup/create", axum::routing::post(create_backup))
+        .route(
+            "/backup/download/{filename}",
+            axum::routing::get(download_backup),
+        )
+        .route(
+            "/backup/delete/{filename}",
+            axum::routing::delete(delete_backup),
+        )
+        .route("/backup/list", axum::routing::get(list_backups))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),

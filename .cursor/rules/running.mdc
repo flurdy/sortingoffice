@@ -14,3 +14,5 @@ Before a `cargo run` always chech with `cargo check` first.
 
 To restart `cargo run` use  `pkill -f sortingoffice; sleep 1; cargo run & sleep 3`
 - or use `cargo watch` to automatically restart
+
+Most of the URLs are behind auth with admin:admin123

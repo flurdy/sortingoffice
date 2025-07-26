@@ -13,6 +13,7 @@ nav-clients = Clients
 nav-statistics = Statistiken
 nav-reports = Berichte
 nav-config = Konfiguration
+nav-database-backup = Datenbank-Backup
 nav-database = Datenbankauswahl
 nav-about = Über
 nav-logout = Abmelden
@@ -684,6 +685,33 @@ pagination-results = Ergebnissen
 
 not-found-title = Seite nicht gefunden
 not-found-message = Entschuldigung, die angeforderte Seite existiert nicht oder wurde verschoben.
+
+# Backup Management
+database-backup-title = Datenbank-Backup
+database-backup-description = Erstellen und verwalten Sie Datenbank-Backups. Backups werden lokal gespeichert und können heruntergeladen werden.
+database-backup-database-select = Datenbank auswählen
+database-backup-create-button = Backup erstellen
+database-backup-download-button = Backup herunterladen
+database-backup-status-success = Backup erfolgreich erstellt!
+database-backup-status-error = Backup fehlgeschlagen.
+database-backup-no-databases = Keine Datenbanken konfiguriert.
+database-backup-create-new-section = Neues Backup erstellen
+database-backup-existing-section = Vorhandene Backups
+database-backup-select-placeholder = Datenbank auswählen...
+database-backup-loading = Backups werden geladen...
+database-backup-please-select = Bitte wählen Sie eine Datenbank aus.
+database-backup-creating = Backup wird erstellt...
+database-backup-session-expired = Sitzung abgelaufen. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.
+database-backup-unexpected-response = Unerwartetes Antwortformat. Bitte versuchen Sie es erneut.
+database-backup-failed-create = Backup-Erstellung fehlgeschlagen:
+database-backup-session-expired-load = Sitzung abgelaufen. Bitte aktualisieren Sie die Seite.
+database-backup-failed-load = Laden der Backups fehlgeschlagen: Unerwartetes Antwortformat.
+database-backup-no-backups = Keine Backups gefunden.
+database-backup-failed-load-error = Laden der Backups fehlgeschlagen:
+database-backup-confirm-delete = Sind Sie sicher, dass Sie dieses Backup löschen möchten?
+database-backup-session-expired-delete = Sitzung abgelaufen. Bitte aktualisieren Sie die Seite.
+database-backup-failed-delete = Löschen des Backups fehlgeschlagen: Unerwartetes Antwortformat.
+database-backup-failed-delete-error = Löschen des Backups fehlgeschlagen:
 
 # Benutzerformular-Feldbezeichnungen (hinzugefügt für vollständige Übersetzung)
 users-field-id = Benutzer-ID

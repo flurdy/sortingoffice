@@ -3524,6 +3524,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
+ "tempfile",
  "testcontainers",
  "testcontainers-modules",
  "thirtyfour",
@@ -3535,6 +3536,7 @@ dependencies = [
  "tower-http 0.6.6",
  "tracing",
  "tracing-subscriber",
+ "url",
  "uuid",
 ]
 

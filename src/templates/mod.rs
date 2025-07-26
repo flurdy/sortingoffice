@@ -1,6 +1,7 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
+pub mod backup;
 pub mod backups;
 pub mod clients;
 pub mod config;

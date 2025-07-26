@@ -13,6 +13,7 @@ nav-clients = Clients
 nav-statistics = Statistiques
 nav-reports = Rapports
 nav-config = Configuration
+nav-database-backup = Sauvegarde de Base de Données
 nav-database = Sélection de Base de Données
 nav-about = À Propos
 nav-logout = Déconnexion
@@ -962,6 +963,33 @@ pagination-results = résultats
 
 not-found-title = Page non trouvée
 not-found-message = Désolé, la page demandée n'existe pas ou a peut-être été déplacée.
+
+# Gestion des Sauvegardes
+database-backup-title = Sauvegarde de Base de Données
+database-backup-description = Créer et gérer les sauvegardes de base de données. Les sauvegardes sont stockées localement et peuvent être téléchargées.
+database-backup-database-select = Sélectionner la Base de Données
+database-backup-create-button = Créer une Sauvegarde
+database-backup-download-button = Télécharger la Sauvegarde
+database-backup-status-success = Sauvegarde créée avec succès !
+database-backup-status-error = La sauvegarde a échoué.
+database-backup-no-databases = Aucune base de données configurée.
+database-backup-create-new-section = Créer une Nouvelle Sauvegarde
+database-backup-existing-section = Sauvegardes Existantes
+database-backup-select-placeholder = Sélectionner une base de données...
+database-backup-loading = Chargement des sauvegardes...
+database-backup-please-select = Veuillez sélectionner une base de données.
+database-backup-creating = Création de la sauvegarde...
+database-backup-session-expired = Session expirée. Veuillez actualiser la page et réessayer.
+database-backup-unexpected-response = Format de réponse inattendu. Veuillez réessayer.
+database-backup-failed-create = Échec de la création de la sauvegarde :
+database-backup-session-expired-load = Session expirée. Veuillez actualiser la page.
+database-backup-failed-load = Échec du chargement des sauvegardes : Format de réponse inattendu.
+database-backup-no-backups = Aucune sauvegarde trouvée.
+database-backup-failed-load-error = Échec du chargement des sauvegardes :
+database-backup-confirm-delete = Êtes-vous sûr de vouloir supprimer cette sauvegarde ?
+database-backup-session-expired-delete = Session expirée. Veuillez actualiser la page.
+database-backup-failed-delete = Échec de la suppression de la sauvegarde : Format de réponse inattendu.
+database-backup-failed-delete-error = Échec de la suppression de la sauvegarde :
 
 # Étiquettes des champs du formulaire utilisateur (ajoutées pour la complétude de la traduction)
 users-field-id = ID utilisateur
