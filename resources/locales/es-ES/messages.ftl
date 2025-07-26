@@ -696,6 +696,17 @@ database-backup-session-expired-delete = Sesión expirada. Por favor actualice l
 database-backup-failed-delete = Error al eliminar respaldo: Formato de respuesta inesperado.
 database-backup-failed-delete-error = Error al eliminar respaldo:
 
+# Database Backup Table Headers
+database-backup-table-header-database = Base de Datos
+database-backup-table-header-created = Creado
+database-backup-table-header-size = Tamaño
+database-backup-table-header-filename = Nombre del Archivo
+database-backup-table-header-actions = Acciones
+
+# Database Backup Actions
+database-backup-action-download = Descargar
+database-backup-action-delete = Eliminar
+
 # Etiquetas de campos del formulario de usuario (añadidas para traducción completa)
 users-field-id = ID de usuario
 users-field-password = Contraseña

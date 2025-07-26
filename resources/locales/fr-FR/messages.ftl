@@ -991,6 +991,17 @@ database-backup-session-expired-delete = Session expirée. Veuillez actualiser l
 database-backup-failed-delete = Échec de la suppression de la sauvegarde : Format de réponse inattendu.
 database-backup-failed-delete-error = Échec de la suppression de la sauvegarde :
 
+# Database Backup Table Headers
+database-backup-table-header-database = Base de Données
+database-backup-table-header-created = Créé
+database-backup-table-header-size = Taille
+database-backup-table-header-filename = Nom de Fichier
+database-backup-table-header-actions = Actions
+
+# Database Backup Actions
+database-backup-action-download = Télécharger
+database-backup-action-delete = Supprimer
+
 # Étiquettes des champs du formulaire utilisateur (ajoutées pour la complétude de la traduction)
 users-field-id = ID utilisateur
 users-field-password = Mot de passe

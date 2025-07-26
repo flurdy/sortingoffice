@@ -641,3 +641,14 @@ database-backup-confirm-delete = Er du sikker på at du vil slette denne backup?
 database-backup-session-expired-delete = Sesjon utløpt. Vennligst oppdater siden.
 database-backup-failed-delete = Kunne ikke slette backup: Uventet svarsformat.
 database-backup-failed-delete-error = Kunne ikke slette backup:
+
+# Database Backup Table Headers
+database-backup-table-header-database = Database
+database-backup-table-header-created = Opprettet
+database-backup-table-header-size = Størrelse
+database-backup-table-header-filename = Filnavn
+database-backup-table-header-actions = Handlinger
+
+# Database Backup Actions
+database-backup-action-download = Last Ned
+database-backup-action-delete = Slett

@@ -200,8 +200,12 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Verified backup functionality works with basic SELECT privileges
 - All tests pass: unit (24), integration (49)
 
+Create a little curl helpers in the scrips folder for logging in etc.
+
 Ensure no migration is run automatically on starting the app.
 
 Order the message bundles alphabetically by key.
 
 Review and refactor the codebase if there are things to clean, delete, simplify, standardise, rename, document, and other useful things to make the codebase easies to maintain in the future.
+
+Clicking on database selection in another language switches back to english, for that page only.

@@ -12,7 +12,9 @@
      data-session-expired-delete="{{ session_expired_delete }}"
      data-failed-delete="{{ failed_delete }}"
      data-failed-delete-error="{{ failed_delete_error }}"
-     data-download-button="{{ download_button }}">
+     data-download-button="{{ download_button }}"
+     data-action-download="{{ action_download }}"
+     data-action-delete="{{ action_delete }}">
   <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
       {{ title }}
@@ -93,21 +95,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Get translation values from data attributes
+    const container = document.querySelector('.container');
     const translations = {
-        pleaseSelect: document.body.getAttribute('data-please-select') || 'Please select a database.',
-        creating: document.body.getAttribute('data-creating') || 'Creating backup...',
-        sessionExpired: document.body.getAttribute('data-session-expired') || 'Session expired. Please refresh the page and try again.',
-        unexpectedResponse: document.body.getAttribute('data-unexpected-response') || 'Unexpected response format. Please try again.',
-        failedCreate: document.body.getAttribute('data-failed-create') || 'Failed to create backup: ',
-        sessionExpiredLoad: document.body.getAttribute('data-session-expired-load') || 'Session expired. Please refresh the page.',
-        failedLoad: document.body.getAttribute('data-failed-load') || 'Failed to load backups: Unexpected response format.',
-        noBackups: document.body.getAttribute('data-no-backups') || 'No backups found.',
-        failedLoadError: document.body.getAttribute('data-failed-load-error') || 'Failed to load backups: ',
-        confirmDelete: document.body.getAttribute('data-confirm-delete') || 'Are you sure you want to delete this backup?',
-        sessionExpiredDelete: document.body.getAttribute('data-session-expired-delete') || 'Session expired. Please refresh the page.',
-        failedDelete: document.body.getAttribute('data-failed-delete') || 'Failed to delete backup: Unexpected response format.',
-        failedDeleteError: document.body.getAttribute('data-failed-delete-error') || 'Failed to delete backup: ',
-        downloadButton: document.body.getAttribute('data-download-button') || 'Download Backup'
+        pleaseSelect: container.getAttribute('data-please-select') || 'Please select a database.',
+        creating: container.getAttribute('data-creating') || 'Creating backup...',
+        sessionExpired: container.getAttribute('data-session-expired') || 'Session expired. Please refresh the page and try again.',
+        unexpectedResponse: container.getAttribute('data-unexpected-response') || 'Unexpected response format. Please try again.',
+        failedCreate: container.getAttribute('data-failed-create') || 'Failed to create backup: ',
+        sessionExpiredLoad: container.getAttribute('data-session-expired-load') || 'Session expired. Please refresh the page.',
+        failedLoad: container.getAttribute('data-failed-load') || 'Failed to load backups: Unexpected response format.',
+        noBackups: container.getAttribute('data-no-backups') || 'No backups found.',
+        failedLoadError: container.getAttribute('data-failed-load-error') || 'Failed to load backups: ',
+        confirmDelete: container.getAttribute('data-confirm-delete') || 'Are you sure you want to delete this backup?',
+        sessionExpiredDelete: container.getAttribute('data-session-expired-delete') || 'Session expired. Please refresh the page.',
+        failedDelete: container.getAttribute('data-failed-delete') || 'Failed to delete backup: Unexpected response format.',
+        failedDeleteError: container.getAttribute('data-failed-delete-error') || 'Failed to delete backup: ',
+        downloadButton: container.getAttribute('data-download-button') || 'Download Backup',
+        actionDownload: container.getAttribute('data-action-download') || 'Download',
+        actionDelete: container.getAttribute('data-action-delete') || 'Delete'
     };
 
     const backupForm = document.getElementById('backup-form');
@@ -175,62 +180,89 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const backupsHtml = backups.map(backup => {
-                const timestamp = extractTimestamp(backup);
-                const size = ''; // Could be added later if needed
+            // Create table header
+            const tableHeader = `
+                <table class="w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                                                            <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    {{ table_header_database }}
+                                </th>
+                                <th class="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    {{ table_header_created }}
+                                </th>
+                                <th class="w-1/12 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    {{ table_header_size }}
+                                </th>
+                                <th class="w-1/2 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    {{ table_header_filename }}
+                                </th>
+                                <th class="w-1/6 px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    {{ table_header_actions }}
+                                </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            `;
+
+            const tableRows = backups.map((backup, index) => {
+                const isEven = index % 2 === 0;
+                const rowClass = isEven ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800';
+                const createdDate = new Date(backup.created_at).toLocaleString();
                 
                 return `
-                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div class="flex-1">
-                            <div class="font-medium text-gray-900 dark:text-white">${backup}</div>
-                            ${timestamp ? `<div class="text-sm text-gray-500 dark:text-gray-400">${timestamp}</div>` : ''}
-                        </div>
-                        <div class="flex space-x-2">
-                            <a href="/backup/download/${backup}" 
-                               class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition duration-200">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Download
-                            </a>
-                            <button onclick="deleteBackup('${backup}')" 
-                                    class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition duration-200">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                    <tr class="${rowClass} hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <td class="px-4 py-4">
+                            <div class="text-sm font-medium text-gray-900 dark:text-white">${backup.database_name}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">${backup.database_id}</div>
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                            ${createdDate}
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                            ${backup.size_formatted}
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono break-all">
+                            ${backup.filename}
+                        </td>
+                        <td class="px-4 py-4 text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <a href="/backup/download/${backup.filename}" 
+                                   class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition duration-200">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    ${translations.actionDownload}
+                                </a>
+                                <button onclick="deleteBackup('${backup.filename}')" 
+                                        class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition duration-200">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    ${translations.actionDelete}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }).join('');
 
-            backupsList.innerHTML = backupsHtml;
+            const tableFooter = `
+                        </tbody>
+                    </table>
+            `;
+
+            backupsList.innerHTML = tableHeader + tableRows + tableFooter;
         } catch (error) {
             console.error('Load backups error:', error);
             backupsList.innerHTML = '<p class="text-red-500">' + translations.failedLoadError + error.message + '</p>';
         }
     }
 
-    function extractTimestamp(filename) {
-        // Extract timestamp from filename like "primary_sortingoffice_20250726_143022.sql"
-        const match = filename.match(/(\d{8}_\d{6})\.sql$/);
-        if (match) {
-            const timestamp = match[1];
-            const date = new Date(
-                timestamp.substring(0, 4) + '-' + 
-                timestamp.substring(4, 6) + '-' + 
-                timestamp.substring(6, 8) + 'T' +
-                timestamp.substring(9, 11) + ':' +
-                timestamp.substring(11, 13) + ':' +
-                timestamp.substring(13, 15)
-            );
-            return date.toLocaleString();
-        }
-        return null;
-    }
 
-    // Make deleteBackup function global
+
+    // Make functions global
+    window.loadBackups = loadBackups;
     window.deleteBackup = async function(filename) {
         if (!confirm(translations.confirmDelete)) {
             return;

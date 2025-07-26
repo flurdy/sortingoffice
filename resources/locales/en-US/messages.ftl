@@ -707,3 +707,14 @@ database-backup-confirm-delete = Are you sure you want to delete this backup?
 database-backup-session-expired-delete = Session expired. Please refresh the page.
 database-backup-failed-delete = Failed to delete backup: Unexpected response format.
 database-backup-failed-delete-error = Failed to delete backup:
+
+# Database Backup Table Headers
+database-backup-table-header-database = Database
+database-backup-table-header-created = Created
+database-backup-table-header-size = Size
+database-backup-table-header-filename = Filename
+database-backup-table-header-actions = Actions
+
+# Database Backup Actions
+database-backup-action-download = Download
+database-backup-action-delete = Delete

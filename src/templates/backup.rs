@@ -29,5 +29,12 @@ pub struct BackupTemplate<'a> {
     pub session_expired_delete: &'a str,
     pub failed_delete: &'a str,
     pub failed_delete_error: &'a str,
+    pub table_header_database: &'a str,
+    pub table_header_created: &'a str,
+    pub table_header_size: &'a str,
+    pub table_header_filename: &'a str,
+    pub table_header_actions: &'a str,
+    pub action_download: &'a str,
+    pub action_delete: &'a str,
     pub databases: Vec<DatabaseConfig>,
 }

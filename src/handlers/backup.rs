@@ -6,10 +6,12 @@ use axum::{
     response::{Html, Response},
     Json,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path as FsPath;
 use std::process::Command;
+
+use chrono::{DateTime, TimeZone, Utc};
 use tempfile::NamedTempFile;
 use tokio::fs as tokio_fs;
 use url::Url;
@@ -17,6 +19,16 @@ use url::Url;
 #[derive(Deserialize)]
 pub struct BackupForm {
     database_id: String,
+}
+
+#[derive(Serialize)]
+pub struct BackupInfo {
+    filename: String,
+    database_id: String,
+    database_name: String,
+    created_at: DateTime<Utc>,
+    size_bytes: u64,
+    size_formatted: String,
 }
 
 /// Show the backup page
@@ -53,6 +65,13 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             "database-backup-session-expired-delete",
             "database-backup-failed-delete",
             "database-backup-failed-delete-error",
+            "database-backup-table-header-database",
+            "database-backup-table-header-created",
+            "database-backup-table-header-size",
+            "database-backup-table-header-filename",
+            "database-backup-table-header-actions",
+            "database-backup-action-download",
+            "database-backup-action-delete",
         ],
     )
     .await;
@@ -86,6 +105,13 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         session_expired_delete: &translations["database-backup-session-expired-delete"],
         failed_delete: &translations["database-backup-failed-delete"],
         failed_delete_error: &translations["database-backup-failed-delete-error"],
+        table_header_database: &translations["database-backup-table-header-database"],
+        table_header_created: &translations["database-backup-table-header-created"],
+        table_header_size: &translations["database-backup-table-header-size"],
+        table_header_filename: &translations["database-backup-table-header-filename"],
+        table_header_actions: &translations["database-backup-table-header-actions"],
+        action_download: &translations["database-backup-action-download"],
+        action_delete: &translations["database-backup-action-delete"],
         databases,
     };
 
@@ -334,7 +360,7 @@ pub async fn create_backup_htmx(
             </div>
             <script>
                 // Refresh the backups list after successful creation
-                htmx.ajax('GET', '/backup/list', {{target: '#backups-list', swap: 'innerHTML'}});
+                loadBackups();
             </script>
             "#,
             translations["database-backup-status-success"],
@@ -405,8 +431,8 @@ pub async fn download_backup(
         .unwrap())
 }
 
-/// List available backup files
-pub async fn list_backups() -> Result<axum::Json<Vec<String>>, StatusCode> {
+/// List available backup files with detailed information
+pub async fn list_backups() -> Result<axum::Json<Vec<BackupInfo>>, StatusCode> {
     let backup_dir = FsPath::new("backups");
 
     if !backup_dir.exists() {
@@ -421,7 +447,32 @@ pub async fn list_backups() -> Result<axum::Json<Vec<String>>, StatusCode> {
                 if let Ok(entry) = entry {
                     if let Some(filename) = entry.file_name().to_str() {
                         if filename.ends_with(".sql") {
-                            backups.push(filename.to_string());
+                            let file_path = entry.path();
+
+                            // Get file metadata
+                            let metadata = match fs::metadata(&file_path) {
+                                Ok(meta) => meta,
+                                Err(_) => continue,
+                            };
+
+                            // Parse filename to extract database info and timestamp
+                            let (database_id, database_name, created_at) =
+                                parse_backup_filename(filename);
+
+                            // Format file size
+                            let size_bytes = metadata.len();
+                            let size_formatted = format_file_size(size_bytes);
+
+                            let backup_info = BackupInfo {
+                                filename: filename.to_string(),
+                                database_id,
+                                database_name,
+                                created_at,
+                                size_bytes,
+                                size_formatted,
+                            };
+
+                            backups.push(backup_info);
                         }
                     }
                 }
@@ -430,11 +481,87 @@ pub async fn list_backups() -> Result<axum::Json<Vec<String>>, StatusCode> {
         Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
 
-    // Sort backups by name (which includes timestamp)
-    backups.sort();
-    backups.reverse(); // Most recent first
+    // Sort backups by creation date (most recent first)
+    backups.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
     Ok(axum::Json(backups))
+}
+
+/// Parse backup filename to extract database info and timestamp
+fn parse_backup_filename(filename: &str) -> (String, String, DateTime<Utc>) {
+    // Expected format: database_id_database_name_YYYYMMDD_HHMMSS.sql
+    // Example: primary_sortingoffice_20250726_165857.sql
+    // Example: backup1_sortingoffice_backup_20250726_165857.sql
+
+    // Remove .sql extension
+    let name_without_ext = filename.replace(".sql", "");
+    let parts: Vec<&str> = name_without_ext.split('_').collect();
+
+    tracing::debug!("Parsing filename: '{}', parts: {:?}", filename, parts);
+
+    // We need at least 4 parts: database_id, database_name (may contain underscores), date, time
+    if parts.len() >= 4 {
+        let database_id = parts[0].to_string();
+        
+        // The database name may contain underscores, so we need to reconstruct it
+        // Everything between database_id and the last two parts (date and time) is the database name
+        let database_name_parts = &parts[1..parts.len()-2];
+        let database_name = database_name_parts.join("_");
+        
+        // Extract timestamp from last two parts (YYYYMMDD_HHMMSS)
+        let date_part = parts[parts.len()-2];
+        let time_part = parts[parts.len()-1];
+
+        tracing::debug!(
+            "Extracted: db_id='{}', db_name='{}', date='{}', time='{}'",
+            database_id,
+            database_name,
+            date_part,
+            time_part
+        );
+
+        // Parse date and time separately
+        if let (Ok(year), Ok(month), Ok(day), Ok(hour), Ok(minute), Ok(second)) = (
+            date_part[0..4].parse::<u32>(),
+            date_part[4..6].parse::<u32>(),
+            date_part[6..8].parse::<u32>(),
+            time_part[0..2].parse::<u32>(),
+            time_part[2..4].parse::<u32>(),
+            time_part[4..6].parse::<u32>(),
+        ) {
+            if let chrono::LocalResult::Single(created_at) =
+                Utc.with_ymd_and_hms(year as i32, month, day, hour, minute, second)
+            {
+                tracing::debug!("Successfully parsed timestamp: {}", created_at);
+                return (database_id, database_name, created_at);
+            }
+        }
+        tracing::debug!(
+            "Failed to parse timestamp from date='{}' time='{}'",
+            date_part,
+            time_part
+        );
+    } else {
+        tracing::debug!("Expected at least 4 parts, got {}", parts.len());
+    }
+
+    // Fallback: use current time if parsing fails
+    tracing::debug!("Using fallback values for filename: {}", filename);
+    (filename.to_string(), "Unknown".to_string(), Utc::now())
+}
+
+/// Format file size in human-readable format
+fn format_file_size(bytes: u64) -> String {
+    const KB: u64 = 1024;
+    const MB: u64 = KB * 1024;
+    const GB: u64 = MB * 1024;
+
+    match bytes {
+        0..KB => format!("{} B", bytes),
+        KB..MB => format!("{:.1} KB", bytes as f64 / KB as f64),
+        MB..GB => format!("{:.1} MB", bytes as f64 / MB as f64),
+        _ => format!("{:.1} GB", bytes as f64 / GB as f64),
+    }
 }
 
 /// Delete a backup file

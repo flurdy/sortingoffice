@@ -713,6 +713,17 @@ database-backup-session-expired-delete = Sitzung abgelaufen. Bitte aktualisieren
 database-backup-failed-delete = Löschen des Backups fehlgeschlagen: Unerwartetes Antwortformat.
 database-backup-failed-delete-error = Löschen des Backups fehlgeschlagen:
 
+# Database Backup Table Headers
+database-backup-table-header-database = Datenbank
+database-backup-table-header-created = Erstellt
+database-backup-table-header-size = Größe
+database-backup-table-header-filename = Dateiname
+database-backup-table-header-actions = Aktionen
+
+# Database Backup Actions
+database-backup-action-download = Herunterladen
+database-backup-action-delete = Löschen
+
 # Benutzerformular-Feldbezeichnungen (hinzugefügt für vollständige Übersetzung)
 users-field-id = Benutzer-ID
 users-field-password = Passwort
