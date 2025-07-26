@@ -277,13 +277,15 @@ Why when compiling is there multiple axum versions?
   - Nightly workflow (comprehensive testing)
   - Security audit workflow 
 
-🔄 Refactor the integration tests to use the new test utils. 
+✅ Refactor the integration tests to use the new test utils. 
 - Successfully refactored test_full_domain_workflow to use TestUtils and TestData helpers
 - Successfully refactored test_stats_integration to use shared test utilities
 - Successfully refactored test_full_alias_workflow to use shared test utilities
 - Successfully refactored test_complex_domain_management_journey to use shared test utilities
 - Successfully refactored test_user_management_with_aliases_journey to use shared test utilities
 - Successfully refactored test_error_handling_and_edge_cases_journey to use shared test utilities
+- Successfully refactored test_full_user_workflow to use shared test utilities
+- Successfully refactored test_multi_database_workflow_journey to use shared test utilities
 - Added proper imports for TestUtils and TestData in tests/integration.rs
 - Replaced manual HTTP request creation with TestUtils::make_post_request, make_get_request, make_put_request, make_delete_request
 - Replaced manual cookie creation with TestUtils::create_edit_auth_cookie
@@ -292,10 +294,11 @@ Why when compiling is there multiple axum versions?
 - Replaced manual test app setup with TestUtils::create_test_app_with_db
 - Used unique test data generation with TestData::unique_domain
 - Added TestContainer::get_db_url() utility method to eliminate repeated database URL generation
+- Cleaned up unused imports and functions after refactoring
 - All integration tests pass: 8 tests
 - Improved test maintainability and reduced code duplication
 
-- Refactor the handler tests.
+- Refactor the handlers tests.
 
 - Refactor the UI tests to use the new test utils.
 
