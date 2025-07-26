@@ -165,7 +165,14 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Updated form templates to use new translation keys
 - All tests pass: unit (24), integration (49)
 
-Create onboarding doc, detailing step by step what to do, fork code, build image or download, connect dbs, configure config.toml, run sql to add modified and created fields if missing, ensure migrations are turned off, start app, log in
+✅ Create onboarding doc, detailing step by step what to do, fork code, build image or download, connect dbs, configure config.toml, run sql to add modified and created fields if missing, ensure migrations are turned off, start app, log in - IMPLEMENTED
+- Created comprehensive ONBOARDING.md documentation in docs/ directory
+- Covers all aspects: prerequisites, code acquisition, building, database setup, configuration, schema preparation, production safety, startup, first login, and troubleshooting
+- Includes multiple deployment options: Docker, local development, systemd service
+- Documents production safety features and force commands
+- Added security considerations and next steps
+- Updated README.md to reference the new onboarding guide
+- All tests pass: unit (24), integration (49)
 
 On the configuration page there is functionality to a run migrations. We do not need this. Migrations are only run on dev env. In prod no migrations are allowed and this could lead to accidental migrate runs.
 

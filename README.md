@@ -63,7 +63,9 @@ A modern web-based admin tool for managing mail server data based on [flurdy's "
 
 ## Installation
 
-### Option 1: Docker (Recommended)
+For detailed step-by-step installation instructions, see [ONBOARDING.md](docs/ONBOARDING.md).
+
+### Quick Start: Docker (Recommended)
 
 The easiest way to run Sorting Office is using Docker Compose:
 
