@@ -247,15 +247,23 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Added TestData struct for generating unique test data and form data
 - Created authentication helpers (create_auth_cookie, create_edit_auth_cookie, etc.)
 - Added test app setup helpers (create_test_app_with_db, create_test_app_with_dbs)
-- Implemented HTTP request helpers (make_get_request, make_post_request, make_delete_request)
+- Implemented HTTP request helpers (make_get_request, make_post_request, make_put_request, make_delete_request)
 - Added assertion helpers (assert_status, assert_body_contains, assert_body_not_contains)
 - Created database configuration helpers with dynamic port replacement
 - Added comprehensive documentation in src/test_helpers/README.md with usage examples
 - All unit tests pass (24 tests)
 - UI test helpers were attempted but had complex Selenium dependency issues
 - Integration test helpers are ready for use and can significantly reduce code duplication
+- Successfully refactored test_full_domain_workflow to use shared helpers
+- User workflow test refactoring attempted but needs more investigation
 
-Clicking on database selection in another language switches back to english, for that page only.
+✅ Clicking on database selection in another language switches back to english, for that page only. - IMPLEMENTED
+- Fixed hardcoded locale in database selection handler (src/handlers/database.rs)
+- Changed from hardcoded "en-US" to using get_user_locale(&headers) function
+- Database selection page now properly respects user's language preference
+- Tested with Spanish (es-ES) and German (de-DE) languages
+- Page content now displays in user's selected language
+- All tests pass: unit (24), integration (49)
 
 ✅ Lets work on getting github workflow passing again.
 - https://github.com/flurdy/sortingoffice/actions
@@ -270,3 +278,9 @@ Clicking on database selection in another language switches back to english, for
   - UI tests workflow (containerized UI tests)
   - Nightly workflow (comprehensive testing)
   - Security audit workflow 
+
+- Refactor the integration tests to use the new test utils.
+- Refactor the UI tests to use the new test utils.
+
+The UI tests fail on github actions. 
+- Error:  Failed to start app container: Client(PullImage { descriptor: "sortingoffice:latest", err: DockerResponseServerError { status_code: 404, message: "pull access denied for sortingoffice, repository does not exist or may require 'docker login': denied: requested access to the resource is denied" } })

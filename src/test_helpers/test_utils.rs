@@ -24,8 +24,12 @@ impl TestUtils {
             .unwrap()
             .as_secs()
             + 3600; // 1 hour in the future
+        let role_str = match role {
+            AdminRole::Edit => "edit",
+            AdminRole::ReadOnly => "read-only",
+        };
         let cookie = format!(
-            "authenticated={expiry}:{role:?}:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax"
+            "authenticated={expiry}:{role_str}:test; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax"
         );
         axum::http::HeaderValue::from_str(&cookie).unwrap()
     }
@@ -188,6 +192,33 @@ impl TestUtils {
         Ok(response)
     }
 
+    /// Make a PUT request to the test app
+    pub async fn make_put_request(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        form_data: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> Result<axum::http::Response<Body>, Box<dyn std::error::Error>> {
+        let mut request_builder = Request::builder()
+            .method("PUT")
+            .uri(uri)
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body(Body::from(form_data.to_string()))?;
+
+        if let Some(cookie) = auth_cookie {
+            request_builder.headers_mut().insert("cookie", cookie);
+        }
+
+        let response = app
+            .clone()
+            .with_state(state.clone())
+            .oneshot(request_builder)
+            .await?;
+
+        Ok(response)
+    }
+
     /// Make a DELETE request to the test app
     pub async fn make_delete_request(
         app: &Router<AppState>,
@@ -313,5 +344,24 @@ impl TestData {
     pub fn alias_form_data(mail: &str, destination: &str, enabled: bool) -> String {
         let enabled_str = if enabled { "on" } else { "" };
         format!("mail={mail}&destination={destination}&enabled={enabled_str}")
+    }
+
+    /// Generate form data for creating a user
+    pub fn user_form_data_complete(
+        user_id: &str,
+        password: &str,
+        name: &str,
+        maildir: &str,
+        home: &str,
+        domain: &str,
+        quota: &str,
+        enabled: bool,
+        change_password: bool,
+    ) -> String {
+        let enabled_str = if enabled { "on" } else { "" };
+        let change_password_str = if change_password { "on" } else { "" };
+        format!(
+            "id={user_id}&password={password}&name={name}&maildir={maildir}&home={home}&domain={domain}&quota={quota}&enabled={enabled_str}&change_password={change_password_str}"
+        )
     }
 }

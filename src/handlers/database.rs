@@ -23,11 +23,13 @@ pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap
         current_db: &current_db,
     };
 
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
     render_template_with_title!(
         content_template,
         "Database Selection".to_string(),
         &state,
-        &"en-US",
+        &locale,
         &headers
     )
 }
