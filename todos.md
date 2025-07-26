@@ -298,7 +298,32 @@ Why when compiling is there multiple axum versions?
 - All integration tests pass: 8 tests
 - Improved test maintainability and reduced code duplication
 
-- Refactor the handlers tests.
+🔄 Refactor the handlers tests.
+- Successfully refactored create_test_app() to use TestUtils::create_test_app_with_db
+- Successfully refactored create_auth_cookie() to use TestUtils::create_auth_cookie
+- Successfully refactored test_domains_list to use TestUtils::assert_status and TestData::unique_domain
+- Successfully refactored test_domains_create to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_domains_show to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_domains_edit to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_domains_update to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_domains_toggle_enabled to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_users_create to use TestData::user_form_data_complete and TestUtils::assert_status
+- Successfully refactored test_users_show to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_users_edit to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_users_toggle_enabled to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_aliases_create to use TestData::alias_form_data and TestUtils::assert_status
+- Successfully refactored test_aliases_list to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_aliases_search to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_dashboard to use TestUtils::assert_status
+- Successfully refactored test_about to use TestUtils::assert_status
+- Successfully refactored test_not_found to use TestUtils::assert_status
+- Successfully refactored test_stats to use TestUtils::assert_status and improved variable naming
+- Added proper imports for TestUtils and TestData in tests/handlers.rs
+- Replaced manual form data construction with TestData helper methods
+- Replaced manual assertions with TestUtils::assert_status
+- Improved variable naming and consistency across tests
+- All handler tests pass: 38 tests
+- Improved test maintainability and reduced code duplication
 
 - Refactor the UI tests to use the new test utils.
 
