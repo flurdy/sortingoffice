@@ -313,7 +313,7 @@ async fn seed_test_db(container: &TestContainer) {
         .arg("3306")
         .arg(db_name)
         .arg("-e")
-        .arg("source seed_data/all.sql".to_string())
+        .arg("source seed_data/all.sql")
         .status()
         .expect("Failed to run mysql seed command");
     assert!(
@@ -1378,7 +1378,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                     if error_displayed {
                         let error_text =
                             timeout60s!(error_element.text(), "Get error message text")?;
-                        println!("Backup creation failed with error: {}", error_text);
+                        println!("Backup creation failed with error: {error_text}");
                         // Don't fail the test if backup creation fails - it might be due to mysqldump not being available
                         // Just log the error and continue
                     } else {
@@ -1391,7 +1391,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                             timeout60s!(backups_list.text(), "Get backups list text")?;
 
                         if !backups_text.contains("Loading backups...") {
-                            println!("Backups list updated: {}", backups_text);
+                            println!("Backups list updated: {backups_text}");
                         }
                     }
                 } else {
@@ -1426,10 +1426,10 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                     timeout60s!(backups_list.text(), "Get updated backups list text")?;
 
                 if !updated_backups_text.contains("Loading backups...") {
-                    println!("Backups list loaded: {}", updated_backups_text);
+                    println!("Backups list loaded: {updated_backups_text}");
                 }
             } else {
-                println!("Backups list: {}", backups_text);
+                println!("Backups list: {backups_text}");
             }
 
             // Test navigation back to dashboard
