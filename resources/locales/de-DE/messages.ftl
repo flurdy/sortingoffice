@@ -586,6 +586,7 @@ relays-placeholder-recipient = Empfänger-Adresse eingeben
 relays-placeholder-status = Status-Code eingeben
 relays-field-recipient-help = Die Empfänger-Adresse für diesen Relay (z.B. benutzer@example.com)
 relays-field-status-help = Der Status-Code für diesen Relay (z.B. aktiv, deaktiviert, etc.)
+relays-back-to-list = Zurück zu Relays
 
 # Relocated
 relocated-title = Umgesiedelt
@@ -650,8 +651,8 @@ clients-field-status-help = Ob dieser Client erlaubt oder blockiert ist
 clients-action-cancel = Abbrechen
 clients-action-save = Speichern
 clients-not-found = Client nicht gefunden
-clients-status-allowed = Erlaubt
-clients-status-blocked = Blockiert
+clients-status-ok = OK
+clients-status-reject = REJECT
 clients-field-enabled = Aktiviert
 clients-field-enabled-help = Ist dieser Client aktiviert?
 clients-table-header-enabled = Aktiviert

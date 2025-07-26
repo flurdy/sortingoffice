@@ -337,9 +337,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
             let user_email = format!("{user_name}@{domain_name}");
 
-            println!(
-                "[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}"
-            );
+            println!("[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}");
 
             // 1. Create a new domain
             println!("[SMOKE TEST] Creating domain...");
@@ -387,9 +385,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
                 .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
                 .output()
             {
-                eprintln!(
-                    "[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}"
-                );
+                eprintln!("[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}");
             } else {
                 println!("[SMOKE TEST] Force killed Chrome processes");
             }
@@ -401,9 +397,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
                 .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
                 .output()
             {
-                eprintln!(
-                    "[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}"
-                );
+                eprintln!("[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}");
             } else {
                 println!("[SMOKE TEST] Force killed Chrome processes after timeout");
             }

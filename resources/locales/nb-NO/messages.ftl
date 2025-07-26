@@ -370,6 +370,7 @@ relays-new-relocated = Ny flyttet adresse
 relays-edit-relocated = Rediger flyttet adresse
 relays-not-found = Videresending ikke funnet
 relays-create-error = Kunne ikke opprette videresending
+relays-back-to-list = Tilbake til videresendinger
 
 # Relocated
 relocated-title = Flyttet
@@ -434,6 +435,8 @@ clients-disable-client = Deaktiver klient
 clients-delete-client = Slett klient
 clients-delete-confirm = Er du sikker på at du vil slette denne klienten?
 clients-not-found = Klient ikke funnet
+clients-status-ok = OK
+clients-status-reject = REJECT
 clients-form-name = Postboksnavn
 clients-tooltip-name = Navnet på brukerens postboksmappe
 clients-placeholder-name = postboksnavn

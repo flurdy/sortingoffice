@@ -31,7 +31,13 @@
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ field_status }}</dt>
-                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ relay.status }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
+                        {% if relay.status == "OK" %}
+                        <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_ok }}</span>
+                        {% else %}
+                        <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_reject }}</span>
+                        {% endif %}
+                    </dd>
                 </div>
                 <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ field_enabled }}</dt>

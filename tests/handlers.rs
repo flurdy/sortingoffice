@@ -164,9 +164,8 @@ mod tests {
         cleanup_test_db(&pool);
 
         let unique_id = unique_test_id();
-        let form_data = format!(
-            "domain=create-test-{unique_id}.com&transport=smtp%3Alocalhost&enabled=on"
-        );
+        let form_data =
+            format!("domain=create-test-{unique_id}.com&transport=smtp%3Alocalhost&enabled=on");
 
         let response = app
             .clone()
@@ -314,9 +313,8 @@ mod tests {
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
-        let form_data = format!(
-            "domain=updated-test-{unique_id}.com&transport=smtp%3Aupdated&enabled=on"
-        );
+        let form_data =
+            format!("domain=updated-test-{unique_id}.com&transport=smtp%3Aupdated&enabled=on");
 
         let response = app
             .clone()

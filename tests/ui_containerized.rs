@@ -564,9 +564,7 @@ async fn test_minimal_webdriver_session() -> Result<()> {
             Err(e.into())
         }
         Err(e) => {
-            println!(
-                "[DEBUG] Timeout waiting for minimal WebDriver::new: {e:#?}"
-            );
+            println!("[DEBUG] Timeout waiting for minimal WebDriver::new: {e:#?}");
             Err(anyhow::anyhow!(
                 "Timeout waiting for minimal WebDriver::new: {:#?}",
                 e

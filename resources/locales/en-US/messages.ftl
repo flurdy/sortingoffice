@@ -438,6 +438,9 @@ relays-placeholder-status = Enter status code
 relays-field-recipient-help = The recipient address for this relay (e.g., user@example.com)
 relays-field-status-help = The status code for this relay (e.g., active, disabled, etc.)
 relays-not-available = Relays table is not available for this database
+relays-back-to-list = Back to Relays
+status-ok = OK
+status-reject = REJECT
 
 # Relocated
 relocated-title = Relocated
@@ -503,8 +506,8 @@ clients-field-status-help = Whether this client is allowed or blocked
 clients-action-cancel = Cancel
 clients-action-save = Save
 clients-not-found = Client not found
-clients-status-allowed = Allowed
-clients-status-blocked = Blocked
+clients-status-ok = OK
+clients-status-reject = REJECT
 clients-field-enabled = Enabled
 clients-field-enabled-help = Is this client enabled?
 clients-table-header-enabled = Enabled

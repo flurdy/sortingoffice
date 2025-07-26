@@ -74,8 +74,8 @@ pub async fn list_clients(
         get_translation(&state, &locale, "clients-table-header-actions").await;
     let table_header_enabled =
         get_translation(&state, &locale, "clients-table-header-enabled").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
+    let status_allowed = get_translation(&state, &locale, "clients-status-ok").await;
+    let status_blocked = get_translation(&state, &locale, "clients-status-reject").await;
     let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
     let action_view = get_translation(&state, &locale, "clients-action-view").await;
@@ -180,8 +180,8 @@ pub async fn show_client(
     let client_details = get_translation(&state, &locale, "clients-info-description").await;
     let client_name = get_translation(&state, &locale, "clients-field-client").await;
     let status = get_translation(&state, &locale, "clients-field-status").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-allowed").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-blocked").await;
+    let status_allowed = get_translation(&state, &locale, "clients-status-ok").await;
+    let status_blocked = get_translation(&state, &locale, "clients-status-reject").await;
     let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
     let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
     let created = get_translation(&state, &locale, "clients-field-created").await;
@@ -285,8 +285,8 @@ pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMa
         form_tooltip_enabled: &field_translations["clients-field-enabled-help"],
         enabled_yes: &status_translations["clients-enabled-yes"],
         enabled_no: &status_translations["clients-enabled-no"],
-        status_allowed: &status_translations["clients-status-allowed"],
-        status_blocked: &status_translations["clients-status-blocked"],
+        status_allowed: &status_translations["clients-status-ok"],
+        status_blocked: &status_translations["clients-status-reject"],
     };
 
     // Use helper function for template rendering
@@ -349,8 +349,8 @@ pub async fn edit_client_form(
         form_tooltip_enabled: &field_translations["clients-field-enabled-help"],
         enabled_yes: &status_translations["clients-enabled-yes"],
         enabled_no: &status_translations["clients-enabled-no"],
-        status_allowed: &status_translations["clients-status-allowed"],
-        status_blocked: &status_translations["clients-status-blocked"],
+        status_allowed: &status_translations["clients-status-ok"],
+        status_blocked: &status_translations["clients-status-reject"],
     };
 
     // Use helper function for template rendering

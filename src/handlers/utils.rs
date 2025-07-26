@@ -350,14 +350,25 @@ pub async fn get_status_translations(
 ) -> HashMap<String, String> {
     let mut translations = HashMap::new();
 
-    let status_keys = [
-        format!("{entity}-status-allowed"),
-        format!("{entity}-status-blocked"),
-        format!("{entity}-status-enabled"),
-        format!("{entity}-status-disabled"),
-        format!("{entity}-enabled-yes"),
-        format!("{entity}-enabled-no"),
-    ];
+    let status_keys = if entity == "clients" {
+        vec![
+            format!("{entity}-status-ok"),
+            format!("{entity}-status-reject"),
+            format!("{entity}-status-enabled"),
+            format!("{entity}-status-disabled"),
+            format!("{entity}-enabled-yes"),
+            format!("{entity}-enabled-no"),
+        ]
+    } else {
+        vec![
+            format!("{entity}-status-allowed"),
+            format!("{entity}-status-blocked"),
+            format!("{entity}-status-enabled"),
+            format!("{entity}-status-disabled"),
+            format!("{entity}-enabled-yes"),
+            format!("{entity}-enabled-no"),
+        ]
+    };
 
     for key in status_keys {
         let value = get_translation(state, locale, &key).await;

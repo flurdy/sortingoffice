@@ -588,6 +588,7 @@ relays-placeholder-recipient = Ingrese dirección de destinatario
 relays-placeholder-status = Ingrese código de estado
 relays-field-recipient-help = La dirección de destinatario para este relé (ej., usuario@ejemplo.com)
 relays-field-status-help = El código de estado para este relé (ej., activo, deshabilitado, etc.)
+relays-back-to-list = Volver a Relés
 
 # Relocated
 relocated-title = Reubicados
@@ -652,8 +653,8 @@ clients-field-status-help = Si este cliente está permitido o bloqueado
 clients-action-cancel = Cancelar
 clients-action-save = Guardar
 clients-not-found = Cliente no encontrado
-clients-status-allowed = Permitido
-clients-status-blocked = Bloqueado
+clients-status-ok = OK
+clients-status-reject = REJECT
 clients-field-enabled = Habilitado
 clients-field-enabled-help = ¿Está habilitado este cliente?
 clients-table-header-enabled = Habilitado

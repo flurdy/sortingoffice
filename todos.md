@@ -142,9 +142,28 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Removed form action since no update handler exists
 - All tests pass: unit (24), integration (49)
 
-For clients and relays, the status is either OK, or REJECT, not to be confused with the enabled field.
+✅ For clients and relays, the status is either OK, or REJECT, not to be confused with the enabled field. - IMPLEMENTED
+- Fixed clients templates to properly handle "OK" and "REJECT" status values from database
+- Updated relays template to display status with proper styling and translations
+- Added status-ok and status-reject translation keys to English messages
+- Updated relays handler and template struct to pass status translations
+- Status field now properly distinguished from enabled field in UI
+- All tests pass: unit (24), integration (49)
 
-In the UI I seem unable to edit a relay and relocated.
+✅ In the UI I seem unable to edit a relay and relocated. - IMPLEMENTED
+- Fixed relay status display inconsistency between list and show pages
+- Added missing status_ok and status_reject fields to RelayShowTemplate struct
+- Updated show_relay handler to include status translations
+- Updated relay show template to display status with proper styling (green for OK, red for REJECT)
+- Status now displays consistently across list and show pages with proper translations
+- Fixed missing "Back to Relays" button text by adding relays-back-to-list translations to all language files
+- Database re-seeded with correct "OK"/"REJECT" values, templates reverted to original logic
+- Renamed clients status translation keys to be consistent with database values: clients-status-ok and clients-status-reject
+- Updated all language files (en-US, de-DE, es-ES, fr-FR, nb-NO) with new translation keys
+- Updated clients handlers to use new translation keys for better consistency
+- Updated get_status_translations helper function to return correct keys for clients entity
+- Updated form templates to use new translation keys
+- All tests pass: unit (24), integration (49)
 
 Create onboarding doc, detailing step by step what to do, fork code, build image or download, connect dbs, configure config.toml, run sql to add modified and created fields if missing, ensure migrations are turned off, start app, log in
 

@@ -380,6 +380,7 @@ relays-tooltip-active = Activer ce relais
 relays-cancel = Annuler
 relays-update-relay = Mettre à Jour le Relais
 relays-create-relay = Créer le Relais
+relays-back-to-list = Retour aux Relais
 
 # Relocated
 relocated-title = Réacheminés
@@ -440,8 +441,8 @@ clients-field-client = Client
 clients-field-status = Statut
 clients-field-created = Créé
 clients-field-updated = Modifié
-clients-status-allowed = Autorisé
-clients-status-blocked = Bloqué
+clients-status-ok = OK
+clients-status-reject = REJECT
 clients-status-enabled = Activé
 clients-status-disabled = Désactivé
 clients-action-view = Voir
