@@ -19,3 +19,5 @@ Try to include timeouts so tests do not hang forever.
 Most of the integration and UI tests use testcontainers for selenium and databases.
 
 Once finished editing a test please run `cargo check --tests` to make sure it will compile
+
+If needing to curl, check the scrips folder for helpers.

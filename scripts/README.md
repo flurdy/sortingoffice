@@ -1,0 +1,226 @@
+# Scripts
+
+This directory contains utility scripts for managing and testing the Sorting Office application.
+
+## Available Scripts
+
+### `curl-helpers.sh` - API Testing and Automation
+
+A comprehensive curl-based utility for testing and interacting with the Sorting Office API.
+
+**Features:**
+- **Authentication**: Login, logout, and session management
+- **Backup Operations**: Create, list, download, and delete database backups
+- **Resource Management**: List aliases, domains, users
+- **System Operations**: Health checks, statistics, configuration access
+- **Session Persistence**: Maintains login sessions across commands
+
+**Usage Examples:**
+```bash
+# Login with default credentials
+./scripts/curl-helpers.sh login
+
+# Login with custom credentials
+./scripts/curl-helpers.sh login admin mypassword
+
+# List database backups
+./scripts/curl-helpers.sh backup-list
+
+# Create a backup
+./scripts/curl-helpers.sh backup-create primary
+
+# Download a backup file
+./scripts/curl-helpers.sh backup-download primary_sortingoffice_20250726_182756.sql
+
+# List aliases
+./scripts/curl-helpers.sh aliases-list
+
+# Check application health
+./scripts/curl-helpers.sh health
+```
+
+**Environment Variables:**
+- `SORTINGOFFICE_HOST` - Default host (default: localhost:3000)
+- `SORTINGOFFICE_USER` - Default username (default: admin)
+- `SORTINGOFFICE_PASSWORD` - Default password (default: admin123)
+
+### `generate_password_hash.sh` - Password Hash Generation
+
+Generate bcrypt password hashes for admin user configuration.
+
+**Usage:**
+```bash
+./scripts/generate_password_hash.sh "your_password"
+```
+
+**Features:**
+- Supports Python 3 and Node.js
+- Generates bcrypt hashes with cost factor 12
+- Provides fallback instructions if dependencies missing
+
+### `list-databases.sh` - Database Configuration Listing
+
+List all configured databases from the config.toml file.
+
+**Usage:**
+```bash
+./scripts/list-databases.sh
+```
+
+**Output:**
+```
+ID      Label   URL
+primary Main Server      mysql://sortingoffice:***@localhost:3306/sortingoffice
+backup1 Backup Server    mysql://backupuser:***@backuphost:3306/backupdb
+```
+
+### `set-env.sh` - Environment Setup
+
+Set up environment variables for development and testing.
+
+**Usage:**
+```bash
+source ./scripts/set-env.sh
+```
+
+**Features:**
+- Configures database connections
+- Sets up test environment variables
+- Manages Docker Compose configurations
+
+### `consolidate-migrations.sh` - Migration Management
+
+Consolidate multiple database migrations into a single migration file.
+
+**Usage:**
+```bash
+./scripts/consolidate-migrations.sh
+```
+
+**Features:**
+- Combines multiple migration files
+- Maintains migration order
+- Creates backup of original migrations
+
+### `find_orphaned_ftl_keys.sh` - Translation Key Analysis
+
+Find translation keys that are defined but not used in the codebase.
+
+**Usage:**
+```bash
+./scripts/find_orphaned_ftl_keys.sh
+```
+
+**Features:**
+- Scans all .ftl files for defined keys
+- Searches codebase for key usage
+- Reports orphaned/unused keys
+
+### `bulk_remove_ftl_keys.sh` - Translation Key Cleanup
+
+Remove orphaned translation keys from .ftl files.
+
+**Usage:**
+```bash
+./scripts/bulk_remove_ftl_keys.sh
+```
+
+**Features:**
+- Removes unused translation keys
+- Creates backup before removal
+- Supports multiple language files
+
+## Common Use Cases
+
+### Testing API Endpoints
+
+```bash
+# Start with login
+./scripts/curl-helpers.sh login
+
+# Test various endpoints
+./scripts/curl-helpers.sh backup-list
+./scripts/curl-helpers.sh aliases-list
+./scripts/curl-helpers.sh domains-list
+
+# Create and manage backups
+./scripts/curl-helpers.sh backup-create primary
+./scripts/curl-helpers.sh backup-download filename.sql
+./scripts/curl-helpers.sh backup-delete filename.sql
+
+# Check system status
+./scripts/curl-helpers.sh health
+./scripts/curl-helpers.sh stats
+```
+
+### Development Workflow
+
+```bash
+# Set up environment
+source ./scripts/set-env.sh
+
+# List configured databases
+./scripts/list-databases.sh
+
+# Generate password hash for new admin
+./scripts/generate_password_hash.sh "new_password"
+
+# Test API functionality
+./scripts/curl-helpers.sh login
+./scripts/curl-helpers.sh backup-list
+```
+
+### Maintenance Tasks
+
+```bash
+# Find unused translation keys
+./scripts/find_orphaned_ftl_keys.sh
+
+# Clean up translation files
+./scripts/bulk_remove_ftl_keys.sh
+
+# Consolidate migrations
+./scripts/consolidate-migrations.sh
+```
+
+## Requirements
+
+- **Bash**: All scripts require bash shell
+- **curl**: For API testing (curl-helpers.sh)
+- **jq**: For JSON parsing (optional, for pretty output)
+- **Python 3 or Node.js**: For password hash generation
+- **Docker Compose**: For environment setup (set-env.sh)
+
+## Security Notes
+
+- Cookie files are stored in `/tmp/` and should be cleaned up automatically
+- Password hashes should be generated on secure systems
+- Environment variables may contain sensitive information
+- Scripts should be run with appropriate permissions
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Permission Denied**: Make scripts executable with `chmod +x scripts/*.sh`
+2. **Login Fails**: Check application is running and credentials are correct
+3. **JSON Parsing Errors**: Install `jq` for better output formatting
+4. **Missing Dependencies**: Install required tools (Python, Node.js, etc.)
+
+### Debug Mode
+
+Enable debug output by setting environment variables:
+```bash
+export RUST_LOG=debug
+export SORTINGOFFICE_DEBUG=1
+```
+
+## Contributing
+
+When adding new scripts:
+1. Follow the existing naming convention
+2. Include proper error handling
+3. Add usage examples
+4. Update this README
+5. Make scripts executable
+6. Test with different environments 

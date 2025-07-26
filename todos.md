@@ -206,9 +206,27 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Created comprehensive documentation in docs/DATABASE_BACKUP.md
 - All tests pass: unit (24), integration (49)
 
-Create a little curl helpers in the scrips folder for logging in etc.
+✅ Create a little curl helpers in the scripts folder for logging in etc.
+- Created comprehensive curl-helpers.sh script with authentication and API testing capabilities
+- Implemented login/logout functionality with session cookie management
+- Added backup operations (create, list, download, delete)
+- Added resource listing operations (aliases, domains, users)
+- Added system operations (health, stats, config)
+- Implemented proper error handling and colored output
+- Added environment variable support for configuration
+- Created comprehensive documentation in scripts/README.md
+- Tested all functionality with working application
+- All features working: login, logout, backup operations, resource listing
 
-Ensure no migration is run automatically on starting the app.
+✅ Ensure no migration is run automatically on starting the app.
+- Verified that no migrations are run during application startup
+- Confirmed DatabaseManager::new() only creates connection pools, no migrations
+- Checked main.rs startup sequence: config loading → i18n init → db manager init → server start
+- Verified no automatic migration calls in handlers or initialization code
+- Confirmed migration functions exist but are only called manually via CLI commands
+- Migration system has proper production protection with force commands
+- All migration operations require explicit user action via make commands
+- Application startup logs show no migration-related messages
 
 Order the message bundles alphabetically by key.
 
