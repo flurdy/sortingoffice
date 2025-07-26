@@ -174,7 +174,14 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Updated README.md to reference the new onboarding guide
 - All tests pass: unit (24), integration (49)
 
-On the configuration page there is functionality to a run migrations. We do not need this. Migrations are only run on dev env. In prod no migrations are allowed and this could lead to accidental migrate runs.
+✅ On the configuration page there is functionality to a run migrations. We do not need this. Migrations are only run on dev env. In prod no migrations are allowed and this could lead to accidental migrate runs. - IMPLEMENTED
+- Removed migration functionality from database selection page
+- Removed /database/migrate route from router
+- Removed run_migrations function from database handler
+- Removed MigrationForm struct
+- Removed migration management section from database selection template
+- Migrations can now only be run via command line tools (make migrate, etc.)
+- All tests pass: unit (24), integration (49)
 
 Add a backup function to backup a database and download it as file locally.
 

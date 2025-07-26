@@ -31,7 +31,7 @@ pub use clients::{
 };
 pub use config::view_config;
 pub use dashboard::index as dashboard_index;
-pub use database::{dropdown, index as database_index, list_databases, run_migrations, select};
+pub use database::{dropdown, index as database_index, list_databases, select};
 pub use domains::{
     add_missing_required_alias, create as create_domain, delete as delete_domain,
     edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
@@ -134,7 +134,6 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/database", axum::routing::get(database_index))
         .route("/database/select", axum::routing::post(select))
         .route("/database/dropdown", axum::routing::get(dropdown))
-        .route("/database/migrate", axum::routing::post(run_migrations))
         .route("/api/databases", axum::routing::get(list_databases))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
