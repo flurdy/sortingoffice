@@ -31,8 +31,6 @@ Why when compiling is there multiple axum versions?
 - add a subtle gray background where applicable
 - still support the dark mode
 
-Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
-
 ✅ First column of aliases list (mail) is missing translations. So is the alias-empty-title and description. - IMPLEMENTED
 - Added missing translations to English messages.ftl:
   - aliases-table-header-mail = Mail
@@ -279,8 +277,29 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
   - Nightly workflow (comprehensive testing)
   - Security audit workflow 
 
-- Refactor the integration tests to use the new test utils.
+🔄 Refactor the integration tests to use the new test utils. 
+- Successfully refactored test_full_domain_workflow to use TestUtils and TestData helpers
+- Successfully refactored test_stats_integration to use shared test utilities
+- Successfully refactored test_full_alias_workflow to use shared test utilities
+- Successfully refactored test_complex_domain_management_journey to use shared test utilities
+- Successfully refactored test_user_management_with_aliases_journey to use shared test utilities
+- Successfully refactored test_error_handling_and_edge_cases_journey to use shared test utilities
+- Added proper imports for TestUtils and TestData in tests/integration.rs
+- Replaced manual HTTP request creation with TestUtils::make_post_request, make_get_request, make_put_request, make_delete_request
+- Replaced manual cookie creation with TestUtils::create_edit_auth_cookie
+- Replaced manual form data construction with TestData::domain_form_data, user_form_data_complete, alias_form_data
+- Replaced manual assertions with TestUtils::assert_status and assert_body_contains
+- Replaced manual test app setup with TestUtils::create_test_app_with_db
+- Used unique test data generation with TestData::unique_domain
+- Added TestContainer::get_db_url() utility method to eliminate repeated database URL generation
+- All integration tests pass: 8 tests
+- Improved test maintainability and reduced code duplication
+
+- Refactor the handler tests.
+
 - Refactor the UI tests to use the new test utils.
 
 The UI tests fail on github actions. 
 - Error:  Failed to start app container: Client(PullImage { descriptor: "sortingoffice:latest", err: DockerResponseServerError { status_code: 404, message: "pull access denied for sortingoffice, repository does not exist or may require 'docker login': denied: requested access to the resource is denied" } })
+
+Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.

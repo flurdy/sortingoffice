@@ -63,10 +63,7 @@ mod tests {
     async fn test_full_domain_workflow() {
         // Setup test environment using shared helpers
         let container = setup_test_db().await;
-        let db_url = format!("mysql://root@127.0.0.1:{}/{}", 
-                            container.get_port(), container.get_schema());
-        
-        let (app, state) = TestUtils::create_test_app_with_db(&db_url, "test").await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
         
         // Generate unique test data
         let domain = TestData::unique_domain();
@@ -293,10 +290,7 @@ mod tests {
     async fn test_full_alias_workflow() {
         // Setup test environment using shared helpers
         let container = setup_test_db().await;
-        let db_url = format!("mysql://root@127.0.0.1:{}/{}", 
-                            container.get_port(), container.get_schema());
-        
-        let (app, state) = TestUtils::create_test_app_with_db(&db_url, "test").await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
         
         // Create authentication cookie
         let auth_cookie = TestUtils::create_edit_auth_cookie();
@@ -373,10 +367,7 @@ mod tests {
     async fn test_stats_integration() {
         // Setup test environment using shared helpers
         let container = setup_test_db().await;
-        let db_url = format!("mysql://root@127.0.0.1:{}/{}", 
-                            container.get_port(), container.get_schema());
-        
-        let (app, state) = TestUtils::create_test_app_with_db(&db_url, "test").await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
         
         // Create authentication cookie
         let auth_cookie = TestUtils::create_edit_auth_cookie();
@@ -437,8 +428,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_complex_domain_management_journey() {
-        let (app, state, container) = create_test_app().await;
-
+        // Setup test environment using shared helpers
+        let container = setup_test_db().await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        
+        // Create authentication cookie
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+        
         // Step 1: Create multiple domains with different configurations
         let domains_data = vec![
             ("primary-domain.com", "smtp:primary-server", true),
@@ -449,47 +445,23 @@ mod tests {
         let mut created_domains = Vec::new();
 
         for (domain, transport, enabled) in domains_data {
-            let form_data = format!(
-                "domain={}&transport={}&enabled={}",
-                domain,
-                transport,
-                if enabled { "on" } else { "off" }
-            );
-
-            let response = app
-                .clone()
-                .with_state(state.clone())
-                .oneshot(
-                    Request::builder()
-                        .method("POST")
-                        .uri("/domains")
-                        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                        .header("cookie", create_edit_auth_cookie())
-                        .body(Body::from(form_data))
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert_eq!(response.status(), StatusCode::OK);
+            let form_data = TestData::domain_form_data(domain, transport, enabled);
+            
+            let response = TestUtils::make_post_request(
+                &app, &state, "/domains", &form_data, Some(auth_cookie.clone())
+            ).await.unwrap();
+            
+            TestUtils::assert_status(&response, StatusCode::OK);
             created_domains.push(domain.to_string());
         }
 
         // Step 2: Verify all domains were created
-        let list_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/domains")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(list_response.status(), StatusCode::OK);
+        let list_response = TestUtils::make_get_request(
+            &app, &state, "/domains", Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&list_response, StatusCode::OK);
+        
         let body = axum::body::to_bytes(list_response.into_body(), usize::MAX)
             .await
             .unwrap();
@@ -507,26 +479,15 @@ mod tests {
         ];
 
         for (_email, username, password) in users_data {
-            let form_data = format!(
-                "id={username}&password={password}&name={username}&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
+            let form_data = TestData::user_form_data_complete(
+                username, password, username, "testdir", "/var/spool/mail/virtual", "", "0", true, false
             );
-
-            let response = app
-                .clone()
-                .with_state(state.clone())
-                .oneshot(
-                    Request::builder()
-                        .method("POST")
-                        .uri("/users")
-                        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                        .header("cookie", create_edit_auth_cookie())
-                        .body(Body::from(form_data))
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert_eq!(response.status(), StatusCode::OK);
+            
+            let response = TestUtils::make_post_request(
+                &app, &state, "/users", &form_data, Some(auth_cookie.clone())
+            ).await.unwrap();
+            
+            TestUtils::assert_status(&response, StatusCode::OK);
         }
 
         // Step 4: Create aliases for the domains
@@ -537,70 +498,39 @@ mod tests {
         ];
 
         for (alias, destination) in aliases_data {
-            let form_data = format!("mail={alias}&destination={destination}&enabled=on");
-
-            let response = app
-                .clone()
-                .with_state(state.clone())
-                .oneshot(
-                    Request::builder()
-                        .method("POST")
-                        .uri("/aliases")
-                        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                        .header("cookie", create_edit_auth_cookie())
-                        .body(Body::from(form_data))
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert_eq!(response.status(), StatusCode::OK);
+            let form_data = TestData::alias_form_data(alias, destination, true);
+            
+            let response = TestUtils::make_post_request(
+                &app, &state, "/aliases", &form_data, Some(auth_cookie.clone())
+            ).await.unwrap();
+            
+            TestUtils::assert_status(&response, StatusCode::OK);
         }
 
         // Step 5: Test domain management operations
-        let _pool = container.get_pool();
-        let domains = db::get_domains(_pool).unwrap();
+        let domains = db::get_domains(container.get_pool()).unwrap();
         let primary_domain = domains
             .iter()
             .find(|d| d.domain == "primary-domain.com")
             .unwrap();
 
         // Toggle domain status
-        let toggle_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/domains/{}/toggle", primary_domain.pkid))
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(toggle_response.status(), StatusCode::OK);
+        let toggle_response = TestUtils::make_post_request(
+            &app, &state, &format!("/domains/{}/toggle", primary_domain.pkid), "", Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&toggle_response, StatusCode::OK);
 
         // Verify toggle
-        let toggled_domain = db::get_domain(_pool, primary_domain.pkid).unwrap();
+        let toggled_domain = db::get_domain(container.get_pool(), primary_domain.pkid).unwrap();
         assert!(!toggled_domain.enabled);
 
         // Step 6: Test statistics
-        let stats_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/stats")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(stats_response.status(), StatusCode::OK);
+        let stats_response = TestUtils::make_get_request(
+            &app, &state, "/stats", Some(auth_cookie)
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&stats_response, StatusCode::OK);
 
         let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX)
             .await
@@ -615,26 +545,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_user_management_with_aliases_journey() {
-        let (app, state, container) = create_test_app().await;
-
+        // Setup test environment using shared helpers
+        let container = setup_test_db().await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        
+        // Create authentication cookie
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+        
         // Step 1: Create a domain
-        let domain_form = "domain=user-test.com&transport=smtp%3Alocalhost&enabled=on";
-        let domain_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::from(domain_form))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(domain_response.status(), StatusCode::OK);
+        let domain_form_data = TestData::domain_form_data("user-test.com", "smtp:localhost", true);
+        let domain_response = TestUtils::make_post_request(
+            &app, &state, "/domains", &domain_form_data, Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&domain_response, StatusCode::OK);
 
         // Step 2: Create multiple users with different configurations
         let users_data = vec![
@@ -644,30 +568,15 @@ mod tests {
         ];
 
         for (username, password, name, enabled) in users_data {
-            let form_data = format!(
-                "id={}&password={}&name={}&maildir=testdir&home=/var/spool/mail/virtual&enabled={}",
-                username,
-                password,
-                name,
-                if enabled { "on" } else { "off" }
+            let form_data = TestData::user_form_data_complete(
+                username, password, name, "testdir", "/var/spool/mail/virtual", "", "0", enabled, false
             );
-
-            let response = app
-                .clone()
-                .with_state(state.clone())
-                .oneshot(
-                    Request::builder()
-                        .method("POST")
-                        .uri("/users")
-                        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                        .header("cookie", create_edit_auth_cookie())
-                        .body(Body::from(form_data))
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert_eq!(response.status(), StatusCode::OK);
+            
+            let response = TestUtils::make_post_request(
+                &app, &state, "/users", &form_data, Some(auth_cookie.clone())
+            ).await.unwrap();
+            
+            TestUtils::assert_status(&response, StatusCode::OK);
         }
 
         // Step 3: Create aliases for users
@@ -679,95 +588,54 @@ mod tests {
         ];
 
         for (alias, username) in aliases_data {
-            let form_data = format!("mail={alias}&destination={username}&enabled=on");
-
-            let response = app
-                .clone()
-                .with_state(state.clone())
-                .oneshot(
-                    Request::builder()
-                        .method("POST")
-                        .uri("/aliases")
-                        .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                        .header("cookie", create_edit_auth_cookie())
-                        .body(Body::from(form_data))
-                        .unwrap(),
-                )
-                .await
-                .unwrap();
-
-            assert_eq!(response.status(), StatusCode::OK);
+            let form_data = TestData::alias_form_data(alias, username, true);
+            
+            let response = TestUtils::make_post_request(
+                &app, &state, "/aliases", &form_data, Some(auth_cookie.clone())
+            ).await.unwrap();
+            
+            TestUtils::assert_status(&response, StatusCode::OK);
         }
 
         // Step 4: Test user management operations
-        let _pool = container.get_pool();
-        let users = db::get_users(_pool).unwrap();
+        let users = db::get_users(container.get_pool()).unwrap();
         let john = users.iter().find(|u| u.id == "john").unwrap();
 
         // Toggle user status
-        let toggle_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/users/{}/toggle", john.id))
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(toggle_response.status(), StatusCode::OK);
+        let toggle_response = TestUtils::make_post_request(
+            &app, &state, &format!("/users/{}/toggle", john.id), "", Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&toggle_response, StatusCode::OK);
 
         // Verify toggle
-        let toggled_john = db::get_user(_pool, john.id.clone()).unwrap();
+        let toggled_john = db::get_user(container.get_pool(), john.id.clone()).unwrap();
         assert!(!toggled_john.enabled);
 
         // Step 5: Test alias management
-        let aliases = db::get_aliases(_pool).unwrap();
+        let aliases = db::get_aliases(container.get_pool()).unwrap();
         let john_alias = aliases
             .iter()
             .find(|a| a.mail == "john@user-test.com")
             .unwrap();
 
         // Toggle alias status
-        let alias_toggle_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/aliases/{}/toggle-list", john_alias.pkid))
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(alias_toggle_response.status(), StatusCode::OK);
+        let alias_toggle_response = TestUtils::make_post_request(
+            &app, &state, &format!("/aliases/{}/toggle-list", john_alias.pkid), "", Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&alias_toggle_response, StatusCode::OK);
 
         // Verify alias toggle
-        let toggled_alias = db::get_alias(_pool, john_alias.pkid).unwrap();
+        let toggled_alias = db::get_alias(container.get_pool(), john_alias.pkid).unwrap();
         assert!(!toggled_alias.enabled);
 
         // Step 6: Test statistics
-        let stats_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/stats")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(stats_response.status(), StatusCode::OK);
+        let stats_response = TestUtils::make_get_request(
+            &app, &state, "/stats", Some(auth_cookie)
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&stats_response, StatusCode::OK);
 
         let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX)
             .await
@@ -782,44 +650,28 @@ mod tests {
 
     #[tokio::test]
     async fn test_error_handling_and_edge_cases_journey() {
-        let (app, state, container) = create_test_app().await;
-
+        // Setup test environment using shared helpers
+        let container = setup_test_db().await;
+        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        
+        // Create authentication cookie
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+        
         // Step 1: Test duplicate domain creation (should fail gracefully)
-        let domain_form = "domain=duplicate-test.com&transport=smtp%3Alocalhost&enabled=on";
-        let first_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::from(domain_form))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(first_response.status(), StatusCode::OK);
+        let domain_form_data = TestData::domain_form_data("duplicate-test.com", "smtp:localhost", true);
+        
+        let first_response = TestUtils::make_post_request(
+            &app, &state, "/domains", &domain_form_data, Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&first_response, StatusCode::OK);
 
         // Try to create the same domain again (should fail)
-        let second_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::from(domain_form))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(second_response.status(), StatusCode::OK);
+        let second_response = TestUtils::make_post_request(
+            &app, &state, "/domains", &domain_form_data, Some(auth_cookie.clone())
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&second_response, StatusCode::OK);
 
         // Verify the response contains an error message
         let body = axum::body::to_bytes(second_response.into_body(), usize::MAX)
@@ -830,21 +682,10 @@ mod tests {
 
         // Step 2: Test edge cases with empty/invalid data
         // Test with empty domain name
-        let empty_domain_form = "domain=&transport=smtp%3Alocalhost&enabled=on";
-        let empty_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::from(empty_domain_form))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let empty_domain_form = "domain=&transport=smtp:localhost&enabled=on";
+        let empty_response = TestUtils::make_post_request(
+            &app, &state, "/domains", empty_domain_form, Some(auth_cookie.clone())
+        ).await.unwrap();
 
         // Should handle gracefully (either error or redirect)
         assert!(
@@ -854,20 +695,11 @@ mod tests {
         );
 
         // Step 3: Test statistics with mixed data
-        let stats_response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/stats")
-                    .header("cookie", create_edit_auth_cookie())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(stats_response.status(), StatusCode::OK);
+        let stats_response = TestUtils::make_get_request(
+            &app, &state, "/stats", Some(auth_cookie)
+        ).await.unwrap();
+        
+        TestUtils::assert_status(&stats_response, StatusCode::OK);
 
         let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX)
             .await
@@ -878,8 +710,7 @@ mod tests {
         assert!(stats_str.contains("Statistics") || stats_str.contains("stats"));
 
         // Verify we have the expected domains
-        let _pool = container.get_pool();
-        let final_domains = db::get_domains(_pool).unwrap();
+        let final_domains = db::get_domains(container.get_pool()).unwrap();
         assert!(!final_domains.is_empty()); // At least duplicate-test.com
     }
 

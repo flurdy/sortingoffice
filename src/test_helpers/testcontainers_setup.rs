@@ -32,6 +32,11 @@ impl TestContainer {
     pub fn get_port(&self) -> u16 {
         self.port
     }
+    
+    /// Generate the database URL for this test container
+    pub fn get_db_url(&self) -> String {
+        format!("mysql://root@127.0.0.1:{}/{}", self.port, self.schema)
+    }
 }
 
 impl Default for TestContainer {
