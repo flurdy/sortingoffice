@@ -413,7 +413,7 @@ After successful onboarding:
 
 1. **Review the configuration**: Ensure all settings match your requirements
 2. **Set up monitoring**: Consider adding health checks and monitoring
-3. **Backup strategy**: Implement regular database backups
+3. **Backup strategy**: Implement regular database backups (see [DATABASE_BACKUP.md](DATABASE_BACKUP.md))
 4. **Security review**: Ensure proper firewall and access controls
 5. **Documentation**: Update this guide with any environment-specific notes
 

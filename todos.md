@@ -198,6 +198,12 @@ Add wizard for onboarding a set of new domains, maybe with common aliases and de
 - Fixed compilation errors with HTMX handler parameter order
 - Updated mysqldump command to use minimal privileges (--no-tablespaces, --skip-lock-tables, etc.) to avoid PROCESS privilege requirements
 - Verified backup functionality works with basic SELECT privileges
+- Enhanced backup listing with prettified table showing database info, timestamps, file sizes
+- Fixed UI refresh issues and JavaScript scope problems
+- Fixed database name parsing for databases with underscores in names
+- Fixed table layout and width issues for better usability
+- Implemented complete translation system for table headers and action buttons
+- Created comprehensive documentation in docs/DATABASE_BACKUP.md
 - All tests pass: unit (24), integration (49)
 
 Create a little curl helpers in the scrips folder for logging in etc.

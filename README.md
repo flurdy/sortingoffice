@@ -447,7 +447,7 @@ For detailed security information, see [AUTHENTICATION.md](docs/AUTHENTICATION.m
 3. **Reverse Proxy**: Configure nginx/Apache as reverse proxy
 4. **SSL/TLS**: Enable HTTPS with proper certificates
 5. **Authentication**: Configure role-based authentication with multiple admin users (see [AUTHENTICATION.md](docs/AUTHENTICATION.md))
-6. **Backup**: Set up regular database backups
+6. **Backup**: Set up regular database backups (see [DATABASE_BACKUP.md](docs/DATABASE_BACKUP.md))
 7. **Monitoring**: Configure logging and monitoring
 
 ## Contributing
