@@ -170,10 +170,10 @@ pub async fn create_backup(
         .arg("--no-create-db")
         .arg("--no-create-info")
         .arg("--complete-insert")
-        .arg(format!("--host={}", host))
-        .arg(format!("--port={}", port))
-        .arg(format!("--user={}", username))
-        .arg(format!("--password={}", password))
+        .arg(format!("--host={host}"))
+        .arg(format!("--port={port}"))
+        .arg(format!("--user={username}"))
+        .arg(format!("--password={password}"))
         .arg(database)
         .arg("--result-file")
         .arg(&backup_path)
@@ -184,7 +184,7 @@ pub async fn create_backup(
             if output.status.success() {
                 // Generate filename with timestamp
                 let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-                let filename = format!("{}_{}_{}.sql", database_id, database, timestamp);
+                let filename = format!("{database_id}_{database}_{timestamp}.sql");
 
                 // Create backup directory if it doesn't exist
                 let backup_dir = FsPath::new("backups");
@@ -282,7 +282,7 @@ pub async fn create_backup_htmx(
 
     // Generate filename with timestamp
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-    let filename = format!("{}_{}_{}.sql", database_id, database, timestamp);
+    let filename = format!("{database_id}_{database}_{timestamp}.sql");
 
     // Create backup directory if it doesn't exist
     let backup_dir = FsPath::new("backups");
@@ -309,10 +309,10 @@ pub async fn create_backup_htmx(
         .arg("--no-create-db")
         .arg("--no-create-info")
         .arg("--complete-insert")
-        .arg(format!("--host={}", host))
-        .arg(format!("--port={}", port))
-        .arg(format!("--user={}", username))
-        .arg(format!("--password={}", password))
+        .arg(format!("--host={host}"))
+        .arg(format!("--port={port}"))
+        .arg(format!("--user={username}"))
+        .arg(format!("--password={password}"))
         .arg(database)
         .arg("--result-file")
         .arg(&final_path)
@@ -424,7 +424,7 @@ pub async fn download_backup(
         .header("Content-Type", "application/sql")
         .header(
             "Content-Disposition",
-            format!("attachment; filename=\"{}\"", filename),
+            format!("attachment; filename=\"{filename}\""),
         )
         .header("Content-Length", content.len().to_string())
         .body(axum::body::Body::from(content))
@@ -443,37 +443,35 @@ pub async fn list_backups() -> Result<axum::Json<Vec<BackupInfo>>, StatusCode> {
 
     match fs::read_dir(backup_dir) {
         Ok(entries) => {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    if let Some(filename) = entry.file_name().to_str() {
-                        if filename.ends_with(".sql") {
-                            let file_path = entry.path();
+            for entry in entries.flatten() {
+                if let Some(filename) = entry.file_name().to_str() {
+                    if filename.ends_with(".sql") {
+                        let file_path = entry.path();
 
-                            // Get file metadata
-                            let metadata = match fs::metadata(&file_path) {
-                                Ok(meta) => meta,
-                                Err(_) => continue,
-                            };
+                        // Get file metadata
+                        let metadata = match fs::metadata(&file_path) {
+                            Ok(meta) => meta,
+                            Err(_) => continue,
+                        };
 
-                            // Parse filename to extract database info and timestamp
-                            let (database_id, database_name, created_at) =
-                                parse_backup_filename(filename);
+                        // Parse filename to extract database info and timestamp
+                        let (database_id, database_name, created_at) =
+                            parse_backup_filename(filename);
 
-                            // Format file size
-                            let size_bytes = metadata.len();
-                            let size_formatted = format_file_size(size_bytes);
+                        // Format file size
+                        let size_bytes = metadata.len();
+                        let size_formatted = format_file_size(size_bytes);
 
-                            let backup_info = BackupInfo {
-                                filename: filename.to_string(),
-                                database_id,
-                                database_name,
-                                created_at,
-                                size_bytes,
-                                size_formatted,
-                            };
+                        let backup_info = BackupInfo {
+                            filename: filename.to_string(),
+                            database_id,
+                            database_name,
+                            created_at,
+                            size_bytes,
+                            size_formatted,
+                        };
 
-                            backups.push(backup_info);
-                        }
+                        backups.push(backup_info);
                     }
                 }
             }
@@ -502,15 +500,15 @@ fn parse_backup_filename(filename: &str) -> (String, String, DateTime<Utc>) {
     // We need at least 4 parts: database_id, database_name (may contain underscores), date, time
     if parts.len() >= 4 {
         let database_id = parts[0].to_string();
-        
+
         // The database name may contain underscores, so we need to reconstruct it
         // Everything between database_id and the last two parts (date and time) is the database name
-        let database_name_parts = &parts[1..parts.len()-2];
+        let database_name_parts = &parts[1..parts.len() - 2];
         let database_name = database_name_parts.join("_");
-        
+
         // Extract timestamp from last two parts (YYYYMMDD_HHMMSS)
-        let date_part = parts[parts.len()-2];
-        let time_part = parts[parts.len()-1];
+        let date_part = parts[parts.len() - 2];
+        let time_part = parts[parts.len() - 1];
 
         tracing::debug!(
             "Extracted: db_id='{}', db_name='{}', date='{}', time='{}'",
@@ -557,7 +555,7 @@ fn format_file_size(bytes: u64) -> String {
     const GB: u64 = MB * 1024;
 
     match bytes {
-        0..KB => format!("{} B", bytes),
+        0..KB => format!("{bytes} B"),
         KB..MB => format!("{:.1} KB", bytes as f64 / KB as f64),
         MB..GB => format!("{:.1} MB", bytes as f64 / MB as f64),
         _ => format!("{:.1} GB", bytes as f64 / GB as f64),
