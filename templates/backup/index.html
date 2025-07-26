@@ -34,7 +34,12 @@
           {{ no_databases }}
         </p>
         {% else %}
-        <form id="backup-form" class="space-y-4">
+        <form id="backup-form" class="space-y-4"
+              hx-post="/backup/create-htmx"
+              hx-target="#backup-status"
+              hx-swap="innerHTML"
+              hx-indicator="#backup-loading"
+              hx-trigger="submit">
           <div>
             <label for="database-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {{ database_select }}
@@ -52,20 +57,21 @@
                   class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
             {{ create_button }}
           </button>
+          
+          <!-- HTMX Loading Indicator -->
+          <div id="backup-loading" class="htmx-indicator">
+            <div class="flex items-center space-x-2 text-blue-600">
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{{ creating }}</span>
+            </div>
+          </div>
         </form>
         
-        <div id="backup-status" class="mt-4 hidden">
-          <div id="backup-success" class="hidden p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-            <p class="text-green-800 dark:text-green-200">
-              {{ status_success }}
-            </p>
-            <div id="backup-download-link" class="mt-2"></div>
-          </div>
-          <div id="backup-error" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-            <p class="text-red-800 dark:text-red-200" id="backup-error-message">
-              {{ status_error }}
-            </p>
-          </div>
+        <div id="backup-status" class="mt-4">
+          <!-- HTMX will replace this content -->
         </div>
         {% endif %}
       </div>
@@ -117,97 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle backup form submission
     if (backupForm) {
-        backupForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(backupForm);
-            const databaseId = formData.get('database_id');
-            
-            if (!databaseId) {
-                showError(translations.pleaseSelect);
-                return;
-            }
-
-            // Show loading state
-            const submitButton = backupForm.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-            submitButton.textContent = translations.creating;
-            submitButton.disabled = true;
-
-            try {
-                console.log('Sending backup creation request...');
-                const response = await fetch('/backup/create', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin' // Important for maintaining session cookies
-                });
-
-                console.log('Response status:', response.status);
-                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType);
-                
-                if (!contentType || !contentType.includes('application/json')) {
-                    // If not JSON, it might be a redirect or HTML error
-                    if (response.redirected || response.status === 302) {
-                        console.log('Response was redirected');
-                        showError(translations.sessionExpired);
-                        return;
-                    }
-                    const text = await response.text();
-                    console.log('Non-JSON response:', text);
-                    showError(translations.unexpectedResponse);
-                    return;
-                }
-
-                const result = await response.json();
-                console.log('JSON result:', result);
-
-                if (result.success) {
-                    showSuccess(result.message, result.filename);
-                    loadBackups(); // Refresh the backups list
-                } else {
-                    showError(result.message);
-                }
-            } catch (error) {
-                console.error('Backup creation error:', error);
-                showError(translations.failedCreate + error.message);
-            } finally {
-                submitButton.textContent = originalText;
-                submitButton.disabled = false;
-            }
-        });
+        // The HTMX attributes handle the submission and response handling
+        // This script block is no longer needed for the form submission logic
     }
 
     function showSuccess(message, filename) {
-        backupStatus.classList.remove('hidden');
-        backupSuccess.classList.remove('hidden');
-        backupError.classList.add('hidden');
-        
-        if (filename) {
-            backupDownloadLink.innerHTML = `
-                <a href="/backup/download/${filename}" 
-                   class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition duration-200">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    ${translations.downloadButton}
-                </a>
-            `;
-        }
+        // This function is no longer needed as HTMX handles the status display
+        // The HTMX target will replace the content of #backup-status
     }
 
     function showError(message) {
-        backupStatus.classList.remove('hidden');
-        backupSuccess.classList.add('hidden');
-        backupError.classList.remove('hidden');
-        backupErrorMessage.textContent = message;
+        // This function is no longer needed as HTMX handles the status display
+        // The HTMX target will replace the content of #backup-status
     }
 
     async function loadBackups() {

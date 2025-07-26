@@ -131,13 +131,19 @@ pub async fn create_backup(
     let temp_file = NamedTempFile::new().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let backup_path = temp_file.path().to_path_buf();
 
-    // Run mysqldump command
+    // Run mysqldump with minimal options that work with basic SELECT privileges
     let output = Command::new("mysqldump")
-        .arg("--single-transaction")
-        .arg("--routines")
-        .arg("--triggers")
-        .arg("--add-drop-database")
-        .arg("--create-options")
+        .arg("--no-tablespaces")
+        .arg("--skip-lock-tables")
+        .arg("--skip-add-drop-table")
+        .arg("--skip-add-locks")
+        .arg("--skip-comments")
+        .arg("--skip-set-charset")
+        .arg("--skip-routines")
+        .arg("--skip-triggers")
+        .arg("--no-create-db")
+        .arg("--no-create-info")
+        .arg("--complete-insert")
         .arg(format!("--host={}", host))
         .arg(format!("--port={}", port))
         .arg(format!("--user={}", username))
@@ -198,6 +204,170 @@ pub async fn create_backup(
 
             Ok(Json(response))
         }
+    }
+}
+
+/// Create a backup of a specific database (HTMX version - returns HTML)
+pub async fn create_backup_htmx(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): axum::Form<BackupForm>,
+) -> Result<Html<String>, StatusCode> {
+    let database_id = form.database_id;
+
+    tracing::info!("Creating backup for database: {}", database_id);
+
+    // Validate database exists
+    if !state.db_manager.has_database(&database_id).await {
+        tracing::error!("Database not found: {}", database_id);
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    // Get database config
+    let db_config = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == database_id)
+        .ok_or_else(|| {
+            tracing::error!("Database config not found for: {}", database_id);
+            StatusCode::BAD_REQUEST
+        })?;
+
+    // Parse database URL to extract connection details
+    let url = Url::parse(&db_config.url).map_err(|e| {
+        tracing::error!("Failed to parse database URL: {}", e);
+        StatusCode::BAD_REQUEST
+    })?;
+
+    let host = url.host_str().unwrap_or("localhost");
+    let port = url.port().unwrap_or(3306);
+    let username = url.username();
+    let password = url.password().unwrap_or("");
+    let database = url.path().trim_start_matches('/');
+
+    tracing::info!(
+        "Backup parameters: host={}, port={}, user={}, database={}",
+        host,
+        port,
+        username,
+        database
+    );
+
+    // Generate filename with timestamp
+    let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+    let filename = format!("{}_{}_{}.sql", database_id, database, timestamp);
+
+    // Create backup directory if it doesn't exist
+    let backup_dir = FsPath::new("backups");
+    if !backup_dir.exists() {
+        std::fs::create_dir_all(backup_dir).map_err(|e| {
+            tracing::error!("Failed to create backup directory: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+    }
+
+    // Create backup file directly in the backup directory
+    let final_path = backup_dir.join(&filename);
+
+    // Run mysqldump with minimal options that work with basic SELECT privileges
+    let output = Command::new("/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump")
+        .arg("--no-tablespaces")
+        .arg("--skip-lock-tables")
+        .arg("--skip-add-drop-table")
+        .arg("--skip-add-locks")
+        .arg("--skip-comments")
+        .arg("--skip-set-charset")
+        .arg("--skip-routines")
+        .arg("--skip-triggers")
+        .arg("--no-create-db")
+        .arg("--no-create-info")
+        .arg("--complete-insert")
+        .arg(format!("--host={}", host))
+        .arg(format!("--port={}", port))
+        .arg(format!("--user={}", username))
+        .arg(format!("--password={}", password))
+        .arg(database)
+        .arg("--result-file")
+        .arg(&final_path)
+        .output();
+
+    let output = match output {
+        Ok(output) => output,
+        Err(e) => {
+            tracing::error!("Failed to execute mysqldump: {}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    if output.status.success() {
+        tracing::info!("Backup created successfully: {}", final_path.display());
+
+        // Get locale for translations
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &[
+                "database-backup-status-success",
+                "database-backup-download-button",
+            ],
+        )
+        .await;
+
+        // Return HTML fragment for HTMX
+        let html = format!(
+            r#"
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                <p class="text-green-800 dark:text-green-200">
+                    {}
+                </p>
+                <div class="mt-2">
+                    <a href="/backup/download/{}" 
+                       class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        {}
+                    </a>
+                </div>
+            </div>
+            <script>
+                // Refresh the backups list after successful creation
+                htmx.ajax('GET', '/backup/list', {{target: '#backups-list', swap: 'innerHTML'}});
+            </script>
+            "#,
+            translations["database-backup-status-success"],
+            filename,
+            translations["database-backup-download-button"]
+        );
+
+        Ok(Html(html))
+    } else {
+        let error_message = String::from_utf8_lossy(&output.stderr);
+        tracing::error!("mysqldump failed: {}", error_message);
+
+        // Get locale for translations
+        let locale = crate::handlers::language::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["database-backup-status-error"],
+        )
+        .await;
+
+        let html = format!(
+            r#"
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p class="text-red-800 dark:text-red-200">
+                    {}: {}
+                </p>
+            </div>
+            "#,
+            translations["database-backup-status-error"], error_message
+        );
+
+        Ok(Html(html))
     }
 }
 

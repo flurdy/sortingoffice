@@ -27,7 +27,8 @@ pub use aliases::{
 };
 pub use auth::{login, login_form, logout, require_auth, require_edit_permissions};
 pub use backup::{
-    create_backup, delete_backup, download_backup, index as backup_index, list_backups,
+    create_backup, create_backup_htmx, delete_backup, download_backup, index as backup_index,
+    list_backups,
 };
 pub use clients::{
     create_client, create_client_form, delete_client, edit_client_form, list_clients, show_client,
@@ -142,6 +143,10 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         // Backup management
         .route("/backup", axum::routing::get(backup_index))
         .route("/backup/create", axum::routing::post(create_backup))
+        .route(
+            "/backup/create-htmx",
+            axum::routing::post(create_backup_htmx),
+        )
         .route(
             "/backup/download/{filename}",
             axum::routing::get(download_backup),

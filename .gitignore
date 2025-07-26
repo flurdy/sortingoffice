@@ -32,3 +32,6 @@ cookies.txt
 orphaned_keys.txt
 
 *.bak
+
+backups/*.sql
+
