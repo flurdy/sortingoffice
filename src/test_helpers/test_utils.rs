@@ -401,6 +401,22 @@ impl TestUtils {
             .map(|config| Self::create_db_config_with_port(config, port))
             .collect()
     }
+
+    /// Get the default database pool and clean up the test database
+    /// This is a common pattern used in handler tests
+    pub async fn setup_test_db_pool(state: &AppState) -> diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::MysqlConnection>> {
+        let pool = state
+            .db_manager
+            .get_default_pool()
+            .await
+            .expect("Failed to get database pool");
+        
+        // Import the cleanup function
+        use crate::test_helpers::common::cleanup_test_db;
+        cleanup_test_db(&pool);
+        
+        pool
+    }
 }
 
 /// Common test data generators

@@ -1,11 +1,9 @@
 #[cfg(test)]
 mod tests {
     use axum::{
-        body::Body,
-        http::{header, Request, StatusCode},
+        http::StatusCode,
         Router,
     };
-    use tower::ServiceExt;
 
     use sortingoffice::{
         config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures},
@@ -106,14 +104,7 @@ mod tests {
     #[tokio::test]
     async fn test_domains_create() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let unique_id = unique_test_id();
         let domain = format!("create-test-{unique_id}.com");
@@ -131,11 +122,6 @@ mod tests {
         TestUtils::assert_status(&response, StatusCode::OK);
 
         // Verify domain was created
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
         let domains = db::get_domains(&pool).unwrap();
         assert!(!domains.is_empty());
         assert!(domains
@@ -150,12 +136,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -192,12 +173,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -235,12 +211,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -279,12 +250,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -320,12 +286,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -375,12 +336,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -398,20 +354,14 @@ mod tests {
             "/var/spool/mail/virtual", &domain, "100000", true, false
         );
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/users")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/users",
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -430,12 +380,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -485,12 +430,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -541,12 +481,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -577,20 +512,14 @@ mod tests {
             "/var/spool/mail/virtual", &domain, "100000", true, false
         );
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("PUT")
-                    .uri(format!("/users/{}", _user.id))
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_put_request(
+            &app,
+            &state,
+            &format!("/users/{}", _user.id),
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -608,12 +537,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let unique_id = unique_test_id();
@@ -662,12 +586,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain and alias
         let domain = "aliases-list-test.com";
@@ -714,12 +633,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain first
         let domain = "aliases-create-test.com";
@@ -760,12 +674,7 @@ mod tests {
         let (app, state) = create_test_app().await;
 
         // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test data
         let domain = "stats-test.com";
@@ -889,14 +798,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_create() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let domain = "backup-create-test.com";
         let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
@@ -923,14 +825,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_show() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-show-test.com";
@@ -964,14 +859,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_edit() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-edit-test.com";
@@ -1006,14 +894,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_update() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-update-test.com";
@@ -1024,7 +905,7 @@ mod tests {
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let updated_domain = "backup-updated-test.com";
+        let updated_domain = "updated-backup-test.com";
         let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
 
         let response = TestUtils::make_handler_put_request(
@@ -1049,14 +930,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_toggle_enabled() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-toggle-test.com";
@@ -1089,14 +963,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_create_redirects_to_domains() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let domain = "backup-redirect-test.com";
         let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
@@ -1126,14 +993,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_update_returns_content_only() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-update-content-test.com";
@@ -1174,14 +1034,7 @@ mod tests {
     #[tokio::test]
     async fn test_backups_delete_redirects_to_domains() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test backup
         let domain = "backup-delete-test.com";
@@ -1216,14 +1069,7 @@ mod tests {
     #[tokio::test]
     async fn test_domains_list_includes_backups() {
         let (app, state) = create_test_app().await;
-
-        // Clean up before test
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -1441,12 +1287,7 @@ mod tests {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         let (app, state) = create_test_app().await;
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1459,38 +1300,27 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/domains")
-                    .header("cookie", headers.get("cookie").unwrap())
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/domains",
+            Some(headers.get("cookie").unwrap().clone()),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
         // Test read-only user gets 403 for edit routes
         let domain = "test.com";
         let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header("cookie", headers.get("cookie").unwrap())
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/domains",
+            &form_data,
+            Some(headers.get("cookie").unwrap().clone()),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::FORBIDDEN);
 
@@ -1545,11 +1375,7 @@ mod tests {
     #[tokio::test]
     async fn test_aliases_search() {
         let (app, state) = create_test_app().await;
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Clean up before test
         cleanup_test_db(&pool);
@@ -1586,18 +1412,13 @@ mod tests {
         let _alias2 = db::create_alias(&pool, alias2).unwrap();
 
         // Test 1: Search with valid query
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases/search?destination=user".to_string())
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases/search?destination=user",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1610,18 +1431,13 @@ mod tests {
         assert!(body_str.contains(destination1));
 
         // Test 2: Search with short query (should return empty results, not error)
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases/search?destination=a")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases/search?destination=a",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1680,14 +1496,7 @@ mod tests {
     #[tokio::test]
     async fn test_domain_search() {
         let (app, state) = create_test_app().await;
-        let pool = state
-            .db_manager
-            .get_default_pool()
-            .await
-            .expect("Failed to get database pool");
-
-        // Clean up before test
-        cleanup_test_db(&pool);
+        let pool = TestUtils::setup_test_db_pool(&state).await;
 
         // Create test domain
         let unique_id = unique_test_id();

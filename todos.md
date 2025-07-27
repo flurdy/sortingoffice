@@ -13,8 +13,6 @@
 
 ✅ Provide some timings of the unit, integration, ui-headless and ui-containerized.
 
-Why when compiling is there multiple axum versions? 
-
 ✅ In the run_tests.sh does run_ui_containerized which uses databases in testcontainers, but then uses the running app which probably don't use the testcontainers db? Or am I missing something? - IMPLEMENTED
 
 ✅ Fix integration tests that were failing due to "Too many connections" errors - IMPLEMENTED
@@ -298,7 +296,7 @@ Why when compiling is there multiple axum versions?
 - All integration tests pass: 8 tests
 - Improved test maintainability and reduced code duplication
 
-🔄 Refactor the handlers tests.
+✅ Refactor the handlers tests.
 - Successfully refactored create_test_app() to use TestUtils::create_test_app_with_db
 - Successfully refactored create_auth_cookie() to use TestUtils::create_auth_cookie
 - Successfully refactored test_domains_list to use TestUtils::assert_status and TestData::unique_domain
@@ -342,11 +340,19 @@ Why when compiling is there multiple axum versions?
 - **Enhanced with HTTP request helpers**: Added make_handler_get_request, make_handler_post_request, make_handler_put_request, and make_handler_delete_request methods to TestUtils
 - **Reduced oneshot boilerplate**: Replaced repetitive oneshot calls with simple helper methods that handle app cloning, state management, and request building
 - **Simplified test code**: Tests now use single-line HTTP requests instead of 10+ line oneshot blocks
-- **Continued refactoring**: Successfully refactored 26+ oneshot calls across various test types (GET, POST, PUT, DELETE)
+- **Completed refactoring**: Successfully refactored ALL 32 oneshot calls across various test types (GET, POST, PUT, DELETE)
 - **Comprehensive coverage**: Now covers domains, users, aliases, backups, dashboard, about, not found, search, authentication, and other page tests
-- **Massive reduction**: Reduced from 32 oneshot calls to just 6 remaining (81% reduction)
+- **100% reduction**: Eliminated all oneshot boilerplate code (100% reduction)
+- **Clean codebase**: Removed unused imports and eliminated all warnings
+- **Database setup/cleanup refactoring**: Added TestUtils::setup_test_db_pool helper method to eliminate repetitive database pool setup and cleanup patterns
+- **Completed DB refactoring**: Successfully refactored ALL 18 database setup/cleanup patterns across handler tests
+- **Eliminated duplication**: Replaced manual pool creation and cleanup with single-line helper calls
+- **Improved consistency**: All tests now use the same database setup pattern
+- **Zero warnings**: All compilation warnings eliminated after refactoring
 
 - Refactor the UI tests to use the new test utils.
+
+Why when compiling is there multiple axum versions? 
 
 The UI tests fail on github actions. 
 - Error:  Failed to start app container: Client(PullImage { descriptor: "sortingoffice:latest", err: DockerResponseServerError { status_code: 404, message: "pull access denied for sortingoffice, repository does not exist or may require 'docker login': denied: requested access to the resource is denied" } })
