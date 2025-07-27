@@ -362,16 +362,18 @@ mod tests {
 
         // Create test domain first
         let unique_id = unique_test_id();
+        let domain = format!("list-test-{unique_id}.com");
         let new_domain = NewDomain {
-            domain: format!("list-test-{unique_id}.com"),
+            domain: domain.clone(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user with unique name
+        let user_id = format!("testuser@{}", domain);
         let user_form = UserForm {
-            id: format!("testuser@list-test-{unique_id}.com"),
+            id: user_id.clone(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -394,7 +396,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -596,16 +598,18 @@ mod tests {
 
         // Create test domain first
         let unique_id = unique_test_id();
+        let domain = format!("update-test-{unique_id}.com");
         let new_domain = NewDomain {
-            domain: format!("update-test-{unique_id}.com"),
+            domain: domain.clone(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
+        let user_id = format!("testuser@{}", domain);
         let user_form = UserForm {
-            id: format!("testuser@update-test-{unique_id}.com"),
+            id: user_id.clone(),
             password: "password123".to_string(),
             name: "Test User".to_string(),
             enabled: true,
@@ -615,8 +619,10 @@ mod tests {
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
-        let form_data = format!(
-            "id=updateduser@update-test-{unique_id}.com&password=password123&name=Updated+User&maildir=testdir&home=/var/spool/mail/virtual&enabled=on"
+        let updated_user_id = format!("updateduser@{}", domain);
+        let form_data = TestData::user_form_data_complete(
+            &updated_user_id, "password123", "Updated User", "testdir", 
+            "/var/spool/mail/virtual", &domain, "100000", true, false
         );
 
         let response = app
@@ -634,15 +640,11 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         // Verify user was updated
-        let updated_user =
-            db::get_user(&pool, format!("updateduser@update-test-{unique_id}.com")).unwrap();
-        assert_eq!(
-            updated_user.id,
-            format!("updateduser@update-test-{unique_id}.com")
-        );
+        let updated_user = db::get_user(&pool, updated_user_id.clone()).unwrap();
+        assert_eq!(updated_user.id, updated_user_id);
         assert_eq!(updated_user.name, "Updated User");
         assert!(updated_user.enabled);
 
@@ -981,7 +983,8 @@ mod tests {
             .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
-        let form_data = "domain=backup-create-test.com&transport=smtp%3Alocalhost&enabled=on";
+        let domain = "backup-create-test.com";
+        let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
 
         let response = app
             .clone()
@@ -998,12 +1001,12 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         // Verify backup was created
         let backups = db::get_backups(&pool).unwrap();
         assert!(!backups.is_empty());
-        assert!(backups.iter().any(|b| b.domain == "backup-create-test.com"));
+        assert!(backups.iter().any(|b| b.domain == domain));
 
         cleanup_test_db(&pool);
     }
@@ -1021,8 +1024,9 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-show-test.com";
         let new_backup = NewBackup {
-            domain: "backup-show-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1041,14 +1045,14 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains("backup-show-test.com"));
+        assert!(body_str.contains(domain));
 
         cleanup_test_db(&pool);
     }
@@ -1066,8 +1070,9 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-edit-test.com";
         let new_backup = NewBackup {
-            domain: "backup-edit-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1086,14 +1091,14 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
             .unwrap();
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
-        assert!(body_str.contains("backup-edit-test.com"));
+        assert!(body_str.contains(domain));
         assert!(body_str.contains("Edit Backup"));
 
         cleanup_test_db(&pool);
@@ -1112,14 +1117,16 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-update-test.com";
         let new_backup = NewBackup {
-            domain: "backup-update-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let form_data = "domain=backup-updated-test.com&transport=smtp%3Aupdated&enabled=on";
+        let updated_domain = "backup-updated-test.com";
+        let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
 
         let response = app
             .clone()
@@ -1136,11 +1143,11 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         // Verify backup was updated
         let updated_backup = db::get_backup(&pool, _backup.pkid).unwrap();
-        assert_eq!(updated_backup.domain, "backup-updated-test.com");
+        assert_eq!(updated_backup.domain, updated_domain);
         assert_eq!(updated_backup.transport, Some("smtp:updated".to_string()));
 
         cleanup_test_db(&pool);
@@ -1159,8 +1166,9 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-toggle-test.com";
         let new_backup = NewBackup {
-            domain: "backup-toggle-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1181,7 +1189,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         // Verify backup was toggled
         let toggled_backup = db::get_backup(&pool, _backup.pkid).unwrap();
@@ -1202,7 +1210,8 @@ mod tests {
             .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
-        let form_data = "domain=backup-redirect-test.com&transport=smtp%3Alocalhost&enabled=on";
+        let domain = "backup-redirect-test.com";
+        let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
 
         let response = app
             .clone()
@@ -1219,7 +1228,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1245,15 +1254,16 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-update-content-test.com";
         let new_backup = NewBackup {
-            domain: "backup-update-content-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let form_data =
-            "domain=backup-updated-content-test.com&transport=smtp%3Aupdated&enabled=on";
+        let updated_domain = "backup-updated-content-test.com";
+        let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
 
         let response = app
             .clone()
@@ -1270,7 +1280,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1298,8 +1308,9 @@ mod tests {
         cleanup_test_db(&pool);
 
         // Create test backup
+        let domain = "backup-delete-test.com";
         let new_backup = NewBackup {
-            domain: "backup-delete-test.com".to_string(),
+            domain: domain.to_string(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1319,7 +1330,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1346,16 +1357,18 @@ mod tests {
 
         // Create test domain
         let unique_id = unique_test_id();
+        let domain = format!("domain-backup-test-{unique_id}.com");
         let new_domain = NewDomain {
-            domain: format!("domain-backup-test-{unique_id}.com"),
+            domain: domain.clone(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test backup
+        let backup_domain = format!("backup-domain-test-{unique_id}.com");
         let new_backup = NewBackup {
-            domain: format!("backup-domain-test-{unique_id}.com"),
+            domain: backup_domain.clone(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1374,7 +1387,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1594,9 +1607,11 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         // Test read-only user gets 403 for edit routes
+        let domain = "test.com";
+        let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
         let response = app
             .clone()
             .with_state(state.clone())
@@ -1606,21 +1621,21 @@ mod tests {
                     .uri("/domains")
                     .header("cookie", headers.get("cookie").unwrap())
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(
-                        "domain=test.com&transport=smtp%3Alocalhost&enabled=on",
-                    ))
+                    .body(Body::from(form_data))
                     .unwrap(),
             )
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        TestUtils::assert_status(&response, StatusCode::FORBIDDEN);
 
         // Test edit user can access edit routes
         let cookie = format!("authenticated={expiry}:edit:test");
         let mut headers = HeaderMap::new();
         headers.insert("cookie", cookie.parse().unwrap());
 
+        let edit_domain = "test-edit.com";
+        let edit_form_data = TestData::domain_form_data(edit_domain, "smtp:localhost", true);
         let response = app
             .clone()
             .with_state(state.clone())
@@ -1630,15 +1645,13 @@ mod tests {
                     .uri("/domains")
                     .header("cookie", headers.get("cookie").unwrap())
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(
-                        "domain=test-edit.com&transport=smtp%3Alocalhost&enabled=on",
-                    ))
+                    .body(Body::from(edit_form_data))
                     .unwrap(),
             )
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         cleanup_test_db(&pool);
     }
@@ -1659,7 +1672,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        TestUtils::assert_status(&response, StatusCode::NOT_FOUND);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1838,8 +1851,9 @@ mod tests {
 
         // Create test domain
         let unique_id = unique_test_id();
+        let domain = format!("search-test-{unique_id}.com");
         let new_domain = NewDomain {
-            domain: format!("search-test-{unique_id}.com"),
+            domain: domain.clone(),
             transport: Some("smtp:localhost".to_string()),
             enabled: true,
         };
@@ -1862,7 +1876,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -1924,7 +1938,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        TestUtils::assert_status(&response, StatusCode::OK);
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
             .unwrap();

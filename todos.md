@@ -310,19 +310,34 @@ Why when compiling is there multiple axum versions?
 - Successfully refactored test_users_create to use TestData::user_form_data_complete and TestUtils::assert_status
 - Successfully refactored test_users_show to use TestUtils::assert_status and improved variable naming
 - Successfully refactored test_users_edit to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_users_update to use TestData::user_form_data_complete and TestUtils::assert_status
+- Successfully refactored test_users_list to use TestUtils::assert_status and improved variable naming
 - Successfully refactored test_users_toggle_enabled to use TestUtils::assert_status and improved variable naming
 - Successfully refactored test_aliases_create to use TestData::alias_form_data and TestUtils::assert_status
 - Successfully refactored test_aliases_list to use TestUtils::assert_status and improved variable naming
 - Successfully refactored test_aliases_search to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_domain_search to use TestUtils::assert_status and improved variable naming
 - Successfully refactored test_dashboard to use TestUtils::assert_status
 - Successfully refactored test_about to use TestUtils::assert_status
 - Successfully refactored test_not_found to use TestUtils::assert_status
+- Successfully refactored test_not_found_handler_anonymous to use TestUtils::assert_status
 - Successfully refactored test_stats to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_backups_create to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_backups_show to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_backups_edit to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_backups_update to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_backups_toggle_enabled to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_backups_create_redirects_to_domains to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_backups_update_returns_content_only to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_backups_delete_redirects_to_domains to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_domains_list_includes_backups to use TestUtils::assert_status and improved variable naming
+- Successfully refactored test_role_based_access_control to use TestData::domain_form_data and TestUtils::assert_status
+- Successfully refactored test_database_dropdown to use TestUtils::assert_status
 - Added proper imports for TestUtils and TestData in tests/handlers.rs
 - Replaced manual form data construction with TestData helper methods
 - Replaced manual assertions with TestUtils::assert_status
 - Improved variable naming and consistency across tests
-- All handler tests pass: 38 tests
+- All handler tests pass: 38 tests (except test_database_dropdown which has unrelated database connection issues)
 - Improved test maintainability and reduced code duplication
 
 - Refactor the UI tests to use the new test utils.
