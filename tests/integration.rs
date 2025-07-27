@@ -140,7 +140,7 @@ mod tests {
         TestUtils::assert_status(&_domain_response, StatusCode::OK);
 
         // Step 2: Create a user via HTTP POST
-        let user_id = format!("integrationuser@{}", domain);
+        let user_id = format!("integrationuser@{domain}");
         let user_form_data = TestData::user_form_data_complete(
             &user_id,
             "securepass123",
@@ -191,7 +191,7 @@ mod tests {
         TestUtils::assert_status(&show_response, StatusCode::OK);
 
         // Step 6: Update the user
-        let updated_user_id = format!("updateduser@{}", domain);
+        let updated_user_id = format!("updateduser@{domain}");
         let update_form_data = TestData::user_form_data_complete(
             &updated_user_id,
             "newpass123",
@@ -276,8 +276,8 @@ mod tests {
         TestUtils::assert_status(&_domain_response, StatusCode::OK);
 
         // Step 2: Create an alias via HTTP POST
-        let alias_mail = format!("test@{}", domain);
-        let alias_destination = format!("user@{}", domain);
+        let alias_mail = format!("test@{domain}");
+        let alias_destination = format!("user@{domain}");
         let alias_form_data = TestData::alias_form_data(&alias_mail, &alias_destination, true);
 
         let create_response = TestUtils::make_post_request(
@@ -318,8 +318,8 @@ mod tests {
         TestUtils::assert_status(&show_response, StatusCode::OK);
 
         // Step 6: Update the alias
-        let updated_alias_mail = format!("updated@{}", domain);
-        let updated_alias_destination = format!("updateduser@{}", domain);
+        let updated_alias_mail = format!("updated@{domain}");
+        let updated_alias_destination = format!("updateduser@{domain}");
         let update_form_data =
             TestData::alias_form_data(&updated_alias_mail, &updated_alias_destination, false);
 
@@ -384,7 +384,7 @@ mod tests {
 
         TestUtils::assert_status(&_domain_response, StatusCode::OK);
 
-        let user_id = format!("statsuser@{}", domain);
+        let user_id = format!("statsuser@{domain}");
         let user_form_data = TestData::user_form_data_complete(
             &user_id,
             "stats123",
@@ -409,8 +409,8 @@ mod tests {
 
         TestUtils::assert_status(&_user_response, StatusCode::OK);
 
-        let alias_mail = format!("stats@{}", domain);
-        let alias_destination = format!("user@{}", domain);
+        let alias_mail = format!("stats@{domain}");
+        let alias_destination = format!("user@{domain}");
         let alias_form_data = TestData::alias_form_data(&alias_mail, &alias_destination, true);
 
         let _alias_response = TestUtils::make_post_request(

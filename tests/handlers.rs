@@ -292,7 +292,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user with unique name
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -341,7 +341,7 @@ mod tests {
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let form_data = TestData::user_form_data_complete(
             &user_id,
             "password123",
@@ -391,7 +391,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -441,7 +441,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -492,7 +492,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -504,7 +504,7 @@ mod tests {
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
-        let updated_user_id = format!("updateduser@{}", domain);
+        let updated_user_id = format!("updateduser@{domain}");
         let form_data = TestData::user_form_data_complete(
             &updated_user_id,
             "password123",
@@ -555,7 +555,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test user
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -688,7 +688,7 @@ mod tests {
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
-        let user_id = format!("testuser@{}", domain);
+        let user_id = format!("testuser@{domain}");
         let user_form = UserForm {
             id: user_id.clone(),
             password: "password123".to_string(),
@@ -1388,7 +1388,7 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Create test aliases for search
-        let mail1 = format!("admin@{}", domain);
+        let mail1 = format!("admin@{domain}");
         let destination1 = "user@company.com";
         let alias1 = AliasForm {
             mail: mail1.clone(),
@@ -1398,7 +1398,7 @@ mod tests {
         };
         let _alias1 = db::create_alias(&pool, alias1).unwrap();
 
-        let mail2 = format!("support@{}", domain);
+        let mail2 = format!("support@{domain}");
         let destination2 = "helpdesk@company.com";
         let alias2 = AliasForm {
             mail: mail2.clone(),
