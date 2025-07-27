@@ -35,6 +35,10 @@ jobs:
         docker ps
         sudo usermod -a -G docker $USER || true
 
+    - name: Build Docker image for UI tests
+      run: |
+        docker build -t sortingoffice:latest .
+
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
       with:

@@ -1,9 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use axum::{
-        http::StatusCode,
-        Router,
-    };
+    use axum::{http::StatusCode, Router};
 
     use sortingoffice::{
         config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures},
@@ -15,8 +12,8 @@ mod tests {
     };
 
     use sortingoffice::test_helpers::common::{cleanup_test_db, unique_test_id};
+    use sortingoffice::test_helpers::test_utils::{TestData, TestUtils};
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-    use sortingoffice::test_helpers::test_utils::{TestUtils, TestData};
 
     async fn create_test_app() -> (Router<AppState>, AppState) {
         let container = setup_test_db().await;
@@ -96,9 +93,7 @@ mod tests {
         // Verify domain was created
         let domains = db::get_domains(pool).unwrap();
         assert!(!domains.is_empty());
-        assert!(domains
-            .iter()
-            .any(|d| d.domain == domain));
+        assert!(domains.iter().any(|d| d.domain == domain));
     }
 
     #[tokio::test]
@@ -124,9 +119,7 @@ mod tests {
         // Verify domain was created
         let domains = db::get_domains(&pool).unwrap();
         assert!(!domains.is_empty());
-        assert!(domains
-            .iter()
-            .any(|d| d.domain == domain));
+        assert!(domains.iter().any(|d| d.domain == domain));
 
         cleanup_test_db(&pool);
     }
@@ -350,8 +343,15 @@ mod tests {
 
         let user_id = format!("testuser@{}", domain);
         let form_data = TestData::user_form_data_complete(
-            &user_id, "password123", "Test User", "testdir", 
-            "/var/spool/mail/virtual", &domain, "100000", true, false
+            &user_id,
+            "password123",
+            "Test User",
+            "testdir",
+            "/var/spool/mail/virtual",
+            &domain,
+            "100000",
+            true,
+            false,
         );
 
         let response = TestUtils::make_handler_post_request(
@@ -368,9 +368,7 @@ mod tests {
         // Verify user was created
         let users = db::get_users(&pool).unwrap();
         assert!(!users.is_empty());
-        assert!(users
-            .iter()
-            .any(|u| u.id == user_id));
+        assert!(users.iter().any(|u| u.id == user_id));
 
         cleanup_test_db(&pool);
     }
@@ -508,8 +506,15 @@ mod tests {
 
         let updated_user_id = format!("updateduser@{}", domain);
         let form_data = TestData::user_form_data_complete(
-            &updated_user_id, "password123", "Updated User", "testdir", 
-            "/var/spool/mail/virtual", &domain, "100000", true, false
+            &updated_user_id,
+            "password123",
+            "Updated User",
+            "testdir",
+            "/var/spool/mail/virtual",
+            &domain,
+            "100000",
+            true,
+            false,
         );
 
         let response = TestUtils::make_handler_put_request(
@@ -662,9 +667,7 @@ mod tests {
         // Verify alias was created
         let aliases = db::get_aliases(&pool).unwrap();
         assert!(!aliases.is_empty());
-        assert!(aliases
-            .iter()
-            .any(|a| a.mail == mail));
+        assert!(aliases.iter().any(|a| a.mail == mail));
 
         cleanup_test_db(&pool);
     }
@@ -1349,13 +1352,7 @@ mod tests {
     async fn test_not_found_handler_anonymous() {
         let (app, _state) = create_test_app().await;
 
-        let response = TestUtils::make_handler_get_request(
-            &app,
-            &_state,
-            "/notfound",
-            None,
-        )
-        .await;
+        let response = TestUtils::make_handler_get_request(&app, &_state, "/notfound", None).await;
 
         TestUtils::assert_status(&response, StatusCode::NOT_FOUND);
 

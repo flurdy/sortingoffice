@@ -253,9 +253,7 @@ impl TestUtils {
         uri: &str,
         auth_cookie: Option<axum::http::HeaderValue>,
     ) -> axum::http::Response<Body> {
-        let mut request_builder = Request::builder()
-            .method("GET")
-            .uri(uri);
+        let mut request_builder = Request::builder().method("GET").uri(uri);
 
         if let Some(cookie) = auth_cookie {
             request_builder = request_builder.header("cookie", cookie);
@@ -287,7 +285,9 @@ impl TestUtils {
             request_builder = request_builder.header("cookie", cookie);
         }
 
-        let request = request_builder.body(Body::from(form_data.to_string())).unwrap();
+        let request = request_builder
+            .body(Body::from(form_data.to_string()))
+            .unwrap();
 
         app.clone()
             .with_state(state.clone())
@@ -313,7 +313,9 @@ impl TestUtils {
             request_builder = request_builder.header("cookie", cookie);
         }
 
-        let request = request_builder.body(Body::from(form_data.to_string())).unwrap();
+        let request = request_builder
+            .body(Body::from(form_data.to_string()))
+            .unwrap();
 
         app.clone()
             .with_state(state.clone())
@@ -329,9 +331,7 @@ impl TestUtils {
         uri: &str,
         auth_cookie: Option<axum::http::HeaderValue>,
     ) -> axum::http::Response<Body> {
-        let mut request_builder = Request::builder()
-            .method("DELETE")
-            .uri(uri);
+        let mut request_builder = Request::builder().method("DELETE").uri(uri);
 
         if let Some(cookie) = auth_cookie {
             request_builder = request_builder.header("cookie", cookie);
@@ -404,17 +404,19 @@ impl TestUtils {
 
     /// Get the default database pool and clean up the test database
     /// This is a common pattern used in handler tests
-    pub async fn setup_test_db_pool(state: &AppState) -> diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::MysqlConnection>> {
+    pub async fn setup_test_db_pool(
+        state: &AppState,
+    ) -> diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::MysqlConnection>> {
         let pool = state
             .db_manager
             .get_default_pool()
             .await
             .expect("Failed to get database pool");
-        
+
         // Import the cleanup function
         use crate::test_helpers::common::cleanup_test_db;
         cleanup_test_db(&pool);
-        
+
         pool
     }
 }
