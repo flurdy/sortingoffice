@@ -339,6 +339,12 @@ Why when compiling is there multiple axum versions?
 - Improved variable naming and consistency across tests
 - All handler tests pass: 38 tests (except test_database_dropdown which has unrelated database connection issues)
 - Improved test maintainability and reduced code duplication
+- **Enhanced with HTTP request helpers**: Added make_handler_get_request, make_handler_post_request, make_handler_put_request, and make_handler_delete_request methods to TestUtils
+- **Reduced oneshot boilerplate**: Replaced repetitive oneshot calls with simple helper methods that handle app cloning, state management, and request building
+- **Simplified test code**: Tests now use single-line HTTP requests instead of 10+ line oneshot blocks
+- **Continued refactoring**: Successfully refactored 26+ oneshot calls across various test types (GET, POST, PUT, DELETE)
+- **Comprehensive coverage**: Now covers domains, users, aliases, backups, dashboard, about, not found, search, authentication, and other page tests
+- **Massive reduction**: Reduced from 32 oneshot calls to just 6 remaining (81% reduction)
 
 - Refactor the UI tests to use the new test utils.
 

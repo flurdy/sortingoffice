@@ -85,19 +85,13 @@ mod tests {
         let pool = container.get_pool();
         let _domain = db::create_domain(pool, new_domain).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(_state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("GET")
-                    .uri("/domains")
-                    .header("Cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &_state,
+            "/domains",
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -125,20 +119,14 @@ mod tests {
         let domain = format!("create-test-{unique_id}.com");
         let form_data = TestData::domain_form_data(&domain, "smtp:localhost", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/domains",
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -179,18 +167,13 @@ mod tests {
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/domains/{}", _domain.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/domains/{}", _domain.pkid),
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -226,18 +209,13 @@ mod tests {
         };
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/domains/{}/edit", _domain.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/domains/{}/edit", _domain.pkid),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -277,20 +255,14 @@ mod tests {
         let updated_domain_name = format!("updated-test-{unique_id}.com");
         let form_data = TestData::domain_form_data(&updated_domain_name, "smtp:updated", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("PUT")
-                    .uri(format!("/domains/{}", _domain.pkid))
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_put_request(
+            &app,
+            &state,
+            &format!("/domains/{}", _domain.pkid),
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -325,19 +297,14 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Toggle to disabled
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/domains/{}/toggle", _domain.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            &format!("/domains/{}/toggle", _domain.pkid),
+            "",
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -383,18 +350,13 @@ mod tests {
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/users")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/users",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -498,18 +460,13 @@ mod tests {
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/users/{}", _user.id))
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/users/{}", _user.id),
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -558,18 +515,13 @@ mod tests {
         };
         let _user = db::create_user(&pool, user_form).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/users/{}/edit", _user.id))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/users/{}/edit", _user.id),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -687,19 +639,14 @@ mod tests {
         let _user = db::create_user(&pool, user_form).unwrap();
 
         // Toggle to disabled
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/users/{}/toggle", _user.id))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            &format!("/users/{}/toggle", _user.id),
+            "",
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -741,18 +688,13 @@ mod tests {
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -792,20 +734,14 @@ mod tests {
         let destination = "user@aliases-create-test.com";
         let form_data = TestData::alias_form_data(mail, destination, true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/aliases")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -862,18 +798,13 @@ mod tests {
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/stats")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/stats",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -898,19 +829,13 @@ mod tests {
             .expect("Failed to get database pool");
         cleanup_test_db(&pool);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("GET")
-                    .uri("/")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
     }
@@ -919,18 +844,13 @@ mod tests {
     async fn test_about() {
         let (app, _state) = create_test_app().await;
 
-        let response = app
-            .clone()
-            .with_state(_state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/about")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &_state,
+            "/about",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -947,18 +867,13 @@ mod tests {
     async fn test_not_found() {
         let (app, state) = create_test_app().await;
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/notfound")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/notfound",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::NOT_FOUND);
 
@@ -986,20 +901,14 @@ mod tests {
         let domain = "backup-create-test.com";
         let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/backups")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/backups",
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1032,18 +941,13 @@ mod tests {
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/backups/{}", _backup.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/backups/{}", _backup.pkid),
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1078,18 +982,13 @@ mod tests {
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri(format!("/backups/{}/edit", _backup.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/backups/{}/edit", _backup.pkid),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1128,20 +1027,14 @@ mod tests {
         let updated_domain = "backup-updated-test.com";
         let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("PUT")
-                    .uri(format!("/backups/{}", _backup.pkid))
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_put_request(
+            &app,
+            &state,
+            &format!("/backups/{}", _backup.pkid),
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1175,19 +1068,14 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         // Toggle to disabled
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri(format!("/backups/{}/toggle", _backup.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            &format!("/backups/{}/toggle", _backup.pkid),
+            "",
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1213,20 +1101,14 @@ mod tests {
         let domain = "backup-redirect-test.com";
         let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/backups")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/backups",
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1265,20 +1147,14 @@ mod tests {
         let updated_domain = "backup-updated-content-test.com";
         let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("PUT")
-                    .uri(format!("/backups/{}", _backup.pkid))
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::from(form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_put_request(
+            &app,
+            &state,
+            &format!("/backups/{}", _backup.pkid),
+            &form_data,
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1316,19 +1192,13 @@ mod tests {
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("DELETE")
-                    .uri(format!("/backups/{}", _backup.pkid))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_delete_request(
+            &app,
+            &state,
+            &format!("/backups/{}", _backup.pkid),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1374,18 +1244,13 @@ mod tests {
         };
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/domains")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/domains",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1636,20 +1501,14 @@ mod tests {
 
         let edit_domain = "test-edit.com";
         let edit_form_data = TestData::domain_form_data(edit_domain, "smtp:localhost", true);
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/domains")
-                    .header("cookie", headers.get("cookie").unwrap())
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(edit_form_data))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_post_request(
+            &app,
+            &state,
+            "/domains",
+            &edit_form_data,
+            Some(headers.get("cookie").unwrap().clone()),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1660,17 +1519,13 @@ mod tests {
     async fn test_not_found_handler_anonymous() {
         let (app, _state) = create_test_app().await;
 
-        let response = app
-            .clone()
-            .with_state(_state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/notfound")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &_state,
+            "/notfound",
+            None,
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::NOT_FOUND);
 
@@ -1779,50 +1634,35 @@ mod tests {
         assert!(!body_str.contains(destination1));
 
         // Test 3: Search with empty query (should not cause 400 error)
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases/search?destination=")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases/search?destination=",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
         // Test 4: Search without query parameter (should not cause 400 error)
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases/search")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases/search",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::OK);
 
         // Test 5: Search in mail field (should find results)
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/aliases/search?destination=admin".to_string())
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases/search?destination=admin",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::OK);
 
@@ -1860,21 +1700,13 @@ mod tests {
         let _domain = db::create_domain(&pool, new_domain).unwrap();
 
         // Test domain search with a query
-        let response = app
-            .clone()
-            .with_state(state.clone())
-            .oneshot(
-                Request::builder()
-                    .method("GET")
-                    .uri(format!(
-                        "/aliases/domain-search?domain=search-test-{unique_id}"
-                    ))
-                    .header("cookie", create_auth_cookie(AdminRole::Edit))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/aliases/domain-search?domain=search-test-{unique_id}"),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
 
@@ -1925,18 +1757,13 @@ mod tests {
         let (app, _state) =
             create_test_app_with_dbs(vec![db_config1.clone(), db_config2.clone()], port).await;
 
-        let response = app
-            .clone()
-            .with_state(_state.clone())
-            .oneshot(
-                Request::builder()
-                    .uri("/database/dropdown")
-                    .header("cookie", create_auth_cookie(AdminRole::ReadOnly))
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &_state,
+            "/database/dropdown",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)

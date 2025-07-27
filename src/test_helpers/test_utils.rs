@@ -244,6 +244,108 @@ impl TestUtils {
         Ok(response)
     }
 
+    // Handler test specific helpers (simpler than integration test helpers)
+
+    /// Make a GET request for handler tests (returns Response directly)
+    pub async fn make_handler_get_request(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> axum::http::Response<Body> {
+        let mut request_builder = Request::builder()
+            .method("GET")
+            .uri(uri);
+
+        if let Some(cookie) = auth_cookie {
+            request_builder = request_builder.header("cookie", cookie);
+        }
+
+        let request = request_builder.body(Body::empty()).unwrap();
+
+        app.clone()
+            .with_state(state.clone())
+            .oneshot(request)
+            .await
+            .unwrap()
+    }
+
+    /// Make a POST request for handler tests (returns Response directly)
+    pub async fn make_handler_post_request(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        form_data: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> axum::http::Response<Body> {
+        let mut request_builder = Request::builder()
+            .method("POST")
+            .uri(uri)
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded");
+
+        if let Some(cookie) = auth_cookie {
+            request_builder = request_builder.header("cookie", cookie);
+        }
+
+        let request = request_builder.body(Body::from(form_data.to_string())).unwrap();
+
+        app.clone()
+            .with_state(state.clone())
+            .oneshot(request)
+            .await
+            .unwrap()
+    }
+
+    /// Make a PUT request for handler tests (returns Response directly)
+    pub async fn make_handler_put_request(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        form_data: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> axum::http::Response<Body> {
+        let mut request_builder = Request::builder()
+            .method("PUT")
+            .uri(uri)
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded");
+
+        if let Some(cookie) = auth_cookie {
+            request_builder = request_builder.header("cookie", cookie);
+        }
+
+        let request = request_builder.body(Body::from(form_data.to_string())).unwrap();
+
+        app.clone()
+            .with_state(state.clone())
+            .oneshot(request)
+            .await
+            .unwrap()
+    }
+
+    /// Make a DELETE request for handler tests (returns Response directly)
+    pub async fn make_handler_delete_request(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> axum::http::Response<Body> {
+        let mut request_builder = Request::builder()
+            .method("DELETE")
+            .uri(uri);
+
+        if let Some(cookie) = auth_cookie {
+            request_builder = request_builder.header("cookie", cookie);
+        }
+
+        let request = request_builder.body(Body::empty()).unwrap();
+
+        app.clone()
+            .with_state(state.clone())
+            .oneshot(request)
+            .await
+            .unwrap()
+    }
+
     /// Assert that a response has the expected status code
     pub fn assert_status(response: &axum::http::Response<Body>, expected: StatusCode) {
         assert_eq!(
