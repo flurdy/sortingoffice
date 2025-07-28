@@ -1,0 +1,56 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto text-center">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/40 mb-4">
+                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ title }}</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Wizard Steps Overview -->
+        <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Step 1 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-full mb-3">
+                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">1</span>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Configure Domains</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Enter the domains you want to set up</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full mb-3">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">2</span>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Configure Aliases</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Set up aliases for all domains</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div class="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full mb-3">
+                        <span class="text-sm font-semibold text-gray-600 dark:text-gray-400">3</span>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Review & Create</h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Review and create your configuration</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Button -->
+        <div class="flex justify-center">
+            <a href="/wizard/domain-config" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                {{ start_button }}
+            </a>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,60 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto text-center">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-full mr-3">
+                    <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">4</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ progress.current_step }}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ progress.message }}</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mb-6">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ (progress.current_step_number as f64 / progress.total_steps as f64 * 100.0) as i32 }}%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <span>Step {{ progress.current_step_number }} of {{ progress.total_steps }}</span>
+                <span>{{ ((progress.current_step_number as f64 / progress.total_steps as f64 * 100.0) as i32) }}%</span>
+            </div>
+        </div>
+
+        <!-- Progress Details -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Creating domains...</span>
+                    <div class="flex items-center">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Creating aliases...</span>
+                    <div class="flex items-center">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-refresh script -->
+        <script>
+            // Auto-refresh to check progress
+            setTimeout(function() {
+                window.location.reload();
+            }, 2000);
+        </script>
+    </div>
+</div> 

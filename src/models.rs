@@ -3,6 +3,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::sql_types::{Bool, Text};
 use serde::{Deserialize, Deserializer, Serialize};
+use std::collections::HashMap;
 
 fn deserialize_checkbox<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
@@ -898,6 +899,110 @@ impl<T> PaginatedResult<T> {
             has_prev,
         }
     }
+}
+
+// Wizard Models
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum WizardStep {
+    DomainConfig,
+    AliasConfig,
+    Review,
+    Executing,
+    Complete,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum AliasType {
+    Required, // postmaster, abuse, etc.
+    Common,   // admin, webmaster, etc.
+    Custom,   // user-defined
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AliasWizardData {
+    pub alias: String,
+    pub destination: String,
+    pub enabled: bool,
+    pub alias_type: AliasType,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DomainWizardData {
+    pub domain: String,
+    pub transport: Option<String>, // Override common transport
+    pub enabled: bool,
+    pub aliases: Vec<AliasWizardData>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DomainWizardSession {
+    pub step: WizardStep,
+    pub domains: Vec<DomainWizardData>,
+    pub common_aliases: Vec<String>,
+    pub common_destination: String,
+    pub transport: String,
+    pub enabled: bool,
+}
+
+// Form models for wizard steps
+#[derive(Debug, Deserialize)]
+pub struct DomainConfigForm {
+    pub domains: String, // Comma-separated domain string
+    pub transport: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AliasConfigForm {
+    pub required_aliases: Vec<String>,
+    pub common_aliases: Vec<String>,
+    pub custom_aliases: Vec<String>,
+    pub common_destination: String,
+    pub alias_destinations: HashMap<String, String>, // alias -> destination
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub catchall_enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WizardConfirmForm {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub confirmed: bool,
+}
+
+// Wizard result models
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardResult {
+    pub success: bool,
+    pub domains_created: i32,
+    pub aliases_created: i32,
+    pub errors: Vec<WizardError>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardError {
+    pub domain: Option<String>,
+    pub alias: Option<String>,
+    pub message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardSummary {
+    pub total_domains: i32,
+    pub total_aliases: i32,
+    pub domains_list: Vec<String>,
+    pub aliases_list: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardProgress {
+    pub current_step: String,
+    pub total_steps: i32,
+    pub current_step_number: i32,
+    pub message: String,
 }
 
 #[cfg(test)]

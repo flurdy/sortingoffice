@@ -376,4 +376,11 @@
 - **Result**: Workflow builds image once, then UI tests use the pre-built image efficiently
 - **Verification**: Compilation successful, workflow ready for testing
 
-🔄 Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
+✅ Add wizard for onboarding a set of new domains, maybe with common aliases and destinations across all the new domains, maybe copy existing domain+aliases.
+- Implemented complete multi-step wizard with domain and alias configuration
+- Added comprehensive templates with modern UI design
+- Created handler functions for all wizard steps
+- Added basic test coverage for wizard functionality
+- Integrated with existing authentication and permission system
+
+🔄 Discuss how to define another type of common alias, for aliases that is common with these databases only, maybe derived from data analytics, i.e. most 4 most common aliases? Or user defined custom common? Or perhaps a better name for it.

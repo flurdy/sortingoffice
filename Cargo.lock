@@ -3484,6 +3484,7 @@ dependencies = [
  "fantoccini",
  "futures-util",
  "hyper 1.6.0",
+ "lazy_static",
  "log",
  "mysql_async",
  "once_cell",

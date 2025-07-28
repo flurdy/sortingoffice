@@ -15,6 +15,7 @@ nav-reports = Reports
 nav-config = Configuration
 nav-database-backup = Database Backup
 nav-database = Database Selection
+nav-wizard = Domain Wizard
 nav-about = About
 nav-logout = Logout
 
@@ -138,6 +139,56 @@ resource-clients = clients
 help-title = Need help setting up your mail server?
 help-description = This admin tool is based on flurdy's comprehensive guide for setting up a complete mail server with Postfix, Dovecot, and more.
 help-read-guide = Read the complete setup guide →
+
+# Wizard
+wizard-title = Domain Setup Wizard
+wizard-description = Guided setup for multiple domains and aliases
+wizard-start = Start Wizard
+wizard-next = Next
+wizard-back = Back
+wizard-cancel = Cancel
+wizard-confirm = Confirm Setup
+wizard-complete = Complete
+
+# Step 1: Domain Configuration
+wizard-step-1-title = Configure Domains
+wizard-step-1-description = Enter the domains you want to set up
+wizard-domains-label = Domains
+wizard-domains-placeholder = Enter domains (one per line or comma-separated)
+wizard-transport-label = Transport
+wizard-transport-placeholder = virtual
+wizard-enabled-label = Enable domains
+
+# Step 2: Alias Configuration
+wizard-step-2-title = Configure Aliases
+wizard-step-2-description = Set up aliases for all domains
+wizard-required-aliases = Required Aliases
+wizard-common-aliases = Common Aliases
+wizard-custom-aliases = Custom Aliases
+wizard-destination-label = Default Destination
+wizard-destination-placeholder = admin@example.com
+
+# Step 3: Review
+wizard-step-3-title = Review Configuration
+wizard-step-3-description = Review your configuration before creating
+wizard-summary-domains = Domains to create
+wizard-summary-aliases = Aliases to create
+wizard-summary-total = Total items
+
+# Step 4: Execution
+wizard-step-4-title = Creating Domains and Aliases
+wizard-step-4-description = Please wait while we set up your configuration
+wizard-progress-domains = Creating domains
+wizard-progress-aliases = Creating aliases
+wizard-progress-complete = Setup complete
+
+# Step 5: Results
+wizard-step-5-title = Setup Complete
+wizard-step-5-description = Your domains and aliases have been created
+wizard-results-success = Successfully created
+wizard-results-failed = Failed to create
+wizard-view-domains = View Domains
+wizard-new-wizard = Start New Wizard
 
 # About
 about-title = About Sorting Office

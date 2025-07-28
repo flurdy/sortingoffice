@@ -18,6 +18,7 @@ pub mod stats;
 pub mod theme;
 pub mod users;
 pub mod utils;
+pub mod wizard;
 
 // Re-export specific functions and types
 pub use about::index as about_index;
@@ -71,6 +72,10 @@ pub use users::{
     toggle_enabled_show as toggle_user_enabled_show, update as update_user,
 };
 pub use utils::get_user_locale as get_user_locale_util; // Export health handlers
+pub use wizard::{
+    alias_config, alias_config_post, complete, domain_config, domain_config_post, execute,
+    index as wizard_index, review,
+};
 
 use axum::{middleware, Router};
 use tower_http::trace::TraceLayer;
@@ -156,6 +161,20 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
             axum::routing::delete(delete_backup),
         )
         .route("/backup/list", axum::routing::get(list_backups))
+        // Wizard routes (read-only access)
+        .route("/wizard", axum::routing::get(wizard_index))
+        .route("/wizard/domain-config", axum::routing::get(domain_config))
+        .route(
+            "/wizard/domain-config",
+            axum::routing::post(domain_config_post),
+        )
+        .route("/wizard/alias-config", axum::routing::get(alias_config))
+        .route(
+            "/wizard/alias-config",
+            axum::routing::post(alias_config_post),
+        )
+        .route("/wizard/review", axum::routing::get(review))
+        .route("/wizard/complete", axum::routing::get(complete))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
@@ -290,6 +309,8 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         )
         .route("/clients/{id}/edit", axum::routing::get(edit_client_form))
         .route("/clients/{id}/toggle", axum::routing::put(toggle_client))
+        // Wizard edit operations (require edit permissions)
+        .route("/wizard/execute", axum::routing::post(execute))
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),

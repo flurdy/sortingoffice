@@ -14,3 +14,4 @@ pub mod relocated;
 pub mod reports;
 pub mod stats;
 pub mod users;
+pub mod wizard;
