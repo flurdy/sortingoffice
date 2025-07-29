@@ -19,6 +19,12 @@ nav-wizard = Domain Wizard
 nav-about = About
 nav-logout = Logout
 
+# Sidebar Sections
+sidebar-main = Main
+sidebar-tables = Tables
+sidebar-tools = Tools
+sidebar-admin = Admin
+
 # UI Controls
 theme-toggle = Toggle theme
 language-selector = Language

@@ -18,6 +18,12 @@ nav-database = Databasevalg
 nav-about = Om
 nav-logout = Logg ut
 
+# Sidebar Sections
+sidebar-main = Hoved
+sidebar-tables = Tabeller
+sidebar-tools = Verktøy
+sidebar-admin = Admin
+
 # UI Controls
 theme-toggle = Bytt tema
 language-selector = Språk

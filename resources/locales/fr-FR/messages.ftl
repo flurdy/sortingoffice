@@ -18,6 +18,12 @@ nav-database = Sélection de Base de Données
 nav-about = À Propos
 nav-logout = Déconnexion
 
+# Sidebar Sections
+sidebar-main = Principal
+sidebar-tables = Tableaux
+sidebar-tools = Outils
+sidebar-admin = Administration
+
 # UI Controls
 theme-toggle = Basculer le thème
 language-selector = Langue

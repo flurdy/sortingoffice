@@ -18,6 +18,12 @@ nav-database = "Selección de Base de Datos"
 nav-about = "Acerca de"
 nav-logout = "Cerrar Sesión"
 
+# Sidebar Sections
+sidebar-main = Principal
+sidebar-tables = Tablas
+sidebar-tools = Herramientas
+sidebar-admin = Administración
+
 # UI Controls
 theme-toggle = Cambiar tema
 language-selector = Idioma

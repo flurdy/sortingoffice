@@ -18,6 +18,12 @@ nav-database = Datenbankauswahl
 nav-about = Über
 nav-logout = Abmelden
 
+# Sidebar Sections
+sidebar-main = Haupt
+sidebar-tables = Tabellen
+sidebar-tools = Werkzeuge
+sidebar-admin = Verwaltung
+
 # UI Controls
 theme-toggle = Theme umschalten
 language-selector = Sprache

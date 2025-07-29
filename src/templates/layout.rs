@@ -36,6 +36,10 @@ pub struct BaseTemplate {
     pub relays_available: bool,
     pub relocated_available: bool,
     pub clients_available: bool,
+    pub sidebar_main: String,
+    pub sidebar_tables: String,
+    pub sidebar_tools: String,
+    pub sidebar_admin: String,
 }
 
 #[derive(Template)]
@@ -74,6 +78,10 @@ pub struct LayoutTemplate<'a> {
     pub relays_available: bool,
     pub relocated_available: bool,
     pub clients_available: bool,
+    pub sidebar_main: &'a str,
+    pub sidebar_tables: &'a str,
+    pub sidebar_tools: &'a str,
+    pub sidebar_admin: &'a str,
 }
 
 impl BaseTemplate {
@@ -121,6 +129,10 @@ impl BaseTemplate {
             relays_available: state.config.is_relays_available(&current_db_id),
             relocated_available: state.config.is_relocated_available(&current_db_id),
             clients_available: state.config.is_clients_available(&current_db_id),
+            sidebar_main: crate::i18n::get_translation(state, locale, "sidebar-main").await,
+            sidebar_tables: crate::i18n::get_translation(state, locale, "sidebar-tables").await,
+            sidebar_tools: crate::i18n::get_translation(state, locale, "sidebar-tools").await,
+            sidebar_admin: crate::i18n::get_translation(state, locale, "sidebar-admin").await,
         })
     }
 }

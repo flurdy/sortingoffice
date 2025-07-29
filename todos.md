@@ -411,7 +411,7 @@
 - If domain doesn't exist: displays as unlinked text in gray color
 - All tests pass: unit (24), integration (49)
 
-Lets reorganise the sidebar to these:
+✅ Lets reorganise the sidebar to these: - IMPLEMENTED
 - Main
 -- Dashboard
 -- Database Selection
@@ -433,14 +433,25 @@ Lets reorganise the sidebar to these:
 -
 -- Contact (soon)
 -- About
+- Reorganized sidebar navigation into logical sections: Main, Tables, Tools, Admin
+- Moved Database Selection to Main section for easy access
+- Grouped all data tables (Domains, Aliases, Users, Relays, Relocated, Clients) under Tables section
+- Grouped utility tools (Domain Wizard, Reports, Statistics) under Tools section
+- Grouped administrative functions (Configuration, Database Backup) under Admin section
+- Added translation keys for all sidebar section headers in all languages (en-US, es-ES, de-DE, fr-FR, nb-NO)
+- Updated template structs to include sidebar section translations
+- Maintained all existing functionality while improving navigation organization
+- All tests pass: unit (24), integration (49)
 
-In the show domain page, if an alias is missing an alias but it is disabled change the button (and action) of enable instead of add.
+In the show domain page, if an alias is missing an alias but it is disabled change the button (and action) to enable instead of add.
 
 when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
 
 alias list on the domain page is not striped.
 
 reports-no-missing-aliases seems untranslated on the show domain page
+
+The first page on the domain wizard does not add much, maybe just redirect to domain config step.
 
 Fix the database dropdown integration test
 
