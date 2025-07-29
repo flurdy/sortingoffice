@@ -458,6 +458,8 @@ For detailed security information, see [AUTHENTICATION.md](docs/AUTHENTICATION.m
 4. Add tests if applicable
 5. Submit a pull request
 
+For detailed contribution guidelines and contact information, see [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/CONTACT.md](docs/CONTACT.md).
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
