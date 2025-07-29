@@ -515,6 +515,43 @@ pub async fn create(
                             "domains-enable-missing-alias",
                         )
                         .await,
+                        // New translation keys for domain show page
+                        domains_mail_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-mail-header",
+                        )
+                        .await,
+                        domains_destination_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-destination-header",
+                        )
+                        .await,
+                        domains_enabled_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-enabled-header",
+                        )
+                        .await,
+                        domains_actions_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-actions-header",
+                        )
+                        .await,
+                        domains_missing_aliases_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-missing-aliases-header",
+                        )
+                        .await,
+                        domains_catch_all_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-catch-all-header",
+                        )
+                        .await,
                     };
                     let content = content_template.render().unwrap();
 
@@ -1398,6 +1435,30 @@ pub async fn toggle_enabled_domain_show(
                     &state,
                     &locale,
                     "domains-enable-missing-alias",
+                )
+                .await,
+                // New translation keys for domain show page
+                domains_mail_header: &get_translation(&state, &locale, "domains-mail-header").await,
+                domains_destination_header: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-destination-header",
+                )
+                .await,
+                domains_enabled_header: &get_translation(&state, &locale, "domains-enabled-header")
+                    .await,
+                domains_actions_header: &get_translation(&state, &locale, "domains-actions-header")
+                    .await,
+                domains_missing_aliases_header: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-missing-aliases-header",
+                )
+                .await,
+                domains_catch_all_header: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-catch-all-header",
                 )
                 .await,
             };

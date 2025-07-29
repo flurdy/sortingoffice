@@ -453,13 +453,30 @@
 - Disabled aliases now show with yellow background and enable buttons instead of add buttons
 - All tests pass: unit (24), integration (49)
 
-when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
+✅ When in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header. - IMPLEMENTED
+- Added 6 new domain-specific translation keys to all language files:
+  - domains-mail-header = "Mail" / "Correo" / "E-Mail" / "Courriel" / "E-post"
+  - domains-destination-header = "Destination" / "Destino" / "Ziel" / "Destination" / "Destinasjon"
+  - domains-enabled-header = "Enabled" / "Habilitado" / "Aktiviert" / "Activé" / "Aktivert"
+  - domains-actions-header = "Actions" / "Acciones" / "Aktionen" / "Actions" / "Handlinger"
+  - domains-missing-aliases-header = "Missing Aliases" / "Alias Faltantes" / "Fehlende Aliase" / "Alias Manquants" / "Manglende Aliaser"
+  - domains-catch-all-header = "Catch-All" / "Captura Todo" / "Catch-All" / "Attrape-Tout" / "Fange-Alt"
+- Updated DomainShowTemplate struct to include the 6 new fields
+- Updated get_domain_show_translations function to fetch the new translation keys
+- Updated templates/domains/show.html to use the new domain-specific translation keys
+- Fixed all DomainShowTemplate instantiations in handlers/domains.rs and handlers/aliases.rs
+- All compilation errors resolved and code properly formatted
 
-alias list on the domain page is not striped.
+Alias list on the domain page is not striped.
 
-reports-no-missing-aliases seems untranslated on the show domain page
+The key reports-no-missing-aliases seems untranslated on the show domain page
 
-The first page on the domain wizard does not add much, maybe just redirect to domain config step.
+✅ The first page on the domain wizard does not add much, maybe just redirect to domain config step. - IMPLEMENTED
+- Modified wizard index function to redirect directly to domain config step
+- Removed unnecessary overview page that just showed wizard steps
+- Simplified user flow by eliminating redundant first step
+- Removed unused WizardIndexTemplate import
+- All tests pass: unit (24), integration (49)
 
 Fix the database dropdown integration test
 

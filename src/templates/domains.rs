@@ -87,6 +87,13 @@ pub struct DomainShowTemplate<'a> {
     pub enable_alias: &'a str,
     pub disable_alias: &'a str,
     pub enable_missing_alias: &'a str,
+    // New translation keys for domain show page
+    pub domains_mail_header: &'a str,
+    pub domains_destination_header: &'a str,
+    pub domains_enabled_header: &'a str,
+    pub domains_actions_header: &'a str,
+    pub domains_missing_aliases_header: &'a str,
+    pub domains_catch_all_header: &'a str,
 }
 
 #[derive(Template)]

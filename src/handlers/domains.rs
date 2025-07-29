@@ -106,6 +106,13 @@ async fn get_domain_show_translations(state: &AppState, locale: &str) -> HashMap
             "aliases-enable-alias",
             "aliases-disable-alias",
             "domains-enable-missing-alias",
+            // Missing translation keys for domain show page
+            "domains-mail-header",
+            "domains-destination-header",
+            "domains-enabled-header",
+            "domains-actions-header",
+            "domains-missing-aliases-header",
+            "domains-catch-all-header",
         ],
     )
     .await
@@ -481,6 +488,13 @@ pub async fn show(
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
         enable_missing_alias: &translations["domains-enable-missing-alias"],
+        // New translation keys for domain show page
+        domains_mail_header: &translations["domains-mail-header"],
+        domains_destination_header: &translations["domains-destination-header"],
+        domains_enabled_header: &translations["domains-enabled-header"],
+        domains_actions_header: &translations["domains-actions-header"],
+        domains_missing_aliases_header: &translations["domains-missing-aliases-header"],
+        domains_catch_all_header: &translations["domains-catch-all-header"],
     };
 
     render_template_with_title!(
@@ -877,6 +891,13 @@ pub async fn update(
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
                 enable_missing_alias: &translations["domains-enable-missing-alias"],
+                // New translation keys for domain show page
+                domains_mail_header: &translations["domains-mail-header"],
+                domains_destination_header: &translations["domains-destination-header"],
+                domains_enabled_header: &translations["domains-enabled-header"],
+                domains_actions_header: &translations["domains-actions-header"],
+                domains_missing_aliases_header: &translations["domains-missing-aliases-header"],
+                domains_catch_all_header: &translations["domains-catch-all-header"],
             };
 
             render_template_with_title!(
@@ -1104,6 +1125,13 @@ pub async fn toggle_enabled(
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
                 enable_missing_alias: &translations["domains-enable-missing-alias"],
+                // New translation keys for domain show page
+                domains_mail_header: &translations["domains-mail-header"],
+                domains_destination_header: &translations["domains-destination-header"],
+                domains_enabled_header: &translations["domains-enabled-header"],
+                domains_actions_header: &translations["domains-actions-header"],
+                domains_missing_aliases_header: &translations["domains-missing-aliases-header"],
+                domains_catch_all_header: &translations["domains-catch-all-header"],
             };
 
             render_template_with_title!(
@@ -1313,6 +1341,13 @@ pub async fn toggle_enabled_show(
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
                 enable_missing_alias: &translations["domains-enable-missing-alias"],
+                // New translation keys for domain show page
+                domains_mail_header: &translations["domains-mail-header"],
+                domains_destination_header: &translations["domains-destination-header"],
+                domains_enabled_header: &translations["domains-enabled-header"],
+                domains_actions_header: &translations["domains-actions-header"],
+                domains_missing_aliases_header: &translations["domains-missing-aliases-header"],
+                domains_catch_all_header: &translations["domains-catch-all-header"],
             };
 
             render_template_with_title!(

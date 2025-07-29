@@ -79,9 +79,9 @@
                     <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ mail_header }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ destination_header }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ enabled_header }}</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_mail_header }}</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_destination_header }}</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_enabled_header }}</th>
                                 <th scope="col" class="relative px-6 py-3">
                                     <span class="sr-only">{{ actions_header }}</span>
                                 </th>
@@ -122,7 +122,7 @@
             <!-- Missing Aliases -->
             {% if !report.missing_required_aliases.is_empty() || !report.missing_common_aliases.is_empty() || !report.has_catch_all %}
             <div class="px-4 py-5 sm:px-6">
-                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">{{ missing_aliases_header }}</h4>
+                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">{{ domains_missing_aliases_header }}</h4>
                 
                 <!-- Missing Required Aliases -->
                 {% if !report.missing_required_aliases.is_empty() %}
@@ -199,7 +199,7 @@
                 <!-- Missing Catch-All Alias -->
                 {% if !report.has_catch_all && report.disabled_catch_all.is_none() %}
                 <div class="mt-4">
-                    <h5 class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ catch_all_header }}</h5>
+                    <h5 class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ domains_catch_all_header }}</h5>
                     <div class="space-y-1">
                         <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                             <div>
@@ -219,10 +219,10 @@
             <!-- Catch-All Information -->
             {% if report.has_catch_all %}
             <div class="px-4 py-5 sm:px-6">
-                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">{{ catch_all_header }}</h4>
+                <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">{{ domains_catch_all_header }}</h4>
                 <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                     <div>
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ catch_all_header }}</dt>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ domains_catch_all_header }}</dt>
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ report.catch_all_alias.as_ref().unwrap_or(&"".to_string()) }}</dd>
                     </div>
                     <div>
@@ -236,10 +236,10 @@
             <!-- Disabled Catch-All Information -->
             {% if report.disabled_catch_all.is_some() %}
             <div class="px-4 py-5 sm:px-6">
-                <h4 class="text-md font-medium text-yellow-600 dark:text-yellow-400 mb-4">{{ catch_all_header }} (Disabled)</h4>
+                <h4 class="text-md font-medium text-yellow-600 dark:text-yellow-400 mb-4">{{ domains_catch_all_header }} (Disabled)</h4>
                 <div class="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                     <div>
-                        <dt class="text-sm font-medium text-yellow-700 dark:text-yellow-300">{{ catch_all_header }}</dt>
+                        <dt class="text-sm font-medium text-yellow-700 dark:text-yellow-300">{{ domains_catch_all_header }}</dt>
                         <dd class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">{{ report.disabled_catch_all.as_ref().unwrap().mail }}</dd>
                         <dt class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-2">{{ destination_header }}</dt>
                         <dd class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">{{ report.disabled_catch_all.as_ref().unwrap().destination }}</dd>

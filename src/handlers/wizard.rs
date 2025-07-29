@@ -9,7 +9,7 @@ use crate::{
     render_template_with_title,
     templates::wizard::{
         WizardAliasConfigTemplate, WizardCompleteTemplate, WizardDomainConfigTemplate,
-        WizardIndexTemplate, WizardReviewTemplate,
+        WizardReviewTemplate,
     },
     AppState,
 };
@@ -175,31 +175,11 @@ fn clear_session() {
 
 // Wizard index page
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
-
     // Clear any existing session when starting a new wizard
     clear_session();
 
-    let content_template = WizardIndexTemplate {
-        title: &translations["wizard-title"],
-        description: &translations["wizard-description"],
-        start_button: &translations["wizard-start"],
-        step_1_box_title: &translations["wizard-step-1-box-title"],
-        step_1_box_description: &translations["wizard-step-1-box-description"],
-        step_2_box_title: &translations["wizard-step-2-box-title"],
-        step_2_box_description: &translations["wizard-step-2-box-description"],
-        step_3_box_title: &translations["wizard-step-3-box-title"],
-        step_3_box_description: &translations["wizard-step-3-box-description"],
-    };
-
-    render_template_with_title!(
-        content_template,
-        content_template.title,
-        &state,
-        &locale,
-        &headers
-    )
+    // Redirect directly to domain config step
+    domain_config(State(state), headers).await
 }
 
 // Step 1: Domain configuration

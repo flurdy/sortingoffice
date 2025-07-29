@@ -322,6 +322,12 @@ domains-delete-domain = Delete Domain
 domains-delete-confirm = Are you sure you want to delete this domain?
 domains-not-found = Domain not found
 domains-enable-missing-alias = Enable
+domains-mail-header = Mail
+domains-destination-header = Destination
+domains-enabled-header = Enabled
+domains-actions-header = Actions
+domains-missing-aliases-header = Missing Aliases
+domains-catch-all-header = Catch-All
 domains-add-missing-required-aliases-button = Add alias
 domains-add-catch-all-button = Add alias
 domains-add-alias-button = Add new alias
@@ -733,6 +739,28 @@ reports-migration-count-header = Migration Count
 domains-alias-report-title = Alias Report
 domains-alias-report-description = Overview of all aliases for this domain, including catch-all, required, and common aliases
 domains-existing-aliases-header = Existing Aliases
+
+# Reports - Missing Keys
+reports-required-aliases-header = Required Aliases
+reports-missing-aliases-header = Missing Required Aliases
+reports-missing-required-aliases-header = Missing Required Aliases
+reports-missing-common-aliases-header = Missing Common Aliases
+reports-add-missing-required-alias-button = Add Alias
+reports-add-common-alias-button = Add Alias
+reports-add-catch-all-button = Add Alias
+reports-alias-report-title = Alias Report
+reports-alias-report-description = Overview of catch-all, required, and common aliases for this domain
+reports-missing-required-alias-header = Missing Required Aliases
+reports-existing-aliases-header = Existing Aliases
+reports-no-catch-all-message = No catch-all alias configured for this domain
+reports-mail-header = Mail
+reports-status-header = Status
+reports-enabled-header = Enabled
+reports-actions-header = Actions
+reports-no-required-aliases = No required aliases found for this domain
+reports-no-missing-aliases = No missing required aliases for this domain
+reports-catch-all-header = Catch-All
+reports-destination-header = Destination
 
 # Configuration
 config-title = Configuration
