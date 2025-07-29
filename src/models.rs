@@ -553,6 +553,9 @@ pub struct DomainAliasReport {
     pub required_aliases: Vec<RequiredAlias>,
     pub missing_required_aliases: Vec<String>,
     pub missing_common_aliases: Vec<String>,
+    pub disabled_required_aliases: Vec<Alias>,
+    pub disabled_common_aliases: Vec<Alias>,
+    pub disabled_catch_all: Option<Alias>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

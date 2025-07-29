@@ -105,6 +105,7 @@ async fn get_domain_show_translations(state: &AppState, locale: &str) -> HashMap
             "action-view",
             "aliases-enable-alias",
             "aliases-disable-alias",
+            "domains-enable-missing-alias",
         ],
     )
     .await
@@ -479,6 +480,7 @@ pub async fn show(
         action_view: &translations["action-view"],
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
+        enable_missing_alias: &translations["domains-enable-missing-alias"],
     };
 
     render_template_with_title!(
@@ -874,6 +876,7 @@ pub async fn update(
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
+                enable_missing_alias: &translations["domains-enable-missing-alias"],
             };
 
             render_template_with_title!(
@@ -1100,6 +1103,7 @@ pub async fn toggle_enabled(
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
+                enable_missing_alias: &translations["domains-enable-missing-alias"],
             };
 
             render_template_with_title!(
@@ -1308,6 +1312,7 @@ pub async fn toggle_enabled_show(
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
+                enable_missing_alias: &translations["domains-enable-missing-alias"],
             };
 
             render_template_with_title!(

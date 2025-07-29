@@ -184,6 +184,7 @@ domains-disable-domain = Deaktiver domene
 domains-delete-domain = Slett domene
 domains-delete-confirm = Er du sikker på at du vil slette denne domenen?
 domains-not-found = Domene ikke funnet
+domains-enable-missing-alias = Aktiver
 domains-add-missing-required-aliases-button = Legg til alias
 domains-add-catch-all-button = Legg til alias
 domains-add-alias-button = Legg til nytt alias

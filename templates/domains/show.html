@@ -140,6 +140,26 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- Disabled Required Aliases -->
+                {% if !report.disabled_required_aliases.is_empty() %}
+                <div class="mt-4">
+                    <h5 class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ missing_required_alias_header }} (Disabled)</h5>
+                    <div class="space-y-1">
+                        {% for alias in report.disabled_required_aliases %}
+                        <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                            <span class="text-sm text-yellow-700 dark:text-yellow-300">{{ alias.mail }}</span>
+                                                <button 
+                        hx-post="/aliases/{{ alias.pkid }}/toggle-domain-show" 
+                        hx-target="#main-content"
+                        class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        {{ enable_missing_alias }}
+                    </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
                 
                 <!-- Missing Common Aliases -->
                 {% if !report.missing_common_aliases.is_empty() %}
@@ -177,7 +197,7 @@
                 {% endif %}
 
                 <!-- Missing Catch-All Alias -->
-                {% if !report.has_catch_all %}
+                {% if !report.has_catch_all && report.disabled_catch_all.is_none() %}
                 <div class="mt-4">
                     <h5 class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ catch_all_header }}</h5>
                     <div class="space-y-1">
@@ -210,6 +230,27 @@
                         <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ report.catch_all_destination.as_ref().unwrap_or(&"".to_string()) }}</dd>
                     </div>
                 </dl>
+            </div>
+            {% endif %}
+
+            <!-- Disabled Catch-All Information -->
+            {% if report.disabled_catch_all.is_some() %}
+            <div class="px-4 py-5 sm:px-6">
+                <h4 class="text-md font-medium text-yellow-600 dark:text-yellow-400 mb-4">{{ catch_all_header }} (Disabled)</h4>
+                <div class="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <div>
+                        <dt class="text-sm font-medium text-yellow-700 dark:text-yellow-300">{{ catch_all_header }}</dt>
+                        <dd class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">{{ report.disabled_catch_all.as_ref().unwrap().mail }}</dd>
+                        <dt class="text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-2">{{ destination_header }}</dt>
+                        <dd class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">{{ report.disabled_catch_all.as_ref().unwrap().destination }}</dd>
+                    </div>
+                    <button 
+                        hx-post="/aliases/{{ report.disabled_catch_all.as_ref().unwrap().pkid }}/toggle-domain-show" 
+                        hx-target="#main-content"
+                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        {{ enable_missing_alias }}
+                    </button>
+                </div>
             </div>
             {% endif %}
 

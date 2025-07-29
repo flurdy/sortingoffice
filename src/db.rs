@@ -1106,6 +1106,9 @@ pub fn get_alias_report(pool: &DbPool) -> Result<AliasReport, Error> {
             required_aliases,
             missing_required_aliases,
             missing_common_aliases,
+            disabled_required_aliases: Vec::new(),
+            disabled_common_aliases: Vec::new(),
+            disabled_catch_all: None,
         };
 
         if domain_report.has_catch_all {
@@ -1216,23 +1219,38 @@ pub fn get_domain_alias_report(
         }
     };
 
-    // Check if this domain has a catch-all alias
+    // Check if this domain has a catch-all alias (enabled or disabled)
     let catch_all_alias = aliases::table
+        .filter(aliases::mail.eq(format!("@{domain_name}")))
+        .select(Alias::as_select())
+        .first::<Alias>(&mut conn)
+        .optional()?;
+
+    // Check if this domain has an enabled catch-all alias
+    let enabled_catch_all_alias = aliases::table
         .filter(aliases::mail.eq(format!("@{domain_name}")))
         .filter(aliases::enabled.eq(true))
         .select(Alias::as_select())
         .first::<Alias>(&mut conn)
         .optional()?;
 
-    // Get all aliases for this domain
-    let domain_aliases = aliases::table
+    // Get all enabled aliases for this domain
+    let enabled_aliases = aliases::table
         .filter(aliases::mail.like(format!("%@{domain_name}")))
         .filter(aliases::enabled.eq(true))
         .select(Alias::as_select())
         .load::<Alias>(&mut conn)?;
 
-    // Convert to RequiredAlias format and sort by mail
-    let mut required_aliases: Vec<RequiredAlias> = domain_aliases
+    // Get all disabled aliases for this domain (excluding catch-all)
+    let disabled_aliases = aliases::table
+        .filter(aliases::mail.like(format!("%@{domain_name}")))
+        .filter(aliases::enabled.eq(false))
+        .filter(aliases::mail.ne(format!("@{domain_name}"))) // Exclude catch-all
+        .select(Alias::as_select())
+        .load::<Alias>(&mut conn)?;
+
+    // Convert enabled aliases to RequiredAlias format and sort by mail
+    let mut required_aliases: Vec<RequiredAlias> = enabled_aliases
         .iter()
         .map(|alias| RequiredAlias {
             mail: alias.mail.clone(),
@@ -1246,9 +1264,25 @@ pub fn get_domain_alias_report(
     let domain_required_aliases = config.get_required_aliases_for_domain(domain_name);
     let domain_common_aliases = config.get_common_aliases_for_domain(domain_name);
 
-    // Find missing required aliases only if there's no catch-all
-    let (missing_required_aliases, missing_common_aliases) = if catch_all_alias.is_none() {
-        let existing_aliases: std::collections::HashSet<String> = domain_aliases
+    // Separate disabled aliases into required and common based on their local part
+    let mut disabled_required_aliases: Vec<Alias> = Vec::new();
+    let mut disabled_common_aliases: Vec<Alias> = Vec::new();
+
+    for alias in &disabled_aliases {
+        let local_part = alias.mail.split('@').next().unwrap_or("").to_string();
+        if domain_required_aliases.contains(&local_part) {
+            disabled_required_aliases.push(alias.clone());
+        } else if domain_common_aliases.contains(&local_part) {
+            disabled_common_aliases.push(alias.clone());
+        }
+    }
+
+    disabled_required_aliases.sort_by(|a, b| a.mail.cmp(&b.mail));
+    disabled_common_aliases.sort_by(|a, b| a.mail.cmp(&b.mail));
+
+    // Find missing required aliases only if there's no enabled catch-all
+    let (missing_required_aliases, missing_common_aliases) = if enabled_catch_all_alias.is_none() {
+        let existing_aliases: std::collections::HashSet<String> = enabled_aliases
             .iter()
             .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
             .collect();
@@ -1272,14 +1306,30 @@ pub fn get_domain_alias_report(
         (Vec::new(), Vec::new())
     };
 
+    // Determine if there's a disabled catch-all
+    let disabled_catch_all = if let Some(ca) = catch_all_alias {
+        if !ca.enabled {
+            Some(ca)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     Ok(DomainAliasReport {
         domain: domain_name.to_string(),
-        has_catch_all: catch_all_alias.is_some(),
-        catch_all_alias: catch_all_alias.as_ref().map(|ca| ca.mail.clone()),
-        catch_all_destination: catch_all_alias.as_ref().map(|ca| ca.destination.clone()),
+        has_catch_all: enabled_catch_all_alias.is_some(),
+        catch_all_alias: enabled_catch_all_alias.as_ref().map(|ca| ca.mail.clone()),
+        catch_all_destination: enabled_catch_all_alias
+            .as_ref()
+            .map(|ca| ca.destination.clone()),
         required_aliases,
         missing_required_aliases,
         missing_common_aliases,
+        disabled_required_aliases,
+        disabled_common_aliases,
+        disabled_catch_all,
     })
 }
 

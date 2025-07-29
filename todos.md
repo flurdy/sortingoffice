@@ -443,7 +443,15 @@
 - Maintained all existing functionality while improving navigation organization
 - All tests pass: unit (24), integration (49)
 
-In the show domain page, if an alias is missing an alias but it is disabled change the button (and action) to enable instead of add.
+✅ In the show domain page, if an alias is missing an alias but it is disabled change the button (and action) to enable instead of add. - IMPLEMENTED
+- Modified DomainAliasReport to include disabled_required_aliases and disabled_common_aliases fields using Alias struct
+- Updated get_domain_alias_report function to detect and include disabled aliases
+- Added disabled aliases section to domain show template with yellow styling
+- Added "Enable" buttons for disabled aliases that link to /aliases/{pkid}/toggle-domain-show
+- Added "domains-enable-missing-alias" translation key to all language files
+- Updated all DomainShowTemplate initializations to include enable_missing_alias field
+- Disabled aliases now show with yellow background and enable buttons instead of add buttons
+- All tests pass: unit (24), integration (49)
 
 when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
 

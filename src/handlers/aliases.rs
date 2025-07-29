@@ -509,6 +509,12 @@ pub async fn create(
                         action_view: &action_view,
                         enable_alias: &enable_alias,
                         disable_alias: &disable_alias,
+                        enable_missing_alias: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-enable-missing-alias",
+                        )
+                        .await,
                     };
                     let content = content_template.render().unwrap();
 
@@ -1388,6 +1394,12 @@ pub async fn toggle_enabled_domain_show(
                 action_view: &action_view,
                 enable_alias: &enable_alias,
                 disable_alias: &disable_alias,
+                enable_missing_alias: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-enable-missing-alias",
+                )
+                .await,
             };
             let content = content_template.render().unwrap();
 

@@ -184,6 +184,7 @@ domains-disable-domain = Désactiver le Domaine
 domains-delete-domain = Supprimer le Domaine
 domains-delete-confirm = Êtes-vous sûr de vouloir supprimer ce domaine ?
 domains-not-found = Domaine non trouvé
+domains-enable-missing-alias = Activer
 domains-add-missing-required-aliases-button = Ajouter un alias
 domains-add-catch-all-button = Ajouter un alias
 domains-add-alias-button = Ajouter un nouvel alias

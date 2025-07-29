@@ -321,6 +321,7 @@ domains-disable-domain = Disable Domain
 domains-delete-domain = Delete Domain
 domains-delete-confirm = Are you sure you want to delete this domain?
 domains-not-found = Domain not found
+domains-enable-missing-alias = Enable
 domains-add-missing-required-aliases-button = Add alias
 domains-add-catch-all-button = Add alias
 domains-add-alias-button = Add new alias

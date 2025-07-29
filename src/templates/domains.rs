@@ -86,6 +86,7 @@ pub struct DomainShowTemplate<'a> {
     pub action_view: &'a str,
     pub enable_alias: &'a str,
     pub disable_alias: &'a str,
+    pub enable_missing_alias: &'a str,
 }
 
 #[derive(Template)]
