@@ -1,10 +1,19 @@
 // Theme management
 function getTheme() {
-    return localStorage.getItem('theme') || 'light';
+    try {
+        return localStorage.getItem('theme') || 'light';
+    } catch (e) {
+        console.warn('localStorage not available, defaulting to light mode', e);
+        return 'light';
+    }
 }
 
 function setTheme(theme) {
-    localStorage.setItem('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch (e) {
+        console.warn('localStorage not available, cannot persist theme', e);
+    }
     document.documentElement.classList.toggle('dark', theme === 'dark');
 }
 
@@ -28,9 +37,14 @@ function toggleTheme() {
         },
         body: `theme=${currentTheme}`
     })
-    .then(response => response.text())
-    .then(newTheme => {
-        setTheme(newTheme);
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then(serverTheme => {
+        setTheme(serverTheme);
     })
     .catch(error => {
         console.error('Error toggling theme:', error);

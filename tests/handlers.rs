@@ -3,7 +3,7 @@ mod tests {
     use axum::{http::StatusCode, Router};
 
     use sortingoffice::{
-        config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures},
+        config::{AdminRole, DatabaseConfig, DatabaseFeatures},
         db::{self, DatabaseManager},
         i18n::I18n,
         models::{AliasForm, NewBackup, NewDomain, UserForm},
