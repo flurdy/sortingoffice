@@ -173,6 +173,53 @@
                 function removeCustomAliasField(button) {
                     button.parentElement.remove();
                 }
+
+                // Wizard destination search functionality
+                document.addEventListener('DOMContentLoaded', function() {
+                    const destinationInput = document.getElementById('common_destination');
+                    const searchInput = document.getElementById('destination_search_input');
+                    const searchResults = document.getElementById('wizard-destination-search-results');
+
+                    if (destinationInput && searchInput && searchResults) {
+                        // Sync the hidden search input with the main input
+                        destinationInput.addEventListener('input', function() {
+                            searchInput.value = destinationInput.value;
+                        });
+
+                        // Show/hide search results based on input
+                        document.body.addEventListener('htmx:afterSwap', function (e) {
+                            if (e.target.id === 'wizard-destination-search-results') {
+                                const query = destinationInput.value.trim();
+                                if (query.length >= 2 && searchResults.innerHTML.trim() !== "") {
+                                    searchResults.classList.remove('hidden');
+                                } else {
+                                    searchResults.classList.add('hidden');
+                                }
+                            }
+                        });
+
+                        // Click handler for destination suggestions
+                        searchResults.addEventListener('click', function (e) {
+                            const li = e.target.closest('li');
+                            if (li && destinationInput) {
+                                let valueToInsert = li.getAttribute('data-mail') || li.getAttribute('data-destination') || li.textContent.trim();
+                                if (valueToInsert) {
+                                    destinationInput.value = valueToInsert;
+                                    searchInput.value = valueToInsert;
+                                    searchResults.classList.add('hidden');
+                                    destinationInput.focus();
+                                }
+                            }
+                        });
+
+                        // Hide search results when clicking outside
+                        document.addEventListener('click', function (e) {
+                            if (!destinationInput.contains(e.target) && !searchResults.contains(e.target)) {
+                                searchResults.classList.add('hidden');
+                            }
+                        });
+                    }
+                });
             </script>
 
             <!-- Default Destination -->
@@ -180,15 +227,34 @@
                 <label for="common_destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {{ destination_title }}
                 </label>
-                <input
-                    type="text"
-                    id="common_destination"
-                    name="common_destination"
-                    value="{{ form.common_destination }}"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="{{ destination_placeholder }}"
-                    required
-                />
+                <div class="relative">
+                    <input
+                        type="text"
+                        id="common_destination"
+                        name="common_destination"
+                        value="{{ form.common_destination }}"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="{{ destination_placeholder }}"
+                        required
+                    />
+                    <input
+                        type="hidden"
+                        id="destination_search_input"
+                        name="destination"
+                        hx-get="/wizard/destination-search"
+                        hx-trigger="input changed from:#common_destination delay:300ms"
+                        hx-target="#wizard-destination-search-results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#wizard-destination-search-indicator"
+                    />
+                    <div id="wizard-destination-search-indicator" class="htmx-indicator absolute right-3 top-2">
+                        <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div id="wizard-destination-search-results" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto hidden"></div>
+                </div>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {{ destination_description }}
                 </p>

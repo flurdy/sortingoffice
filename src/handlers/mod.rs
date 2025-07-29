@@ -73,8 +73,8 @@ pub use users::{
 };
 pub use utils::get_user_locale as get_user_locale_util; // Export health handlers
 pub use wizard::{
-    alias_config, alias_config_post, complete, domain_config, domain_config_post, execute,
-    index as wizard_index, review,
+    alias_config, alias_config_post, complete, destination_search, domain_config,
+    domain_config_post, execute, index as wizard_index, review,
 };
 
 use axum::{middleware, Router};
@@ -167,6 +167,10 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/wizard/alias-config", axum::routing::get(alias_config))
         .route("/wizard/review", axum::routing::get(review))
         .route("/wizard/complete", axum::routing::get(complete))
+        .route(
+            "/wizard/destination-search",
+            axum::routing::get(destination_search),
+        )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),

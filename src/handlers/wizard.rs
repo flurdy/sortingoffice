@@ -14,14 +14,21 @@ use crate::{
 };
 use askama::Template;
 use axum::{
-    extract::{Form, State},
+    extract::{Form, Query, State},
     http::HeaderMap,
     response::Html,
 };
 use lazy_static::lazy_static;
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tracing::error;
+
+#[derive(Deserialize)]
+pub struct WizardDestinationSearchQuery {
+    pub destination: Option<String>,
+    pub limit: Option<i64>,
+}
 
 // Simple session storage using static HashMap
 lazy_static! {
@@ -945,6 +952,100 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
         &locale,
         &headers
     )
+}
+
+// Wizard destination search endpoint
+pub async fn destination_search(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<WizardDestinationSearchQuery>,
+) -> Html<String> {
+    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            return Html("Database connection error".to_string());
+        }
+    };
+
+    // Get the query string
+    let query_string = query.destination.unwrap_or_default();
+
+    // Handle empty or missing query
+    if query_string.len() < 2 {
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["aliases-search-no-results", "aliases-search-select"],
+        )
+        .await;
+        let html = format!(
+            "<ul><li class=\"text-gray-400\">{}</li></ul>",
+            translations["aliases-search-no-results"]
+        );
+        return Html(html);
+    }
+
+    let limit = query.limit.unwrap_or(10);
+
+    // --- Collect all matching values from aliases and users ---
+    let mut values = std::collections::HashSet::new();
+
+    // 1. Alias mail and destination
+    if let Ok(aliases) = db::search_aliases(&pool, &query_string, limit * 2) {
+        for alias in aliases {
+            if alias.mail.contains(&query_string) {
+                values.insert(alias.mail);
+            }
+            if alias.destination.contains(&query_string) {
+                values.insert(alias.destination);
+            }
+        }
+    }
+
+    // 2. User ids
+    use diesel::prelude::*;
+    if let Ok(mut conn) = pool.get() {
+        let search_pattern = format!("%{query_string}%");
+        let user_ids: Vec<String> = crate::schema::users::dsl::users
+            .filter(crate::schema::users::dsl::id.like(&search_pattern))
+            .select(crate::schema::users::dsl::id)
+            .limit(limit * 2)
+            .load::<String>(&mut conn)
+            .unwrap_or_default();
+        for user_id in user_ids {
+            values.insert(user_id);
+        }
+    }
+
+    // 3. Sort and limit
+    let mut values: Vec<String> = values.into_iter().collect();
+    values.sort_by_key(|a| a.to_lowercase());
+    values.truncate(limit as usize);
+
+    // 4. Render as a flat list of suggestions
+    let html = if values.is_empty() {
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let translations = crate::handlers::utils::get_translations_batch(
+            &state,
+            &locale,
+            &["aliases-search-no-results", "aliases-search-select"],
+        )
+        .await;
+        format!(
+            "<ul><li class=\"text-gray-400\">{}</li></ul>",
+            translations["aliases-search-no-results"]
+        )
+    } else {
+        let items: String = values
+            .into_iter()
+            .map(|v| format!("<li class=\"cursor-pointer\">{v}</li>"))
+            .collect();
+        format!("<ul>{items}</ul>")
+    };
+
+    Html(html)
 }
 
 // Helper function to execute wizard creation
