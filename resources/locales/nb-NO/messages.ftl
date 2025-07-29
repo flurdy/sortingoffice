@@ -182,6 +182,8 @@ domains-add-missing-required-aliases-button = Legg til alias
 domains-add-catch-all-button = Legg til alias
 domains-add-alias-button = Legg til nytt alias
 domains-no-catch-all-message = Ingen catch-all alias konfigurert for denne domenen
+domains-analytics-common-aliases-header = Analysebaserte Vanlige Aliaser
+domains-analytics-common-aliases-description = Basert på databasens bruksmønstre
 
 # Backups
 backups-title = Sikkerhetskopier

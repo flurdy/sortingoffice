@@ -182,6 +182,8 @@ domains-add-missing-required-aliases-button = Ajouter un alias
 domains-add-catch-all-button = Ajouter un alias
 domains-add-alias-button = Ajouter un nouvel alias
 domains-no-catch-all-message = Aucun alias de capture totale configuré pour ce domaine
+domains-analytics-common-aliases-header = Alias Communs Basés sur l'Analyse
+domains-analytics-common-aliases-description = Basé sur les modèles d'utilisation de votre base de données
 
 # Backups
 backups-title = Sauvegardes

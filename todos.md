@@ -385,7 +385,7 @@
 
 ✅ Discuss how to define another type of common alias, for aliases that is common with these databases only, maybe derived from data analytics, i.e. most 4 most common aliases? Or user defined custom common? The domain wizard uses a form of this.
 - **Phase 1 Implemented**: Analytics-driven common aliases
-- Added `find_database_common_aliases()` function to analyze existing aliases in database
+- Added `find_database_common_aliases()` function to analyze existing aliases in database (moved to analytics module)
 - Enhanced wizard to show database-specific common aliases with "Analytics" badge
 - Added separate "Configuration Aliases" section with "Config" badge
 - Added translation keys for all languages (en-US, de-DE, es-ES, fr-FR, nb-NO)
@@ -394,6 +394,8 @@
 - Successfully tested with real database data showing postmaster (19), abuse (17), hostmaster (16), etc.
 
 rename make run into make run-watch
+
+On show alias page, add the extracted from mail field domain as a row to click on?
 
 Lets reorganise the sidebar to these:
 - Main
@@ -418,6 +420,7 @@ Lets reorganise the sidebar to these:
 -- Contact (soon)
 -- About
 
+In the show domain page, if an alias is missing an alias but it is disabled change the button (and action) of enable instead of add.
 
 when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
 
@@ -468,3 +471,5 @@ The flags in the language selection seems missing.
 on the dashboard relocated action is not translated.
 
 Rerun the missing / orphaned keys scripts
+
+in show domain page clicking add catchall does not prefix the domain with an @.

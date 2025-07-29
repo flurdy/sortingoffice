@@ -1,4 +1,5 @@
 use crate::{
+    analytics::find_database_common_aliases,
     db,
     handlers::utils::{get_entity_form_translations, get_field_translations},
     i18n::get_translation,
@@ -99,6 +100,8 @@ async fn get_domain_show_translations(state: &AppState, locale: &str) -> HashMap
             "domains-add-catch-all-button",
             "domains-add-alias-button",
             "domains-no-catch-all-message",
+            "domains-analytics-common-aliases-header",
+            "domains-analytics-common-aliases-description",
             "action-view",
             "aliases-enable-alias",
             "aliases-disable-alias",
@@ -403,6 +406,27 @@ pub async fn show(
     let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
     let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
 
+    // Get analytics-driven common aliases
+    let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
+
+    // Filter out analytics aliases that are already in the domain or in config
+    let config_required = state.config.required_aliases.clone();
+    let config_common = state.config.common_aliases.clone();
+    let existing_alias_names: Vec<String> = existing_aliases
+        .iter()
+        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+        .collect();
+
+    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
+        .iter()
+        .filter(|alias| {
+            !config_required.contains(alias)
+                && !config_common.contains(alias)
+                && !existing_alias_names.contains(alias)
+        })
+        .cloned()
+        .collect();
+
     // Create template directly
     let translations = get_domain_show_translations(&state, &locale).await;
 
@@ -448,6 +472,10 @@ pub async fn show(
         add_alias_button: &translations["domains-add-alias-button"],
         no_catch_all_message: &translations["domains-no-catch-all-message"],
         existing_aliases: &existing_aliases,
+        analytics_common_aliases: &filtered_analytics_aliases,
+        analytics_common_aliases_header: &translations["domains-analytics-common-aliases-header"],
+        analytics_common_aliases_description: &translations
+            ["domains-analytics-common-aliases-description"],
         action_view: &translations["action-view"],
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
@@ -838,6 +866,11 @@ pub async fn update(
                 add_alias_button: &translations["domains-add-alias-button"],
                 no_catch_all_message: &translations["domains-no-catch-all-message"],
                 existing_aliases: &existing_aliases,
+                analytics_common_aliases: &[],
+                analytics_common_aliases_header: &translations
+                    ["domains-analytics-common-aliases-header"],
+                analytics_common_aliases_description: &translations
+                    ["domains-analytics-common-aliases-description"],
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
@@ -1059,6 +1092,11 @@ pub async fn toggle_enabled(
                 add_alias_button: &translations["domains-add-alias-button"],
                 no_catch_all_message: &translations["domains-no-catch-all-message"],
                 existing_aliases: &existing_aliases,
+                analytics_common_aliases: &[],
+                analytics_common_aliases_header: &translations
+                    ["domains-analytics-common-aliases-header"],
+                analytics_common_aliases_description: &translations
+                    ["domains-analytics-common-aliases-description"],
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],
@@ -1262,6 +1300,11 @@ pub async fn toggle_enabled_show(
                 add_alias_button: &translations["domains-add-alias-button"],
                 no_catch_all_message: &translations["domains-no-catch-all-message"],
                 existing_aliases: &existing_aliases,
+                analytics_common_aliases: &[],
+                analytics_common_aliases_header: &translations
+                    ["domains-analytics-common-aliases-header"],
+                analytics_common_aliases_description: &translations
+                    ["domains-analytics-common-aliases-description"],
                 action_view: &translations["action-view"],
                 enable_alias: &translations["aliases-enable-alias"],
                 disable_alias: &translations["aliases-disable-alias"],

@@ -287,6 +287,22 @@ seed-clients:
 		echo "❌ seed_data/clients.sql not found!"; \
 	fi
 
+seed-analytics-test:
+	@echo "📊 Seeding analytics test data..."
+	@if [ -f "seed_data/analytics_test_domains.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/analytics_test_domains.sql; \
+		echo "✅ Analytics test domains seeded successfully!"; \
+	else \
+		echo "❌ seed_data/analytics_test_domains.sql not found!"; \
+	fi
+	@if [ -f "seed_data/analytics_test_aliases.sql" ]; then \
+		mysql -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYSQL_PORT) $(MYSQL_DATABASE) < seed_data/analytics_test_aliases.sql; \
+		echo "✅ Analytics test aliases seeded successfully!"; \
+	else \
+		echo "❌ seed_data/analytics_test_aliases.sql not found!"; \
+	fi
+	@echo "📊 Analytics test data seeded! This will show analytics aliases in the domain wizard and domain show pages."
+
 create-seed-data:
 	@echo "📝 Creating default seed data files..."
 	@mkdir -p seed_data
@@ -417,6 +433,19 @@ list-clients:
 count-clients:
 	@$(MYSQL_CMD) "SELECT COUNT(*) FROM clients;"
 
+# Analytics queries
+show-analytics-aliases:
+	@echo "📊 Showing analytics aliases (aliases with 3+ occurrences):"
+	@$(MYSQL_CMD) "SELECT SUBSTRING_INDEX(mail, '@', 1) as alias_name, COUNT(*) as count FROM aliases WHERE mail LIKE '%@%' GROUP BY SUBSTRING_INDEX(mail, '@', 1) HAVING COUNT(*) >= 3 ORDER BY count DESC;"
+
+show-all-alias-counts:
+	@echo "📊 Showing all alias name counts:"
+	@$(MYSQL_CMD) "SELECT SUBSTRING_INDEX(mail, '@', 1) as alias_name, COUNT(*) as count FROM aliases WHERE mail LIKE '%@%' GROUP BY SUBSTRING_INDEX(mail, '@', 1) ORDER BY count DESC;"
+
+test-analytics-function:
+	@echo "🧪 Testing analytics function with cargo..."
+	@cargo run --bin test-analytics 2>/dev/null || echo "⚠️  Analytics test binary not found. You can test by visiting a domain show page."
+
 list-databases:
 	./scripts/list-databases.sh
 
@@ -476,3 +505,9 @@ db-help:
 	@echo "  make count-clients     - Count all clients"
 	@echo "  make list-databases    - List all configured databases (id, label, url) from config.toml"
 	@echo "      e.g. make list-databases"
+	@echo ""
+	@echo "Analytics:"
+	@echo "  make seed-analytics-test - Seed database with analytics test data"
+	@echo "  make show-analytics-aliases - Show aliases that would appear in analytics (3+ occurrences)"
+	@echo "  make show-all-alias-counts - Show all alias name counts"
+	@echo "  make test-analytics-function - Test the analytics function"

@@ -486,6 +486,19 @@ pub async fn create(
                         add_alias_button: &add_alias_button,
                         no_catch_all_message: &no_catch_all_message,
                         existing_aliases: &existing_aliases,
+                        analytics_common_aliases: &[],
+                        analytics_common_aliases_header: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-analytics-common-aliases-header",
+                        )
+                        .await,
+                        analytics_common_aliases_description: &get_translation(
+                            &state,
+                            &locale,
+                            "domains-analytics-common-aliases-description",
+                        )
+                        .await,
                         action_view: &action_view,
                         enable_alias: &enable_alias,
                         disable_alias: &disable_alias,
@@ -1331,6 +1344,19 @@ pub async fn toggle_enabled_domain_show(
                 add_alias_button: &add_alias_button,
                 no_catch_all_message: &no_catch_all_message,
                 existing_aliases: &existing_aliases,
+                analytics_common_aliases: &[],
+                analytics_common_aliases_header: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-analytics-common-aliases-header",
+                )
+                .await,
+                analytics_common_aliases_description: &get_translation(
+                    &state,
+                    &locale,
+                    "domains-analytics-common-aliases-description",
+                )
+                .await,
                 action_view: &action_view,
                 enable_alias: &enable_alias,
                 disable_alias: &disable_alias,
