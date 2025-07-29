@@ -54,6 +54,7 @@ async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<Stri
             "wizard-required-aliases",
             "wizard-common-aliases",
             "wizard-custom-aliases",
+            "wizard-custom-aliases-placeholder",
             "wizard-destination-label",
             "wizard-destination-placeholder",
             "wizard-step-3-title",
@@ -61,6 +62,7 @@ async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<Stri
             "wizard-summary-domains",
             "wizard-summary-aliases",
             "wizard-summary-total",
+            "wizard-summary-destination",
             "wizard-step-4-title",
             "wizard-step-4-description",
             "wizard-progress-domains",
@@ -107,27 +109,37 @@ async fn find_most_common_destination(state: &AppState, headers: &HeaderMap) -> 
     match crate::db::get_aliases(&pool) {
         Ok(aliases) => {
             println!("[WIZARD DEBUG] Found {} aliases in database", aliases.len());
-            
+
             // Count destinations
-            let mut destination_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
-            
+            let mut destination_counts: std::collections::HashMap<String, usize> =
+                std::collections::HashMap::new();
+
             for alias in aliases {
                 if !alias.destination.is_empty() {
                     *destination_counts.entry(alias.destination).or_insert(0) += 1;
                 }
             }
 
-            println!("[WIZARD DEBUG] Destination counts: {:?}", destination_counts);
+            println!(
+                "[WIZARD DEBUG] Destination counts: {:?}",
+                destination_counts
+            );
 
             // Find the most common destination
             if let Some((most_common_dest, count)) = destination_counts
                 .into_iter()
                 .max_by_key(|&(_, count)| count)
             {
-                println!("[WIZARD DEBUG] Most common destination: {} (count: {})", most_common_dest, count);
+                println!(
+                    "[WIZARD DEBUG] Most common destination: {} (count: {})",
+                    most_common_dest, count
+                );
                 // Only use this destination if it appears at least 3 times
                 if count >= 3 {
-                    println!("[WIZARD DEBUG] Using most common destination: {}", most_common_dest);
+                    println!(
+                        "[WIZARD DEBUG] Using most common destination: {}",
+                        most_common_dest
+                    );
                     most_common_dest
                 } else {
                     println!("[WIZARD DEBUG] Most common destination count ({}) is less than 3, using empty", count);
@@ -232,7 +244,7 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
         println!("[WIZARD DEBUG] No session found, using default form");
         DomainConfigForm {
             domains: String::new(),
-            transport: "virtual".to_string(),
+            transport: "virtual:".to_string(),
             enabled: true,
         }
     };
@@ -339,10 +351,10 @@ pub async fn domain_config_post(
     }
 
     // Don't pre-populate common aliases - let user choose in alias config step
-session.common_aliases = Vec::new();
+    session.common_aliases = Vec::new();
 
-// Find the most common destination from existing aliases
-session.common_destination = find_most_common_destination(&state, &headers).await;
+    // Find the most common destination from existing aliases
+    session.common_destination = find_most_common_destination(&state, &headers).await;
 
     // Save session
     save_session(session);
@@ -361,12 +373,7 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
         session
     } else {
         let mut default_session = create_wizard_session();
-        default_session.domains.push(DomainWizardData {
-            domain: "example.com".to_string(),
-            transport: None,
-            enabled: true,
-            aliases: Vec::new(),
-        });
+        // Don't add a default domain - let user enter their own
         // Find the most common destination for new sessions
         let common_destination = find_most_common_destination(&state, &headers).await;
         default_session.common_destination = common_destination;
@@ -378,7 +385,10 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
     let common_aliases = state.config.common_aliases.clone();
 
     // Restore form data from session if available
-    println!("[WIZARD DEBUG] Session restoration - common_destination: {:?}", session.common_destination);
+    println!(
+        "[WIZARD DEBUG] Session restoration - common_destination: {:?}",
+        session.common_destination
+    );
     let form = AliasConfigForm {
         required_aliases: if session.common_aliases.is_empty() {
             required_aliases.clone()
@@ -421,6 +431,8 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
         common_aliases: &common_aliases,
         required_aliases_label: &translations["wizard-required-aliases"],
         common_aliases_label: &translations["wizard-common-aliases"],
+        custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
+        destination_placeholder: &translations["wizard-destination-placeholder"],
         next_button: &translations["wizard-next"],
         back_button: &translations["wizard-back"],
     };
@@ -520,6 +532,8 @@ pub async fn alias_config_post(
             common_aliases: &state.config.common_aliases,
             required_aliases_label: &translations["wizard-required-aliases"],
             common_aliases_label: &translations["wizard-common-aliases"],
+            custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
+            destination_placeholder: &translations["wizard-destination-placeholder"],
             next_button: &translations["wizard-next"],
             back_button: &translations["wizard-back"],
         };
@@ -556,16 +570,14 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session
-    let session = get_session().unwrap_or_else(|| {
-        let mut default_session = create_wizard_session();
-        default_session.domains.push(DomainWizardData {
-            domain: "example.com".to_string(),
-            transport: None,
-            enabled: true,
-            aliases: Vec::new(),
-        });
-        default_session
-    });
+    let session = match get_session() {
+        Some(session) => session,
+        None => {
+            // No session found - this shouldn't happen in normal wizard flow
+            // Redirect to wizard start
+            return index(State(state), headers).await;
+        }
+    };
 
     let domains_list: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
 
@@ -607,6 +619,7 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
         summary_domains_label: &translations["wizard-summary-domains"],
         summary_aliases_label: &translations["wizard-summary-aliases"],
         summary_total_label: &translations["wizard-summary-total"],
+        destination_label: &translations["wizard-summary-destination"],
         confirm_button: &translations["wizard-confirm"],
         back_button: &translations["wizard-back"],
     };
@@ -635,16 +648,14 @@ pub async fn execute(
     }
 
     // Get session
-    let mut session = get_session().unwrap_or_else(|| {
-        let mut default_session = create_wizard_session();
-        default_session.domains.push(DomainWizardData {
-            domain: "example.com".to_string(),
-            transport: None,
-            enabled: true,
-            aliases: Vec::new(),
-        });
-        default_session
-    });
+    let mut session = match get_session() {
+        Some(session) => session,
+        None => {
+            // No session found - this shouldn't happen in normal wizard flow
+            // Return an error page or redirect to start
+            return review(State(state), headers).await;
+        }
+    };
 
     // Update session step
     session.step = WizardStep::Executing;
@@ -756,16 +767,14 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session
-    let session = get_session().unwrap_or_else(|| {
-        let mut default_session = create_wizard_session();
-        default_session.domains.push(DomainWizardData {
-            domain: "example.com".to_string(),
-            transport: None,
-            enabled: true,
-            aliases: Vec::new(),
-        });
-        default_session
-    });
+    let session = match get_session() {
+        Some(session) => session,
+        None => {
+            // No session found - this shouldn't happen in normal wizard flow
+            // Redirect to wizard start
+            return index(State(state), headers).await;
+        }
+    };
 
     // Calculate total aliases that should have been created
     let mut total_aliases = 0;

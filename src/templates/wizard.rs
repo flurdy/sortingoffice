@@ -34,6 +34,8 @@ pub struct WizardAliasConfigTemplate<'a> {
     pub common_aliases: &'a [String],
     pub required_aliases_label: &'a str,
     pub common_aliases_label: &'a str,
+    pub custom_aliases_placeholder: &'a str,
+    pub destination_placeholder: &'a str,
     pub next_button: &'a str,
     pub back_button: &'a str,
 }
@@ -48,6 +50,7 @@ pub struct WizardReviewTemplate<'a> {
     pub summary_domains_label: &'a str,
     pub summary_aliases_label: &'a str,
     pub summary_total_label: &'a str,
+    pub destination_label: &'a str,
     pub confirm_button: &'a str,
     pub back_button: &'a str,
 }

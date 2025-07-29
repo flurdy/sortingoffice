@@ -156,7 +156,7 @@ wizard-step-1-description = Enter the domains you want to set up
 wizard-domains-label = Domains
 wizard-domains-placeholder = Enter domains (one per line or comma-separated)
 wizard-transport-label = Transport
-wizard-transport-placeholder = virtual
+wizard-transport-placeholder = virtual: or another smtp transport
 wizard-enabled-label = Enable domains
 
 # Step 2: Alias Configuration
@@ -165,8 +165,9 @@ wizard-step-2-description = Set up aliases for all domains
 wizard-required-aliases = Required Aliases
 wizard-common-aliases = Common Aliases
 wizard-custom-aliases = Custom Aliases
-wizard-destination-label = Default Destination
-wizard-destination-placeholder = admin@example.com
+wizard-custom-aliases-placeholder = john, anne, support
+wizard-destination-label = Destination
+wizard-destination-placeholder = @example.com, user@example.com or similar destination
 
 # Step 3: Review
 wizard-step-3-title = Review Configuration
@@ -174,6 +175,7 @@ wizard-step-3-description = Review your configuration before creating
 wizard-summary-domains = Domains to create
 wizard-summary-aliases = Aliases to create
 wizard-summary-total = Total items
+wizard-summary-destination = Destination
 
 # Step 4: Execution
 wizard-step-4-title = Creating Domains and Aliases
@@ -187,7 +189,7 @@ wizard-step-5-title = Setup Complete
 wizard-step-5-description = Your domains and aliases have been created
 wizard-results-success = Successfully created
 wizard-results-failed = Failed to create
-wizard-view-domains = View Domains
+wizard-view-domains = View Created Domains
 wizard-new-wizard = Start New Wizard
 
 # About

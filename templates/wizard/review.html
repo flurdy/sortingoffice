@@ -49,8 +49,18 @@
                     </div>
                 </div>
 
-                <!-- Total Summary -->
+                <!-- Destination Summary -->
                 <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ destination_label }}</span>
+                        <span class="text-sm text-gray-900 dark:text-white">
+                            {{ session.common_destination }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Total Summary -->
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ summary_total_label }}</span>
                         <div class="flex space-x-4">

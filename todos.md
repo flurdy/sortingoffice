@@ -387,4 +387,29 @@
 
 rename make run into make run-watch
 
+when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
+
 alias list on the domain page is not striped.
+
+reports-no-missing-aliases seems untranslated on the show domain page
+
+Any github best practice missing? 
+- Contribute 
+- Sponsor files
+
+Add contact documentation for the project for support, security, questions, bugs etc.
+- add separate contact for the running instance as that could be anyone.
+
+Validation. 
+- Is domain and backup name valid
+- Is alias mail valid
+- Is alias destination valid
+- Is user maildir and home valid paths
+- Is user id valid email?
+
+Lets extend the test suites with some more negative and edge cases.
+- mostly in the unit test suites
+- maybe a few significant ones in the integration suites
+- possibly some obvious ones in the ui suite
+
+The smoke test should probably clean up by removing the created resources
