@@ -388,6 +388,7 @@ aliases-alias-information = Alias Information
 aliases-alias-details = Alias details and configuration.
 aliases-mail = Mail
 aliases-forward-to = Forward To
+aliases-domain = Domain
 aliases-status = Status
 aliases-created = Created
 aliases-modified = Modified

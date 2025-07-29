@@ -393,9 +393,23 @@
 - Analytics finds top 10 most common aliases with minimum 3 occurrences
 - Successfully tested with real database data showing postmaster (19), abuse (17), hostmaster (16), etc.
 
-rename make run into make run-watch
+✅ rename make run into make run-watch - IMPLEMENTED
+- Renamed `make run` target to `make run-watch` in Makefile
+- Updated help text to reflect the new target name
+- Updated .PHONY declaration to include run-watch
+- Target still runs `cargo watch -d 5 -x run` for auto-restart on changes
+- All tests pass: unit (24), integration (49)
 
-On show alias page, add the extracted from mail field domain as a row to click on?
+✅ On show alias page, add the extracted from mail field domain as a row to click on? - IMPLEMENTED
+- Added domain row to alias show template that extracts domain from alias.mail field
+- Made domain clickable with proper direct link to domain show page if domain exists, otherwise unlinked
+- Added "aliases-domain" translation key to all language files (en-US, es-ES, de-DE, fr-FR, nb-NO)
+- Updated AliasShowTemplate struct to include domain_info field (Option<Domain>)
+- Updated all alias show handlers to look up domain and pass domain_info to template
+- Domain row displays between "Forward To" and "Status" rows
+- If domain exists: clickable link to /domains/{domain_id} for direct domain management
+- If domain doesn't exist: displays as unlinked text in gray color
+- All tests pass: unit (24), integration (49)
 
 Lets reorganise the sidebar to these:
 - Main

@@ -16,3 +16,5 @@ To restart `cargo run` use  `pkill -f sortingoffice; sleep 1; cargo run & sleep 
 - or use `cargo watch` to automatically restart
 
 Most of the URLs are behind auth with admin:admin123
+
+Note `make run-watch` may already be running and will eventually recompile and restart.

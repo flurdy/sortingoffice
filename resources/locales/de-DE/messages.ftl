@@ -254,6 +254,7 @@ aliases-alias-information = Alias-Informationen
 aliases-alias-details = Alias-Details und Konfiguration.
 aliases-mail = E-Mail
 aliases-forward-to = Weiterleiten an
+aliases-domain = Domain
 aliases-status = Status
 aliases-created = Erstellt
 aliases-modified = Geändert

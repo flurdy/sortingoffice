@@ -30,6 +30,18 @@
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">{{ alias.destination }}</dd>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ domain }}</dt>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
+                        {% if domain_info.is_some() %}
+                        <a href="/domains/{{ domain_info.as_ref().unwrap().pkid }}" class="text-primary-600 hover:text-primary-900 dark:text-blue-300 dark:hover:text-blue-200">
+                            {{ alias.mail.split('@').last().unwrap_or("") }}
+                        </a>
+                        {% else %}
+                        <span class="text-gray-500 dark:text-gray-400">{{ alias.mail.split('@').last().unwrap_or("") }}</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ status }}</dt>
                     <dd class="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                         {% if alias.enabled %}

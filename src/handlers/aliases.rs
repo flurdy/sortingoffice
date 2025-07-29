@@ -227,6 +227,7 @@ pub async fn show(
             "aliases-alias-details",
             "aliases-mail",
             "aliases-forward-to",
+            "aliases-domain",
             "aliases-status",
             "status-active",
             "status-inactive",
@@ -240,6 +241,10 @@ pub async fn show(
         ],
     )
     .await;
+    // Extract domain from alias mail and look it up
+    let domain_name = alias.mail.split('@').next_back().unwrap_or("");
+    let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
+
     let content_template = AliasShowTemplate {
         title: &translations["aliases-show-title"],
         view_edit_settings: &translations["aliases-view-edit-settings"],
@@ -248,6 +253,8 @@ pub async fn show(
         alias_details: &translations["aliases-alias-details"],
         mail: &translations["aliases-mail"],
         forward_to: &translations["aliases-forward-to"],
+        domain: &translations["aliases-domain"],
+        domain_info,
         status: &translations["aliases-status"],
         status_active: &translations["status-active"],
         status_inactive: &translations["status-inactive"],
@@ -717,6 +724,11 @@ pub async fn update(
                 get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
+            let domain = get_translation(&state, &locale, "aliases-domain").await;
+
+            // Extract domain from alias mail and look it up
+            let domain_name = alias.mail.split('@').next_back().unwrap_or("");
+            let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
             let content_template = AliasShowTemplate {
                 title: &title,
@@ -727,6 +739,8 @@ pub async fn update(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
+                domain: &domain,
+                domain_info,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -962,6 +976,11 @@ pub async fn toggle_enabled(
                 get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
+            let domain = get_translation(&state, &locale, "aliases-domain").await;
+
+            // Extract domain from alias mail and look it up
+            let domain_name = alias.mail.split('@').next_back().unwrap_or("");
+            let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
             let content_template = AliasShowTemplate {
                 title: &title,
@@ -972,6 +991,8 @@ pub async fn toggle_enabled(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
+                domain: &domain,
+                domain_info,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,
@@ -1152,6 +1173,11 @@ pub async fn toggle_enabled_show(
                 get_translation(&state, &locale, "aliases-disable-alias-button").await;
             let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
             let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
+            let domain = get_translation(&state, &locale, "aliases-domain").await;
+
+            // Extract domain from alias mail and look it up
+            let domain_name = alias.mail.split('@').next_back().unwrap_or("");
+            let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
             let content_template = AliasShowTemplate {
                 title: &title,
@@ -1162,6 +1188,8 @@ pub async fn toggle_enabled_show(
                 alias_details: &alias_details,
                 mail: &mail,
                 forward_to: &forward_to,
+                domain: &domain,
+                domain_info,
                 status: &status,
                 status_active: &status_active,
                 status_inactive: &status_inactive,

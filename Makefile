@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke selenium-up selenium-down selenium-logs selenium-clean
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke run-watch selenium-up selenium-down selenium-logs selenium-clean
 
 # Default target
 help:
@@ -45,7 +45,7 @@ help:
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-smoke - Run end-to-end smoke test against running app"
 	@echo "  make test-all   - Run all tests (unit + integration + UI)"
-	@echo "  make run        - Run locally with cargo watch (auto-restart on changes)"
+	@echo "  make run-watch  - Run locally with cargo watch (auto-restart on changes)"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make fmt        - Format code with cargo fmt"
@@ -129,7 +129,7 @@ test-smoke:
 test-all: test-unit test-integration test-ui
 	@echo "All tests completed!"
 
-run:
+run-watch:
 	cargo watch -d 5 -x run
 
 

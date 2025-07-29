@@ -62,6 +62,8 @@ pub struct AliasShowTemplate<'a> {
     pub alias_details: &'a str,
     pub mail: &'a str,
     pub forward_to: &'a str,
+    pub domain: &'a str,
+    pub domain_info: Option<Domain>,
     pub status: &'a str,
     pub status_active: &'a str,
     pub status_inactive: &'a str,
