@@ -1017,3 +1017,94 @@ users-field-name-help = Le nom d'utilisateur du compte
 users-field-active-help = Activer ce compte utilisateur
 users-field-maildir-help = Le nom du dossier mail de l'utilisateur
 users-field-home-help = Le dossier racine contenant les boîtes aux lettres
+
+# Assistant
+wizard-title = Assistant de Configuration de Domaines
+wizard-description = Configuration guidée pour plusieurs domaines et alias
+wizard-start = Démarrer l'Assistant
+wizard-next = Suivant
+wizard-back = Retour
+wizard-cancel = Annuler
+wizard-confirm = Confirmer la Configuration
+wizard-complete = Terminer
+
+# Assistant Étape 1
+wizard-step-1-title = Configurer les Domaines
+wizard-step-1-description = Saisissez les domaines que vous souhaitez configurer
+wizard-domains-label = Domaines
+wizard-domains-placeholder = Saisir les domaines (un par ligne ou séparés par des virgules)
+wizard-transport-label = Transport
+wizard-transport-placeholder = virtual: ou un autre transport smtp
+wizard-enabled-label = Activer les domaines
+
+# Assistant Étape 2
+wizard-step-2-title = Configurer les Alias
+wizard-step-2-description = Configurer les alias pour tous les domaines
+wizard-required-aliases = Alias Requis
+wizard-common-aliases = Alias Communs
+wizard-custom-aliases = Alias Personnalisés
+wizard-custom-aliases-placeholder = jean, anne, support
+wizard-destination-label = Destination
+wizard-destination-placeholder = @exemple.com, utilisateur@exemple.com ou destination similaire
+
+# Assistant Étape 3
+wizard-step-3-title = Vérifier la Configuration
+wizard-step-3-description = Vérifiez votre configuration avant de créer
+wizard-summary-domains = Domaines à créer
+wizard-summary-aliases = Alias à créer
+wizard-summary-total = Total d'éléments
+wizard-summary-destination = Destination
+
+# Assistant Étape 4
+wizard-step-4-title = Création des Domaines et Alias
+wizard-step-4-description = Veuillez patienter pendant que nous configurons votre configuration
+wizard-progress-domains = Création des domaines
+wizard-progress-aliases = Création des alias
+wizard-progress-complete = Configuration terminée
+
+# Assistant Étape 5
+wizard-step-5-title = Configuration Terminée
+wizard-step-5-description = Vos domaines et alias ont été créés
+wizard-results-success = Créé avec succès
+wizard-results-failed = Échec de la création
+wizard-view-domains = Voir les Domaines Créés
+wizard-new-wizard = Démarrer un Nouvel Assistant
+
+# Additional wizard translation keys
+wizard-step-1-box-title = Configurer les Domaines
+wizard-step-1-box-description = Saisissez les domaines que vous souhaitez configurer
+wizard-step-2-box-title = Configurer les Alias
+wizard-step-2-box-description = Configurer les alias pour tous les domaines
+wizard-step-3-box-title = Vérifier & Créer
+wizard-step-3-box-description = Vérifiez et créez votre configuration
+wizard-domains-to-configure = Domaines à configurer
+wizard-custom-aliases-description = Alias supplémentaires que vous souhaitez créer pour tous les domaines
+wizard-catchall-title = Activer l'alias catchall (@domaine → destination par défaut)
+wizard-catchall-description = Crée un alias catchall qui transfère tous les emails non correspondants vers la destination par défaut
+wizard-destination-title = Destination par Défaut
+wizard-destination-description = Destination par défaut pour tous les alias
+wizard-setup-results = Résultats de Configuration
+wizard-domains-created = Domaines Créés
+wizard-aliases-created = Alias Créés
+wizard-errors-title = Erreurs
+wizard-errors-description = Quelques erreurs se sont produites pendant la configuration. Veuillez vérifier les journaux pour plus de détails.
+wizard-new-badge = Nouveau
+
+# Additional domain config translations
+wizard-domains-label = Domaines
+wizard-domains-description = Saisissez les domaines que vous souhaitez configurer
+wizard-transport-label = Transport
+wizard-transport-description = Configuration du transport (ex. virtual pour les domaines virtuels)
+wizard-enabled-description = Choisissez si les domaines doivent être activés ou désactivés
+wizard-domain-status-label = Statut du Domaine
+wizard-enabled-label = Activé
+wizard-disabled-label = Désactivé
+
+# Additional review translations
+wizard-configuration-summary-title = Résumé de Configuration
+wizard-domains-plural = domaines
+wizard-aliases-plural = alias
+
+# Additional executing translations
+wizard-creating-domains-text = Création des domaines...
+wizard-creating-aliases-text = Création des alias...

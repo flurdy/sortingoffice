@@ -16,7 +16,7 @@
         <!-- Results Summary -->
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Setup Results</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ setup_results_title }}</h3>
             </div>
             <div class="px-6 py-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -28,7 +28,7 @@
                             </svg>
                         </div>
                         <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ domains_created }}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Domains Created</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ domains_created_label }}</p>
                     </div>
 
                     <!-- Aliases Created -->
@@ -39,17 +39,17 @@
                             </svg>
                         </div>
                         <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ aliases_created }}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Aliases Created</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ aliases_created_label }}</p>
                     </div>
                 </div>
 
                 <!-- Errors (if any) -->
                 {% if has_errors %}
                 <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <h4 class="text-sm font-medium text-red-700 dark:text-red-300 mb-3">Errors</h4>
+                    <h4 class="text-sm font-medium text-red-700 dark:text-red-300 mb-3">{{ errors_title }}</h4>
                     <div class="space-y-2">
                         <div class="text-left p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                            <p class="text-sm text-red-800 dark:text-red-200">Some errors occurred during setup. Please check the logs for details.</p>
+                            <p class="text-sm text-red-800 dark:text-red-200">{{ errors_description }}</p>
                         </div>
                     </div>
                 </div>

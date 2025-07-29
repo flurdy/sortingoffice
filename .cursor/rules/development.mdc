@@ -21,4 +21,4 @@ Use curl to verify UI changes
 
 make sure there are no compilation warnings before finishing a task
 
-Delete any unused variables and imports
+Delete any unused variables and imports.

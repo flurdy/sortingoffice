@@ -739,3 +739,94 @@ users-field-name-help = Der Benutzername für das Benutzerkonto
 users-field-active-help = Dieses Benutzerkonto aktivieren
 users-field-maildir-help = Der Name des Mailverzeichnisses des Benutzers
 users-field-home-help = Das Stammverzeichnis, das die Postfächer enthält
+
+# Wizard
+wizard-title = Domain-Setup-Assistent
+wizard-description = Geführte Einrichtung für mehrere Domains und Aliase
+wizard-start = Assistent starten
+wizard-next = Weiter
+wizard-back = Zurück
+wizard-cancel = Abbrechen
+wizard-confirm = Einrichtung bestätigen
+wizard-complete = Abschließen
+
+# Wizard Step 1
+wizard-step-1-title = Domains konfigurieren
+wizard-step-1-description = Geben Sie die Domains ein, die Sie einrichten möchten
+wizard-domains-label = Domains
+wizard-domains-placeholder = Domains eingeben (eine pro Zeile oder kommagetrennt)
+wizard-transport-label = Transport
+wizard-transport-placeholder = virtual: oder ein anderer smtp-Transport
+wizard-enabled-label = Domains aktivieren
+
+# Wizard Step 2
+wizard-step-2-title = Aliase konfigurieren
+wizard-step-2-description = Aliase für alle Domains einrichten
+wizard-required-aliases = Erforderliche Aliase
+wizard-common-aliases = Häufige Aliase
+wizard-custom-aliases = Benutzerdefinierte Aliase
+wizard-custom-aliases-placeholder = hans, anna, support
+wizard-destination-label = Ziel
+wizard-destination-placeholder = @example.com, benutzer@example.com oder ähnliches Ziel
+
+# Wizard Step 3
+wizard-step-3-title = Konfiguration überprüfen
+wizard-step-3-description = Überprüfen Sie Ihre Konfiguration vor der Erstellung
+wizard-summary-domains = Zu erstellende Domains
+wizard-summary-aliases = Zu erstellende Aliase
+wizard-summary-total = Gesamtanzahl
+wizard-summary-destination = Ziel
+
+# Wizard Step 4
+wizard-step-4-title = Domains und Aliase erstellen
+wizard-step-4-description = Bitte warten Sie, während wir Ihre Konfiguration einrichten
+wizard-progress-domains = Domains werden erstellt
+wizard-progress-aliases = Aliase werden erstellt
+wizard-progress-complete = Einrichtung abgeschlossen
+
+# Wizard Step 5
+wizard-step-5-title = Einrichtung abgeschlossen
+wizard-step-5-description = Ihre Domains und Aliase wurden erstellt
+wizard-results-success = Erfolgreich erstellt
+wizard-results-failed = Erstellung fehlgeschlagen
+wizard-view-domains = Erstellte Domains anzeigen
+wizard-new-wizard = Neuen Assistenten starten
+
+# Additional wizard translation keys
+wizard-step-1-box-title = Domains konfigurieren
+wizard-step-1-box-description = Geben Sie die Domains ein, die Sie einrichten möchten
+wizard-step-2-box-title = Aliase konfigurieren
+wizard-step-2-box-description = Aliase für alle Domains einrichten
+wizard-step-3-box-title = Überprüfen & Erstellen
+wizard-step-3-box-description = Überprüfen und erstellen Sie Ihre Konfiguration
+wizard-domains-to-configure = Zu konfigurierende Domains
+wizard-custom-aliases-description = Zusätzliche Aliase, die Sie für alle Domains erstellen möchten
+wizard-catchall-title = Catchall-Alias aktivieren (@domain → Standardziel)
+wizard-catchall-description = Erstellt einen Catchall-Alias, der alle nicht zugeordneten E-Mails an das Standardziel weiterleitet
+wizard-destination-title = Standardziel
+wizard-destination-description = Standardziel für alle Aliase
+wizard-setup-results = Einrichtungsergebnisse
+wizard-domains-created = Erstellte Domains
+wizard-aliases-created = Erstellte Aliase
+wizard-errors-title = Fehler
+wizard-errors-description = Während der Einrichtung sind einige Fehler aufgetreten. Bitte überprüfen Sie die Protokolle für Details.
+wizard-new-badge = Neu
+
+# Additional domain config translations
+wizard-domains-label = Domains
+wizard-domains-description = Geben Sie die Domains ein, die Sie konfigurieren möchten
+wizard-transport-label = Transport
+wizard-transport-description = Transport-Konfiguration (z.B. virtual für virtuelle Domains)
+wizard-enabled-description = Wählen Sie, ob die Domains aktiviert oder deaktiviert werden sollen
+wizard-domain-status-label = Domain-Status
+wizard-enabled-label = Aktiviert
+wizard-disabled-label = Deaktiviert
+
+# Additional review translations
+wizard-configuration-summary-title = Konfigurationsübersicht
+wizard-domains-plural = Domains
+wizard-aliases-plural = Aliase
+
+# Additional executing translations
+wizard-creating-domains-text = Domains werden erstellt...
+wizard-creating-aliases-text = Aliase werden erstellt...

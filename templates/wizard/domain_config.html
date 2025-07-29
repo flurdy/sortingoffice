@@ -32,7 +32,7 @@
             <!-- Domains Input -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Domains
+                    {{ domains_label }}
                 </label>
                 <div id="domains-container" class="space-y-2">
                     <div class="flex items-center space-x-2">
@@ -52,7 +52,7 @@
                 </div>
                 <input type="hidden" name="domains" id="domains-hidden" value="{{ form.domains }}" />
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Enter domains you want to configure
+                    {{ domains_description }}
                 </p>
             </div>
 
@@ -138,7 +138,7 @@
             <!-- Transport Input -->
             <div>
                 <label for="transport" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Transport
+                    {{ transport_label }}
                 </label>
                 <input
                     type="text"
@@ -150,34 +150,34 @@
                     required
                 />
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Transport configuration (e.g., virtual for virtual domains)
+                    {{ transport_description }}
                 </p>
             </div>
 
             <!-- Enabled/Disabled Toggle -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Domain Status
+                    {{ domain_status_label }}
                 </label>
                 <div class="radio-toggle-container">
                     <div class="radio-toggle">
                         <input type="radio" id="enabled_true" name="enabled" value="true" checked class="radio-toggle-input">
                         <label for="enabled_true" class="radio-toggle-label radio-toggle-label-left">
                             <span class="radio-toggle-icon">✓</span>
-                            <span class="radio-toggle-text">Enabled</span>
+                            <span class="radio-toggle-text">{{ enabled_label }}</span>
                         </label>
                         
                         <input type="radio" id="enabled_false" name="enabled" value="false" class="radio-toggle-input">
                         <label for="enabled_false" class="radio-toggle-label radio-toggle-label-right">
                             <span class="radio-toggle-icon">✗</span>
-                            <span class="radio-toggle-text">Disabled</span>
+                            <span class="radio-toggle-text">{{ disabled_label }}</span>
                         </label>
                         
                         <div class="radio-toggle-slider"></div>
                     </div>
                 </div>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Choose whether the domains should be enabled or disabled
+                    {{ enabled_description }}
                 </p>
             </div>
 

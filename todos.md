@@ -400,12 +400,21 @@ Any github best practice missing?
 Add contact documentation for the project for support, security, questions, bugs etc.
 - add separate contact for the running instance as that could be anyone.
 
+The select database page seems not translated.
+
 Validation. 
 - Is domain and backup name valid
+- a machine name without a tld is a valid domain name, e.g. localhost, or andromeda-001
 - Is alias mail valid
+- A catchall alias mail is valid
+- has to contain an @ but not end in an @
 - Is alias destination valid
+- @ is not a valid destination
+- @example.com is a valid destination
+- has to contain an @ but not end in an @
 - Is user maildir and home valid paths
-- Is user id valid email?
+- Is user id a valid email?
+- a catchall is not valid user id
 
 Lets extend the test suites with some more negative and edge cases.
 - mostly in the unit test suites
@@ -413,3 +422,5 @@ Lets extend the test suites with some more negative and edge cases.
 - possibly some obvious ones in the ui suite
 
 The smoke test should probably clean up by removing the created resources
+
+The flags in the language selection seems missing.

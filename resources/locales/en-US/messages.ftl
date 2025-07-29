@@ -192,6 +192,45 @@ wizard-results-failed = Failed to create
 wizard-view-domains = View Created Domains
 wizard-new-wizard = Start New Wizard
 
+# Additional wizard translation keys
+wizard-step-1-box-title = Configure Domains
+wizard-step-1-box-description = Enter the domains you want to set up
+wizard-step-2-box-title = Configure Aliases
+wizard-step-2-box-description = Set up aliases for all domains
+wizard-step-3-box-title = Review & Create
+wizard-step-3-box-description = Review and create your configuration
+wizard-domains-to-configure = Domains to configure
+wizard-custom-aliases-description = Additional aliases you want to create for all domains
+wizard-catchall-title = Enable catchall alias (@domain → default destination)
+wizard-catchall-description = Creates a catchall alias that forwards all unmatched emails to the default destination
+wizard-destination-title = Default Destination
+wizard-destination-description = Default destination for all aliases
+wizard-setup-results = Setup Results
+wizard-domains-created = Domains Created
+wizard-aliases-created = Aliases Created
+wizard-errors-title = Errors
+wizard-errors-description = Some errors occurred during setup. Please check the logs for details.
+wizard-new-badge = New
+
+# Additional domain config translations
+wizard-domains-label = Domains
+wizard-domains-description = Enter domains you want to configure
+wizard-transport-label = Transport
+wizard-transport-description = Transport configuration (e.g., virtual for virtual domains)
+wizard-enabled-description = Choose whether the domains should be enabled or disabled
+wizard-domain-status-label = Domain Status
+wizard-enabled-label = Enabled
+wizard-disabled-label = Disabled
+
+# Additional review translations
+wizard-configuration-summary-title = Configuration Summary
+wizard-domains-plural = domains
+wizard-aliases-plural = aliases
+
+# Additional executing translations
+wizard-creating-domains-text = Creating domains...
+wizard-creating-aliases-text = Creating aliases...
+
 # About
 about-title = About Sorting Office
 about-subtitle = A comprehensive mail server administration tool for managing domains, users, aliases, and backups.

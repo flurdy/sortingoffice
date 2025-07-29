@@ -722,3 +722,94 @@ users-field-name-help = El nombre de usuario de la cuenta
 users-field-active-help = Activar esta cuenta de usuario
 users-field-maildir-help = El nombre del directorio de correo del usuario
 users-field-home-help = El directorio raíz que contiene los buzones
+
+# Asistente
+wizard-title = Asistente de Configuración de Dominios
+wizard-description = Configuración guiada para múltiples dominios y alias
+wizard-start = Iniciar Asistente
+wizard-next = Siguiente
+wizard-back = Atrás
+wizard-cancel = Cancelar
+wizard-confirm = Confirmar Configuración
+wizard-complete = Completar
+
+# Asistente Paso 1
+wizard-step-1-title = Configurar Dominios
+wizard-step-1-description = Ingrese los dominios que desea configurar
+wizard-domains-label = Dominios
+wizard-domains-placeholder = Ingrese dominios (uno por línea o separados por comas)
+wizard-transport-label = Transporte
+wizard-transport-placeholder = virtual: u otro transporte smtp
+wizard-enabled-label = Habilitar dominios
+
+# Asistente Paso 2
+wizard-step-2-title = Configurar Alias
+wizard-step-2-description = Configurar alias para todos los dominios
+wizard-required-aliases = Alias Requeridos
+wizard-common-aliases = Alias Comunes
+wizard-custom-aliases = Alias Personalizados
+wizard-custom-aliases-placeholder = juan, ana, soporte
+wizard-destination-label = Destino
+wizard-destination-placeholder = @ejemplo.com, usuario@ejemplo.com o destino similar
+
+# Asistente Paso 3
+wizard-step-3-title = Revisar Configuración
+wizard-step-3-description = Revise su configuración antes de crear
+wizard-summary-domains = Dominios a crear
+wizard-summary-aliases = Alias a crear
+wizard-summary-total = Total de elementos
+wizard-summary-destination = Destino
+
+# Asistente Paso 4
+wizard-step-4-title = Creando Dominios y Alias
+wizard-step-4-description = Por favor espere mientras configuramos su configuración
+wizard-progress-domains = Creando dominios
+wizard-progress-aliases = Creando alias
+wizard-progress-complete = Configuración completada
+
+# Asistente Paso 5
+wizard-step-5-title = Configuración Completada
+wizard-step-5-description = Sus dominios y alias han sido creados
+wizard-results-success = Creado exitosamente
+wizard-results-failed = Error al crear
+wizard-view-domains = Ver Dominios Creados
+wizard-new-wizard = Iniciar Nuevo Asistente
+
+# Additional wizard translation keys
+wizard-step-1-box-title = Configurar Dominios
+wizard-step-1-box-description = Ingrese los dominios que desea configurar
+wizard-step-2-box-title = Configurar Alias
+wizard-step-2-box-description = Configurar alias para todos los dominios
+wizard-step-3-box-title = Revisar & Crear
+wizard-step-3-box-description = Revise y cree su configuración
+wizard-domains-to-configure = Dominios a configurar
+wizard-custom-aliases-description = Alias adicionales que desea crear para todos los dominios
+wizard-catchall-title = Habilitar alias catchall (@dominio → destino predeterminado)
+wizard-catchall-description = Crea un alias catchall que reenvía todos los correos no coincidentes al destino predeterminado
+wizard-destination-title = Destino Predeterminado
+wizard-destination-description = Destino predeterminado para todos los alias
+wizard-setup-results = Resultados de Configuración
+wizard-domains-created = Dominios Creados
+wizard-aliases-created = Alias Creados
+wizard-errors-title = Errores
+wizard-errors-description = Ocurrieron algunos errores durante la configuración. Por favor revise los registros para más detalles.
+wizard-new-badge = Nuevo
+
+# Additional domain config translations
+wizard-domains-label = Dominios
+wizard-domains-description = Ingrese los dominios que desea configurar
+wizard-transport-label = Transporte
+wizard-transport-description = Configuración de transporte (ej. virtual para dominios virtuales)
+wizard-enabled-description = Elija si los dominios deben estar habilitados o deshabilitados
+wizard-domain-status-label = Estado del Dominio
+wizard-enabled-label = Habilitado
+wizard-disabled-label = Deshabilitado
+
+# Additional review translations
+wizard-configuration-summary-title = Resumen de Configuración
+wizard-domains-plural = dominios
+wizard-aliases-plural = alias
+
+# Additional executing translations
+wizard-creating-domains-text = Creando dominios...
+wizard-creating-aliases-text = Creando alias...

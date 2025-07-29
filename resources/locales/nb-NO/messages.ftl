@@ -652,3 +652,94 @@ database-backup-table-header-actions = Handlinger
 # Database Backup Actions
 database-backup-action-download = Last Ned
 database-backup-action-delete = Slett
+
+# Veiviser
+wizard-title = Domeneoppsett Veiviser
+wizard-description = Guidet oppsett for flere domener og aliaser
+wizard-start = Start Veiviser
+wizard-next = Neste
+wizard-back = Tilbake
+wizard-cancel = Avbryt
+wizard-confirm = Bekreft Oppsett
+wizard-complete = Fullfør
+
+# Veiviser Steg 1
+wizard-step-1-title = Konfigurer Domener
+wizard-step-1-description = Skriv inn domener du vil sette opp
+wizard-domains-label = Domener
+wizard-domains-placeholder = Skriv inn domener (én per linje eller komma-separert)
+wizard-transport-label = Transport
+wizard-transport-placeholder = virtual: eller annen smtp-transport
+wizard-enabled-label = Aktiver domener
+
+# Veiviser Steg 2
+wizard-step-2-title = Konfigurer Aliaser
+wizard-step-2-description = Sett opp aliaser for alle domener
+wizard-required-aliases = Påkrevde Aliaser
+wizard-common-aliases = Vanlige Aliaser
+wizard-custom-aliases = Egendefinerte Aliaser
+wizard-custom-aliases-placeholder = johan, anne, støtte
+wizard-destination-label = Destinasjon
+wizard-destination-placeholder = @eksempel.no, bruker@eksempel.no eller lignende destinasjon
+
+# Veiviser Steg 3
+wizard-step-3-title = Gjennomgå Konfigurasjon
+wizard-step-3-description = Gjennomgå konfigurasjonen før du oppretter
+wizard-summary-domains = Domener som skal opprettes
+wizard-summary-aliases = Aliaser som skal opprettes
+wizard-summary-total = Totalt antall
+wizard-summary-destination = Destinasjon
+
+# Veiviser Steg 4
+wizard-step-4-title = Oppretter Domener og Aliaser
+wizard-step-4-description = Vennligst vent mens vi setter opp konfigurasjonen din
+wizard-progress-domains = Oppretter domener
+wizard-progress-aliases = Oppretter aliaser
+wizard-progress-complete = Oppsett fullført
+
+# Veiviser Steg 5
+wizard-step-5-title = Oppsett Fullført
+wizard-step-5-description = Dine domener og aliaser har blitt opprettet
+wizard-results-success = Opprettet
+wizard-results-failed = Kunne ikke opprette
+wizard-view-domains = Vis Opprettede Domener
+wizard-new-wizard = Start Ny Veiviser
+
+# Additional wizard translation keys
+wizard-step-1-box-title = Konfigurer Domener
+wizard-step-1-box-description = Skriv inn domener du vil sette opp
+wizard-step-2-box-title = Konfigurer Aliaser
+wizard-step-2-box-description = Sett opp aliaser for alle domener
+wizard-step-3-box-title = Gjennomgå & Opprett
+wizard-step-3-box-description = Gjennomgå og opprett konfigurasjonen din
+wizard-domains-to-configure = Domener som skal konfigureres
+wizard-custom-aliases-description = Tilleggsaliaser du vil opprette for alle domener
+wizard-catchall-title = Aktiver catchall-alias (@domene → standarddestinasjon)
+wizard-catchall-description = Oppretter en catchall-alias som videresender alle ikke-samsvarende e-poster til standarddestinasjonen
+wizard-destination-title = Standard Destinasjon
+wizard-destination-description = Standard destinasjon for alle aliaser
+wizard-setup-results = Oppsettresultater
+wizard-domains-created = Opprettede Domener
+wizard-aliases-created = Opprettede Aliaser
+wizard-errors-title = Feil
+wizard-errors-description = Noen feil oppstod under oppsettet. Vennligst sjekk loggene for detaljer.
+wizard-new-badge = Ny
+
+# Additional domain config translations
+wizard-domains-label = Domener
+wizard-domains-description = Skriv inn domener du vil konfigurere
+wizard-transport-label = Transport
+wizard-transport-description = Transport-konfigurasjon (f.eks. virtual for virtuelle domener)
+wizard-enabled-description = Velg om domener skal være aktiverte eller deaktiverte
+wizard-domain-status-label = Domenestatus
+wizard-enabled-label = Aktivert
+wizard-disabled-label = Deaktivert
+
+# Additional review translations
+wizard-configuration-summary-title = Konfigurasjonsoversikt
+wizard-domains-plural = domener
+wizard-aliases-plural = aliaser
+
+# Additional executing translations
+wizard-creating-domains-text = Oppretter domener...
+wizard-creating-aliases-text = Oppretter aliaser...

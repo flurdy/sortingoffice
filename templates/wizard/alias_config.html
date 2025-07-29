@@ -29,7 +29,7 @@
 
         <!-- Domains Summary -->
         <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
-            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Domains to configure:</h3>
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">{{ domains_to_configure_label }}:</h3>
             <div class="flex flex-wrap gap-2">
                 {% for domain in domains %}
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200">
@@ -92,7 +92,7 @@
             <!-- Custom Aliases -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Custom Aliases
+                    {{ custom_aliases_label }}
                 </label>
                 <div id="custom-aliases-container" class="space-y-2">
                     {% for alias in form.custom_aliases %}
@@ -126,7 +126,7 @@
                     </div>
                 </div>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Additional aliases you want to create for all domains
+                    {{ custom_aliases_description }}
                 </p>
             </div>
 
@@ -141,11 +141,11 @@
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label for="catchall_enabled" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                        Enable catchall alias (@domain → default destination)
+                        {{ catchall_title }}
                     </label>
                 </div>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Creates a catchall alias that forwards all unmatched emails to the default destination
+                    {{ catchall_description }}
                 </p>
             </div>
 
@@ -178,7 +178,7 @@
             <!-- Default Destination -->
             <div>
                 <label for="common_destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Default Destination
+                    {{ destination_title }}
                 </label>
                 <input
                     type="text"
@@ -190,7 +190,7 @@
                     required
                 />
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Default destination for all aliases
+                    {{ destination_description }}
                 </p>
             </div>
 
