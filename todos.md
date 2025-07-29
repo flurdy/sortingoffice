@@ -384,3 +384,7 @@
 - Integrated with existing authentication and permission system
 
 🔄 Discuss how to define another type of common alias, for aliases that is common with these databases only, maybe derived from data analytics, i.e. most 4 most common aliases? Or user defined custom common? Or perhaps a better name for it.
+
+rename make run into make run-watch
+
+alias list on the domain page is not striped.

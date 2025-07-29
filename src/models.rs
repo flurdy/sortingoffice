@@ -17,6 +17,38 @@ where
     }
 }
 
+// Custom deserializer that can handle multiple values with the same field name
+fn deserialize_duplicate_fields<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde_json::Value;
+
+    let value = Value::deserialize(deserializer)?;
+
+    match value {
+        Value::Array(arr) => {
+            let mut result = Vec::new();
+            for item in arr {
+                if let Value::String(s) = item {
+                    result.push(s);
+                }
+            }
+            Ok(result)
+        }
+        Value::String(s) => Ok(vec![s]),
+        _ => Ok(Vec::new()),
+    }
+}
+
+fn deserialize_radio_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(s == "true")
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SystemStats {
     pub total_domains: i64,
@@ -939,9 +971,11 @@ pub struct DomainWizardSession {
     pub step: WizardStep,
     pub domains: Vec<DomainWizardData>,
     pub common_aliases: Vec<String>,
+    pub custom_aliases: Vec<String>,
     pub common_destination: String,
     pub transport: String,
     pub enabled: bool,
+    pub catchall_enabled: bool,
 }
 
 // Form models for wizard steps
@@ -950,16 +984,23 @@ pub struct DomainConfigForm {
     pub domains: String, // Comma-separated domain string
     pub transport: String,
     #[serde(default)]
-    #[serde(deserialize_with = "deserialize_checkbox")]
+    #[serde(deserialize_with = "deserialize_radio_bool")]
     pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct AliasConfigForm {
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_duplicate_fields")]
     pub required_aliases: Vec<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_duplicate_fields")]
     pub common_aliases: Vec<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_duplicate_fields")]
     pub custom_aliases: Vec<String>,
     pub common_destination: String,
+    #[serde(default)]
     pub alias_destinations: HashMap<String, String>, // alias -> destination
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]

@@ -209,6 +209,45 @@ cargo test --test ui_headless -- --nocapture --test-threads=1
 - **CI/CD Friendly**: Works reliably in automated environments
 - **Fast Execution**: Headless mode for quick test execution
 
+### Wizard Flow Test
+
+A comprehensive UI test for the wizard flow with dynamic domain fields:
+
+```bash
+# Run the wizard test specifically
+cargo test test_wizard_flow_with_dynamic_domains_smoke -- --nocapture
+
+# Or use the convenience script
+./tests/run_wizard_test.sh
+```
+
+**What the Wizard Test Covers:**
+
+1. **Dynamic Domain Fields**: Tests adding/removing domain input fields
+2. **Form Validation**: Verifies domain validation and error handling
+3. **Session Management**: Tests wizard session persistence across steps
+4. **HTMX Integration**: Verifies dynamic form submissions
+5. **Complete Workflow**: Tests the entire wizard flow from start to finish
+6. **Custom Aliases**: Tests dynamic custom alias field management
+7. **Review & Execution**: Verifies review and execution steps
+
+**Test Steps:**
+- ✅ Navigate to wizard
+- ✅ Configure domains with dynamic fields
+- ✅ Add/remove domain fields
+- ✅ Submit domain configuration
+- ✅ Configure aliases with custom fields
+- ✅ Add/remove custom alias fields
+- ✅ Submit alias configuration
+- ✅ Review configuration
+- ✅ Execute wizard
+- ✅ Verify completion
+
+**Prerequisites:**
+- Application running on `http://localhost:3000`
+- Selenium running on `http://localhost:4444`
+- Authentication as admin user
+
 ### UI Test Debugging
 
 - **Logging**: Set `RUST_LOG=debug` for detailed WebDriver logs

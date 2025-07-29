@@ -1,4 +1,5 @@
 use crate::{
+    db,
     handlers::utils::get_user_locale,
     models::{
         AliasConfigForm, DomainConfigForm, DomainWizardData, DomainWizardSession,
@@ -76,9 +77,8 @@ async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<Stri
     .await
 }
 
-
-
 // Helper function to generate aliases from config
+#[allow(dead_code)]
 fn generate_aliases_from_config(config: &crate::Config) -> Vec<String> {
     let mut aliases = Vec::new();
 
@@ -91,15 +91,72 @@ fn generate_aliases_from_config(config: &crate::Config) -> Vec<String> {
     aliases
 }
 
+/// Find the most common destination from existing aliases in the database
+async fn find_most_common_destination(state: &AppState, headers: &HeaderMap) -> String {
+    // Try to get the database pool
+    let pool = match crate::handlers::utils::get_current_db_pool(state, headers).await {
+        Ok(pool) => pool,
+        Err(_) => {
+            // If we can't get the pool, return empty string
+            println!("[WIZARD DEBUG] Could not get database pool for destination lookup");
+            return String::new();
+        }
+    };
+
+    // Get all aliases from the database
+    match crate::db::get_aliases(&pool) {
+        Ok(aliases) => {
+            println!("[WIZARD DEBUG] Found {} aliases in database", aliases.len());
+            
+            // Count destinations
+            let mut destination_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+            
+            for alias in aliases {
+                if !alias.destination.is_empty() {
+                    *destination_counts.entry(alias.destination).or_insert(0) += 1;
+                }
+            }
+
+            println!("[WIZARD DEBUG] Destination counts: {:?}", destination_counts);
+
+            // Find the most common destination
+            if let Some((most_common_dest, count)) = destination_counts
+                .into_iter()
+                .max_by_key(|&(_, count)| count)
+            {
+                println!("[WIZARD DEBUG] Most common destination: {} (count: {})", most_common_dest, count);
+                // Only use this destination if it appears at least 3 times
+                if count >= 3 {
+                    println!("[WIZARD DEBUG] Using most common destination: {}", most_common_dest);
+                    most_common_dest
+                } else {
+                    println!("[WIZARD DEBUG] Most common destination count ({}) is less than 3, using empty", count);
+                    String::new()
+                }
+            } else {
+                println!("[WIZARD DEBUG] No destinations found, using empty");
+                String::new()
+            }
+        }
+        Err(e) => {
+            // Error getting aliases, return empty string
+            println!("[WIZARD DEBUG] Error getting aliases: {:?}", e);
+            String::new()
+        }
+    }
+}
+
 // Helper function to create a new wizard session
 fn create_wizard_session() -> DomainWizardSession {
     DomainWizardSession {
         step: WizardStep::DomainConfig,
         domains: Vec::new(),
         common_aliases: Vec::new(),
+        custom_aliases: Vec::new(),
         common_destination: String::new(),
         transport: "virtual".to_string(),
         enabled: true,
+        catchall_enabled: false,
     }
 }
 
@@ -126,6 +183,9 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
+    // Clear any existing session when starting a new wizard
+    clear_session();
+
     let content_template = WizardIndexTemplate {
         title: &translations["wizard-title"],
         description: &translations["wizard-description"],
@@ -146,10 +206,35 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
-    let form = DomainConfigForm {
-        domains: String::new(),
-        transport: "virtual".to_string(),
-        enabled: true,
+    // Get existing session to restore form data
+    let session = get_session();
+    let form = if let Some(session) = session {
+        // Restore domains from session
+        let domains_str = session
+            .domains
+            .iter()
+            .map(|d| d.domain.clone())
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        println!(
+            "[WIZARD DEBUG] Restoring session with domains: {:?}",
+            session.domains
+        );
+        println!("[WIZARD DEBUG] Restored domains string: '{}'", domains_str);
+
+        DomainConfigForm {
+            domains: domains_str,
+            transport: session.transport.clone(),
+            enabled: session.enabled,
+        }
+    } else {
+        println!("[WIZARD DEBUG] No session found, using default form");
+        DomainConfigForm {
+            domains: String::new(),
+            transport: "virtual".to_string(),
+            enabled: true,
+        }
     };
 
     let content_template = WizardDomainConfigTemplate {
@@ -182,7 +267,8 @@ pub async fn domain_config_post(
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Parse domains from comma-separated string
-    let domains: Vec<String> = form.domains
+    let domains: Vec<String> = form
+        .domains
         .split(',')
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
@@ -252,9 +338,11 @@ pub async fn domain_config_post(
         });
     }
 
-    // Generate common aliases from config
-    session.common_aliases = generate_aliases_from_config(&state.config);
-    session.common_destination = "admin@example.com".to_string(); // Default
+    // Don't pre-populate common aliases - let user choose in alias config step
+session.common_aliases = Vec::new();
+
+// Find the most common destination from existing aliases
+session.common_destination = find_most_common_destination(&state, &headers).await;
 
     // Save session
     save_session(session);
@@ -269,7 +357,9 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session or create default
-    let session = get_session().unwrap_or_else(|| {
+    let session = if let Some(session) = get_session() {
+        session
+    } else {
         let mut default_session = create_wizard_session();
         default_session.domains.push(DomainWizardData {
             domain: "example.com".to_string(),
@@ -277,20 +367,48 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
             enabled: true,
             aliases: Vec::new(),
         });
+        // Find the most common destination for new sessions
+        let common_destination = find_most_common_destination(&state, &headers).await;
+        default_session.common_destination = common_destination;
         default_session
-    });
+    };
 
     let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
     let required_aliases = state.config.required_aliases.clone();
     let common_aliases = state.config.common_aliases.clone();
 
+    // Restore form data from session if available
+    println!("[WIZARD DEBUG] Session restoration - common_destination: {:?}", session.common_destination);
     let form = AliasConfigForm {
-        required_aliases: required_aliases.clone(),
-        common_aliases: common_aliases.clone(),
-        custom_aliases: Vec::new(),
+        required_aliases: if session.common_aliases.is_empty() {
+            required_aliases.clone()
+        } else {
+            // Extract required aliases from session (they're mixed with common aliases)
+            let config_required = state.config.required_aliases.clone();
+            session
+                .common_aliases
+                .iter()
+                .filter(|alias| config_required.contains(alias))
+                .cloned()
+                .collect()
+        },
+        common_aliases: if session.common_aliases.is_empty() {
+            // Default: no common aliases are checked
+            Vec::new()
+        } else {
+            // Extract common aliases from session (they're mixed with common aliases)
+            let config_common = state.config.common_aliases.clone();
+            session
+                .common_aliases
+                .iter()
+                .filter(|alias| config_common.contains(alias))
+                .cloned()
+                .collect()
+        },
+        custom_aliases: session.custom_aliases.clone(),
         common_destination: session.common_destination.clone(),
         alias_destinations: HashMap::new(),
-        catchall_enabled: false,
+        catchall_enabled: session.catchall_enabled,
     };
 
     let content_template = WizardAliasConfigTemplate {
@@ -320,8 +438,59 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
 pub async fn alias_config_post(
     State(state): State<AppState>,
     headers: HeaderMap,
-    Form(form): Form<AliasConfigForm>,
+    request: axum::extract::Request,
 ) -> Html<String> {
+    // Parse form data manually to handle duplicate field names
+    let body_bytes = axum::body::to_bytes(request.into_body(), usize::MAX)
+        .await
+        .unwrap_or_default();
+
+    let body_string = String::from_utf8_lossy(&body_bytes);
+    println!("[WIZARD DEBUG] Raw form data: {}", body_string);
+
+    // Parse form data manually
+    let mut required_aliases = Vec::new();
+    let mut common_aliases = Vec::new();
+    let mut custom_aliases = Vec::new();
+    let mut common_destination = String::new();
+    let mut catchall_enabled = false;
+
+    for pair in body_string.split('&') {
+        if let Some((key, value)) = pair.split_once('=') {
+            // Use a simpler URL decoding approach
+            let decoded_value = value
+                .replace("%40", "@")
+                .replace("%20", " ")
+                .replace("+", " ");
+
+            match key {
+                "required_aliases" => required_aliases.push(decoded_value),
+                "common_aliases" => common_aliases.push(decoded_value),
+                "custom_aliases" => {
+                    // Only add non-empty custom aliases
+                    if !decoded_value.is_empty() {
+                        custom_aliases.push(decoded_value);
+                    }
+                }
+                "common_destination" => common_destination = decoded_value,
+                "catchall_enabled" => catchall_enabled = decoded_value == "on",
+                _ => {}
+            }
+        }
+    }
+
+    let form = AliasConfigForm {
+        required_aliases,
+        common_aliases,
+        custom_aliases,
+        common_destination,
+        alias_destinations: HashMap::new(),
+        catchall_enabled,
+    };
+
+    // Debug logging
+    println!("[WIZARD DEBUG] Parsed form: {:?}", form);
+
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
@@ -366,6 +535,14 @@ pub async fn alias_config_post(
 
     // Update session with form data
     session.common_destination = form.common_destination;
+    session.common_aliases = form
+        .required_aliases
+        .iter()
+        .chain(form.common_aliases.iter())
+        .cloned()
+        .collect();
+    session.custom_aliases = form.custom_aliases.clone();
+    session.catchall_enabled = form.catchall_enabled;
     session.step = WizardStep::Review;
     save_session(session);
 
@@ -391,11 +568,29 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
     });
 
     let domains_list: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
-    let aliases_list = vec![
-        "postmaster@example.com".to_string(),
-        "admin@example.com".to_string(),
-        "webmaster@example.com".to_string(),
-    ];
+
+    // Generate aliases list from session data, grouped by domain and sorted
+    let mut aliases_list = Vec::new();
+
+    for domain in &session.domains {
+        // Add required and common aliases
+        for alias in &session.common_aliases {
+            aliases_list.push(format!("{}@{}", alias, domain.domain));
+        }
+        // Add custom aliases
+        for alias in &session.custom_aliases {
+            if !alias.is_empty() {
+                aliases_list.push(format!("{}@{}", alias, domain.domain));
+            }
+        }
+        // Add catchall alias if enabled
+        if session.catchall_enabled {
+            aliases_list.push(format!("@{}", domain.domain)); // Just @domain for catchall
+        }
+    }
+
+    // Sort aliases alphabetically
+    aliases_list.sort();
 
     let summary = WizardSummary {
         total_domains: domains_list.len() as i32,
@@ -455,8 +650,97 @@ pub async fn execute(
     session.step = WizardStep::Executing;
     save_session(session.clone());
 
-    // TODO: Actually create domains and aliases in database
-    // For now, just simulate success
+    // Actually create domains and aliases in database
+    let mut _domains_created = 0;
+    let mut _aliases_created = 0;
+
+    for domain_data in &session.domains {
+        // Create domain
+        let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+            Ok(pool) => pool,
+            Err(e) => {
+                println!("[WIZARD DEBUG] Failed to get database pool: {:?}", e);
+                continue;
+            }
+        };
+
+        let new_domain = crate::models::NewDomain {
+            domain: domain_data.domain.clone(),
+            transport: Some(session.transport.clone()),
+            enabled: session.enabled,
+        };
+
+        match db::create_domain(&pool, new_domain) {
+            Ok(_) => {
+                _domains_created += 1;
+                println!("[WIZARD DEBUG] Created domain: {}", domain_data.domain);
+            }
+            Err(e) => {
+                println!(
+                    "[WIZARD DEBUG] Failed to create domain {}: {:?}",
+                    domain_data.domain, e
+                );
+            }
+        }
+
+        // Create aliases for this domain
+        let mut aliases_to_create = Vec::new();
+
+        // Add required aliases
+        for alias in &session.common_aliases {
+            let config_required = state.config.required_aliases.clone();
+            if config_required.contains(alias) {
+                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
+            }
+        }
+
+        // Add common aliases
+        for alias in &session.common_aliases {
+            let config_common = state.config.common_aliases.clone();
+            if config_common.contains(alias) {
+                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
+            }
+        }
+
+        // Add custom aliases
+        for alias in &session.custom_aliases {
+            if !alias.is_empty() {
+                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
+            }
+        }
+
+        // Add catchall alias if enabled
+        if session.catchall_enabled {
+            aliases_to_create.push(format!("@{}", domain_data.domain));
+        }
+
+        // Remove duplicates
+        aliases_to_create.sort();
+        aliases_to_create.dedup();
+
+        // Create each alias
+        for alias in aliases_to_create {
+            let alias_form = crate::models::AliasForm {
+                mail: alias.clone(),
+                destination: session.common_destination.clone(),
+                enabled: true,
+                return_url: None,
+            };
+
+            match db::create_alias(&pool, alias_form) {
+                Ok(_) => {
+                    _aliases_created += 1;
+                    println!(
+                        "[WIZARD DEBUG] Created alias: {} -> {}",
+                        alias, session.common_destination
+                    );
+                }
+                Err(e) => {
+                    println!("[WIZARD DEBUG] Failed to create alias {}: {:?}", alias, e);
+                }
+            }
+        }
+    }
 
     // Update session to complete
     session.step = WizardStep::Complete;
@@ -483,11 +767,40 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
         default_session
     });
 
+    // Calculate total aliases that should have been created
+    let mut total_aliases = 0;
+    for _domain_data in &session.domains {
+        // Count required aliases
+        for alias in &session.common_aliases {
+            let config_required = state.config.required_aliases.clone();
+            if config_required.contains(alias) {
+                total_aliases += 1;
+            }
+        }
+        // Count common aliases
+        for alias in &session.common_aliases {
+            let config_common = state.config.common_aliases.clone();
+            if config_common.contains(alias) {
+                total_aliases += 1;
+            }
+        }
+        // Count custom aliases
+        for alias in &session.custom_aliases {
+            if !alias.is_empty() {
+                total_aliases += 1;
+            }
+        }
+        // Count catchall if enabled
+        if session.catchall_enabled {
+            total_aliases += 1;
+        }
+    }
+
     let content_template = WizardCompleteTemplate {
         title: &translations["wizard-step-5-title"],
         description: &translations["wizard-step-5-description"],
         domains_created: session.domains.len() as i32,
-        aliases_created: 5, // TODO: Calculate actual aliases created
+        aliases_created: total_aliases,
         has_errors: false,
         view_domains_button: &translations["wizard-view-domains"],
         new_wizard_button: &translations["wizard-new-wizard"],

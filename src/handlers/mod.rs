@@ -164,15 +164,7 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         // Wizard routes (read-only access)
         .route("/wizard", axum::routing::get(wizard_index))
         .route("/wizard/domain-config", axum::routing::get(domain_config))
-        .route(
-            "/wizard/domain-config",
-            axum::routing::post(domain_config_post),
-        )
         .route("/wizard/alias-config", axum::routing::get(alias_config))
-        .route(
-            "/wizard/alias-config",
-            axum::routing::post(alias_config_post),
-        )
         .route("/wizard/review", axum::routing::get(review))
         .route("/wizard/complete", axum::routing::get(complete))
         .with_state(app_state.clone())
@@ -311,6 +303,14 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/clients/{id}/toggle", axum::routing::put(toggle_client))
         // Wizard edit operations (require edit permissions)
         .route("/wizard/execute", axum::routing::post(execute))
+        .route(
+            "/wizard/domain-config",
+            axum::routing::post(domain_config_post),
+        )
+        .route(
+            "/wizard/alias-config",
+            axum::routing::post(alias_config_post),
+        )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),

@@ -28,7 +28,7 @@
         {% endif %}
 
         <!-- Domain Configuration Form -->
-        <form method="POST" action="/wizard/domain-config" class="space-y-6" hx-post="/wizard/domain-config" hx-target="#main-content" hx-swap="outerHTML">
+        <form method="POST" action="/wizard/domain-config" class="space-y-6">
             <!-- Domains Input -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -40,6 +40,7 @@
                             type="text"
                             class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                             placeholder="example.com"
+                            value="{{ form.domains }}"
                             required
                         />
                         <button type="button" onclick="addDomainField()" class="px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
@@ -56,6 +57,30 @@
             </div>
 
             <script>
+                // Initialize domain fields from existing data
+                document.addEventListener('DOMContentLoaded', function() {
+                    const firstInput = document.querySelector('#domains-container input[type="text"]');
+                    if (firstInput && firstInput.value) {
+                        // Split the comma-separated domains and create fields for each
+                        const domains = firstInput.value.split(',').map(d => d.trim()).filter(d => d);
+                        if (domains.length > 1) {
+                            // Clear the first input and set it to the first domain
+                            firstInput.value = domains[0];
+                            
+                            // Add fields for remaining domains
+                            for (let i = 1; i < domains.length; i++) {
+                                addDomainField();
+                                // Find the newly created input field (the last one)
+                                const allInputs = document.querySelectorAll('#domains-container input[type="text"]');
+                                const newInput = allInputs[allInputs.length - 1];
+                                if (newInput) {
+                                    newInput.value = domains[i];
+                                }
+                            }
+                        }
+                    }
+                });
+
                 function addDomainField() {
                     const container = document.getElementById('domains-container');
                     const newField = document.createElement('div');
@@ -80,13 +105,31 @@
                 }
 
                 // Update hidden field before form submission
-                document.querySelector('form').addEventListener('submit', function() {
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    // Prevent default submission to ensure our JavaScript runs
+                    e.preventDefault();
+                    
                     const inputs = document.querySelectorAll('#domains-container input[type="text"]');
                     const domains = Array.from(inputs)
                         .map(input => input.value.trim())
                         .filter(value => value.length > 0)
                         .join(', ');
                     document.getElementById('domains-hidden').value = domains;
+                    
+                    // Now submit the form
+                    this.submit();
+                });
+                
+                // Also update on input changes for real-time feedback
+                document.addEventListener('input', function(e) {
+                    if (e.target.closest('#domains-container')) {
+                        const inputs = document.querySelectorAll('#domains-container input[type="text"]');
+                        const domains = Array.from(inputs)
+                            .map(input => input.value.trim())
+                            .filter(value => value.length > 0)
+                            .join(', ');
+                        document.getElementById('domains-hidden').value = domains;
+                    }
                 });
             </script>
 
@@ -111,18 +154,31 @@
                 </p>
             </div>
 
-            <!-- Enabled Checkbox -->
-            <div class="flex items-center">
-                <input
-                    id="enabled"
-                    name="enabled"
-                    type="checkbox"
-                    {% if form.enabled %}checked{% endif %}
-                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label for="enabled" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    Enable domains
+            <!-- Enabled/Disabled Toggle -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Domain Status
                 </label>
+                <div class="radio-toggle-container">
+                    <div class="radio-toggle">
+                        <input type="radio" id="enabled_true" name="enabled" value="true" checked class="radio-toggle-input">
+                        <label for="enabled_true" class="radio-toggle-label radio-toggle-label-left">
+                            <span class="radio-toggle-icon">✓</span>
+                            <span class="radio-toggle-text">Enabled</span>
+                        </label>
+                        
+                        <input type="radio" id="enabled_false" name="enabled" value="false" class="radio-toggle-input">
+                        <label for="enabled_false" class="radio-toggle-label radio-toggle-label-right">
+                            <span class="radio-toggle-icon">✗</span>
+                            <span class="radio-toggle-text">Disabled</span>
+                        </label>
+                        
+                        <div class="radio-toggle-slider"></div>
+                    </div>
+                </div>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Choose whether the domains should be enabled or disabled
+                </p>
             </div>
 
             <!-- Action Buttons -->

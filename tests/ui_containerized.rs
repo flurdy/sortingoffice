@@ -1254,6 +1254,346 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
 }
 
 #[tokio::test]
+async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result<()> {
+    use rand::Rng;
+    use thirtyfour::prelude::*;
+    use tokio::time::Duration;
+
+    // Helper for random string
+    fn rand_str() -> String {
+        const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let mut rng = rand::rng();
+        (0..8)
+            .map(|_| {
+                let idx = rng.random_range(0..CHARSET.len());
+                CHARSET[idx] as char
+            })
+            .collect()
+    }
+
+    run_test_with_timeout(
+        "test_wizard_flow_with_dynamic_domains_containerized",
+        async {
+            let env = setup_ui_test_env().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            // Generate random test data
+            let domain1 = format!("wizard-test-{}.com", rand_str()).to_lowercase();
+            let domain2 = format!("wizard-test-{}.org", rand_str()).to_lowercase();
+            let custom_alias1 = format!("support-{}", rand_str());
+            let custom_alias2 = format!("info-{}", rand_str());
+
+            println!("[WIZARD TEST] Test data generated: domains={domain1}, {domain2}");
+
+            // 1. Navigate to wizard
+            println!("[WIZARD TEST] Navigating to wizard...");
+            let wizard_url = format!("{}/wizard", env.app_url.trim_end_matches('/'));
+            timeout60s!(env.driver.get(&wizard_url), "Navigate to wizard page")?;
+            println!("[WIZARD TEST] Wizard page loaded");
+
+            // 2. Test domain configuration step
+            println!("[WIZARD TEST] Testing domain configuration step...");
+
+            // Click the start button to navigate to domain config
+            let start_button = timeout60s!(
+                env.driver.find(By::Css("a[href='/wizard/domain-config']")),
+                "Find start button"
+            )?;
+            timeout60s!(start_button.click(), "Click start button")?;
+            println!("[WIZARD TEST] Clicked start button, navigating to domain config");
+
+            // Wait for the domain config page to load
+            timeout30s!(
+                env.driver.find(By::Css("h1")),
+                "Wait for domain config page"
+            )?;
+            println!("[WIZARD TEST] Domain config page loaded");
+
+            // Test dynamic domain fields
+            println!("[WIZARD TEST] Testing dynamic domain fields...");
+
+            // Find the first domain input field
+            let first_domain_input = timeout60s!(
+                env.driver
+                    .find(By::Css("#domains-container input[type='text']")),
+                "Find first domain input field"
+            )?;
+
+            // Enter first domain
+            timeout60s!(first_domain_input.send_keys(&domain1), "Enter first domain")?;
+            println!("[WIZARD TEST] Entered first domain: {domain1}");
+
+            // Add second domain field
+            let add_button = timeout60s!(
+                env.driver
+                    .find(By::Css("button[onclick='addDomainField()']")),
+                "Find add domain button"
+            )?;
+            timeout60s!(add_button.click(), "Click add domain button")?;
+            println!("[WIZARD TEST] Added second domain field");
+
+            // Find and fill second domain field
+            let domain_inputs = timeout60s!(
+                env.driver
+                    .find_all(By::Css("#domains-container input[type='text']")),
+                "Find all domain input fields"
+            )?;
+
+            if domain_inputs.len() >= 2 {
+                timeout60s!(domain_inputs[1].send_keys(&domain2), "Enter second domain")?;
+                println!("[WIZARD TEST] Entered second domain: {domain2}");
+            } else {
+                return Err(anyhow::anyhow!(
+                    "Expected at least 2 domain input fields, found {}",
+                    domain_inputs.len()
+                ));
+            }
+
+            // Test removing a domain field
+            let remove_buttons = timeout60s!(
+                env.driver
+                    .find_all(By::Css("button[onclick*='removeDomainField']")),
+                "Find remove domain buttons"
+            )?;
+
+            if !remove_buttons.is_empty() {
+                timeout60s!(remove_buttons[0].click(), "Click remove domain button")?;
+                println!("[WIZARD TEST] Removed a domain field");
+            }
+
+            // Submit domain configuration
+            let submit_button = timeout60s!(
+                env.driver.find(By::Css("button[type='submit']")),
+                "Find submit button"
+            )?;
+
+            // Wait for button to be interactable
+            println!("[WIZARD TEST] Waiting for submit button to be interactable...");
+            timeout30s!(
+                async {
+                    loop {
+                        let is_displayed = submit_button.is_displayed().await?;
+                        let is_enabled = submit_button.is_enabled().await?;
+                        println!(
+                            "[WIZARD TEST] Submit button - displayed: {}, enabled: {}",
+                            is_displayed, is_enabled
+                        );
+                        if is_displayed && is_enabled {
+                            break;
+                        }
+                        tokio::time::sleep(Duration::from_millis(500)).await;
+                    }
+                    Ok::<(), anyhow::Error>(())
+                },
+                "Wait for submit button to be interactable"
+            )?;
+
+            timeout60s!(submit_button.click(), "Submit domain configuration")?;
+            println!("[WIZARD TEST] Submitted domain configuration");
+
+            // Wait for redirect to alias configuration
+            timeout30s!(
+                env.driver.find(By::Css("h1")),
+                "Wait for alias configuration page"
+            )?;
+            println!("[WIZARD TEST] Redirected to alias configuration");
+
+            // 3. Test alias configuration step
+            println!("[WIZARD TEST] Testing alias configuration step...");
+
+            // Verify domains are displayed in summary
+            let domains_summary = timeout60s!(
+                env.driver.find(By::Css(".bg-blue-50, .bg-blue-900\\/20")),
+                "Find domains summary"
+            )?;
+            let summary_text = timeout60s!(domains_summary.text(), "Get domains summary text")?;
+            println!("[WIZARD TEST] Domains summary: {}", summary_text);
+
+            // Verify our domains are in the summary
+            assert!(
+                summary_text.contains(&domain1),
+                "Domain 1 not found in summary"
+            );
+            if domain_inputs.len() >= 2 {
+                assert!(
+                    summary_text.contains(&domain2),
+                    "Domain 2 not found in summary"
+                );
+            }
+
+            // Test custom aliases
+            println!("[WIZARD TEST] Testing custom aliases...");
+
+            // Find custom aliases container
+            let _custom_aliases_container = timeout60s!(
+                env.driver.find(By::Css("#custom-aliases-container")),
+                "Find custom aliases container"
+            )?;
+
+            // Add first custom alias
+            let add_custom_alias_button = timeout60s!(
+                env.driver
+                    .find(By::Css("button[onclick='addCustomAliasField()']")),
+                "Find add custom alias button"
+            )?;
+            timeout60s!(
+                add_custom_alias_button.click(),
+                "Click add custom alias button"
+            )?;
+
+            // Find and fill first custom alias field
+            let custom_alias_inputs = timeout60s!(
+                env.driver
+                    .find_all(By::Css("#custom-aliases-container input[type='text']")),
+                "Find custom alias input fields"
+            )?;
+
+            if !custom_alias_inputs.is_empty() {
+                timeout60s!(
+                    custom_alias_inputs[0].send_keys(&custom_alias1),
+                    "Enter first custom alias"
+                )?;
+                println!("[WIZARD TEST] Entered first custom alias: {custom_alias1}");
+            }
+
+            // Add second custom alias
+            timeout60s!(
+                add_custom_alias_button.click(),
+                "Click add custom alias button again"
+            )?;
+
+            let custom_alias_inputs_updated = timeout60s!(
+                env.driver
+                    .find_all(By::Css("#custom-aliases-container input[type='text']")),
+                "Find updated custom alias input fields"
+            )?;
+
+            if custom_alias_inputs_updated.len() >= 2 {
+                timeout60s!(
+                    custom_alias_inputs_updated[1].send_keys(&custom_alias2),
+                    "Enter second custom alias"
+                )?;
+                println!("[WIZARD TEST] Entered second custom alias: {custom_alias2}");
+            }
+
+            // Set common destination
+            let destination_input = timeout60s!(
+                env.driver.find(By::Css("input[name='common_destination']")),
+                "Find common destination input"
+            )?;
+            timeout60s!(
+                destination_input.send_keys("admin@example.com"),
+                "Enter common destination"
+            )?;
+            println!("[WIZARD TEST] Set common destination");
+
+            // Submit alias configuration
+            let alias_submit_button = timeout60s!(
+                env.driver.find(By::Css("button[type='submit']")),
+                "Find alias submit button"
+            )?;
+            timeout60s!(alias_submit_button.click(), "Submit alias configuration")?;
+            println!("[WIZARD TEST] Submitted alias configuration");
+
+            // Wait for redirect to review step
+            timeout30s!(env.driver.find(By::Css("h1")), "Wait for review page")?;
+            println!("[WIZARD TEST] Redirected to review step");
+
+            // 4. Test review step
+            println!("[WIZARD TEST] Testing review step...");
+
+            // Verify review content
+            let review_content =
+                timeout60s!(env.driver.find(By::Css("body")), "Find review page content")?;
+            let review_text = timeout60s!(review_content.text(), "Get review page text")?;
+            println!(
+                "[WIZARD TEST] Review page content length: {}",
+                review_text.len()
+            );
+
+            // Verify our data is in the review
+            assert!(
+                review_text.contains(&domain1),
+                "Domain 1 not found in review"
+            );
+            assert!(
+                review_text.contains(&custom_alias1),
+                "Custom alias 1 not found in review"
+            );
+            assert!(
+                review_text.contains("admin@example.com"),
+                "Common destination not found in review"
+            );
+
+            // Submit review
+            let review_submit_button = timeout60s!(
+                env.driver.find(By::Css("button[type='submit']")),
+                "Find review submit button"
+            )?;
+            timeout60s!(review_submit_button.click(), "Submit review")?;
+            println!("[WIZARD TEST] Submitted review");
+
+            // Wait for redirect to execute step
+            timeout30s!(env.driver.find(By::Css("h1")), "Wait for execute page")?;
+            println!("[WIZARD TEST] Redirected to execute step");
+
+            // 5. Test execute step
+            println!("[WIZARD TEST] Testing execute step...");
+
+            // Verify execution content
+            let execute_content = timeout60s!(
+                env.driver.find(By::Css("body")),
+                "Find execute page content"
+            )?;
+            let execute_text = timeout60s!(execute_content.text(), "Get execute page text")?;
+            println!(
+                "[WIZARD TEST] Execute page content length: {}",
+                execute_text.len()
+            );
+
+            // Submit execution
+            let execute_submit_button = timeout60s!(
+                env.driver.find(By::Css("button[type='submit']")),
+                "Find execute submit button"
+            )?;
+            timeout60s!(execute_submit_button.click(), "Submit execution")?;
+            println!("[WIZARD TEST] Submitted execution");
+
+            // Wait for redirect to complete step
+            timeout30s!(env.driver.find(By::Css("h1")), "Wait for complete page")?;
+            println!("[WIZARD TEST] Redirected to complete step");
+
+            // 6. Test complete step
+            println!("[WIZARD TEST] Testing complete step...");
+
+            // Verify completion content
+            let complete_content = timeout60s!(
+                env.driver.find(By::Css("body")),
+                "Find complete page content"
+            )?;
+            let complete_text = timeout60s!(complete_content.text(), "Get complete page text")?;
+            println!(
+                "[WIZARD TEST] Complete page content length: {}",
+                complete_text.len()
+            );
+
+            // Verify success message
+            assert!(
+                complete_text.contains("successfully") || complete_text.contains("completed"),
+                "Success message not found in complete page"
+            );
+
+            println!("[WIZARD TEST] All wizard steps completed successfully!");
+            drop(env.app_container);
+            drop(env.selenium_container);
+            Ok(())
+        },
+        Duration::from_secs(90),
+    )
+    .await
+}
+
+#[tokio::test]
 async fn test_backup_functionality_flow() -> anyhow::Result<()> {
     use thirtyfour::prelude::*;
     use tokio::time::Duration;
