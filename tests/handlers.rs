@@ -5,7 +5,6 @@ mod tests {
     use sortingoffice::{
         config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures},
         db::{self, DatabaseManager},
-        handlers,
         i18n::I18n,
         models::{AliasForm, NewBackup, NewDomain, UserForm},
         AppState,
@@ -18,45 +17,6 @@ mod tests {
     async fn create_test_app() -> (Router<AppState>, AppState) {
         let container = setup_test_db().await;
         TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await
-    }
-
-    async fn create_test_app_with_dbs(
-        db_configs: Vec<DatabaseConfig>,
-        port: u16,
-    ) -> (Router<AppState>, AppState) {
-        let i18n = I18n::new("en-US").expect("Failed to initialize i18n");
-
-        // Load translation files for testing
-        let _ = i18n.load_locale("en-US").await;
-        let _ = i18n.load_locale("es-ES").await;
-        let _ = i18n.load_locale("nb-NO").await;
-        let _ = i18n.load_locale("fr-FR").await;
-        let _ = i18n.load_locale("de-DE").await;
-        let config = Config::default();
-        // Update all db_configs to use the dynamic port
-        let db_configs: Vec<DatabaseConfig> = db_configs
-            .into_iter()
-            .map(|mut cfg| {
-                let url = cfg.url.replace(":3306", &format!(":{port}"));
-                cfg.url = url;
-                cfg
-            })
-            .collect();
-        let db_manager = DatabaseManager::new(db_configs)
-            .await
-            .expect("Failed to create database manager");
-        let state = AppState {
-            db_manager,
-            i18n,
-            config,
-        };
-        let app = Router::new()
-            .route(
-                "/database/dropdown",
-                axum::routing::get(handlers::database::dropdown),
-            )
-            .with_state(state.clone());
-        (app, state)
     }
 
     // Helper function to create an authenticated cookie with a specific role
@@ -1529,28 +1489,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_database_dropdown() {
-        let db_configs = vec![
-            DatabaseConfig {
-                id: "test1".to_string(),
-                label: "Test Database 1".to_string(),
-                url: "mysql://test:test@localhost:3306/test1".to_string(),
-                features: DatabaseFeatures::default(),
-                field_map: std::collections::HashMap::new(),
-            },
-            DatabaseConfig {
-                id: "test2".to_string(),
-                label: "Test Database 2".to_string(),
-                url: "mysql://test:test@localhost:3306/test2".to_string(),
-                features: DatabaseFeatures::default(),
-                field_map: std::collections::HashMap::new(),
-            },
-        ];
-
-        let (app, _state) = create_test_app_with_dbs(db_configs, 3306).await;
+        // Use the standard test app setup which uses test containers
+        let (app, state) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,
-            &_state,
+            &state,
             "/database/dropdown",
             Some(create_auth_cookie(AdminRole::ReadOnly)),
         )

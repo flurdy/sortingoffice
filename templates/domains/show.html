@@ -89,7 +89,7 @@
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {% for alias in existing_aliases %}
-                            <tr>
+                            <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                     <a href="/aliases/{{ alias.pkid }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ alias.mail }}</a>
                                 </td>

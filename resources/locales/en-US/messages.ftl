@@ -757,8 +757,8 @@ reports-mail-header = Mail
 reports-status-header = Status
 reports-enabled-header = Enabled
 reports-actions-header = Actions
-reports-no-required-aliases = No required aliases found for this domain
-reports-no-missing-aliases = No missing required aliases for this domain
+reports-no-required-aliases = "No required aliases found for this domain"
+reports-no-missing-aliases = "No missing required aliases for this domain"
 reports-catch-all-header = Catch-All
 reports-destination-header = Destination
 

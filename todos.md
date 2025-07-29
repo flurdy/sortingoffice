@@ -467,9 +467,19 @@
 - Fixed all DomainShowTemplate instantiations in handlers/domains.rs and handlers/aliases.rs
 - All compilation errors resolved and code properly formatted
 
-Alias list on the domain page is not striped.
+✅ Alias list on the domain page is not striped. - IMPLEMENTED
+- Added alternating row colors (striping) to the alias list table on the domain show page
+- Used the same pattern as other resource lists: even rows = white/gray-800, odd rows = gray-50/gray-700
+- Added hover effects for better interactivity
+- Maintains dark mode compatibility
+- All tests pass and code properly formatted
 
-The key reports-no-missing-aliases seems untranslated on the show domain page
+✅ The key reports-no-missing-aliases seems untranslated on the show domain page - IMPLEMENTED
+- Fixed missing quotes around translation values in English messages.ftl
+- Fixed reports-no-missing-aliases = "No missing required aliases for this domain"
+- Fixed reports-no-required-aliases = "No required aliases found for this domain"
+- Translation keys now properly formatted and should display correctly
+- All tests pass and code properly formatted
 
 ✅ The first page on the domain wizard does not add much, maybe just redirect to domain config step. - IMPLEMENTED
 - Modified wizard index function to redirect directly to domain config step
@@ -478,7 +488,12 @@ The key reports-no-missing-aliases seems untranslated on the show domain page
 - Removed unused WizardIndexTemplate import
 - All tests pass: unit (24), integration (49)
 
-Fix the database dropdown integration test
+✅ Fix the database dropdown integration test - IMPLEMENTED
+- Fixed test_database_dropdown test that was failing due to MySQL connection issues
+- Changed test to use standard test container setup instead of hardcoded MySQL URLs
+- Removed unused create_test_app_with_dbs function to clean up code
+- All handler tests now pass: 39 tests
+- Test now properly uses test containers for database connections
 
 Any github best practice missing? 
 - Contribute 
@@ -518,8 +533,8 @@ The smoke test should probably clean up by removing the created resources
 
 The flags in the language selection seems missing.
 
-on the dashboard relocated action is not translated.
+On the dashboard relocated action is not translated.
 
 Rerun the missing / orphaned keys scripts
 
-in show domain page clicking add catchall does not prefix the domain with an @.
+In show domain page clicking add catchall does not prefix the domain with an @.
