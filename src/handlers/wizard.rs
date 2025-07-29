@@ -118,6 +118,9 @@ async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<Stri
             // Additional executing translations
             "wizard-creating-domains-text",
             "wizard-creating-aliases-text",
+            // Additional analytics-driven common aliases translations
+            "wizard-analytics-common-aliases",
+            "wizard-config-common-aliases",
         ],
     )
     .await
@@ -198,6 +201,80 @@ async fn find_most_common_destination(state: &AppState, headers: &HeaderMap) -> 
             // Error getting aliases, return empty string
             println!("[WIZARD DEBUG] Error getting aliases: {:?}", e);
             String::new()
+        }
+    }
+}
+
+/// Find the most common aliases from existing aliases in the database
+async fn find_database_common_aliases(
+    state: &AppState,
+    headers: &HeaderMap,
+    limit: usize,
+    min_occurrence_count: usize,
+) -> Vec<String> {
+    // Try to get the database pool
+    let pool = match crate::handlers::utils::get_current_db_pool(state, headers).await {
+        Ok(pool) => pool,
+        Err(_) => {
+            // If we can't get the pool, return empty vector
+            println!("[WIZARD DEBUG] Could not get database pool for common alias lookup");
+            return Vec::new();
+        }
+    };
+
+    // Get all aliases from the database
+    match crate::db::get_aliases(&pool) {
+        Ok(aliases) => {
+            println!(
+                "[WIZARD DEBUG] Found {} aliases in database for common alias analysis",
+                aliases.len()
+            );
+
+            // Count alias names (part before @)
+            let mut alias_counts: std::collections::HashMap<String, usize> =
+                std::collections::HashMap::new();
+
+            for alias in aliases {
+                if let Some(alias_name) = alias.mail.split('@').next() {
+                    if !alias_name.is_empty() {
+                        *alias_counts.entry(alias_name.to_string()).or_insert(0) += 1;
+                    }
+                }
+            }
+
+            println!("[WIZARD DEBUG] Alias name counts: {:?}", alias_counts);
+
+            // Find the most common aliases that meet the minimum occurrence threshold
+            let mut sorted_aliases: Vec<_> = alias_counts
+                .into_iter()
+                .filter(|(_, count)| *count >= min_occurrence_count)
+                .collect();
+
+            sorted_aliases.sort_by(|a, b| b.1.cmp(&a.1));
+
+            let common_aliases: Vec<String> = sorted_aliases
+                .into_iter()
+                .take(limit)
+                .map(|(alias, count)| {
+                    println!("[WIZARD DEBUG] Common alias: {} (count: {})", alias, count);
+                    alias
+                })
+                .collect();
+
+            println!(
+                "[WIZARD DEBUG] Found {} common aliases from database analysis",
+                common_aliases.len()
+            );
+
+            common_aliases
+        }
+        Err(e) => {
+            // Error getting aliases, return empty vector
+            println!(
+                "[WIZARD DEBUG] Error getting aliases for common alias analysis: {:?}",
+                e
+            );
+            Vec::new()
         }
     }
 }
@@ -456,13 +533,38 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
 
     let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
     let required_aliases = state.config.required_aliases.clone();
-    let common_aliases = state.config.common_aliases.clone();
+
+    // Get database-specific common aliases from analytics
+    let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
+
+    // Separate config common aliases from analytics-driven ones
+    let config_common_aliases = state.config.common_aliases.clone();
+
+    // Filter out analytics aliases that are already in required or config common aliases
+    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
+        .iter()
+        .filter(|alias| !required_aliases.contains(alias) && !config_common_aliases.contains(alias))
+        .cloned()
+        .collect();
+
+    // Combine all common aliases for the form
+    let mut common_aliases = config_common_aliases.clone();
+    for alias in &filtered_analytics_aliases {
+        if !common_aliases.contains(alias) {
+            common_aliases.push(alias.clone());
+        }
+    }
 
     // Restore form data from session if available
     println!(
         "[WIZARD DEBUG] Session restoration - common_destination: {:?}",
         session.common_destination
     );
+    println!(
+        "[WIZARD DEBUG] Session restoration - common_aliases: {:?}",
+        session.common_aliases
+    );
+
     let form = AliasConfigForm {
         required_aliases: if session.common_aliases.is_empty() {
             required_aliases.clone()
@@ -480,12 +582,12 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
             // Default: no common aliases are checked
             Vec::new()
         } else {
-            // Extract common aliases from session (they're mixed with common aliases)
-            let config_common = state.config.common_aliases.clone();
+            // Extract ALL non-required aliases from session (including analytics-driven ones)
+            let config_required = state.config.required_aliases.clone();
             session
                 .common_aliases
                 .iter()
-                .filter(|alias| config_common.contains(alias))
+                .filter(|alias| !config_required.contains(alias))
                 .cloned()
                 .collect()
         },
@@ -503,8 +605,12 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
         error: "",
         required_aliases: &required_aliases,
         common_aliases: &common_aliases,
+        analytics_common_aliases: &filtered_analytics_aliases,
+        config_common_aliases: &config_common_aliases,
         required_aliases_label: &translations["wizard-required-aliases"],
         common_aliases_label: &translations["wizard-common-aliases"],
+        analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
+        config_common_aliases_label: &translations["wizard-config-common-aliases"],
         custom_aliases_label: &translations["wizard-custom-aliases"],
         custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
         custom_aliases_description: &translations["wizard-custom-aliases-description"],
@@ -594,6 +700,20 @@ pub async fn alias_config_post(
     if form.common_destination.is_empty() {
         let error_msg = "Please enter a valid destination";
         let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
+        // Get analytics-driven common aliases for error template
+        let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
+        let config_common_aliases = state.config.common_aliases.clone();
+
+        // Filter out analytics aliases that are already in required or config common aliases
+        let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
+            .iter()
+            .filter(|alias| {
+                !state.config.required_aliases.contains(alias)
+                    && !config_common_aliases.contains(alias)
+            })
+            .cloned()
+            .collect();
+
         let content_template = WizardAliasConfigTemplate {
             title: &translations["wizard-step-2-title"],
             description: &translations["wizard-step-2-description"],
@@ -602,8 +722,12 @@ pub async fn alias_config_post(
             error: error_msg,
             required_aliases: &state.config.required_aliases,
             common_aliases: &state.config.common_aliases,
+            analytics_common_aliases: &filtered_analytics_aliases,
+            config_common_aliases: &config_common_aliases,
             required_aliases_label: &translations["wizard-required-aliases"],
             common_aliases_label: &translations["wizard-common-aliases"],
+            analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
+            config_common_aliases_label: &translations["wizard-config-common-aliases"],
             custom_aliases_label: &translations["wizard-custom-aliases"],
             custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
             custom_aliases_description: &translations["wizard-custom-aliases-description"],
@@ -782,20 +906,9 @@ pub async fn execute(
         // Create aliases for this domain
         let mut aliases_to_create = Vec::new();
 
-        // Add required aliases
+        // Add all selected aliases from session (including analytics-driven ones)
         for alias in &session.common_aliases {
-            let config_required = state.config.required_aliases.clone();
-            if config_required.contains(alias) {
-                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
-            }
-        }
-
-        // Add common aliases
-        for alias in &session.common_aliases {
-            let config_common = state.config.common_aliases.clone();
-            if config_common.contains(alias) {
-                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
-            }
+            aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
         }
 
         // Add custom aliases
@@ -873,20 +986,9 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
     // Calculate total aliases that should have been created
     let mut total_aliases = 0;
     for _domain_data in &session.domains {
-        // Count required aliases
-        for alias in &session.common_aliases {
-            let config_required = state.config.required_aliases.clone();
-            if config_required.contains(alias) {
-                total_aliases += 1;
-            }
-        }
-        // Count common aliases
-        for alias in &session.common_aliases {
-            let config_common = state.config.common_aliases.clone();
-            if config_common.contains(alias) {
-                total_aliases += 1;
-            }
-        }
+        // Count ALL selected aliases from session (including analytics-driven ones)
+        total_aliases += session.common_aliases.len() as i32;
+
         // Count custom aliases
         for alias in &session.custom_aliases {
             if !alias.is_empty() {

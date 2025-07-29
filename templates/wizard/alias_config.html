@@ -65,29 +65,69 @@
                 </div>
             </div>
 
-            <!-- Common Aliases -->
+            <!-- Configuration-Based Common Aliases -->
+            {% if config_common_aliases.len() > 0 %}
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {{ common_aliases_label }}
+                    {{ config_common_aliases_label }}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 ml-2">
+                        Config
+                    </span>
                 </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Predefined in configuration
+                </p>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {% for alias in common_aliases %}
+                    {% for alias in config_common_aliases %}
                     <div class="flex items-center">
                         <input
-                            id="common_{{ alias }}"
+                            id="config_{{ alias }}"
                             name="common_aliases"
                             type="checkbox"
                             value="{{ alias }}"
                             {% if form.common_aliases.contains(alias) %}checked{% endif %}
                             class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
-                        <label for="common_{{ alias }}" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        <label for="config_{{ alias }}" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                             {{ alias }}
                         </label>
                     </div>
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
+
+            <!-- Analytics-Driven Common Aliases -->
+            {% if analytics_common_aliases.len() > 0 %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ analytics_common_aliases_label }}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 ml-2">
+                        Analytics
+                    </span>
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    Based on your database usage patterns
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% for alias in analytics_common_aliases %}
+                    <div class="flex items-center">
+                        <input
+                            id="analytics_{{ alias }}"
+                            name="common_aliases"
+                            type="checkbox"
+                            value="{{ alias }}"
+                            {% if form.common_aliases.contains(alias) %}checked{% endif %}
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label for="analytics_{{ alias }}" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                            {{ alias }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Custom Aliases -->
             <div>
