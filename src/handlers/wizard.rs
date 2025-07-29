@@ -21,6 +21,7 @@ use axum::{
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use tracing::error;
 
 // Simple session storage using static HashMap
 lazy_static! {
@@ -106,6 +107,7 @@ async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<Stri
             "wizard-configuration-summary-title",
             "wizard-domains-plural",
             "wizard-aliases-plural",
+            "wizard-created-domains-title",
             // Additional executing translations
             "wizard-creating-domains-text",
             "wizard-creating-aliases-text",
@@ -579,16 +581,7 @@ pub async fn alias_config_post(
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Get current session
-    let mut session = get_session().unwrap_or_else(|| {
-        let mut default_session = create_wizard_session();
-        default_session.domains.push(DomainWizardData {
-            domain: "example.com".to_string(),
-            transport: None,
-            enabled: true,
-            aliases: Vec::new(),
-        });
-        default_session
-    });
+    let mut session = get_session().unwrap_or_else(|| create_wizard_session());
 
     // Validate form data
     if form.common_destination.is_empty() {
@@ -747,6 +740,7 @@ pub async fn execute(
     // Actually create domains and aliases in database
     let mut _domains_created = 0;
     let mut _aliases_created = 0;
+    let mut successfully_created_domains = Vec::new();
 
     for domain_data in &session.domains {
         // Create domain
@@ -767,6 +761,7 @@ pub async fn execute(
         match db::create_domain(&pool, new_domain) {
             Ok(_) => {
                 _domains_created += 1;
+                successfully_created_domains.push(domain_data.domain.clone());
                 println!("[WIZARD DEBUG] Created domain: {}", domain_data.domain);
             }
             Err(e) => {
@@ -836,8 +831,17 @@ pub async fn execute(
         }
     }
 
-    // Update session to complete
+    // Update session to only contain successfully created domains
     session.step = WizardStep::Complete;
+    session.domains = successfully_created_domains
+        .into_iter()
+        .map(|domain| DomainWizardData {
+            domain,
+            transport: Some(session.transport.clone()),
+            enabled: session.enabled,
+            aliases: Vec::new(),
+        })
+        .collect();
     save_session(session);
 
     // Redirect to complete page
@@ -888,15 +892,43 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
         }
     }
 
+    // Extract domain names from session
+    let created_domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
+
+    // Look up domain IDs by name
+    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            return Html("Database connection error".to_string());
+        }
+    };
+
+    let mut created_domain_ids = Vec::new();
+    for domain_name in &created_domains {
+        match db::get_domain_by_name(&pool, domain_name) {
+            Ok(domain) => created_domain_ids.push(domain.pkid),
+            Err(e) => {
+                error!("Failed to get domain ID for {}: {:?}", domain_name, e);
+                // If we can't find the domain, skip it
+                continue;
+            }
+        }
+    }
+
     let content_template = WizardCompleteTemplate {
         title: &translations["wizard-step-5-title"],
         description: &translations["wizard-step-5-description"],
         domains_created: session.domains.len() as i32,
         aliases_created: total_aliases,
         has_errors: false,
+        created_domains: &created_domains,
+        created_domain_ids: &created_domain_ids,
         setup_results_title: &translations["wizard-setup-results"],
         domains_created_label: &translations["wizard-domains-created"],
         aliases_created_label: &translations["wizard-aliases-created"],
+        domains_plural: &translations["wizard-domains-plural"],
+        created_domains_title: &translations["wizard-created-domains-title"],
         errors_title: &translations["wizard-errors-title"],
         errors_description: &translations["wizard-errors-description"],
         view_domains_button: &translations["wizard-view-domains"],

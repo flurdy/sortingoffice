@@ -1067,7 +1067,7 @@ wizard-step-5-title = Configuration Terminée
 wizard-step-5-description = Vos domaines et alias ont été créés
 wizard-results-success = Créé avec succès
 wizard-results-failed = Échec de la création
-wizard-view-domains = Voir les Domaines Créés
+wizard-view-domains = Voir les Domaines
 wizard-new-wizard = Démarrer un Nouvel Assistant
 
 # Additional wizard translation keys
@@ -1104,6 +1104,7 @@ wizard-disabled-label = Désactivé
 wizard-configuration-summary-title = Résumé de Configuration
 wizard-domains-plural = domaines
 wizard-aliases-plural = alias
+wizard-created-domains-title = Domaines Créés
 
 # Additional executing translations
 wizard-creating-domains-text = Création des domaines...

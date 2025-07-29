@@ -387,28 +387,60 @@
 
 rename make run into make run-watch
 
+Lets reorganise the sidebar to these:
+- Main
+-- Dashboard
+-- Database Selection
+- Tables
+-- Domains & Backups
+-- Aliases
+-- Users
+-- Relays
+-- Relocated 
+-- Clients
+- Tools
+-- Domain Wizard
+-- Reports
+-- Statistics
+--
+- Admin
+-- Configuration
+-- Database Backup
+-
+-- Contact (soon)
+-- About
+
+
 when in show domains there is a lot of missing translation keys such as the existing aliases column headers, and the header and column header for the missing aliases, and the catch all header.
 
 alias list on the domain page is not striped.
 
 reports-no-missing-aliases seems untranslated on the show domain page
 
+Fix the database dropdown integration test
+
 Any github best practice missing? 
 - Contribute 
 - Sponsor files
 
 Add contact documentation for the project for support, security, questions, bugs etc.
-- add separate contact for the running instance as that could be anyone.
+
+Add a contact page in the app aimed at contacting whomever runs it,     
+- No need for a contact form, just name and emails or text from config.
+- with a section on contacting the project as well.
 
 The select database page seems not translated.
 
 Validation. 
 - Is domain and backup name valid
+- capitalisation not allowed
+- symbols apart from . - _ not allowed.
 - a machine name without a tld is a valid domain name, e.g. localhost, or andromeda-001
 - Is alias mail valid
 - A catchall alias mail is valid
 - has to contain an @ but not end in an @
 - Is alias destination valid
+- + character is allowed if used ones and not at the start or just before the @
 - @ is not a valid destination
 - @example.com is a valid destination
 - has to contain an @ but not end in an @
@@ -424,3 +456,7 @@ Lets extend the test suites with some more negative and edge cases.
 The smoke test should probably clean up by removing the created resources
 
 The flags in the language selection seems missing.
+
+on the dashboard relocated action is not translated.
+
+Rerun the missing / orphaned keys scripts

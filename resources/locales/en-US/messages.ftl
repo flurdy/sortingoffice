@@ -189,7 +189,7 @@ wizard-step-5-title = Setup Complete
 wizard-step-5-description = Your domains and aliases have been created
 wizard-results-success = Successfully created
 wizard-results-failed = Failed to create
-wizard-view-domains = View Created Domains
+wizard-view-domains = View Domains
 wizard-new-wizard = Start New Wizard
 
 # Additional wizard translation keys
@@ -226,6 +226,7 @@ wizard-disabled-label = Disabled
 wizard-configuration-summary-title = Configuration Summary
 wizard-domains-plural = domains
 wizard-aliases-plural = aliases
+wizard-created-domains-title = Created Domains
 
 # Additional executing translations
 wizard-creating-domains-text = Creating domains...

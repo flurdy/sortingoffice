@@ -789,7 +789,7 @@ wizard-step-5-title = Einrichtung abgeschlossen
 wizard-step-5-description = Ihre Domains und Aliase wurden erstellt
 wizard-results-success = Erfolgreich erstellt
 wizard-results-failed = Erstellung fehlgeschlagen
-wizard-view-domains = Erstellte Domains anzeigen
+wizard-view-domains = Domains anzeigen
 wizard-new-wizard = Neuen Assistenten starten
 
 # Additional wizard translation keys
@@ -826,6 +826,7 @@ wizard-disabled-label = Deaktiviert
 wizard-configuration-summary-title = Konfigurationsübersicht
 wizard-domains-plural = Domains
 wizard-aliases-plural = Aliase
+wizard-created-domains-title = Erstellte Domains
 
 # Additional executing translations
 wizard-creating-domains-text = Domains werden erstellt...

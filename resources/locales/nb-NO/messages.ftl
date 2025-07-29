@@ -702,7 +702,7 @@ wizard-step-5-title = Oppsett Fullført
 wizard-step-5-description = Dine domener og aliaser har blitt opprettet
 wizard-results-success = Opprettet
 wizard-results-failed = Kunne ikke opprette
-wizard-view-domains = Vis Opprettede Domener
+wizard-view-domains = Vis Domener
 wizard-new-wizard = Start Ny Veiviser
 
 # Additional wizard translation keys
@@ -739,6 +739,7 @@ wizard-disabled-label = Deaktivert
 wizard-configuration-summary-title = Konfigurasjonsoversikt
 wizard-domains-plural = domener
 wizard-aliases-plural = aliaser
+wizard-created-domains-title = Opprettede Domener
 
 # Additional executing translations
 wizard-creating-domains-text = Oppretter domener...
