@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::config::ContactInfo;
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "contact.html", escape = "html")]
@@ -26,4 +26,4 @@ pub struct ContactTemplate<'a> {
     pub sponsorship: &'a str,
     pub sponsorship_desc: &'a str,
     pub app_contact: Option<ContactInfo>,
-} 
+}

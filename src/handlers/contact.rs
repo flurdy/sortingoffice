@@ -87,4 +87,4 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     .unwrap();
 
     Html(template.render().unwrap())
-} 
+}

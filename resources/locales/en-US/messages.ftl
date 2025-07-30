@@ -74,6 +74,12 @@ form-password = Password
 # Form validation
 validation-domain-required = Domain name is required. Please enter a valid domain name.
 validation-username-required = Username is required.
+validation-domain-invalid = Invalid domain name. Please check the format.
+validation-alias-mail-invalid = Invalid alias email address. Please check the format.
+validation-alias-destination-invalid = Invalid alias destination. Please check the format.
+validation-user-id-invalid = Invalid user ID. Must be a valid email address.
+validation-user-path-invalid = Invalid user path. Must be a valid file system path.
+validation-backup-name-invalid = Invalid backup name. Please check the format.
 
 # Error messages
 error-unexpected = An unexpected error occurred. Please try again.

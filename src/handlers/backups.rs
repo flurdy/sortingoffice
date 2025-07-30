@@ -288,6 +288,42 @@ pub async fn create(
         return Html(content_template.render().unwrap());
     }
 
+    // Validate domain format
+    match crate::validation::validate_domain(&form.domain.trim()) {
+        Ok(_) => {}
+        Err(e) => {
+            let content_template = BackupFormTemplate {
+                title: get_translation(&state, &locale, "backups-new-backup").await,
+                form_error: get_translation(&state, &locale, "backups-form-error").await,
+                form_domain: get_translation(&state, &locale, "backups-form-domain").await,
+                form_transport: get_translation(&state, &locale, "backups-form-transport").await,
+                form_active: get_translation(&state, &locale, "backups-form-active").await,
+                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
+                    .await,
+                placeholder_transport: get_translation(
+                    &state,
+                    &locale,
+                    "backups-placeholder-transport",
+                )
+                .await,
+                tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
+                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
+                    .await,
+                tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
+                cancel: get_translation(&state, &locale, "backups-cancel").await,
+                create_backup: get_translation(&state, &locale, "backups-create-backup").await,
+                update_backup: get_translation(&state, &locale, "backups-update-backup").await,
+                new_backup: get_translation(&state, &locale, "backups-new-backup").await,
+                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
+                    .await,
+                backup: None,
+                form,
+                error: Some(get_translation(&state, &locale, "validation-domain-invalid").await),
+            };
+            return Html(content_template.render().unwrap());
+        }
+    }
+
     let new_backup = NewBackup {
         domain: form.domain.trim().to_string(),
         transport: Some(form.transport.clone()),

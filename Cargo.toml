@@ -90,6 +90,9 @@ envsubst = "0.2.1"
 tempfile = "3.10.1"
 url = "2.5.4"
 
+# Regular expressions for validation
+regex = "1.10.4"
+
 [dev-dependencies]
 tokio-test = "0.4"
 serde_urlencoded = "0.7.1"

@@ -7,6 +7,7 @@ pub mod models;
 pub mod schema;
 pub mod templates;
 pub mod test_helpers;
+pub mod validation;
 
 pub use crate::config::Config;
 pub use crate::db::DatabaseManager;

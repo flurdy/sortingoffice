@@ -643,6 +643,17 @@ error-database-title = Erreur de Base de Données
 error-database-description = Une erreur s'est produite lors de l'accès à la base de données.
 error-validation-title = Erreur de Validation
 error-validation-description = Les données fournies ne sont pas valides.
+
+# Form validation
+validation-domain-required = Le nom de domaine est requis. Veuillez entrer un nom de domaine valide.
+validation-username-required = Le nom d'utilisateur est requis.
+validation-domain-invalid = Nom de domaine invalide. Veuillez vérifier le format.
+validation-alias-mail-invalid = Adresse e-mail d'alias invalide. Veuillez vérifier le format.
+validation-alias-destination-invalid = Destination d'alias invalide. Veuillez vérifier le format.
+validation-user-id-invalid = ID utilisateur invalide. Doit être une adresse e-mail valide.
+validation-user-path-invalid = Chemin utilisateur invalide. Doit être un chemin de système de fichiers valide.
+validation-backup-name-invalid = Nom de sauvegarde invalide. Veuillez vérifier le format.
+
 error-permission-title = Erreur de Permission
 error-permission-description = Vous n'avez pas les permissions nécessaires pour effectuer cette action.
 error-operation-not-allowed = Cette opération n'est pas autorisée sur la base de données actuelle en raison de restrictions.

@@ -294,36 +294,39 @@ pub async fn domain_config_post(
         );
     }
 
-    // Basic domain validation
+    // Comprehensive domain validation
     for domain in &domains {
-        if !domain.contains('.') {
-            let error_msg = format!("Invalid domain format: {}", domain);
-            let content_template = WizardDomainConfigTemplate {
-                title: &translations["wizard-step-1-title"],
-                description: &translations["wizard-step-1-description"],
-                form: &form,
-                error: &error_msg,
-                domains_label: &translations["wizard-domains-label"],
-                domains_description: &translations["wizard-domains-description"],
-                domains_placeholder: &translations["wizard-domains-placeholder"],
-                transport_label: &translations["wizard-transport-label"],
-                transport_description: &translations["wizard-transport-description"],
-                transport_placeholder: &translations["wizard-transport-placeholder"],
-                enabled_description: &translations["wizard-enabled-description"],
-                domain_status_label: &translations["wizard-domain-status-label"],
-                enabled_label: &translations["wizard-enabled-label"],
-                disabled_label: &translations["wizard-disabled-label"],
-                next_button: &translations["wizard-next"],
-                cancel_button: &translations["wizard-cancel"],
-            };
+        match crate::validation::validate_domain(domain) {
+            Ok(_) => {}
+            Err(e) => {
+                let error_msg = format!("Invalid domain '{}': {}", domain, e);
+                let content_template = WizardDomainConfigTemplate {
+                    title: &translations["wizard-step-1-title"],
+                    description: &translations["wizard-step-1-description"],
+                    form: &form,
+                    error: &error_msg,
+                    domains_label: &translations["wizard-domains-label"],
+                    domains_description: &translations["wizard-domains-description"],
+                    domains_placeholder: &translations["wizard-domains-placeholder"],
+                    transport_label: &translations["wizard-transport-label"],
+                    transport_description: &translations["wizard-transport-description"],
+                    transport_placeholder: &translations["wizard-transport-placeholder"],
+                    enabled_description: &translations["wizard-enabled-description"],
+                    domain_status_label: &translations["wizard-domain-status-label"],
+                    enabled_label: &translations["wizard-enabled-label"],
+                    disabled_label: &translations["wizard-disabled-label"],
+                    next_button: &translations["wizard-next"],
+                    cancel_button: &translations["wizard-cancel"],
+                };
 
-            return render_template_with_title!(
-                content_template,
-                content_template.title,
-                &state,
-                &locale,
-                &headers
-            );
+                return render_template_with_title!(
+                    content_template,
+                    content_template.title,
+                    &state,
+                    &locale,
+                    &headers
+                );
+            }
         }
     }
 

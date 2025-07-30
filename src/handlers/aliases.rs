@@ -345,6 +345,107 @@ pub async fn create(
         .await
         .expect("Failed to get database pool");
 
+    // Validate alias mail
+    match crate::validation::validate_alias_mail(&form.mail) {
+        Ok(_) => {}
+        Err(e) => {
+            let locale = get_user_locale(&headers);
+            let error_msg = get_translation(&state, &locale, "validation-alias-mail-invalid").await;
+
+            // Build form template with error
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
+            let field_translations = get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
+            let content_template = AliasFormTemplate {
+                title: &form_translations["aliases-add-title"],
+                alias: None,
+                form: form.clone(),
+                error: Some(error_msg),
+                return_url: form.return_url.clone(),
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
+            };
+
+            return render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-add-title"].clone(),
+            )
+            .await;
+        }
+    }
+
+    // Validate alias destination
+    match crate::validation::validate_alias_destination(&form.destination) {
+        Ok(_) => {}
+        Err(e) => {
+            let locale = get_user_locale(&headers);
+            let error_msg =
+                get_translation(&state, &locale, "validation-alias-destination-invalid").await;
+
+            // Build form template with error
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
+            let field_translations = get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
+            let content_template = AliasFormTemplate {
+                title: &form_translations["aliases-add-title"],
+                alias: None,
+                form: form.clone(),
+                error: Some(error_msg),
+                return_url: form.return_url.clone(),
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
+            };
+
+            return render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-add-title"].clone(),
+            )
+            .await;
+        }
+    }
+
     match db::create_alias(&pool, form.clone()) {
         Ok(created_alias) => {
             // Extract domain from the created alias and redirect to domain show page
@@ -736,6 +837,107 @@ pub async fn update(
     let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
+
+    // Validate alias mail
+    match crate::validation::validate_alias_mail(&form.mail) {
+        Ok(_) => {}
+        Err(e) => {
+            let locale = get_user_locale(&headers);
+            let error_msg = get_translation(&state, &locale, "validation-alias-mail-invalid").await;
+
+            // Build form template with error
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
+            let field_translations = get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
+            let content_template = AliasFormTemplate {
+                title: &form_translations["aliases-edit-alias"],
+                alias: None,
+                form: form.clone(),
+                error: Some(error_msg),
+                return_url: form.return_url.clone(),
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
+            };
+
+            return render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-edit-alias"].clone(),
+            )
+            .await;
+        }
+    }
+
+    // Validate alias destination
+    match crate::validation::validate_alias_destination(&form.destination) {
+        Ok(_) => {}
+        Err(e) => {
+            let locale = get_user_locale(&headers);
+            let error_msg =
+                get_translation(&state, &locale, "validation-alias-destination-invalid").await;
+
+            // Build form template with error
+            let form_translations = get_entity_form_translations(&state, &locale, "aliases").await;
+            let field_translations = get_field_translations(
+                &state,
+                &locale,
+                "aliases",
+                &["mail", "destination", "active"],
+            )
+            .await;
+
+            let content_template = AliasFormTemplate {
+                title: &form_translations["aliases-edit-alias"],
+                alias: None,
+                form: form.clone(),
+                error: Some(error_msg),
+                return_url: form.return_url.clone(),
+                edit_alias: &form_translations["aliases-edit-alias"],
+                new_alias: &form_translations["aliases-new-alias"],
+                form_error: &form_translations["form-error"],
+                mail_address: &field_translations["aliases-field-mail"],
+                destination: &field_translations["aliases-field-destination"],
+                placeholder_mail: &field_translations["aliases-placeholder-mail"],
+                placeholder_destination: &field_translations["aliases-placeholder-destination"],
+                tooltip_mail: &field_translations["aliases-field-mail-help"],
+                tooltip_destination: &field_translations["aliases-field-destination-help"],
+                active: &field_translations["aliases-field-active"],
+                tooltip_active: &field_translations["aliases-field-active-help"],
+                cancel: &form_translations["form-cancel"],
+                update_alias: &form_translations["action-save"],
+                create_alias: &form_translations["action-save"],
+            };
+
+            return render_form_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+                form_translations["aliases-edit-alias"].clone(),
+            )
+            .await;
+        }
+    }
 
     match db::update_alias(&pool, id, form.clone()) {
         Ok(_) => {

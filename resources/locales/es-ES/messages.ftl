@@ -401,6 +401,12 @@ form-password = Contraseña
 # Form validation
 validation-domain-required = El nombre del dominio es requerido. Por favor ingrese un nombre de dominio válido.
 validation-username-required = El nombre de usuario es requerido.
+validation-domain-invalid = Nombre de dominio inválido. Por favor verifique el formato.
+validation-alias-mail-invalid = Dirección de correo de alias inválida. Por favor verifique el formato.
+validation-alias-destination-invalid = Destino de alias inválido. Por favor verifique el formato.
+validation-user-id-invalid = ID de usuario inválido. Debe ser una dirección de correo válida.
+validation-user-path-invalid = Ruta de usuario inválida. Debe ser una ruta de sistema de archivos válida.
+validation-backup-name-invalid = Nombre de respaldo inválido. Por favor verifique el formato.
 
 # Error messages
 error-unexpected = Ocurrió un error inesperado. Por favor intente nuevamente.

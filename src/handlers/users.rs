@@ -513,6 +513,76 @@ pub async fn create(
         )
         .await
     } else {
+        // Validate user ID format
+        match crate::validation::validate_user_id(&form.id) {
+            Ok(_) => {}
+            Err(e) => {
+                let form_translations =
+                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
+                        .await;
+                let error_msg =
+                    get_translation(&state, &locale, "validation-user-id-invalid").await;
+                let form_template =
+                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
+                        .await;
+
+                return crate::handlers::utils::render_form_template(
+                    form_template,
+                    &state,
+                    &locale,
+                    &headers,
+                    "users-add-title".to_string(),
+                )
+                .await;
+            }
+        }
+
+        // Validate user paths
+        match crate::validation::validate_user_path(&form.maildir) {
+            Ok(_) => {}
+            Err(e) => {
+                let form_translations =
+                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
+                        .await;
+                let error_msg =
+                    get_translation(&state, &locale, "validation-user-path-invalid").await;
+                let form_template =
+                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
+                        .await;
+
+                return crate::handlers::utils::render_form_template(
+                    form_template,
+                    &state,
+                    &locale,
+                    &headers,
+                    "users-add-title".to_string(),
+                )
+                .await;
+            }
+        }
+
+        match crate::validation::validate_user_path(&form.home) {
+            Ok(_) => {}
+            Err(e) => {
+                let form_translations =
+                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
+                        .await;
+                let error_msg =
+                    get_translation(&state, &locale, "validation-user-path-invalid").await;
+                let form_template =
+                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
+                        .await;
+
+                return crate::handlers::utils::render_form_template(
+                    form_template,
+                    &state,
+                    &locale,
+                    &headers,
+                    "users-add-title".to_string(),
+                )
+                .await;
+            }
+        }
         // Create user directly (no domain validation needed)
         match db::create_user(&pool, form.clone()) {
             Ok(_) => {

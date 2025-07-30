@@ -23,7 +23,6 @@ pub mod wizard;
 
 // Re-export specific functions and types
 pub use about::index as about_index;
-pub use contact::index as contact_index;
 pub use aliases::{
     create, delete, domain_search, edit, list, new, search, show, toggle_enabled,
     toggle_enabled_domain_show, toggle_enabled_list, toggle_enabled_show, update,
@@ -38,6 +37,7 @@ pub use clients::{
     toggle_client, update_client,
 };
 pub use config::view_config;
+pub use contact::index as contact_index;
 pub use dashboard::index as dashboard_index;
 pub use database::{dropdown, index as database_index, list_databases, select};
 pub use domains::{

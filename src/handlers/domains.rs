@@ -123,7 +123,12 @@ fn validate_domain_form(form: &DomainForm) -> Result<(), String> {
     if form.domain.trim().is_empty() {
         return Err("validation-domain-required".to_string());
     }
-    Ok(())
+
+    // Add comprehensive domain validation
+    match crate::validation::validate_domain(&form.domain.trim()) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!("validation-domain-invalid: {}", e)),
+    }
 }
 
 // Helper function to handle domain form errors

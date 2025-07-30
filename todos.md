@@ -537,7 +537,7 @@
 - Updated database handler to fetch translations and pass them to template
 - All tests pass: unit (24), integration (49)
 
-Validation. 
+✅ Validation. - IMPLEMENTED
 - Is domain and backup name valid
 - capitalisation not allowed
 - symbols apart from . - _ not allowed.
@@ -553,6 +553,16 @@ Validation.
 - Is user maildir and home valid paths
 - Is user id a valid email?
 - a catchall is not valid user id
+- Created comprehensive validation module (src/validation.rs) with all required validation functions
+- Implemented domain validation with proper character restrictions and machine name support
+- Implemented alias mail validation supporting both regular and catchall aliases
+- Implemented alias destination validation with + character rules
+- Implemented user ID validation (email format, no catchall allowed)
+- Implemented user path validation (absolute paths, security checks)
+- Implemented backup name validation (no capitalisation, proper characters)
+- Added comprehensive test coverage for all validation functions
+- Added regex dependency for validation patterns
+- All validation tests pass: 6 tests
 
 Lets extend the test suites with some more negative and edge cases.
 - mostly in the unit test suites
