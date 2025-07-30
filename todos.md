@@ -646,3 +646,74 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 Please rename the database backup path to database_backup to distinguish
 - and related files
 And rename the mx backup as domain_backup for path and files?
+
+✅ Fixed missing aliases-domain translation key - IMPLEMENTED
+- Added missing "aliases-domain" translation key to English messages.ftl
+- The key was incorrectly removed during the "message cull" commit
+- The key is actively used in the alias show template (src/handlers/aliases.rs:1422)
+- Confirmed fix with alias tests passing (test_aliases_create, test_aliases_list, test_aliases_search)
+- This confirms that the "message cull" incorrectly removed keys that were still in use
+- All alias functionality now works correctly with proper translation keys
+
+✅ Ensured aliases-domain is translated in all languages - IMPLEMENTED
+- Added "aliases-domain" translation key to all language files:
+  - English (en-US): "Domain"
+  - German (de-DE): "Domain" 
+  - Spanish (es-ES): "Dominio"
+  - French (fr-FR): "Domaine"
+  - Norwegian (nb-NO): "Domene"
+- All alias tests continue to pass, confirming proper translation support
+- The alias page now displays the correct "Domain" label in all supported languages
+
+✅ Fixed missing error-duplicate-domain translation key - IMPLEMENTED
+- Added "error-duplicate-domain" translation key to all language files:
+  - English (en-US): "A domain with this name already exists"
+  - German (de-DE): "Eine Domain mit diesem Namen existiert bereits"
+  - Spanish (es-ES): "Ya existe un dominio con este nombre"
+  - French (fr-FR): "Un domaine avec ce nom existe déjà"
+  - Norwegian (nb-NO): "Et domene med dette navnet eksisterer allerede"
+- Also added related error keys: error-duplicate-backup, error-constraint-violation, error-unexpected
+- The key is used in the handle_database_error function for domain creation errors
+- Integration test test_error_handling_and_edge_cases_journey now passes
+- Users will now see proper localized error messages when trying to create duplicate domains
+
+✅ Fixed missing domains-add-title translation key - IMPLEMENTED
+- Added "domains-add-title" translation key to all language files:
+  - English (en-US): "Add Domain"
+  - German (de-DE): "Domain hinzufügen"
+  - Spanish (es-ES): "Agregar Dominio"
+  - French (fr-FR): "Ajouter un Domaine"
+  - Norwegian (nb-NO): "Legg til domene"
+- The key is actively used in the domain form template (src/handlers/domains.rs:362, 388)
+- Domain tests (test_domains_create) now pass, confirming the fix works
+- Users will now see proper localized "Add Domain" titles in domain forms
+
+✅ Analyzed and fixed orphaned key detection script - IMPLEMENTED
+- Identified why the original find_orphaned_ftl_keys.sh script reported false positives:
+  1. **Dynamic key generation**: Script didn't detect keys generated via `format!("error-duplicate-{entity}")`
+  2. **Regex word boundaries**: `\\b` word boundaries didn't work correctly with hyphens in key names
+  3. **Template string interpolation**: Keys used in template strings weren't detected
+  4. **Limited search patterns**: Only searched for literal key names, not patterns used to generate them
+- Created improved script `find_orphaned_ftl_keys_improved.sh` that handles:
+  - Literal key names with word boundaries
+  - Keys in quotes (for template strings)
+  - Keys in format! macros (for dynamic generation)
+  - Keys in get_translation calls
+  - Keys in translation map access (like form_translations["key"])
+  - Dynamic key patterns (for keys like error-duplicate-{entity})
+  - Keys in string literals
+- Created `analyze_key_usage.sh` script to debug key usage patterns
+- The improved script correctly identifies that there are no orphaned keys
+- This explains why the "message cull" incorrectly removed keys that were still in use
+
+✅ Created missing key detection scripts - IMPLEMENTED
+- Created `find_missing_ftl_keys.sh` to find translation keys used in code but not defined in FTL files
+- Created `find_missing_ftl_keys_comprehensive.sh` with enhanced detection:
+  - Static missing keys: 24 keys found (like aliases-not-found, relays-create-error, etc.)
+  - Dynamic missing keys: 12 keys found (like error-duplicate-alias, error-constraint-domain, etc.)
+  - Total: 36 missing translation keys identified
+- The comprehensive script detects both literal key usage and dynamic key generation patterns
+- This provides a complete picture of translation key coverage and helps prevent runtime panics
+- Can be used to systematically add missing translations to all language files
+
+Remove domain overrides feature in the config page, and elsewhere. I don't see the point in it.

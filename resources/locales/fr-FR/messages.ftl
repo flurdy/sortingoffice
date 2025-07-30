@@ -194,6 +194,7 @@ domains-empty-description = Commencez par créer un nouveau domaine.
 domains-show-title = Domaine
 domains-new-domain = Nouveau Domaine
 domains-edit-domain = Modifier le Domaine
+domains-add-title = Ajouter un Domaine
 domains-view-edit-settings = Voir et modifier les paramètres du domaine.
 domains-back-to-domains = Retour aux Domaines
 domains-domain-information = Informations du Domaine
@@ -271,6 +272,7 @@ aliases-add = Ajouter un Alias
 aliases-table-header-mail = Adresse de Courrier
 aliases-table-header-domain = Domaine
 aliases-table-header-enabled = Activé
+aliases-domain = Domaine
 aliases-table-header-destination = Destination
 aliases-table-header-status = Statut
 aliases-table-header-actions = Actions
@@ -1142,3 +1144,9 @@ wizard-created-domains-title = Domaines Créés
 # Additional executing translations
 wizard-creating-domains-text = Création des domaines...
 wizard-creating-aliases-text = Création des alias...
+
+# Error Messages
+error-duplicate-domain = Un domaine avec ce nom existe déjà
+error-duplicate-backup = Un serveur de sauvegarde pour le domaine "{domain}" existe déjà
+error-constraint-violation = Violation de contrainte
+error-unexpected = Une erreur inattendue s'est produite

@@ -194,6 +194,7 @@ domains-empty-description = Kom i gang ved å opprette en ny domene.
 domains-show-title = Domene
 domains-new-domain = Ny domene
 domains-edit-domain = Rediger domene
+domains-add-title = Legg til domene
 domains-view-edit-settings = Vis og rediger domeneinnstillinger.
 domains-back-to-domains = Tilbake til domener
 domains-domain-information = Domeninformasjon
@@ -265,6 +266,7 @@ aliases-table-header-mail = E-post
 aliases-table-header-domain = Domene
 aliases-table-header-destination = Destinasjon
 aliases-table-header-enabled = Aktivert
+aliases-domain = Domene
 aliases-table-header-status = Status
 aliases-table-header-actions = Handlinger
 aliases-empty-title = Ingen aliaser
@@ -774,3 +776,9 @@ wizard-created-domains-title = Opprettede Domener
 # Additional executing translations
 wizard-creating-domains-text = Oppretter domener...
 wizard-creating-aliases-text = Oppretter aliaser...
+
+# Error Messages
+error-duplicate-domain = Et domene med dette navnet eksisterer allerede
+error-duplicate-backup = En backup-server for domene "{domain}" eksisterer allerede
+error-constraint-violation = Begrensningsbrudd
+error-unexpected = En uventet feil oppstod

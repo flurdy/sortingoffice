@@ -331,6 +331,7 @@ domains-empty-description = Get started by creating a new domain.
 domains-show-title = Domain
 domains-new-domain = New Domain
 domains-edit-domain = Edit Domain
+domains-add-title = Add Domain
 domains-view-edit-settings = View and edit domain settings.
 domains-back-to-domains = Back to Domains
 domains-domain-information = Domain Information
@@ -420,6 +421,7 @@ aliases-table-header-mail = Mail
 aliases-table-header-domain = Domain
 aliases-table-header-destination = Destination
 aliases-table-header-enabled = Enabled
+aliases-domain = Domain
 aliases-enable-alias = Enable
 aliases-disable-alias = Disable
 aliases-view-edit-settings = View and edit alias settings.
@@ -840,3 +842,9 @@ database-backup-action-delete = Delete
 database-selection-title = Database Selection
 database-selection-description = Select the database you want to manage. Each database represents a different mail server.
 database-switch-button = Switch Database
+
+# Error Messages
+error-duplicate-domain = A domain with this name already exists
+error-duplicate-backup = A backup server for domain "{domain}" already exists
+error-constraint-violation = Constraint violation
+error-unexpected = An unexpected error occurred
