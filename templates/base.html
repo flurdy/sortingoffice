@@ -27,7 +27,6 @@
 
     <script src="/static/js/vendor/htmx.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/vendor/flag-icon.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -268,7 +267,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="en-US">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-gb mr-2"></span>
+                                                <span class="mr-2">🇬🇧</span>
                                                 {{ language_english }}
                                                 {% if current_locale == "en-US" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -280,7 +279,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="es-ES">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-es mr-2"></span>
+                                                <span class="mr-2">🇪🇸</span>
                                                 {{ language_spanish }}
                                                 {% if current_locale == "es-ES" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -292,7 +291,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="fr-FR">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-fr mr-2"></span>
+                                                <span class="mr-2">🇫🇷</span>
                                                 {{ language_french }}
                                                 {% if current_locale == "fr-FR" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -304,7 +303,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="nb-NO">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-no mr-2"></span>
+                                                <span class="mr-2">🇳🇴</span>
                                                 {{ language_norwegian }}
                                                 {% if current_locale == "nb-NO" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -316,7 +315,7 @@
                                         <form method="post" action="/language/set">
                                             <input type="hidden" name="language" value="de-DE">
                                             <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                                                <span class="flag-icon flag-icon-de mr-2"></span>
+                                                <span class="mr-2">🇩🇪</span>
                                                 {{ language_german }}
                                                 {% if current_locale == "de-DE" %}
                                                 <svg class="w-4 h-4 ml-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">

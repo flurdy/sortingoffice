@@ -466,6 +466,11 @@ impl TestData {
         format!("mail={mail}&destination={destination}&enabled={enabled_str}")
     }
 
+    /// Generate form data for creating a backup
+    pub fn backup_form_data(domain: &str, transport: &str) -> String {
+        format!("domain={domain}&transport={transport}")
+    }
+
     /// Generate form data for creating a user
     pub fn user_form_data_complete(
         user_id: &str,

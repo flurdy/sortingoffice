@@ -764,7 +764,7 @@ mod tests {
         let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let domain = "backup-create-test.com";
-        let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
+        let form_data = TestData::backup_form_data(domain, "smtp:localhost");
 
         let response = TestUtils::make_handler_post_request(
             &app,
@@ -783,6 +783,29 @@ mod tests {
         assert!(backups.iter().any(|b| b.domain == domain));
 
         cleanup_test_db(&pool);
+    }
+
+    #[tokio::test]
+    async fn test_backups_new() {
+        let (app, state) = create_test_app().await;
+
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/backups/new",
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        assert!(body_str.contains("New Backup"));
+        assert!(body_str.contains("Create Backup"));
     }
 
     #[tokio::test]
@@ -929,7 +952,7 @@ mod tests {
         let pool = TestUtils::setup_test_db_pool(&state).await;
 
         let domain = "backup-redirect-test.com";
-        let form_data = TestData::domain_form_data(domain, "smtp:localhost", true);
+        let form_data = TestData::backup_form_data(domain, "smtp:localhost");
 
         let response = TestUtils::make_handler_post_request(
             &app,
@@ -968,7 +991,7 @@ mod tests {
         let _backup = db::create_backup(&pool, new_backup).unwrap();
 
         let updated_domain = "backup-updated-content-test.com";
-        let form_data = TestData::domain_form_data(updated_domain, "smtp:updated", true);
+        let form_data = TestData::backup_form_data(updated_domain, "smtp:updated");
 
         let response = TestUtils::make_handler_put_request(
             &app,

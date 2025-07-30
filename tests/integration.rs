@@ -993,4 +993,534 @@ mod tests {
             assert!(alias.mail.contains("db"));
         }
     }
+
+    #[tokio::test]
+    async fn test_edge_case_validation_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Domain with invalid characters
+        let invalid_domain_form =
+            TestData::domain_form_data("test@domain.com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &invalid_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Domain with capital letters
+        let capitalized_domain_form =
+            TestData::domain_form_data("Test.com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &capitalized_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: Domain with consecutive dots
+        let consecutive_dots_form = TestData::domain_form_data("test..com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &consecutive_dots_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 4: Valid domain for comparison
+        let valid_domain = TestData::unique_domain();
+        let valid_domain_form = TestData::domain_form_data(&valid_domain, "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &valid_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should succeed
+        TestUtils::assert_status(&response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_alias_validation_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Create a valid domain first
+        let domain = TestData::unique_domain();
+        let domain_form = TestData::domain_form_data(&domain, "smtp:localhost", true);
+        TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Test 1: Alias with invalid email format
+        let invalid_alias_form =
+            TestData::alias_form_data("invalid-email", "user@example.com", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &invalid_alias_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Alias with empty destination
+        let empty_dest_form = TestData::alias_form_data("user@example.com", "", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &empty_dest_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: Alias with plus sign at start
+        let plus_start_form =
+            TestData::alias_form_data("+user@example.com", "dest@example.com", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &plus_start_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 4: Valid alias for comparison
+        let valid_alias_form =
+            TestData::alias_form_data("user@example.com", "dest@example.com", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &valid_alias_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should succeed
+        TestUtils::assert_status(&response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_user_validation_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: User with invalid email format
+        let invalid_user_form = TestData::user_form_data("invalid-email", "password", "Test User");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &invalid_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: User with catchall email (not allowed for users)
+        let catchall_user_form = TestData::user_form_data("@example.com", "password", "Test User");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &catchall_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: User with empty password
+        let empty_password_form = TestData::user_form_data("user@example.com", "", "Test User");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &empty_password_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 4: Valid user for comparison
+        let valid_user_form = TestData::user_form_data("user@example.com", "password", "Test User");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &valid_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should succeed
+        TestUtils::assert_status(&response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_backup_validation_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Backup with capital letters
+        let capitalized_backup_form = TestData::backup_form_data("Test.com", "smtp:localhost");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/backups",
+            &capitalized_backup_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Backup with invalid characters
+        let invalid_backup_form = TestData::backup_form_data("test@backup.com", "smtp:localhost");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/backups",
+            &invalid_backup_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: Valid backup for comparison
+        let valid_backup = TestData::unique_domain();
+        let valid_backup_form = TestData::backup_form_data(&valid_backup, "smtp:localhost");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/backups",
+            &valid_backup_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should succeed
+        TestUtils::assert_status(&response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_boundary_conditions_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Very long domain name
+        let long_domain = "a".repeat(100) + ".com";
+        let long_domain_form = TestData::domain_form_data(&long_domain, "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &long_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Very long email address
+        let long_email = "a".repeat(100) + "@example.com";
+        let long_email_form = TestData::alias_form_data(&long_email, "dest@example.com", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &long_email_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: Empty strings
+        let empty_domain_form = TestData::domain_form_data("", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &empty_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 4: Single character domain (should be valid)
+        let single_char_form = TestData::domain_form_data("a.com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &single_char_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should succeed
+        TestUtils::assert_status(&response, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_unicode_handling_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Domain with Unicode characters
+        let unicode_domain_form = TestData::domain_form_data("test-ñ.com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &unicode_domain_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Email with Unicode characters
+        let unicode_email_form =
+            TestData::alias_form_data("userñ@example.com", "dest@example.com", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &unicode_email_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: User with Unicode characters
+        let unicode_user_form =
+            TestData::user_form_data("useré@example.com", "password", "Test User");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &unicode_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 4: Backup with Unicode characters
+        let unicode_backup_form = TestData::backup_form_data("test-ü.com", "smtp:localhost");
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/backups",
+            &unicode_backup_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_sql_injection_prevention_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Domain with SQL injection attempt
+        let sql_injection_form =
+            TestData::domain_form_data("'; DROP TABLE domains; --", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &sql_injection_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: Email with SQL injection attempt
+        let sql_injection_email_form = TestData::alias_form_data(
+            "'; DROP TABLE aliases; --@example.com",
+            "dest@example.com",
+            true,
+        );
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/aliases",
+            &sql_injection_email_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 3: User with SQL injection attempt
+        let sql_injection_user_form = TestData::user_form_data(
+            "'; DROP TABLE users; --@example.com",
+            "password",
+            "Test User",
+        );
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &sql_injection_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_edge_case_xss_prevention_integration() {
+        // Setup test environment
+        let container = setup_test_db().await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let auth_cookie = TestUtils::create_edit_auth_cookie();
+
+        // Test 1: Domain with XSS attempt
+        let xss_form =
+            TestData::domain_form_data("<script>alert('xss')</script>.com", "smtp:localhost", true);
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/domains",
+            &xss_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation
+        assert!(response.status() != StatusCode::OK);
+
+        // Test 2: User name with XSS attempt
+        let xss_user_form = TestData::user_form_data(
+            "user@example.com",
+            "password",
+            "<script>alert('xss')</script>",
+        );
+        let response = TestUtils::make_post_request(
+            &app,
+            &state,
+            "/users",
+            &xss_user_form,
+            Some(auth_cookie.clone()),
+        )
+        .await
+        .unwrap();
+
+        // Should fail validation or be properly escaped
+        assert!(response.status() != StatusCode::OK);
+    }
 }

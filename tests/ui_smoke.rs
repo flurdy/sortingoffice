@@ -295,6 +295,144 @@ async fn check_reports_page(driver: &WebDriver, app_url: &str) -> Result<()> {
     Ok(())
 }
 
+async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) -> Result<()> {
+    println!("[SMOKE TEST] Deleting user: {user_email}");
+
+    // Navigate to users page
+    let users_url = format!("{}/users", app_url.trim_end_matches('/'));
+    timeout60s!(driver.get(&users_url), "Navigate to users page")?;
+
+    // Find and click the delete button for the user
+    let delete_button = timeout30s!(
+        driver.find(By::XPath(&format!(
+            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
+            user_email
+        ))),
+        "Find delete button for user"
+    )?;
+    timeout30s!(delete_button.click(), "Click delete button")?;
+
+    // Confirm deletion in modal
+    let confirm_button = timeout30s!(
+        driver.find(By::Css("button.btn-danger")),
+        "Find confirm delete button"
+    )?;
+    timeout30s!(confirm_button.click(), "Click confirm delete")?;
+
+    // Wait for deletion to complete
+    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+
+    println!("[SMOKE TEST] User deleted successfully");
+    Ok(())
+}
+
+async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) -> Result<()> {
+    println!("[SMOKE TEST] Deleting alias: {alias_email}");
+
+    // Navigate to aliases page
+    let aliases_url = format!("{}/aliases", app_url.trim_end_matches('/'));
+    timeout60s!(driver.get(&aliases_url), "Navigate to aliases page")?;
+
+    // Find and click the delete button for the alias
+    let delete_button = timeout30s!(
+        driver.find(By::XPath(&format!(
+            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
+            alias_email
+        ))),
+        "Find delete button for alias"
+    )?;
+    timeout30s!(delete_button.click(), "Click delete button")?;
+
+    // Confirm deletion in modal
+    let confirm_button = timeout30s!(
+        driver.find(By::Css("button.btn-danger")),
+        "Find confirm delete button"
+    )?;
+    timeout30s!(confirm_button.click(), "Click confirm delete")?;
+
+    // Wait for deletion to complete
+    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+
+    println!("[SMOKE TEST] Alias deleted successfully");
+    Ok(())
+}
+
+async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str) -> Result<()> {
+    println!("[SMOKE TEST] Deleting domain: {domain_name}");
+
+    // Navigate to domains page
+    let domains_url = format!("{}/domains", app_url.trim_end_matches('/'));
+    timeout60s!(driver.get(&domains_url), "Navigate to domains page")?;
+
+    // Find and click the delete button for the domain
+    let delete_button = timeout30s!(
+        driver.find(By::XPath(&format!(
+            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
+            domain_name
+        ))),
+        "Find delete button for domain"
+    )?;
+    timeout30s!(delete_button.click(), "Click delete button")?;
+
+    // Confirm deletion in modal
+    let confirm_button = timeout30s!(
+        driver.find(By::Css("button.btn-danger")),
+        "Find confirm delete button"
+    )?;
+    timeout30s!(confirm_button.click(), "Click confirm delete")?;
+
+    // Wait for deletion to complete
+    tokio::time::sleep(tokio::time::Duration::from_millis(2000)).await;
+
+    println!("[SMOKE TEST] Domain deleted successfully");
+    Ok(())
+}
+
+async fn cleanup_test_resources(
+    driver: &WebDriver,
+    app_url: &str,
+    domain_name: &str,
+    alias1domain: &str,
+    alias2domain: &str,
+    user_email: &str,
+) -> Result<()> {
+    println!("[SMOKE TEST] Starting cleanup of test resources...");
+
+    // Cleanup in reverse order: users -> aliases -> domains
+    let cleanup_result = async {
+        // Delete user first
+        if let Err(e) = delete_user(driver, app_url, user_email).await {
+            eprintln!("[SMOKE TEST] Failed to delete user: {e:?}");
+        }
+
+        // Delete aliases
+        if let Err(e) = delete_alias(driver, app_url, alias1domain).await {
+            eprintln!("[SMOKE TEST] Failed to delete alias1: {e:?}");
+        }
+
+        if let Err(e) = delete_alias(driver, app_url, alias2domain).await {
+            eprintln!("[SMOKE TEST] Failed to delete alias2: {e:?}");
+        }
+
+        // Delete domain last
+        if let Err(e) = delete_domain(driver, app_url, domain_name).await {
+            eprintln!("[SMOKE TEST] Failed to delete domain: {e:?}");
+        }
+
+        println!("[SMOKE TEST] Cleanup completed");
+        Ok(())
+    };
+
+    // Run cleanup with timeout
+    match timeout(Duration::from_secs(60), cleanup_result).await {
+        Ok(result) => result,
+        Err(_) => {
+            eprintln!("[SMOKE TEST] Cleanup timed out after 60 seconds");
+            Err(anyhow::anyhow!("Cleanup timed out"))
+        }
+    }
+}
+
 #[tokio::test]
 #[ignore]
 async fn ui_smoke_e2e_flow() -> Result<()> {
@@ -365,6 +503,19 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
             println!("[SMOKE TEST] Checking reports page...");
             check_reports_page(&driver, &app_url).await?;
             println!("[SMOKE TEST] Reports page checked successfully");
+
+            // 5. Cleanup test resources
+            println!("[SMOKE TEST] Starting cleanup...");
+            cleanup_test_resources(
+                &driver,
+                &app_url,
+                &domain_name,
+                &alias1domain,
+                &alias2domain,
+                &user_email,
+            )
+            .await?;
+            println!("[SMOKE TEST] Cleanup completed successfully");
 
             println!("[SMOKE TEST] All test steps completed successfully!");
             Ok(())

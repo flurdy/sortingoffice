@@ -47,6 +47,15 @@ pub fn validate_domain(domain: &str) -> Result<(), ValidationError> {
         ));
     }
 
+    // Check for length limits (RFC 1035: each label max 63 characters)
+    for label in domain.split('.') {
+        if label.len() > 63 {
+            return Err(ValidationError::DomainInvalid(
+                "Domain labels cannot exceed 63 characters".to_string(),
+            ));
+        }
+    }
+
     // Check for capitalisation
     if domain.chars().any(|c| c.is_uppercase()) {
         return Err(ValidationError::DomainInvalid(
@@ -878,5 +887,303 @@ mod tests {
         assert!(validate_backup_name("backup>2024").is_err()); // > character
         assert!(validate_backup_name("backup~2024").is_err()); // ~ character
         assert!(validate_backup_name("backup`2024").is_err()); // ` character
+    }
+
+    #[test]
+    fn test_validate_domain_edge_cases() {
+        // Boundary conditions
+        assert!(validate_domain("a").is_ok()); // Single character
+        assert!(validate_domain("1").is_ok()); // Single digit
+        assert!(validate_domain(&"a".repeat(63)).is_ok()); // Max length label
+        assert!(validate_domain(&"a".repeat(64)).is_err()); // Too long label
+
+        // Unicode and special characters
+        assert!(validate_domain("test-ñ.com").is_err()); // Unicode not allowed
+        assert!(validate_domain("test-é.com").is_err()); // Unicode not allowed
+        assert!(validate_domain("test-ü.com").is_err()); // Unicode not allowed
+        assert!(validate_domain("test-ß.com").is_err()); // Unicode not allowed
+
+        // Control characters
+        assert!(validate_domain("test\x00.com").is_err()); // Null byte
+        assert!(validate_domain("test\x01.com").is_err()); // Control character
+        assert!(validate_domain("test\x7f.com").is_err()); // Control character
+
+        // Mixed case and numbers
+        assert!(validate_domain("test123.com").is_ok());
+        assert!(validate_domain("123test.com").is_ok());
+        assert!(validate_domain("test-123.com").is_ok());
+        assert!(validate_domain("test.123.com").is_ok());
+
+        // Multiple dots and hyphens
+        assert!(validate_domain("test..com").is_err()); // Consecutive dots
+        assert!(validate_domain("test--com").is_err()); // Consecutive hyphens
+        assert!(validate_domain("test.-com").is_ok()); // Dot followed by hyphen
+        assert!(validate_domain("test-.com").is_ok()); // Hyphen followed by dot
+    }
+
+    #[test]
+    fn test_validate_alias_mail_edge_cases() {
+        // Boundary conditions
+        assert!(validate_alias_mail("a@b.com").is_ok()); // Minimal valid
+        assert!(validate_alias_mail("@example.com").is_ok()); // Catchall
+        assert!(validate_alias_mail("a@b").is_ok()); // Machine name domain
+
+        // Long local parts
+        let long_local = "a".repeat(64);
+        assert!(validate_alias_mail(&format!("{}@example.com", long_local)).is_ok());
+        let too_long_local = "a".repeat(65);
+        assert!(validate_alias_mail(&format!("{}@example.com", too_long_local)).is_err());
+
+        // Special characters in local part
+        assert!(validate_alias_mail("user+tag@example.com").is_ok()); // Plus sign
+        assert!(validate_alias_mail("user.tag@example.com").is_ok()); // Dot
+        assert!(validate_alias_mail("user-tag@example.com").is_ok()); // Hyphen
+        assert!(validate_alias_mail("user_tag@example.com").is_ok()); // Underscore
+
+        // Multiple plus signs
+        assert!(validate_alias_mail("user+tag+another@example.com").is_ok());
+        assert!(validate_alias_mail("user++tag@example.com").is_err()); // Consecutive plus
+
+        // Dots in local part
+        assert!(validate_alias_mail("user.name@example.com").is_ok());
+        assert!(validate_alias_mail("user..name@example.com").is_err()); // Consecutive dots
+        assert!(validate_alias_mail(".user@example.com").is_err()); // Starts with dot
+        assert!(validate_alias_mail("user.@example.com").is_err()); // Ends with dot
+
+        // Unicode characters
+        assert!(validate_alias_mail("userñ@example.com").is_err()); // Unicode not allowed
+        assert!(validate_alias_mail("useré@example.com").is_err()); // Unicode not allowed
+
+        // Control characters
+        assert!(validate_alias_mail("user\x00@example.com").is_err()); // Null byte
+        assert!(validate_alias_mail("user\x01@example.com").is_err()); // Control character
+    }
+
+    #[test]
+    fn test_validate_alias_destination_edge_cases() {
+        // Boundary conditions
+        assert!(validate_alias_destination("user@example.com").is_ok());
+        assert!(validate_alias_destination("@example.com").is_ok()); // Valid destination
+        assert!(validate_alias_destination("user@localhost").is_ok()); // Machine name
+
+        // Plus signs in local part
+        assert!(validate_alias_destination("user+tag@example.com").is_ok());
+        assert!(validate_alias_destination("+user@example.com").is_err()); // Plus at start
+        assert!(validate_alias_destination("user+@example.com").is_err()); // Plus before @
+        assert!(validate_alias_destination("user++tag@example.com").is_err()); // Consecutive plus
+
+        // Multiple plus signs
+        assert!(validate_alias_destination("user+tag+another@example.com").is_ok());
+
+        // Special characters
+        assert!(validate_alias_destination("user.tag@example.com").is_ok()); // Dot
+        assert!(validate_alias_destination("user-tag@example.com").is_ok()); // Hyphen
+        assert!(validate_alias_destination("user_tag@example.com").is_ok()); // Underscore
+
+        // Long local parts
+        let long_local = "a".repeat(64);
+        assert!(validate_alias_destination(&format!("{}@example.com", long_local)).is_ok());
+        let too_long_local = "a".repeat(65);
+        assert!(validate_alias_destination(&format!("{}@example.com", too_long_local)).is_err());
+
+        // Unicode characters
+        assert!(validate_alias_destination("userñ@example.com").is_err()); // Unicode not allowed
+        assert!(validate_alias_destination("useré@example.com").is_err()); // Unicode not allowed
+
+        // Control characters
+        assert!(validate_alias_destination("user\x00@example.com").is_err()); // Null byte
+        assert!(validate_alias_destination("user\x01@example.com").is_err()); // Control character
+    }
+
+    #[test]
+    fn test_validate_user_id_edge_cases() {
+        // Boundary conditions
+        assert!(validate_user_id("a@b.com").is_ok()); // Minimal valid
+        assert!(validate_user_id("user@localhost").is_ok()); // Machine name domain
+
+        // Long local parts
+        let long_local = "a".repeat(64);
+        assert!(validate_user_id(&format!("{}@example.com", long_local)).is_ok());
+        let too_long_local = "a".repeat(65);
+        assert!(validate_user_id(&format!("{}@example.com", too_long_local)).is_err());
+
+        // Special characters in local part
+        assert!(validate_user_id("user+tag@example.com").is_ok()); // Plus sign
+        assert!(validate_user_id("user.tag@example.com").is_ok()); // Dot
+        assert!(validate_user_id("user-tag@example.com").is_ok()); // Hyphen
+        assert!(validate_user_id("user_tag@example.com").is_ok()); // Underscore
+
+        // Multiple plus signs
+        assert!(validate_user_id("user+tag+another@example.com").is_ok());
+        assert!(validate_user_id("user++tag@example.com").is_err()); // Consecutive plus
+
+        // Dots in local part
+        assert!(validate_user_id("user.name@example.com").is_ok());
+        assert!(validate_user_id("user..name@example.com").is_err()); // Consecutive dots
+        assert!(validate_user_id(".user@example.com").is_err()); // Starts with dot
+        assert!(validate_user_id("user.@example.com").is_err()); // Ends with dot
+
+        // Unicode characters
+        assert!(validate_user_id("userñ@example.com").is_err()); // Unicode not allowed
+        assert!(validate_user_id("useré@example.com").is_err()); // Unicode not allowed
+
+        // Control characters
+        assert!(validate_user_id("user\x00@example.com").is_err()); // Null byte
+        assert!(validate_user_id("user\x01@example.com").is_err()); // Control character
+
+        // Catchall not allowed for user IDs
+        assert!(validate_user_id("@example.com").is_err()); // Catchall not allowed
+    }
+
+    #[test]
+    fn test_validate_user_path_edge_cases() {
+        // Boundary conditions
+        assert!(validate_user_path("/home/user").is_ok());
+        assert!(validate_user_path("/").is_ok()); // Root path
+        assert!(validate_user_path("/home/user/").is_ok()); // Trailing slash
+
+        // Long paths
+        let long_path = "/home/".to_string() + &"user/".repeat(100);
+        assert!(validate_user_path(&long_path).is_ok());
+
+        // Path traversal attempts
+        assert!(validate_user_path("/home/user/../other").is_err()); // Path traversal
+        assert!(validate_user_path("/home/user/../../other").is_err()); // Multiple traversal
+        assert!(validate_user_path("/home/user/./other").is_ok()); // Current directory allowed
+        assert!(validate_user_path("/home/user/.../other").is_err()); // Multiple dots
+
+        // Special characters in paths
+        assert!(validate_user_path("/home/user/test-file").is_ok()); // Hyphen
+        assert!(validate_user_path("/home/user/test_file").is_ok()); // Underscore
+        assert!(validate_user_path("/home/user/test.file").is_ok()); // Dot
+        assert!(validate_user_path("/home/user/test file").is_ok()); // Space
+        assert!(validate_user_path("/home/user/test\tfile").is_ok()); // Tab
+        assert!(validate_user_path("/home/user/test\nfile").is_ok()); // Newline
+        assert!(validate_user_path("/home/user/test\rfile").is_ok()); // Carriage return
+
+        // Control characters
+        assert!(validate_user_path("/home/user/test\x00file").is_err()); // Null byte
+        assert!(validate_user_path("/home/user/test\x01file").is_err()); // Control character
+
+        // Unicode characters (should be allowed in paths)
+        assert!(validate_user_path("/home/user/test-ñ").is_ok()); // Unicode allowed in paths
+        assert!(validate_user_path("/home/user/test-é").is_ok()); // Unicode allowed in paths
+
+        // Relative paths not allowed
+        assert!(validate_user_path("home/user").is_err()); // Relative path
+        assert!(validate_user_path("./home/user").is_err()); // Relative path
+        assert!(validate_user_path("../home/user").is_err()); // Relative path
+    }
+
+    #[test]
+    fn test_validate_backup_name_edge_cases() {
+        // Boundary conditions
+        assert!(validate_backup_name("a").is_ok()); // Single character
+        assert!(validate_backup_name("1").is_ok()); // Single digit
+        assert!(validate_backup_name(&"a".repeat(63)).is_ok()); // Max length
+        assert!(validate_backup_name(&"a".repeat(64)).is_err()); // Too long
+
+        // Mixed case and numbers
+        assert!(validate_backup_name("backup123").is_ok());
+        assert!(validate_backup_name("123backup").is_ok());
+        assert!(validate_backup_name("backup-123").is_ok());
+        assert!(validate_backup_name("backup.123").is_ok());
+
+        // Multiple dots and hyphens
+        assert!(validate_backup_name("backup..2024").is_err()); // Consecutive dots
+        assert!(validate_backup_name("backup--2024").is_err()); // Consecutive hyphens
+        assert!(validate_backup_name("backup.-2024").is_ok()); // Dot followed by hyphen
+        assert!(validate_backup_name("backup-.2024").is_ok()); // Hyphen followed by dot
+
+        // Unicode characters
+        assert!(validate_backup_name("backup-ñ").is_err()); // Unicode not allowed
+        assert!(validate_backup_name("backup-é").is_err()); // Unicode not allowed
+        assert!(validate_backup_name("backup-ü").is_err()); // Unicode not allowed
+
+        // Control characters
+        assert!(validate_backup_name("backup\x00").is_err()); // Null byte
+        assert!(validate_backup_name("backup\x01").is_err()); // Control character
+        assert!(validate_backup_name("backup\x7f").is_err()); // Control character
+
+        // Special characters that should be allowed
+        assert!(validate_backup_name("backup-name").is_ok()); // Hyphen
+        assert!(validate_backup_name("backup.name").is_ok()); // Dot
+        assert!(validate_backup_name("backup123name").is_ok()); // Numbers
+    }
+
+    #[test]
+    fn test_validation_error_messages() {
+        // Test that error messages are descriptive
+        let domain_error = validate_domain("").unwrap_err();
+        assert!(domain_error.to_string().contains("domain"));
+
+        let alias_mail_error = validate_alias_mail("").unwrap_err();
+        assert!(alias_mail_error.to_string().contains("alias mail"));
+
+        let alias_dest_error = validate_alias_destination("").unwrap_err();
+        assert!(alias_dest_error.to_string().contains("alias destination"));
+
+        let user_id_error = validate_user_id("").unwrap_err();
+        assert!(user_id_error.to_string().contains("user ID"));
+
+        let user_path_error = validate_user_path("").unwrap_err();
+        assert!(user_path_error.to_string().contains("user path"));
+
+        let backup_name_error = validate_backup_name("").unwrap_err();
+        assert!(backup_name_error.to_string().contains("backup name"));
+    }
+
+    #[test]
+    fn test_validation_performance() {
+        // Test that validation functions handle large inputs efficiently
+        let large_domain = "a".repeat(1000);
+        let start = std::time::Instant::now();
+        let _result = validate_domain(&large_domain);
+        let duration = start.elapsed();
+
+        // Should complete within reasonable time (less than 1ms)
+        assert!(duration.as_millis() < 1);
+
+        let large_email = format!("{}@example.com", "a".repeat(1000));
+        let start = std::time::Instant::now();
+        let _result = validate_alias_mail(&large_email);
+        let duration = start.elapsed();
+
+        // Should complete within reasonable time (less than 1ms)
+        assert!(duration.as_millis() < 1);
+    }
+
+    #[test]
+    fn test_validation_consistency() {
+        // Test that validation is consistent across multiple calls
+        let test_cases = vec![
+            "example.com",
+            "user@example.com",
+            "user+tag@example.com",
+            "user@localhost",
+            "/home/user",
+            "backup-2024",
+        ];
+
+        for case in test_cases {
+            // Domain validation
+            if case.contains('@') {
+                let result1 = validate_alias_mail(case);
+                let result2 = validate_alias_mail(case);
+                assert_eq!(result1.is_ok(), result2.is_ok());
+            } else if case.starts_with('/') {
+                let result1 = validate_user_path(case);
+                let result2 = validate_user_path(case);
+                assert_eq!(result1.is_ok(), result2.is_ok());
+            } else if case.contains('-') || case.contains('.') {
+                let result1 = validate_backup_name(case);
+                let result2 = validate_backup_name(case);
+                assert_eq!(result1.is_ok(), result2.is_ok());
+            } else {
+                let result1 = validate_domain(case);
+                let result2 = validate_domain(case);
+                assert_eq!(result1.is_ok(), result2.is_ok());
+            }
+        }
     }
 }
