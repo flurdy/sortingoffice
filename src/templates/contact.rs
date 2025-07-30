@@ -25,12 +25,5 @@ pub struct ContactTemplate<'a> {
     pub documentation_desc: &'a str,
     pub sponsorship: &'a str,
     pub sponsorship_desc: &'a str,
-    pub response_times: &'a str,
-    pub response_times_desc: &'a str,
-    pub bug_reports: &'a str,
-    pub feature_requests: &'a str,
-    pub general_questions: &'a str,
-    pub security_issues: &'a str,
-    pub enterprise_support: &'a str,
     pub app_contact: Option<ContactInfo>,
 } 

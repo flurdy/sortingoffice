@@ -25,6 +25,7 @@ sidebar-main = Main
 sidebar-tables = Tables
 sidebar-tools = Tools
 sidebar-admin = Admin
+sidebar-project = Project
 
 # UI Controls
 theme-toggle = Toggle theme

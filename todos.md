@@ -524,8 +524,8 @@
 - Contact page displays application maintainer info (if configured) and project maintainer contact methods
 - Application maintainer can specify either email OR contact form URL (or both)
 - Includes links to GitHub Issues, Security Advisories, Contact Form, PGP Keys, Documentation, and Sponsorship
-- Shows expected response times for different types of inquiries
 - Fully integrated with existing authentication and layout system
+- Sidebar navigation organized into logical sections: Main, Tables, Tools, Admin, and Project (About & Contact)
 
 The select database page seems not translated.
 

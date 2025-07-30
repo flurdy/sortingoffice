@@ -33,13 +33,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             "contact-documentation-desc",
             "contact-sponsorship",
             "contact-sponsorship-desc",
-            "contact-response-times",
-            "contact-response-times-desc",
-            "contact-bug-reports",
-            "contact-feature-requests",
-            "contact-general-questions",
-            "contact-security-issues",
-            "contact-enterprise-support",
         ],
     )
     .await;
@@ -66,13 +59,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         documentation_desc: &form_translations["contact-documentation-desc"],
         sponsorship: &form_translations["contact-sponsorship"],
         sponsorship_desc: &form_translations["contact-sponsorship-desc"],
-        response_times: &form_translations["contact-response-times"],
-        response_times_desc: &form_translations["contact-response-times-desc"],
-        bug_reports: &form_translations["contact-bug-reports"],
-        feature_requests: &form_translations["contact-feature-requests"],
-        general_questions: &form_translations["contact-general-questions"],
-        security_issues: &form_translations["contact-security-issues"],
-        enterprise_support: &form_translations["contact-enterprise-support"],
         app_contact: state.config.contact.clone(),
     };
     let content = content_template.render().unwrap();

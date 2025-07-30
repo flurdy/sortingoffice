@@ -24,6 +24,7 @@ sidebar-main = Hoved
 sidebar-tables = Tabeller
 sidebar-tools = Verktøy
 sidebar-admin = Admin
+sidebar-project = Prosjekt
 
 # UI Controls
 theme-toggle = Bytt tema
