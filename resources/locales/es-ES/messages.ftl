@@ -755,6 +755,11 @@ database-backup-table-header-actions = Acciones
 database-backup-action-download = Descargar
 database-backup-action-delete = Eliminar
 
+# Database Selection
+database-selection-title = Selección de Base de Datos
+database-selection-description = Selecciona la base de datos que quieres gestionar. Cada base de datos representa un servidor de correo diferente.
+database-switch-button = Cambiar Base de Datos
+
 # Etiquetas de campos del formulario de usuario (añadidas para traducción completa)
 users-field-id = ID de usuario
 users-field-password = Contraseña

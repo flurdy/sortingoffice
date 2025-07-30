@@ -18,16 +18,31 @@ pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap
     let current_db = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Get translations for the database selection page
+    let translations = crate::handlers::utils::get_translations_batch(
+        &state,
+        &locale,
+        &[
+            "database-selection-title",
+            "database-selection-description",
+            "database-switch-button",
+        ],
+    )
+    .await;
+
     let content_template = crate::templates::database::DatabaseSelectionTemplate {
         databases,
         current_db: &current_db,
+        title: &translations["database-selection-title"],
+        description: &translations["database-selection-description"],
+        switch_button: &translations["database-switch-button"],
     };
-
-    let locale = crate::handlers::language::get_user_locale(&headers);
 
     render_template_with_title!(
         content_template,
-        "Database Selection".to_string(),
+        translations["database-selection-title"].clone(),
         &state,
         &locale,
         &headers

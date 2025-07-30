@@ -1,13 +1,12 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-2xl mx-auto">
     <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-      Database Selection
+      {{ title }}
     </h1>
 
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
       <p class="text-gray-600 dark:text-gray-300 mb-6">
-        Select the database you want to manage. Each database represents a
-        different mail server.
+        {{ description }}
       </p>
 
       <form method="POST" action="/database/select" class="space-y-4">
@@ -35,7 +34,7 @@
             type="submit"
             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
           >
-            Switch Database
+            {{ switch_button }}
           </button>
         </div>
       </form>

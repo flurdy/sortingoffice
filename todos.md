@@ -527,7 +527,15 @@
 - Fully integrated with existing authentication and layout system
 - Sidebar navigation organized into logical sections: Main, Tables, Tools, Admin, and Project (About & Contact)
 
-The select database page seems not translated.
+✅ The select database page seems not translated. - IMPLEMENTED
+- Added translation keys for database selection page in all 5 languages:
+  - database-selection-title = "Database Selection" / "Selección de Base de Datos" / "Sélection de Base de Données" / "Datenbankauswahl" / "Databasevalg"
+  - database-selection-description = "Select the database you want to manage. Each database represents a different mail server." / "Selecciona la base de datos que quieres gestionar. Cada base de datos representa un servidor de correo diferente." / "Sélectionnez la base de données que vous souhaitez gérer. Chaque base de données représente un serveur de messagerie différent." / "Wählen Sie die Datenbank aus, die Sie verwalten möchten. Jede Datenbank stellt einen anderen Mailserver dar." / "Velg databasen du vil administrere. Hver database representerer en annen e-postserver."
+  - database-switch-button = "Switch Database" / "Cambiar Base de Datos" / "Changer de Base de Données" / "Datenbank Wechseln" / "Bytt Database"
+- Updated DatabaseSelectionTemplate struct to include translation fields
+- Updated database selection template to use translation variables instead of hardcoded English text
+- Updated database handler to fetch translations and pass them to template
+- All tests pass: unit (24), integration (49)
 
 Validation. 
 - Is domain and backup name valid

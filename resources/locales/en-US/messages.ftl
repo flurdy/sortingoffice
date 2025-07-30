@@ -883,3 +883,8 @@ database-backup-table-header-actions = Actions
 # Database Backup Actions
 database-backup-action-download = Download
 database-backup-action-delete = Delete
+
+# Database Selection
+database-selection-title = Database Selection
+database-selection-description = Select the database you want to manage. Each database represents a different mail server.
+database-switch-button = Switch Database

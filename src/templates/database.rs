@@ -6,6 +6,9 @@ use askama::Template;
 pub struct DatabaseSelectionTemplate<'a> {
     pub databases: &'a [DatabaseConfig],
     pub current_db: &'a str,
+    pub title: &'a str,
+    pub description: &'a str,
+    pub switch_button: &'a str,
 }
 
 #[derive(Template)]

@@ -702,6 +702,11 @@ database-backup-table-header-actions = Handlinger
 database-backup-action-download = Last Ned
 database-backup-action-delete = Slett
 
+# Database Selection
+database-selection-title = Databasevalg
+database-selection-description = Velg databasen du vil administrere. Hver database representerer en annen e-postserver.
+database-switch-button = Bytt Database
+
 # Veiviser
 wizard-title = Domeneoppsett Veiviser
 wizard-description = Guidet oppsett for flere domener og aliaser

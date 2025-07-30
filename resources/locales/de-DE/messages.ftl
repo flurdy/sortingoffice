@@ -772,6 +772,11 @@ database-backup-table-header-actions = Aktionen
 database-backup-action-download = Herunterladen
 database-backup-action-delete = Löschen
 
+# Database Selection
+database-selection-title = Datenbankauswahl
+database-selection-description = Wählen Sie die Datenbank aus, die Sie verwalten möchten. Jede Datenbank stellt einen anderen Mailserver dar.
+database-switch-button = Datenbank Wechseln
+
 # Benutzerformular-Feldbezeichnungen (hinzugefügt für vollständige Übersetzung)
 users-field-id = Benutzer-ID
 users-field-password = Passwort
