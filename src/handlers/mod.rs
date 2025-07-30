@@ -5,6 +5,7 @@ pub mod backup;
 pub mod backups;
 pub mod clients;
 pub mod config;
+pub mod contact;
 pub mod dashboard;
 pub mod database;
 pub mod domains;
@@ -22,6 +23,7 @@ pub mod wizard;
 
 // Re-export specific functions and types
 pub use about::index as about_index;
+pub use contact::index as contact_index;
 pub use aliases::{
     create, delete, domain_search, edit, list, new, search, show, toggle_enabled,
     toggle_enabled_domain_show, toggle_enabled_list, toggle_enabled_show, update,
@@ -87,6 +89,7 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
     let read_only_routes = Router::new()
         .route("/", axum::routing::get(dashboard_index))
         .route("/about", axum::routing::get(about_index))
+        .route("/contact", axum::routing::get(contact_index))
         // Read-only domain operations
         .route("/domains", axum::routing::get(list_domains))
         .route("/domains/{id}", axum::routing::get(show_domain))

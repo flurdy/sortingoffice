@@ -22,6 +22,7 @@ pub struct BaseTemplate {
     pub nav_database: String,
     pub nav_wizard: String,
     pub nav_about: String,
+    pub nav_contact: String,
     pub nav_logout: String,
     pub theme_toggle: String,
     pub language_selector: String,
@@ -64,6 +65,7 @@ pub struct LayoutTemplate<'a> {
     pub nav_database: &'a str,
     pub nav_wizard: &'a str,
     pub nav_about: &'a str,
+    pub nav_contact: &'a str,
     pub nav_logout: &'a str,
     pub theme_toggle: &'a str,
     pub language_selector: &'a str,
@@ -113,6 +115,7 @@ impl BaseTemplate {
             nav_database: crate::i18n::get_translation(state, locale, "nav-database").await,
             nav_wizard: crate::i18n::get_translation(state, locale, "nav-wizard").await,
             nav_about: crate::i18n::get_translation(state, locale, "nav-about").await,
+            nav_contact: crate::i18n::get_translation(state, locale, "nav-contact").await,
             nav_logout: crate::i18n::get_translation(state, locale, "nav-logout").await,
             theme_toggle: crate::i18n::get_translation(state, locale, "theme-toggle").await,
             language_selector: crate::i18n::get_translation(state, locale, "language-selector")

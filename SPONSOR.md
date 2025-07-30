@@ -94,7 +94,7 @@ For organizations interested in corporate sponsorship:
 - **Dedicated support** and consultation
 - **Custom branding** and white-label options
 
-Contact us at [sponsor@flurdy.com](mailto:sponsor@flurdy.com) for corporate sponsorship inquiries.
+Contact us at [ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com) for corporate sponsorship inquiries.
 
 ## Transparency
 

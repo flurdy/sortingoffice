@@ -76,6 +76,16 @@ pub struct GlobalFeatures {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ContactInfo {
+    pub name: String,
+    #[serde(default)]
+    pub email: Option<String>,
+    #[serde(default)]
+    pub contact_form: Option<String>,
+    pub role: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub required_aliases: Vec<String>,
     pub common_aliases: Vec<String>,
@@ -89,6 +99,8 @@ pub struct Config {
     pub databases: Vec<DatabaseConfig>,
     #[serde(default)]
     pub global_features: GlobalFeatures,
+    #[serde(default)]
+    pub contact: Option<ContactInfo>,
 }
 
 impl Config {
@@ -152,6 +164,7 @@ impl Config {
             admin: None,
             databases: vec![],
             global_features: GlobalFeatures::default(),
+            contact: None,
         })
     }
 
@@ -424,6 +437,7 @@ impl Default for Config {
             admin: None,
             databases: vec![],
             global_features: GlobalFeatures::default(),
+            contact: None,
         }
     }
 }

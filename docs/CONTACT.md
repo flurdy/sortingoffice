@@ -38,9 +38,9 @@ We provide issue templates to help you report bugs effectively:
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 ### How to Report Security Issues
-1. **GitHub Security Advisories**: [https://github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
-2. **Contact Form**: [https://ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
-3. **PGP Keys**: [https://flurdy.com/contact](https://flurdy.com/contact) for encrypted communication
+1. **GitHub Security Advisories**: [github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
+2. **Contact Form**: [ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
+3. **PGP Keys**: [keybase.io/flurdy](https://keybase.io/flurdy) for encrypted communication
 
 ### What to Include
 - Description of the vulnerability

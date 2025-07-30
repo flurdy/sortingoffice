@@ -16,6 +16,7 @@ nav-config = Configuration
 nav-database-backup = Sauvegarde de Base de Données
 nav-database = Sélection de Base de Données
 nav-about = À Propos
+nav-contact = Contact
 nav-logout = Déconnexion
 
 # Sidebar Sections
@@ -84,6 +85,36 @@ about-project-details = Détails du Projet
 about-version = Version
 about-license = Licence
 about-maintainer = Mainteneur
+
+# Contact
+contact-title = Informations de Contact
+contact-subtitle = Contactez le mainteneur de l'application ou du projet pour le support, les questions et les commentaires.
+contact-app-maintainer-title = Mainteneur de l'Application
+contact-app-maintainer-desc = Informations de contact pour la personne qui maintient cette installation spécifique de Sorting Office.
+contact-project-maintainer-title = Mainteneur du Projet
+contact-project-maintainer-desc = Informations de contact pour les mainteneurs et la communauté du projet Sorting Office.
+contact-name = Nom
+contact-email = E-mail
+contact-role = Rôle
+contact-github-issues = Problèmes GitHub
+contact-github-issues-desc = Signaler des bugs et demander des fonctionnalités
+contact-security-advisories = Avis de Sécurité
+contact-security-advisories-desc = Signaler des vulnérabilités de sécurité en privé
+contact-contact-form = Formulaire de Contact
+contact-contact-form-desc = Demandes générales et support
+contact-pgp-keys = Clés PGP
+contact-pgp-keys-desc = Communication chiffrée
+contact-documentation = Documentation
+contact-documentation-desc = Informations de contact et directives
+contact-sponsorship = Parrainage
+contact-sponsorship-desc = Soutenir le projet financièrement
+contact-response-times = Temps de Réponse
+contact-response-times-desc = Temps de réponse attendus pour différents types de demandes
+contact-bug-reports = Rapports de Bugs
+contact-feature-requests = Demandes de Fonctionnalités
+contact-general-questions = Questions Générales
+contact-security-issues = Problèmes de Sécurité
+contact-enterprise-support = Support Entreprise
 
 # Common actions
 action-edit = Modifier

@@ -16,6 +16,7 @@ nav-config = "Configuración"
 nav-database-backup = "Respaldo de Base de Datos"
 nav-database = "Selección de Base de Datos"
 nav-about = "Acerca de"
+nav-contact = "Contacto"
 nav-logout = "Cerrar Sesión"
 
 # Sidebar Sections
@@ -479,6 +480,36 @@ about-project-details = Detalles del Proyecto
 about-version = Versión
 about-license = Licencia
 about-maintainer = Mantenedor
+
+# Contact
+contact-title = Información de Contacto
+contact-subtitle = Ponte en contacto con el mantenedor de la aplicación o del proyecto para soporte, preguntas y comentarios.
+contact-app-maintainer-title = Mantenedor de la Aplicación
+contact-app-maintainer-desc = Información de contacto para la persona que mantiene esta instalación específica de Sorting Office.
+contact-project-maintainer-title = Mantenedor del Proyecto
+contact-project-maintainer-desc = Información de contacto para los mantenedores y comunidad del proyecto Sorting Office.
+contact-name = Nombre
+contact-email = Correo Electrónico
+contact-role = Rol
+contact-github-issues = Problemas de GitHub
+contact-github-issues-desc = Reportar errores y solicitar características
+contact-security-advisories = Avisos de Seguridad
+contact-security-advisories-desc = Reportar vulnerabilidades de seguridad de forma privada
+contact-contact-form = Formulario de Contacto
+contact-contact-form-desc = Consultas generales y soporte
+contact-pgp-keys = Claves PGP
+contact-pgp-keys-desc = Comunicación encriptada
+contact-documentation = Documentación
+contact-documentation-desc = Información de contacto y pautas
+contact-sponsorship = Patrocinio
+contact-sponsorship-desc = Apoyar el proyecto financieramente
+contact-response-times = Tiempos de Respuesta
+contact-response-times-desc = Tiempos de respuesta esperados para diferentes tipos de consultas
+contact-bug-reports = Reportes de Errores
+contact-feature-requests = Solicitudes de Características
+contact-general-questions = Preguntas Generales
+contact-security-issues = Problemas de Seguridad
+contact-enterprise-support = Soporte Empresarial
 
 # Forms
 form-error = Error

@@ -17,6 +17,7 @@ nav-database-backup = Database Backup
 nav-database = Database Selection
 nav-wizard = Domain Wizard
 nav-about = About
+nav-contact = Contact
 nav-logout = Logout
 
 # Sidebar Sections
@@ -291,6 +292,36 @@ about-project-details = Project Details
 about-version = Version
 about-license = License
 about-maintainer = Maintainer
+
+# Contact
+contact-title = Contact Information
+contact-subtitle = Get in touch with the application maintainer or project maintainer for support, questions, and feedback.
+contact-app-maintainer-title = Application Maintainer
+contact-app-maintainer-desc = Contact information for the person who maintains this specific installation of Sorting Office.
+contact-project-maintainer-title = Project Maintainer
+contact-project-maintainer-desc = Contact information for the Sorting Office project maintainers and community.
+contact-name = Name
+contact-email = Email
+contact-role = Role
+contact-github-issues = GitHub Issues
+contact-github-issues-desc = Report bugs and request features
+contact-security-advisories = Security Advisories
+contact-security-advisories-desc = Report security vulnerabilities privately
+contact-contact-form = Contact Form
+contact-contact-form-desc = General inquiries and support
+contact-pgp-keys = PGP Keys
+contact-pgp-keys-desc = Encrypted communication
+contact-documentation = Documentation
+contact-documentation-desc = Contact information and guidelines
+contact-sponsorship = Sponsorship
+contact-sponsorship-desc = Support the project financially
+contact-response-times = Response Times
+contact-response-times-desc = Expected response times for different types of inquiries
+contact-bug-reports = Bug Reports
+contact-feature-requests = Feature Requests
+contact-general-questions = General Questions
+contact-security-issues = Security Issues
+contact-enterprise-support = Enterprise Support
 
 # Domains
 domains-title = Domains

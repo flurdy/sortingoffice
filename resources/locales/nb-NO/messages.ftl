@@ -16,6 +16,7 @@ nav-config = Konfigurasjon
 nav-database-backup = Database Backup
 nav-database = Databasevalg
 nav-about = Om
+nav-contact = Kontakt
 nav-logout = Logg ut
 
 # Sidebar Sections
@@ -84,6 +85,36 @@ about-project-details = Prosjektdetaljer
 about-version = Versjon
 about-license = Lisens
 about-maintainer = Vedlikeholder
+
+# Contact
+contact-title = Kontaktinformasjon
+contact-subtitle = Kontakt applikasjons- eller prosjektvedlikeholder for støtte, spørsmål og tilbakemeldinger.
+contact-app-maintainer-title = Applikasjonsvedlikeholder
+contact-app-maintainer-desc = Kontaktinformasjon for personen som vedlikeholder denne spesifikke installasjonen av Sorting Office.
+contact-project-maintainer-title = Prosjektvedlikeholder
+contact-project-maintainer-desc = Kontaktinformasjon for Sorting Office-prosjektets vedlikeholdere og samfunn.
+contact-name = Navn
+contact-email = E-post
+contact-role = Rolle
+contact-github-issues = GitHub-problemer
+contact-github-issues-desc = Rapporter feil og be om funksjoner
+contact-security-advisories = Sikkerhetsadvarsler
+contact-security-advisories-desc = Rapporter sikkerhetssvakheter privat
+contact-contact-form = Kontaktskjema
+contact-contact-form-desc = Generelle henvendelser og støtte
+contact-pgp-keys = PGP-nøkler
+contact-pgp-keys-desc = Kryptert kommunikasjon
+contact-documentation = Dokumentasjon
+contact-documentation-desc = Kontaktinformasjon og retningslinjer
+contact-sponsorship = Sponsing
+contact-sponsorship-desc = Støtt prosjektet økonomisk
+contact-response-times = Svarstider
+contact-response-times-desc = Forventede svarstider for ulike typer henvendelser
+contact-bug-reports = Feilrapporter
+contact-feature-requests = Funksjonsforespørsler
+contact-general-questions = Generelle spørsmål
+contact-security-issues = Sikkerhetsproblemer
+contact-enterprise-support = Enterprise-støtte
 
 # Common actions
 action-edit = Rediger

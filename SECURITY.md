@@ -18,9 +18,9 @@ We take security vulnerabilities seriously. If you believe you have found a secu
 
 ### How to Report
 
-1. **Create a private GitHub Security Advisory** at [https://github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
-2. **Contact us via our contact form** at [https://ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
-3. **PGP keys are available** at [https://flurdy.com/contact](https://flurdy.com/contact) for encrypted communication
+1. **Create a private GitHub Security Advisory** at [github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
+2. **Contact us via our contact form** at [ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
+3. **PGP keys are available** at [keybase.io/flurdy](https://keybase.io/flurdy) for encrypted communication
 
 **Include detailed information** about the vulnerability:
 - Description of the issue
@@ -103,9 +103,9 @@ Security advisories are published on:
 
 Our security team can be reached at:
 
-- **GitHub Security Advisories**: [https://github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
-- **Contact Form**: [https://ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
-- **PGP Keys**: [https://flurdy.com/contact](https://flurdy.com/contact)
+- **GitHub Security Advisories**: [github.com/flurdy/sortingoffice/security/advisories](https://github.com/flurdy/sortingoffice/security/advisories)
+- **Contact Form**: [ltrbx.io/flurdy.com](https://ltrbx.io/flurdy.com)
+- **PGP Keys**: [keybase.io/flurdy](https://keybase.io/flurdy)
 
 ## Bug Bounty
 
