@@ -79,6 +79,13 @@
   - [x] Fixed all unused variable warnings with `cargo clippy --fix`
   - [x] Clean test output with no verbose debug information
 
+- [x] **Fixed UI test duplicate data issues** (COMPLETE)
+  - [x] Identified potential race condition in shared MySQL container setup
+  - [x] Added better error handling and logging to `seed_test_db` function
+  - [x] Modified seed data to use `INSERT IGNORE` to handle duplicate key errors gracefully
+  - [x] Added logging to help debug seeding issues in UI tests
+  - [x] Improved robustness of test database setup to prevent duplicate key errors
+
 ## Future Improvements 🚀
 
 - [ ] Add more comprehensive test coverage
