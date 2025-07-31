@@ -64,7 +64,8 @@ mod tests {
 
             // Step 5: Update the domain
             let updated_domain = TestData::unique_domain();
-            let update_form_data = TestData::domain_form_data(&updated_domain, "smtp:updated", false);
+            let update_form_data =
+                TestData::domain_form_data(&updated_domain, "smtp:updated", false);
 
             let update_response = TestUtils::make_put_request(
                 &app,
@@ -165,8 +166,12 @@ mod tests {
                     .unwrap();
 
             TestUtils::assert_status(&list_response, StatusCode::OK);
-            TestUtils::assert_body_contains(list_response, &domain1).await;
-            TestUtils::assert_body_contains(list_response, &domain2).await;
+            let list_body = axum::body::to_bytes(list_response.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            let list_text = String::from_utf8_lossy(&list_body);
+            assert!(list_text.contains(&domain1));
+            assert!(list_text.contains(&domain2));
 
             // Step 3: Get domain records
             let domains = db::get_domains(container.get_pool()).unwrap();
@@ -204,8 +209,10 @@ mod tests {
             TestUtils::assert_status(&update2_response, StatusCode::OK);
 
             // Step 5: Verify updates
-            let updated_record1 = db::get_domain(container.get_pool(), domain1_record.pkid).unwrap();
-            let updated_record2 = db::get_domain(container.get_pool(), domain2_record.pkid).unwrap();
+            let updated_record1 =
+                db::get_domain(container.get_pool(), domain1_record.pkid).unwrap();
+            let updated_record2 =
+                db::get_domain(container.get_pool(), domain2_record.pkid).unwrap();
             assert_eq!(updated_record1.domain, updated_domain1);
             assert!(updated_record1.enabled);
             assert_eq!(updated_record2.domain, updated_domain2);
@@ -237,8 +244,10 @@ mod tests {
             TestUtils::assert_status(&toggle2_response, StatusCode::OK);
 
             // Step 7: Verify toggles
-            let toggled_record1 = db::get_domain(container.get_pool(), domain1_record.pkid).unwrap();
-            let toggled_record2 = db::get_domain(container.get_pool(), domain2_record.pkid).unwrap();
+            let toggled_record1 =
+                db::get_domain(container.get_pool(), domain1_record.pkid).unwrap();
+            let toggled_record2 =
+                db::get_domain(container.get_pool(), domain2_record.pkid).unwrap();
             assert!(!toggled_record1.enabled); // Should be toggled from true to false
             assert!(toggled_record2.enabled); // Should be toggled from false to true
 
@@ -285,7 +294,15 @@ mod tests {
 
             // Generate unique test data
             let user_id = TestData::unique_user_id();
-            let form_data = TestData::user_form_data_complete(&user_id, "password123", "Test User", "testdir", "/var/spool/mail/virtual", true, false);
+            let form_data = TestData::user_form_data_complete(
+                &user_id,
+                "password123",
+                "Test User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                true,
+                false,
+            );
 
             // Create authentication cookie
             let auth_cookie = TestUtils::create_edit_auth_cookie();
@@ -330,7 +347,15 @@ mod tests {
 
             // Step 5: Update the user
             let updated_user_id = TestData::unique_user_id();
-            let update_form_data = TestData::user_form_data_complete(&updated_user_id, "password123", "Updated User", "testdir", "/var/spool/mail/virtual", false, false);
+            let update_form_data = TestData::user_form_data_complete(
+                &updated_user_id,
+                "password123",
+                "Updated User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                false,
+                false,
+            );
 
             let update_response = TestUtils::make_put_request(
                 &app,
@@ -345,7 +370,8 @@ mod tests {
             TestUtils::assert_status(&update_response, StatusCode::OK);
 
             // Step 6: Verify the update
-            let updated_record = db::get_user(container.get_pool(), user_record.id.clone()).unwrap();
+            let updated_record =
+                db::get_user(container.get_pool(), user_record.id.clone()).unwrap();
             assert_eq!(updated_record.id, updated_user_id);
             assert!(!updated_record.enabled);
 
@@ -393,7 +419,15 @@ mod tests {
             // Generate unique test data
             let user_id = TestData::unique_user_id();
             let domain = TestData::unique_domain();
-            let user_form_data = TestData::user_form_data_complete(&user_id, "password123", "Test User", "testdir", "/var/spool/mail/virtual", true, false);
+            let user_form_data = TestData::user_form_data_complete(
+                &user_id,
+                "password123",
+                "Test User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                true,
+                false,
+            );
             let domain_form_data = TestData::domain_form_data(&domain, "smtp:user-test", true);
 
             // Create authentication cookie
@@ -469,7 +503,15 @@ mod tests {
 
             // Step 8: Update the user
             let updated_user_id = TestData::unique_user_id();
-            let update_user_form = TestData::user_form_data_complete(&updated_user_id, "password123", "Updated User", "testdir", "/var/spool/mail/virtual", false, false);
+            let update_user_form = TestData::user_form_data_complete(
+                &updated_user_id,
+                "password123",
+                "Updated User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                false,
+                false,
+            );
 
             let update_user_response = TestUtils::make_put_request(
                 &app,
@@ -552,7 +594,15 @@ mod tests {
             TestUtils::assert_status(&create_domain_response, StatusCode::OK);
 
             // Step 2: Create a user
-            let user_form_data = TestData::user_form_data_complete(&user_id, "password123", "Test User", "testdir", "/var/spool/mail/virtual", true, false);
+            let user_form_data = TestData::user_form_data_complete(
+                &user_id,
+                "password123",
+                "Test User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                true,
+                false,
+            );
             let create_user_response = TestUtils::make_post_request(
                 &app,
                 &state,
@@ -694,7 +744,15 @@ mod tests {
             TestUtils::assert_status(&create_domain_response, StatusCode::OK);
 
             // Create user
-            let user_form_data = TestData::user_form_data_complete(&user_id, "password123", "Stats Test User", "testdir", "/var/spool/mail/virtual", true, false);
+            let user_form_data = TestData::user_form_data_complete(
+                &user_id,
+                "password123",
+                "Stats Test User",
+                "testdir",
+                "/var/spool/mail/virtual",
+                true,
+                false,
+            );
             let create_user_response = TestUtils::make_post_request(
                 &app,
                 &state,
@@ -730,7 +788,9 @@ mod tests {
             TestUtils::assert_status(&stats_response, StatusCode::OK);
 
             // Step 3: Verify stats contain expected data
-            let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX).await.unwrap();
+            let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX)
+                .await
+                .unwrap();
             let stats_text = String::from_utf8_lossy(&stats_body);
             assert!(stats_text.contains("domains"));
             assert!(stats_text.contains("users"));
@@ -745,7 +805,9 @@ mod tests {
             TestUtils::assert_status(&dashboard_response, StatusCode::OK);
 
             // Step 5: Verify dashboard contains expected data
-            let dashboard_body = axum::body::to_bytes(dashboard_response.into_body(), usize::MAX).await.unwrap();
+            let dashboard_body = axum::body::to_bytes(dashboard_response.into_body(), usize::MAX)
+                .await
+                .unwrap();
             let dashboard_text = String::from_utf8_lossy(&dashboard_body);
             assert!(dashboard_text.contains("dashboard"));
         }
@@ -786,8 +848,11 @@ mod tests {
             TestUtils::assert_status(&api_databases_response, StatusCode::OK);
 
             // Step 3: Verify API returns JSON
-            let api_body = TestUtils::get_response_body(api_databases_response).await;
-            assert!(api_body.contains("test")); // Should contain test database
+            let api_body = axum::body::to_bytes(api_databases_response.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            let api_text = String::from_utf8_lossy(&api_body);
+            assert!(api_text.contains("test")); // Should contain test database
         }
     }
 
@@ -881,7 +946,7 @@ mod tests {
             let edge_cases = vec![
                 ("", "empty domain"),
                 ("a", "single character domain"),
-                ("a" .repeat(100), "very long domain"),
+                ("a".repeat(100), "very long domain"),
                 ("test@domain.com", "domain with @ symbol"),
                 ("test.domain.com", "domain with dots"),
                 ("test-domain.com", "domain with hyphens"),
@@ -916,7 +981,8 @@ mod tests {
 
             // Create a domain first
             let domain = TestData::unique_domain();
-            let domain_form_data = TestData::domain_form_data(&domain, "smtp:alias-edge-test", true);
+            let domain_form_data =
+                TestData::domain_form_data(&domain, "smtp:alias-edge-test", true);
             let create_domain_response = TestUtils::make_post_request(
                 &app,
                 &state,
@@ -933,7 +999,10 @@ mod tests {
             let edge_cases = vec![
                 ("", "empty alias"),
                 ("a@domain.com", "single character alias"),
-                (&format!("{}@{}", "a".repeat(100), domain), "very long alias name"),
+                (
+                    &format!("{}@{}", "a".repeat(100), domain),
+                    "very long alias name",
+                ),
                 ("test@test@domain.com", "alias with multiple @ symbols"),
                 ("test..test@domain.com", "alias with consecutive dots"),
             ];
@@ -976,7 +1045,15 @@ mod tests {
             ];
 
             for (user_id, description) in edge_cases {
-                let user_form_data = TestData::user_form_data_complete(user_id, "password123", "Edge Test User", "testdir", "/var/spool/mail/virtual", true, false);
+                let user_form_data = TestData::user_form_data_complete(
+                    user_id,
+                    "password123",
+                    "Edge Test User",
+                    "testdir",
+                    "/var/spool/mail/virtual",
+                    true,
+                    false,
+                );
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1012,7 +1089,8 @@ mod tests {
             ];
 
             for (backup_domain, description) in edge_cases {
-                let backup_form_data = TestData::domain_form_data(backup_domain, "smtp:backup-edge-test", true);
+                let backup_form_data =
+                    TestData::domain_form_data(backup_domain, "smtp:backup-edge-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1048,7 +1126,8 @@ mod tests {
 
             for (test_value, description) in boundary_tests {
                 // Test domain creation with boundary values
-                let domain_form_data = TestData::domain_form_data(&test_value, "smtp:boundary-test", true);
+                let domain_form_data =
+                    TestData::domain_form_data(&test_value, "smtp:boundary-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1086,7 +1165,8 @@ mod tests {
 
             for (test_value, description) in unicode_tests {
                 // Test domain creation with Unicode values
-                let domain_form_data = TestData::domain_form_data(&test_value, "smtp:unicode-test", true);
+                let domain_form_data =
+                    TestData::domain_form_data(&test_value, "smtp:unicode-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1115,15 +1195,25 @@ mod tests {
             // Test SQL injection prevention
             let sql_injection_tests = vec![
                 ("'; DROP TABLE domains; --", "SQL injection attempt 1"),
-                ("'; INSERT INTO domains VALUES ('hacked', 'hacked', 1); --", "SQL injection attempt 2"),
-                ("'; UPDATE domains SET domain = 'hacked'; --", "SQL injection attempt 3"),
+                (
+                    "'; INSERT INTO domains VALUES ('hacked', 'hacked', 1); --",
+                    "SQL injection attempt 2",
+                ),
+                (
+                    "'; UPDATE domains SET domain = 'hacked'; --",
+                    "SQL injection attempt 3",
+                ),
                 ("' OR '1'='1", "SQL injection attempt 4"),
-                ("' UNION SELECT * FROM domains --", "SQL injection attempt 5"),
+                (
+                    "' UNION SELECT * FROM domains --",
+                    "SQL injection attempt 5",
+                ),
             ];
 
             for (test_value, description) in sql_injection_tests {
                 // Test domain creation with SQL injection attempts
-                let domain_form_data = TestData::domain_form_data(&test_value, "smtp:sql-test", true);
+                let domain_form_data =
+                    TestData::domain_form_data(&test_value, "smtp:sql-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1160,7 +1250,8 @@ mod tests {
 
             for (test_value, description) in xss_tests {
                 // Test domain creation with XSS attempts
-                let domain_form_data = TestData::domain_form_data(&test_value, "smtp:xss-test", true);
+                let domain_form_data =
+                    TestData::domain_form_data(&test_value, "smtp:xss-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,

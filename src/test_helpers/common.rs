@@ -1,6 +1,6 @@
 use crate::schema::{
-    aliases::dsl::aliases, backups::dsl::backups, domains::dsl::domains, users::dsl::users,
-    relays::dsl::relays, relocated::dsl::relocated, clients::dsl::clients,
+    aliases::dsl::aliases, backups::dsl::backups, clients::dsl::clients, domains::dsl::domains,
+    relays::dsl::relays, relocated::dsl::relocated, users::dsl::users,
 };
 use crate::DbPool;
 use diesel::mysql::MysqlConnection;
@@ -111,22 +111,25 @@ pub struct TestDataManager;
 
 impl TestDataManager {
     /// Create test data and return cleanup function
-    pub fn create_test_data_with_cleanup<F, T>(pool: &DbPool, creator: F) -> Result<T, Box<dyn std::error::Error>>
+    pub fn create_test_data_with_cleanup<F, T>(
+        pool: &DbPool,
+        creator: F,
+    ) -> Result<T, Box<dyn std::error::Error>>
     where
         F: FnOnce(&DbPool) -> Result<T, Box<dyn std::error::Error>>,
     {
         // Create the test data
         let result = creator(pool)?;
-        
+
         // Return the result (cleanup will be handled by caller)
         Ok(result)
     }
 
     /// Create multiple test datasets
     pub fn create_multiple_datasets<F, T>(
-        pool: &DbPool, 
-        count: usize, 
-        creator: F
+        pool: &DbPool,
+        count: usize,
+        creator: F,
     ) -> Result<Vec<T>, Box<dyn std::error::Error>>
     where
         F: Fn(&DbPool, usize) -> Result<T, Box<dyn std::error::Error>>,
@@ -145,13 +148,13 @@ impl TestDataManager {
     {
         // Clean up before creating test data
         cleanup_test_db(pool);
-        
+
         // Create the test data
         let result = creator(pool)?;
-        
+
         // Clean up after creating test data
         cleanup_test_db(pool);
-        
+
         Ok(result)
     }
 }
@@ -177,7 +180,7 @@ pub fn unique_test_id_with_timestamp() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    format!("test-{}", timestamp)
+    format!("test-{timestamp}")
 }
 
 /// Generate a unique test ID with random component

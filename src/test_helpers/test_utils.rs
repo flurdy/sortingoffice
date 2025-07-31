@@ -507,18 +507,17 @@ impl TestData {
     // Domain factories
     /// Create a domain with random data
     pub fn random_domain() -> String {
-        let domains = vec![
-            "example.com",
+        let domains = ["example.com",
             "test.org",
             "demo.net",
             "sample.co.uk",
-            "trial.io",
-        ];
+            "trial.io"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let random_domain = domains[rng.gen_range(0..domains.len())];
-        format!("{}-{}.{}", 
-            Self::random_word(), 
+        format!(
+            "{}-{}.{}",
+            Self::random_word(),
             crate::test_helpers::common::unique_test_id(),
             random_domain
         )
@@ -526,8 +525,9 @@ impl TestData {
 
     /// Create a domain with specific characteristics
     pub fn domain_with_suffix(suffix: &str) -> String {
-        format!("{}-{}.{}", 
-            Self::random_word(), 
+        format!(
+            "{}-{}.{}",
+            Self::random_word(),
             crate::test_helpers::common::unique_test_id(),
             suffix
         )
@@ -536,15 +536,13 @@ impl TestData {
     /// Create a domain with specific length
     pub fn domain_with_length(length: usize) -> String {
         let name = Self::random_string(length);
-        format!("{}.example.com", name)
+        format!("{name}.example.com")
     }
 
     // User factories
     /// Create a user with random data
     pub fn random_user() -> String {
-        let usernames = vec![
-            "john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona"
-        ];
+        let usernames = ["john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let random_username = usernames[rng.gen_range(0..usernames.len())];
@@ -553,19 +551,18 @@ impl TestData {
 
     /// Create a user with specific domain
     pub fn user_for_domain(domain: &str) -> String {
-        let usernames = vec![
-            "admin", "user", "test", "demo", "sample", "trial"
-        ];
+        let usernames = ["admin", "user", "test", "demo", "sample", "trial"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let random_username = usernames[rng.gen_range(0..usernames.len())];
-        format!("{}@{}", random_username, domain)
+        format!("{random_username}@{domain}")
     }
 
     /// Create a user with specific characteristics
     pub fn user_with_pattern(pattern: &str) -> String {
-        format!("{}-{}@example.com", 
-            pattern, 
+        format!(
+            "{}-{}@example.com",
+            pattern,
             crate::test_helpers::common::unique_test_id()
         )
     }
@@ -573,9 +570,13 @@ impl TestData {
     // Alias factories
     /// Create an alias with random data
     pub fn random_alias() -> String {
-        let alias_names = vec![
-            "info", "admin", "support", "sales", "contact", "help", "webmaster"
-        ];
+        let alias_names = ["info",
+            "admin",
+            "support",
+            "sales",
+            "contact",
+            "help",
+            "webmaster"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let random_name = alias_names[rng.gen_range(0..alias_names.len())];
@@ -584,30 +585,26 @@ impl TestData {
 
     /// Create an alias for a specific domain
     pub fn alias_for_domain(domain: &str) -> String {
-        let alias_names = vec![
-            "postmaster", "abuse", "webmaster", "admin", "info"
-        ];
+        let alias_names = ["postmaster", "abuse", "webmaster", "admin", "info"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let random_name = alias_names[rng.gen_range(0..alias_names.len())];
-        format!("{}@{}", random_name, domain)
+        format!("{random_name}@{domain}")
     }
 
     /// Create an alias with specific name and domain
     pub fn alias_with_name(name: &str, domain: &str) -> String {
-        format!("{}@{}", name, domain)
+        format!("{name}@{domain}")
     }
 
     // Transport factories
     /// Generate a random transport string
     pub fn random_transport() -> String {
-        let transports = vec![
-            "smtp:localhost",
+        let transports = ["smtp:localhost",
             "smtp:mail.example.com",
             "smtp:relay.example.com",
             "smtp:mx.example.com",
-            "smtp:backup.example.com"
-        ];
+            "smtp:backup.example.com"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         transports[rng.gen_range(0..transports.len())].to_string()
@@ -615,19 +612,17 @@ impl TestData {
 
     /// Generate a transport with specific server
     pub fn transport_with_server(server: &str) -> String {
-        format!("smtp:{}", server)
+        format!("smtp:{server}")
     }
 
     // Password factories
     /// Generate a random password
     pub fn random_password() -> String {
-        let passwords = vec![
-            "password123",
+        let passwords = ["password123",
             "securepass456",
             "testpass789",
             "demo123pass",
-            "sample456pass"
-        ];
+            "sample456pass"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         passwords[rng.gen_range(0..passwords.len())].to_string()
@@ -635,16 +630,24 @@ impl TestData {
 
     /// Generate a password with specific pattern
     pub fn password_with_pattern(pattern: &str) -> String {
-        format!("{}{}", pattern, crate::test_helpers::common::unique_test_id())
+        format!(
+            "{}{}",
+            pattern,
+            crate::test_helpers::common::unique_test_id()
+        )
     }
 
     // Name factories
     /// Generate a random name
     pub fn random_name() -> String {
-        let names = vec![
-            "John Doe", "Jane Smith", "Bob Wilson", "Alice Brown", 
-            "Charlie Davis", "Diana Miller", "Edward Garcia", "Fiona Rodriguez"
-        ];
+        let names = ["John Doe",
+            "Jane Smith",
+            "Bob Wilson",
+            "Alice Brown",
+            "Charlie Davis",
+            "Diana Miller",
+            "Edward Garcia",
+            "Fiona Rodriguez"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         names[rng.gen_range(0..names.len())].to_string()
@@ -652,15 +655,17 @@ impl TestData {
 
     /// Generate a name with specific pattern
     pub fn name_with_pattern(pattern: &str) -> String {
-        format!("{} {}", pattern, crate::test_helpers::common::unique_test_id())
+        format!(
+            "{} {}",
+            pattern,
+            crate::test_helpers::common::unique_test_id()
+        )
     }
 
     // Helper methods for randomization
     /// Generate a random word
     fn random_word() -> String {
-        let words = vec![
-            "test", "demo", "sample", "trial", "example", "mock", "fake", "dummy"
-        ];
+        let words = ["test", "demo", "sample", "trial", "example", "mock", "fake", "dummy"];
         use rand::Rng;
         let mut rng = rand::thread_rng();
         words[rng.gen_range(0..words.len())].to_string()
@@ -730,7 +735,15 @@ impl TestData {
         let home = "/var/spool/mail/virtual";
         let enabled = rand::random::<bool>();
         let change_password = rand::random::<bool>();
-        Self::user_form_data_complete(&user_id, &password, &name, &maildir, home, enabled, change_password)
+        Self::user_form_data_complete(
+            &user_id,
+            &password,
+            &name,
+            &maildir,
+            home,
+            enabled,
+            change_password,
+        )
     }
 
     /// Generate form data for creating an alias with sensible defaults
@@ -797,39 +810,81 @@ impl TestData {
 
     /// Generate multiple test datasets
     pub fn multiple_test_datasets(count: usize) -> Vec<(String, String, String)> {
-        (0..count)
-            .map(|_| Self::complete_test_dataset())
-            .collect()
+        (0..count).map(|_| Self::complete_test_dataset()).collect()
     }
 
     /// Generate edge case test data
     pub fn edge_case_test_data() -> Vec<(String, String, String)> {
         vec![
-            ("a.com".to_string(), "user@a.com".to_string(), "alias@a.com".to_string()),
-            ("very-long-domain-name-that-exceeds-normal-limits.example.com".to_string(), 
-             "very-long-user-name@very-long-domain-name-that-exceeds-normal-limits.example.com".to_string(),
-             "very-long-alias-name@very-long-domain-name-that-exceeds-normal-limits.example.com".to_string()),
-            ("test..com".to_string(), "user@test..com".to_string(), "alias@test..com".to_string()),
-            ("test@domain.com".to_string(), "user@test@domain.com".to_string(), "alias@test@domain.com".to_string()),
+            (
+                "a.com".to_string(),
+                "user@a.com".to_string(),
+                "alias@a.com".to_string(),
+            ),
+            (
+                "very-long-domain-name-that-exceeds-normal-limits.example.com".to_string(),
+                "very-long-user-name@very-long-domain-name-that-exceeds-normal-limits.example.com"
+                    .to_string(),
+                "very-long-alias-name@very-long-domain-name-that-exceeds-normal-limits.example.com"
+                    .to_string(),
+            ),
+            (
+                "test..com".to_string(),
+                "user@test..com".to_string(),
+                "alias@test..com".to_string(),
+            ),
+            (
+                "test@domain.com".to_string(),
+                "user@test@domain.com".to_string(),
+                "alias@test@domain.com".to_string(),
+            ),
         ]
     }
 
     /// Generate security test data (SQL injection, XSS attempts)
     pub fn security_test_data() -> Vec<(String, String, String)> {
         vec![
-            ("'; DROP TABLE domains; --".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
-            ("<script>alert('xss')</script>.com".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
-            ("' OR '1'='1".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
-            ("javascript:alert('xss')".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
+            (
+                "'; DROP TABLE domains; --".to_string(),
+                "user@test.com".to_string(),
+                "alias@test.com".to_string(),
+            ),
+            (
+                "<script>alert('xss')</script>.com".to_string(),
+                "user@test.com".to_string(),
+                "alias@test.com".to_string(),
+            ),
+            (
+                "' OR '1'='1".to_string(),
+                "user@test.com".to_string(),
+                "alias@test.com".to_string(),
+            ),
+            (
+                "javascript:alert('xss')".to_string(),
+                "user@test.com".to_string(),
+                "alias@test.com".to_string(),
+            ),
         ]
     }
 
     /// Generate Unicode test data
     pub fn unicode_test_data() -> Vec<(String, String, String)> {
         vec![
-            ("tëst.com".to_string(), "user@tëst.com".to_string(), "alias@tëst.com".to_string()),
-            ("测试.com".to_string(), "user@测试.com".to_string(), "alias@测试.com".to_string()),
-            ("tëst@domain.com".to_string(), "user@tëst@domain.com".to_string(), "alias@tëst@domain.com".to_string()),
+            (
+                "tëst.com".to_string(),
+                "user@tëst.com".to_string(),
+                "alias@tëst.com".to_string(),
+            ),
+            (
+                "测试.com".to_string(),
+                "user@测试.com".to_string(),
+                "alias@测试.com".to_string(),
+            ),
+            (
+                "tëst@domain.com".to_string(),
+                "user@tëst@domain.com".to_string(),
+                "alias@tëst@domain.com".to_string(),
+            ),
         ]
     }
 }

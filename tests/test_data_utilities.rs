@@ -203,7 +203,7 @@ mod tests {
 
         // Test specific table cleanup
         sortingoffice::test_helpers::common::cleanup_specific_tables(&pool, &["domains", "users"]);
-        
+
         // Test cleanup with verification
         let cleanup_result = sortingoffice::test_helpers::common::cleanup_with_verification(&pool);
         assert!(cleanup_result.is_ok());
@@ -283,7 +283,8 @@ mod tests {
         assert!(alias_form.contains("destination=user@test.com"));
         assert!(alias_form.contains("enabled=on"));
 
-        let alias_form_disabled = TestData::alias_form_data("alias@test.com", "user@test.com", false);
+        let alias_form_disabled =
+            TestData::alias_form_data("alias@test.com", "user@test.com", false);
         assert!(alias_form_disabled.contains("mail=alias@test.com"));
         assert!(alias_form_disabled.contains("destination=user@test.com"));
         assert!(!alias_form_disabled.contains("enabled=on"));
@@ -293,4 +294,4 @@ mod tests {
         assert!(backup_form.contains("domain=backup.com"));
         assert!(backup_form.contains("transport=smtp:backup"));
     }
-} 
+}

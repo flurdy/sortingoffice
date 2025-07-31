@@ -117,7 +117,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     caps.add_arg("--disable-gpu")?;
-    
+
     if config.headless {
         caps.add_arg("--headless")?;
     } else {
@@ -134,68 +134,72 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     println!("[SMOKE TEST] WebDriver created successfully");
 
     // Run the test with proper error handling
-    let result = timeout(
-        Duration::from_secs(config.timeout_seconds),
-        async {
-            // Authenticate
-            println!("[SMOKE TEST] Authenticating...");
-            authenticate_driver(&driver, &config.app_url).await?;
-            println!("[SMOKE TEST] Authentication successful");
+    let result = timeout(Duration::from_secs(config.timeout_seconds), async {
+        // Authenticate
+        println!("[SMOKE TEST] Authenticating...");
+        authenticate_driver(&driver, &config.app_url).await?;
+        println!("[SMOKE TEST] Authentication successful");
 
-            // Generate random test data
-            let domain_name = format!("{}.test.com", rand_str()).to_lowercase();
-            let alias1 = format!("alias1-{}", rand_str());
-            let alias2 = format!("alias2-{}", rand_str());
-            let user_name = format!("user-{}", rand_str());
-            let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
-            let user_email = format!("{user_name}@{domain_name}");
+        // Generate random test data
+        let domain_name = format!("{}.test.com", rand_str()).to_lowercase();
+        let alias1 = format!("alias1-{}", rand_str());
+        let alias2 = format!("alias2-{}", rand_str());
+        let user_name = format!("user-{}", rand_str());
+        let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
+        let user_email = format!("{user_name}@{domain_name}");
 
-            println!("[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}");
+        println!("[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}");
 
-            // 1. Create a new domain
-            println!("[SMOKE TEST] Creating domain...");
-            create_domain(&driver, &config.app_url, &domain_name).await?;
-            println!("[SMOKE TEST] Domain created successfully");
+        // 1. Create a new domain
+        println!("[SMOKE TEST] Creating domain...");
+        create_domain(&driver, &config.app_url, &domain_name).await?;
+        println!("[SMOKE TEST] Domain created successfully");
 
-            // 2. Create two aliases for the domain
-            let alias1domain = format!("{alias1}@{domain_name}");
-            let alias2domain = format!("{alias2}@{domain_name}");
+        // 2. Create two aliases for the domain
+        let alias1domain = format!("{alias1}@{domain_name}");
+        let alias2domain = format!("{alias2}@{domain_name}");
 
-            println!("[SMOKE TEST] Creating first alias...");
-            create_alias(&driver, &config.app_url, &alias1domain, &user_email).await?;
-            println!("[SMOKE TEST] First alias created successfully");
+        println!("[SMOKE TEST] Creating first alias...");
+        create_alias(&driver, &config.app_url, &alias1domain, &user_email).await?;
+        println!("[SMOKE TEST] First alias created successfully");
 
-            println!("[SMOKE TEST] Creating second alias...");
-            create_alias(&driver, &config.app_url, &alias2domain, &user_email).await?;
-            println!("[SMOKE TEST] Second alias created successfully");
+        println!("[SMOKE TEST] Creating second alias...");
+        create_alias(&driver, &config.app_url, &alias2domain, &user_email).await?;
+        println!("[SMOKE TEST] Second alias created successfully");
 
-            // 3. Create a user for the domain
-            println!("[SMOKE TEST] Creating user...");
-            create_user(&driver, &config.app_url, &user_email, &user_name, &user_maildir).await?;
-            println!("[SMOKE TEST] User created successfully");
+        // 3. Create a user for the domain
+        println!("[SMOKE TEST] Creating user...");
+        create_user(
+            &driver,
+            &config.app_url,
+            &user_email,
+            &user_name,
+            &user_maildir,
+        )
+        .await?;
+        println!("[SMOKE TEST] User created successfully");
 
-            // 4. Check reports page
-            println!("[SMOKE TEST] Checking reports page...");
-            check_reports_page(&driver, &config.app_url).await?;
-            println!("[SMOKE TEST] Reports page checked successfully");
+        // 4. Check reports page
+        println!("[SMOKE TEST] Checking reports page...");
+        check_reports_page(&driver, &config.app_url).await?;
+        println!("[SMOKE TEST] Reports page checked successfully");
 
-            // 5. Cleanup test resources
-            println!("[SMOKE TEST] Starting cleanup...");
-            cleanup_test_resources(
-                &driver,
-                &config.app_url,
-                &domain_name,
-                &alias1domain,
-                &alias2domain,
-                &user_email,
-            )
-            .await?;
-            println!("[SMOKE TEST] Cleanup completed successfully");
+        // 5. Cleanup test resources
+        println!("[SMOKE TEST] Starting cleanup...");
+        cleanup_test_resources(
+            &driver,
+            &config.app_url,
+            &domain_name,
+            &alias1domain,
+            &alias2domain,
+            &user_email,
+        )
+        .await?;
+        println!("[SMOKE TEST] Cleanup completed successfully");
 
-            println!("[SMOKE TEST] All test steps completed successfully!");
-            Ok(())
-        },
-    )
+        println!("[SMOKE TEST] All test steps completed successfully!");
+        Ok(())
+    })
     .await;
 
     // Cleanup: Always try to quit the driver
@@ -219,8 +223,14 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
             Err(e)
         }
         Err(_) => {
-            println!("[SMOKE TEST] ❌ Smoke test timed out after {} seconds", config.timeout_seconds);
-            Err(anyhow::anyhow!("Smoke test timed out after {} seconds", config.timeout_seconds))
+            println!(
+                "[SMOKE TEST] ❌ Smoke test timed out after {} seconds",
+                config.timeout_seconds
+            );
+            Err(anyhow::anyhow!(
+                "Smoke test timed out after {} seconds",
+                config.timeout_seconds
+            ))
         }
     }
 }
@@ -228,26 +238,26 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
 /// Run smoke test with testcontainers support
 pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-    
+
     println!("[SMOKE TEST] Starting smoke test with testcontainers...");
-    
+
     // Setup test database using testcontainers
     let container = setup_test_db().await;
     let db_url = container.get_db_url();
-    
+
     println!("[SMOKE TEST] Test database ready: {}", db_url);
-    
+
     // For testcontainers, we need to start the app with the test database
     // This would typically be done by spawning the app process
     let app_url = "http://localhost:3000".to_string();
-    
+
     let config = SmokeTestConfig {
         app_url,
         headless: true, // Headless for CI
         timeout_seconds: 300,
         enable_vnc: false,
     };
-    
+
     run_smoke_test_with_config(config).await
 }
 
