@@ -280,7 +280,7 @@ pub async fn create(
     // Validate domain format
     match crate::validation::validate_domain(&form.domain.trim()) {
         Ok(_) => {}
-        Err(e) => {
+        Err(_e) => {
             let content_template = BackupFormTemplate {
                 title: get_translation(&state, &locale, "backups-new-backup").await,
                 form_error: get_translation(&state, &locale, "backups-form-error").await,

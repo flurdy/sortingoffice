@@ -348,7 +348,7 @@ pub async fn create(
     // Validate alias mail
     match crate::validation::validate_alias_mail(&form.mail) {
         Ok(_) => {}
-        Err(e) => {
+        Err(_e) => {
             let locale = get_user_locale(&headers);
             let error_msg = get_translation(&state, &locale, "validation-alias-mail-invalid").await;
 
@@ -398,7 +398,7 @@ pub async fn create(
     // Validate alias destination
     match crate::validation::validate_alias_destination(&form.destination) {
         Ok(_) => {}
-        Err(e) => {
+        Err(_e) => {
             let locale = get_user_locale(&headers);
             let error_msg =
                 get_translation(&state, &locale, "validation-alias-destination-invalid").await;
@@ -841,7 +841,7 @@ pub async fn update(
     // Validate alias mail
     match crate::validation::validate_alias_mail(&form.mail) {
         Ok(_) => {}
-        Err(e) => {
+        Err(_e) => {
             let locale = get_user_locale(&headers);
             let error_msg = get_translation(&state, &locale, "validation-alias-mail-invalid").await;
 
@@ -891,7 +891,7 @@ pub async fn update(
     // Validate alias destination
     match crate::validation::validate_alias_destination(&form.destination) {
         Ok(_) => {}
-        Err(e) => {
+        Err(_e) => {
             let locale = get_user_locale(&headers);
             let error_msg =
                 get_translation(&state, &locale, "validation-alias-destination-invalid").await;

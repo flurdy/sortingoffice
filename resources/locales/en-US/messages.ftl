@@ -769,15 +769,6 @@ reports-destination-header = Destination
 # Configuration
 config-title = Configuration
 config-description = Manage required aliases and domain-specific overrides.
-config-domain-overrides-header = Domain Overrides
-config-cancel-button = Cancel
-config-domain-overrides-description = Override required aliases for specific domains.
-config-add-domain-override-button = Add Domain Override
-config-remove-domain-button = Remove Domain
-config-required-aliases-label = Required Aliases
-config-common-aliases-label = Common Aliases
-config-remove-button = Remove
-config-placeholder-domain = Enter domain (e.g., example.com)
 
 # Global Feature Toggles
 config-global-features-header = Global Feature Toggles

@@ -13,7 +13,7 @@ The Database Backup feature provides:
 
 ## Accessing the Backup Feature
 
-1. **Navigate to**: `/backup` in your web browser
+1. **Navigate to**: `/database_backup` in your web browser
 2. **Authentication**: Requires admin login with appropriate permissions
 3. **Database Selection**: Choose from any configured database in your `config.toml`
 
@@ -120,11 +120,11 @@ The backup feature provides these REST endpoints:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/backup` | Backup management page |
-| `POST` | `/backup/create-htmx` | Create new backup (HTMX) |
-| `GET` | `/backup/list` | List existing backups (JSON) |
-| `GET` | `/backup/download/{filename}` | Download backup file |
-| `DELETE` | `/backup/delete/{filename}` | Delete backup file |
+| `GET` | `/database_backup` | Backup management page |
+| `POST` | `/database_backup/create-htmx` | Create new backup (HTMX) |
+| `GET` | `/database_backup/list` | List existing backups (JSON) |
+| `GET` | `/database_backup/download/{filename}` | Download backup file |
+| `DELETE` | `/database_backup/delete/{filename}` | Delete backup file |
 
 ## Troubleshooting
 

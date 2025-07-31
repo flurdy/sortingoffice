@@ -19,7 +19,7 @@
     </div>
     {% endif %}
 
-    <form {% if backup.is_some() %}hx-put="/backups/{{ backup.as_ref().unwrap().pkid }}"{% else %}hx-post="/backups"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form {% if backup.is_some() %}hx-put="/domain_backup/{{ backup.as_ref().unwrap().pkid }}"{% else %}hx-post="/domain_backup"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
                 <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold" for="domain">

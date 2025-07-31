@@ -509,10 +509,7 @@ Sorting Office allows you to configure which email aliases are considered "requi
        "spam"
    ]
 
-   # Optional: Domain-specific overrides
-   [domain_overrides]
-   # example.com = ["postmaster", "abuse", "admin"]
-   # another-domain.com = ["postmaster", "support", "info"]
+   
    ```
 
 3. **Web Interface**: Access the configuration page at `/config` to view current configuration and domain-specific overrides (read-only).
@@ -529,9 +526,7 @@ If no configuration is provided, the following aliases are considered required b
 - `noreply`
 - `no-reply`
 
-#### Domain-Specific Overrides
 
-You can specify different required aliases for specific domains using the `domain_overrides` section in the configuration file. This allows you to have different requirements for different domains.
 
 #### Reports Integration
 

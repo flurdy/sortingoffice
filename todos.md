@@ -643,10 +643,6 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 - The "Add Backup" button on domains page should now work correctly
 - All tests pass: unit (60), integration (49)
 
-Please rename the database backup path to database_backup to distinguish
-- and related files
-And rename the mx backup as domain_backup for path and files?
-
 ✅ Fixed missing aliases-domain translation key - IMPLEMENTED
 - Added missing "aliases-domain" translation key to English messages.ftl
 - The key was incorrectly removed during the "message cull" commit
@@ -716,4 +712,38 @@ And rename the mx backup as domain_backup for path and files?
 - This provides a complete picture of translation key coverage and helps prevent runtime panics
 - Can be used to systematically add missing translations to all language files
 
-Remove domain overrides feature in the config page, and elsewhere. I don't see the point in it.
+---
+
+## Remaining Todos
+
+✅ Remove domain overrides feature in the config page, and elsewhere. I don't see the point in it. - IMPLEMENTED
+- Removed domain_overrides field from Config struct
+- Removed DomainOverride struct definition
+- Removed domain overrides section from config template
+- Removed domain overrides JavaScript functionality
+- Removed domain overrides translation keys from all language files
+- Removed domain overrides from config.toml.example
+- Removed domain overrides from README.md documentation
+- Updated get_required_aliases_for_domain and get_common_aliases_for_domain methods to return global aliases only
+- Removed unused HashMap import from config.rs
+- All core functionality preserved, only domain-specific override feature removed
+- Application compiles and builds successfully
+
+✅ Please rename the database backup path to database_backup to distinguish
+- and related files - IMPLEMENTED
+- Renamed all `/backup/*` routes to `/database_backup/*` in src/handlers/mod.rs
+- Updated template files to use new paths: templates/base.html, templates/backup/index.html
+- Updated backup handler to use new download path in src/handlers/backup.rs
+- Updated documentation in docs/DATABASE_BACKUP.md with new endpoints
+- Updated scripts/curl-helpers.sh to use new API endpoints
+- Updated UI tests in tests/ui_containerized.rs to use new paths
+- Translation keys already used `database-backup` naming, so no changes needed
+- All functionality preserved, only path names changed for better distinction
+- Application compiles and builds successfully
+✅ And rename the mx backup as domain_backup for path and files? - IMPLEMENTED
+- Renamed all `/backups/*` routes to `/domain_backup/*` in src/handlers/mod.rs
+- Updated template files to use new paths: templates/domains/list.html, templates/backups/form.html, templates/backups/show.html
+- Updated handler tests in tests/handlers.rs to use new paths
+- Updated integration tests in tests/integration.rs to use new paths
+- All functionality preserved, only path names changed for better distinction from database backup functionality
+- Application compiles and builds successfully

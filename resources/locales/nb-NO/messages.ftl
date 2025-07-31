@@ -563,15 +563,6 @@ domains-existing-aliases-header = "Eksisterende aliaser"
 # Configuration
 config-title = "Konfigurasjon"
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
-config-domain-overrides-header = "Domene overstyringer"
-config-cancel-button = "Avbryt"
-config-domain-overrides-description = "Overstyr påkrevde aliaser for spesifikke domener."
-config-add-domain-override-button = "Legg til domene overstyring"
-config-remove-domain-button = "Fjern domene"
-config-required-aliases-label = "Påkrevde aliaser"
-config-common-aliases-label = "Vanlige aliaser"
-config-remove-button = "Fjern"
-config-placeholder-domain = "Skriv inn domene (f.eks. eksempel.no)"
 
 # Global Feature Toggles
 config-global-features-header = "Globale Funksjonsbrytere"

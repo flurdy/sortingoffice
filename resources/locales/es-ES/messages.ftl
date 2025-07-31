@@ -527,15 +527,6 @@ reports-catch-all-header = Alias de Captura Total
 # Configuration
 config-title = "Configuración"
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
-config-domain-overrides-header = "Anulaciones de Dominio"
-config-cancel-button = "Cancelar"
-config-domain-overrides-description = "Anular alias requeridos para dominios específicos."
-config-add-domain-override-button = "Agregar Anulación de Dominio"
-config-remove-domain-button = "Eliminar Dominio"
-config-required-aliases-label = "Alias Requeridos"
-config-common-aliases-label = "Alias Comunes"
-config-remove-button = "Eliminar"
-config-placeholder-domain = "Ingrese dominio (ej., ejemplo.com)"
 
 # Global Feature Toggles
 config-global-features-header = "Interruptores de Características Globales"

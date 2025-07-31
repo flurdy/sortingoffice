@@ -7,91 +7,8 @@
             </div>
 
             <div class="space-y-8">
-                <!-- Domain Overrides Section -->
-                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                            {{ domain_overrides_header }}
-                        </h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            {{ domain_overrides_description }}
-                        </p>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-gray-700">
-                        <div class="px-4 py-5 sm:px-6">
-                            <div class="space-y-4">
-                                <div class="flex items-center space-x-4">
-                                    <input type="text"
-                                           name="new_domain"
-                                           placeholder="{{ placeholder_domain }}"
-                                           class="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <button type="button"
-                                            onclick="addDomainOverride()"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        {{ add_domain_override_button }}
-                                    </button>
-                                </div>
-
-                                <div id="domain-overrides-list" class="space-y-4">
-                                    {% for (domain, domain_override) in domain_overrides_vec %}
-                                    <div class="border border-gray-200 dark:border-gray-600 rounded-md p-4">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ domain }}</h4>
-                                            <button type="button"
-                                                    onclick="removeDomainOverride('{{ domain }}')"
-                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                {{ remove_domain_button }}
-                                            </button>
-                                        </div>
-
-                                        <!-- Required Aliases for this Domain -->
-                                        <div class="mb-4">
-                                            <h5 class="text-xs font-medium text-red-600 dark:text-red-400 mb-2">{{ required_aliases_label }}</h5>
-                                            <div class="space-y-2">
-                                                {% for alias in domain_override.required %}
-                                                <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                                                    <span class="text-sm text-red-700 dark:text-red-300">{{ alias }}</span>
-                                                    <button type="button"
-                                                            onclick="removeDomainRequiredAlias('{{ domain }}', '{{ alias }}')"
-                                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                        {{ remove_button }}
-                                                    </button>
-                                                    <input type="hidden" name="domain_overrides[{{ domain }}][required][]" value="{{ alias }}">
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-
-                                        <!-- Common Aliases for this Domain -->
-                                        <div class="mb-4">
-                                            <h5 class="text-xs font-medium text-yellow-600 dark:text-yellow-400 mb-2">{{ common_aliases_label }}</h5>
-                                            <div class="space-y-2">
-                                                {% for alias in domain_override.common %}
-                                                <div class="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                                                    <span class="text-sm text-yellow-700 dark:text-yellow-300">{{ alias }}</span>
-                                                    <button type="button"
-                                                            onclick="removeDomainCommonAlias('{{ domain }}', '{{ alias }}')"
-                                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                                                        {{ remove_button }}
-                                                    </button>
-                                                    <input type="hidden" name="domain_overrides[{{ domain }}][common][]" value="{{ alias }}">
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-
-                                        <input type="hidden" name="domain_overrides[{{ domain }}][required][]" value="">
-                                        <input type="hidden" name="domain_overrides[{{ domain }}][common][]" value="">
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Global Feature Toggles (Read-Only) -->
-                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg mt-8">
+                <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                             {{ global_features_header }}
@@ -280,17 +197,7 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end space-x-4">
-                    <a href="/"
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        {{ cancel_button }}
-                    </a>
-                </div>
             </div>
         </div>
     </div>
 </div>
-
-<script src="/static/js/config.js"></script>

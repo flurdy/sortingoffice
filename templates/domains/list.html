@@ -150,7 +150,7 @@
                 </p>
             </div>
             <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                <button type="button" hx-get="/backups/new" hx-target="#main-content" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
+                <button type="button" hx-get="/domain_backup/new" hx-target="#main-content" class="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
                     {{ add_backup }}
                 </button>
             </div>
@@ -176,7 +176,7 @@
                                 {% for backup in backups %}
                                 <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        <a href="/backups/{{ backup.pkid }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">
+                                        <a href="/domain_backup/{{ backup.pkid }}" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">
                                             {{ backup.domain }}
                                         </a>
                                     </td>
@@ -196,9 +196,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-3">
-                                            <a href="/backups/{{ backup.pkid }}" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-primary-700 dark:text-blue-200 bg-primary-50 dark:bg-blue-900 hover:bg-primary-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">{{ backups_view }}</a>
+                                            <a href="/domain_backup/{{ backup.pkid }}" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-primary-700 dark:text-blue-200 bg-primary-50 dark:bg-blue-900 hover:bg-primary-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">{{ backups_view }}</a>
                                             <button 
-                                                hx-post="/backups/{{ backup.pkid }}/toggle-list" 
+                                                hx-post="/domain_backup/{{ backup.pkid }}/toggle-list" 
                                                 hx-target="#main-content" 
                                                 class="inline-flex items-center justify-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-16">
                                                 {% if backup.enabled %}{{ backups_disable }}{% else %}{{ backups_enable }}{% endif %}
@@ -222,7 +222,7 @@
             <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ backups_empty_no_backup_servers }}</h3>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ backups_empty_get_started }}</p>
             <div class="mt-6">
-                <button type="button" hx-get="/backups/new" hx-target="#main-content" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                <button type="button" hx-get="/domain_backup/new" hx-target="#main-content" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                     <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                     </svg>

@@ -2,6 +2,39 @@ use crate::{db, AppState};
 use axum::http::HeaderMap;
 
 /// Find the most common aliases from existing aliases in the database
+/// Core logic for finding common aliases from a list of aliases
+fn find_common_aliases_from_list(
+    aliases: &[crate::models::Alias],
+    limit: usize,
+    min_occurrence_count: usize,
+) -> Vec<String> {
+    // Count alias names (part before @)
+    let mut alias_counts: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+
+    for alias in aliases {
+        if let Some(alias_name) = alias.mail.split('@').next() {
+            if !alias_name.is_empty() {
+                *alias_counts.entry(alias_name.to_string()).or_insert(0) += 1;
+            }
+        }
+    }
+
+    // Find the most common aliases that meet the minimum occurrence threshold
+    let mut sorted_aliases: Vec<_> = alias_counts
+        .into_iter()
+        .filter(|(_, count)| *count >= min_occurrence_count)
+        .collect();
+
+    sorted_aliases.sort_by(|a, b| b.1.cmp(&a.1));
+
+    sorted_aliases
+        .into_iter()
+        .take(limit)
+        .map(|(alias, _)| alias)
+        .collect()
+}
+
 pub async fn find_database_common_aliases(
     state: &AppState,
     headers: &HeaderMap,
@@ -26,39 +59,7 @@ pub async fn find_database_common_aliases(
                 aliases.len()
             );
 
-            // Count alias names (part before @)
-            let mut alias_counts: std::collections::HashMap<String, usize> =
-                std::collections::HashMap::new();
-
-            for alias in aliases {
-                if let Some(alias_name) = alias.mail.split('@').next() {
-                    if !alias_name.is_empty() {
-                        *alias_counts.entry(alias_name.to_string()).or_insert(0) += 1;
-                    }
-                }
-            }
-
-            println!("[ANALYTICS DEBUG] Alias name counts: {:?}", alias_counts);
-
-            // Find the most common aliases that meet the minimum occurrence threshold
-            let mut sorted_aliases: Vec<_> = alias_counts
-                .into_iter()
-                .filter(|(_, count)| *count >= min_occurrence_count)
-                .collect();
-
-            sorted_aliases.sort_by(|a, b| b.1.cmp(&a.1));
-
-            let common_aliases: Vec<String> = sorted_aliases
-                .into_iter()
-                .take(limit)
-                .map(|(alias, count)| {
-                    println!(
-                        "[ANALYTICS DEBUG] Common alias: {} (count: {})",
-                        alias, count
-                    );
-                    alias
-                })
-                .collect();
+            let common_aliases = find_common_aliases_from_list(&aliases, limit, min_occurrence_count);
 
             println!(
                 "[ANALYTICS DEBUG] Found {} common aliases from database analysis",
@@ -75,6 +76,34 @@ pub async fn find_database_common_aliases(
             );
             Vec::new()
         }
+    }
+}
+
+/// Core logic for finding the most common destination from a list of aliases
+fn find_most_common_destination_from_list(aliases: &[crate::models::Alias]) -> String {
+    // Count destinations
+    let mut destination_counts: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+
+    for alias in aliases {
+        if !alias.destination.is_empty() {
+            *destination_counts.entry(alias.destination.clone()).or_insert(0) += 1;
+        }
+    }
+
+    // Find the most common destination
+    if let Some((most_common_dest, count)) = destination_counts
+        .into_iter()
+        .max_by_key(|&(_, count)| count)
+    {
+        // Only use this destination if it appears at least 3 times
+        if count >= 3 {
+            most_common_dest
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
     }
 }
 
@@ -98,45 +127,14 @@ pub async fn find_most_common_destination(state: &AppState, headers: &HeaderMap)
                 aliases.len()
             );
 
-            // Count destinations
-            let mut destination_counts: std::collections::HashMap<String, usize> =
-                std::collections::HashMap::new();
-
-            for alias in aliases {
-                if !alias.destination.is_empty() {
-                    *destination_counts.entry(alias.destination).or_insert(0) += 1;
-                }
-            }
+            let result = find_most_common_destination_from_list(&aliases);
 
             println!(
-                "[ANALYTICS DEBUG] Destination counts: {:?}",
-                destination_counts
+                "[ANALYTICS DEBUG] Most common destination: {}",
+                if result.is_empty() { "empty" } else { &result }
             );
 
-            // Find the most common destination
-            if let Some((most_common_dest, count)) = destination_counts
-                .into_iter()
-                .max_by_key(|&(_, count)| count)
-            {
-                println!(
-                    "[ANALYTICS DEBUG] Most common destination: {} (count: {})",
-                    most_common_dest, count
-                );
-                // Only use this destination if it appears at least 3 times
-                if count >= 3 {
-                    println!(
-                        "[ANALYTICS DEBUG] Using most common destination: {}",
-                        most_common_dest
-                    );
-                    most_common_dest
-                } else {
-                    println!("[ANALYTICS DEBUG] Most common destination count ({}) is less than 3, using empty", count);
-                    String::new()
-                }
-            } else {
-                println!("[ANALYTICS DEBUG] No destinations found, using empty");
-                String::new()
-            }
+            result
         }
         Err(e) => {
             // Error getting aliases, return empty string
@@ -149,62 +147,11 @@ pub async fn find_most_common_destination(state: &AppState, headers: &HeaderMap)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        config::{DatabaseConfig, DatabaseFeatures},
-        db::DatabaseManager,
-        i18n::I18n,
-        models::Alias,
-        AppState,
-    };
-    use axum::http::HeaderMap;
+    use crate::models::Alias;
+
     use std::collections::HashMap;
 
-    // Helper function to create a test AppState
-    async fn create_test_state() -> AppState {
-        let config = crate::config::Config {
-            required_aliases: vec!["postmaster".to_string(), "abuse".to_string()],
-            common_aliases: vec!["webmaster".to_string(), "admin".to_string()],
-            databases: vec![DatabaseConfig {
-                id: "test".to_string(),
-                label: "Test Database".to_string(),
-                url: "mysql://root:password@localhost/test_db".to_string(),
-                features: DatabaseFeatures {
-                    no_relays: false,
-                    no_relocated: false,
-                    no_clients: false,
-                    no_seeding: false,
-                    no_migrations: false,
-                    disabled: false,
-                    read_only: false,
-                    no_new_users: false,
-                    no_new_domains: false,
-                    no_password_updates: false,
-                },
-                field_map: HashMap::new(),
-            }],
-            global_features: crate::config::GlobalFeatures {
-                read_only: false,
-                no_new_users: false,
-                no_new_domains: false,
-                no_password_updates: false,
-            },
-            domain_overrides: HashMap::new(),
-            admins: vec![],
-            admin: None,
-            contact: None,
-        };
 
-        let i18n = I18n::new("en-US").unwrap();
-        let db_manager = DatabaseManager::new(config.databases.clone())
-            .await
-            .unwrap();
-
-        AppState {
-            config,
-            i18n,
-            db_manager,
-        }
-    }
 
     // Helper function to create test aliases
     fn create_test_aliases() -> Vec<Alias> {
@@ -292,27 +239,12 @@ mod tests {
         ]
     }
 
-    // Mock database pool for testing
-    struct MockPool;
 
-    impl MockPool {
-        fn new() -> Self {
-            MockPool
-        }
-    }
 
-    // Mock the get_aliases function for testing
-    fn mock_get_aliases(_pool: &MockPool) -> Result<Vec<Alias>, Box<dyn std::error::Error>> {
-        Ok(create_test_aliases())
-    }
-
-    #[tokio::test]
-    async fn test_find_database_common_aliases_basic() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
-        // Test with default parameters
-        let result = find_database_common_aliases(&state, &headers, 10, 3).await;
+    #[test]
+    fn test_find_common_aliases_from_list_basic() {
+        let aliases = create_test_aliases();
+        let result = find_common_aliases_from_list(&aliases, 10, 3);
 
         // Should find common aliases that appear at least 3 times
         assert!(!result.is_empty());
@@ -324,62 +256,50 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_find_database_common_aliases_with_limit() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
-        // Test with limit of 2
-        let result = find_database_common_aliases(&state, &headers, 2, 3).await;
+    #[test]
+    fn test_find_common_aliases_from_list_with_limit() {
+        let aliases = create_test_aliases();
+        let result = find_common_aliases_from_list(&aliases, 2, 3);
 
         // Should return at most 2 results
         assert!(result.len() <= 2);
     }
 
-    #[tokio::test]
-    async fn test_find_database_common_aliases_with_min_occurrence() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
-        // Test with minimum occurrence of 4 (should exclude unique aliases)
-        let result = find_database_common_aliases(&state, &headers, 10, 4).await;
+    #[test]
+    fn test_find_common_aliases_from_list_with_min_occurrence() {
+        let aliases = create_test_aliases();
+        let result = find_common_aliases_from_list(&aliases, 10, 4);
 
         // Should not contain unique aliases that only appear once
         assert!(!result.contains(&"unique".to_string()));
     }
 
-    #[tokio::test]
-    async fn test_find_database_common_aliases_empty_database() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
-        // Test with very high minimum occurrence (should return empty)
-        let result = find_database_common_aliases(&state, &headers, 10, 100).await;
+    #[test]
+    fn test_find_common_aliases_from_list_empty_input() {
+        let aliases = vec![];
+        let result = find_common_aliases_from_list(&aliases, 10, 3);
 
         // Should return empty vector
         assert!(result.is_empty());
     }
 
-    #[tokio::test]
-    async fn test_find_database_common_aliases_edge_cases() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
+    #[test]
+    fn test_find_common_aliases_from_list_edge_cases() {
+        let aliases = create_test_aliases();
 
         // Test with zero limit
-        let result = find_database_common_aliases(&state, &headers, 0, 3).await;
+        let result = find_common_aliases_from_list(&aliases, 0, 3);
         assert!(result.is_empty());
 
         // Test with zero minimum occurrence
-        let result = find_database_common_aliases(&state, &headers, 10, 0).await;
+        let result = find_common_aliases_from_list(&aliases, 10, 0);
         assert!(!result.is_empty());
     }
 
-    #[tokio::test]
-    async fn test_find_most_common_destination_basic() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
-        let result = find_most_common_destination(&state, &headers).await;
+    #[test]
+    fn test_find_most_common_destination_from_list_basic() {
+        let aliases = create_test_aliases();
+        let result = find_most_common_destination_from_list(&aliases);
 
         // Should return the most common destination
         assert!(!result.is_empty());
@@ -391,11 +311,8 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_find_most_common_destination_with_insufficient_count() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
-
+    #[test]
+    fn test_find_most_common_destination_from_list_with_insufficient_count() {
         // Create aliases with low occurrence counts
         let low_count_aliases = vec![
             Alias {
@@ -417,26 +334,19 @@ mod tests {
             // Only 2 occurrences, less than minimum of 3
         ];
 
-        // Mock the database to return low count aliases
-        // This test would require more complex mocking setup
-        // For now, we'll test the basic functionality
-        let result = find_most_common_destination(&state, &headers).await;
+        let result = find_most_common_destination_from_list(&low_count_aliases);
 
-        // Should return empty string if no destination meets the minimum count
-        // or return a valid destination if it does meet the count
-        assert!(result.is_empty() || !result.is_empty());
+        // Should return empty string since count (2) is less than minimum (3)
+        assert!(result.is_empty());
     }
 
-    #[tokio::test]
-    async fn test_find_most_common_destination_empty_database() {
-        let state = create_test_state().await;
-        let headers = HeaderMap::new();
+    #[test]
+    fn test_find_most_common_destination_from_list_empty_input() {
+        let aliases = vec![];
+        let result = find_most_common_destination_from_list(&aliases);
 
-        // Test with empty database (would require mocking)
-        let result = find_most_common_destination(&state, &headers).await;
-
-        // Should handle empty database gracefully
-        assert!(result.is_empty() || !result.is_empty());
+        // Should handle empty input gracefully
+        assert!(result.is_empty());
     }
 
     #[test]
@@ -580,7 +490,9 @@ mod tests {
         // Test that these edge cases are handled gracefully
         assert!(empty_alias.mail.split('@').next().unwrap_or("").is_empty());
         assert!(empty_destination.destination.is_empty());
-        assert!(malformed_alias
+        // For malformed alias with @@, split('@') will return ["test", "@example.com"]
+        // so .next() returns "test", which is not empty
+        assert!(!malformed_alias
             .mail
             .split('@')
             .next()

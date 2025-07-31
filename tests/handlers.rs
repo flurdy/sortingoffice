@@ -769,7 +769,7 @@ mod tests {
         let response = TestUtils::make_handler_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &form_data,
             Some(create_auth_cookie(AdminRole::Edit)),
         )
@@ -792,7 +792,7 @@ mod tests {
         let response = TestUtils::make_handler_get_request(
             &app,
             &state,
-            "/backups/new",
+            "/domain_backup/new",
             Some(create_auth_cookie(AdminRole::Edit)),
         )
         .await;
@@ -825,7 +825,7 @@ mod tests {
         let response = TestUtils::make_handler_get_request(
             &app,
             &state,
-            &format!("/backups/{}", _backup.pkid),
+            &format!("/domain_backup/{}", _backup.pkid),
             Some(create_auth_cookie(AdminRole::ReadOnly)),
         )
         .await;
@@ -859,7 +859,7 @@ mod tests {
         let response = TestUtils::make_handler_get_request(
             &app,
             &state,
-            &format!("/backups/{}/edit", _backup.pkid),
+            &format!("/domain_backup/{}/edit", _backup.pkid),
             Some(create_auth_cookie(AdminRole::Edit)),
         )
         .await;
@@ -897,7 +897,7 @@ mod tests {
         let response = TestUtils::make_handler_put_request(
             &app,
             &state,
-            &format!("/backups/{}", _backup.pkid),
+            &format!("/domain_backup/{}", _backup.pkid),
             &form_data,
             Some(create_auth_cookie(AdminRole::Edit)),
         )
@@ -931,7 +931,7 @@ mod tests {
         let response = TestUtils::make_handler_post_request(
             &app,
             &state,
-            &format!("/backups/{}/toggle", _backup.pkid),
+            &format!("/domain_backup/{}/toggle", _backup.pkid),
             "",
             Some(create_auth_cookie(AdminRole::Edit)),
         )
@@ -957,7 +957,7 @@ mod tests {
         let response = TestUtils::make_handler_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &form_data,
             Some(create_auth_cookie(AdminRole::Edit)),
         )
@@ -996,7 +996,7 @@ mod tests {
         let response = TestUtils::make_handler_put_request(
             &app,
             &state,
-            &format!("/backups/{}", _backup.pkid),
+            &format!("/domain_backup/{}", _backup.pkid),
             &form_data,
             Some(create_auth_cookie(AdminRole::Edit)),
         )
@@ -1034,7 +1034,7 @@ mod tests {
         let response = TestUtils::make_handler_delete_request(
             &app,
             &state,
-            &format!("/backups/{}", _backup.pkid),
+            &format!("/domain_backup/{}", _backup.pkid),
             Some(create_auth_cookie(AdminRole::Edit)),
         )
         .await;

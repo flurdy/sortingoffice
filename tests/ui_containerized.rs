@@ -1702,7 +1702,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
 
             // Navigate to backup page
-            let backup_url = format!("{}/backup", env.app_url);
+            let backup_url = format!("{}/database_backup", env.app_url);
             timeout60s!(env.driver.get(&backup_url), "Navigate to backup page")?;
 
             // Verify backup page loads correctly
@@ -1844,7 +1844,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
 
                     assert!(
                         download_href.is_some()
-                            && download_href.unwrap().contains("/backup/download/"),
+                            && download_href.unwrap().contains("/database_backup/download/"),
                         "Download link should be present and point to backup download"
                     );
                 }

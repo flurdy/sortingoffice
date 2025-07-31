@@ -21,15 +21,6 @@ pub async fn view_config(
         &[
             "config-title",
             "config-description",
-            "config-domain-overrides-header",
-            "config-domain-overrides-description",
-            "config-cancel-button",
-            "config-add-domain-override-button",
-            "config-remove-domain-button",
-            "config-required-aliases-label",
-            "config-common-aliases-label",
-            "config-remove-button",
-            "config-placeholder-domain",
             "config-global-features-header",
             "config-global-features-description",
             "config-feature-read-only",
@@ -56,20 +47,9 @@ pub async fn view_config(
     };
 
     // Create the config template
-    let domain_overrides_vec: Vec<(&String, &crate::config::DomainOverride)> =
-        config.domain_overrides.iter().collect();
     let content_template = ConfigTemplate {
         title: &form_translations["config-title"],
         description: &form_translations["config-description"],
-        domain_overrides_header: &form_translations["config-domain-overrides-header"],
-        domain_overrides_description: &form_translations["config-domain-overrides-description"],
-        cancel_button: &form_translations["config-cancel-button"],
-        add_domain_override_button: &form_translations["config-add-domain-override-button"],
-        remove_domain_button: &form_translations["config-remove-domain-button"],
-        required_aliases_label: &form_translations["config-required-aliases-label"],
-        common_aliases_label: &form_translations["config-common-aliases-label"],
-        remove_button: &form_translations["config-remove-button"],
-        placeholder_domain: &form_translations["config-placeholder-domain"],
         // Global Feature Toggles
         global_features_header: &form_translations["config-global-features-header"],
         global_features_description: &form_translations["config-global-features-description"],
@@ -85,7 +65,6 @@ pub async fn view_config(
         database_features_description: &form_translations["config-database-features-description"],
         database_disabled_badge: &form_translations["config-database-disabled-badge"],
         config: &config,
-        domain_overrides_vec,
     };
 
     let content = match content_template.render() {

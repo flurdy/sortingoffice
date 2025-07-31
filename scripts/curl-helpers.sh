@@ -87,7 +87,7 @@ check_login() {
     # Use default host if HOST is not set
     local host="${HOST:-http://$DEFAULT_HOST}"
     
-    local response=$(curl -s -o /dev/null -w "%{http_code}" -b "$COOKIE_FILE" "$host/backup/list")
+    local response=$(curl -s -o /dev/null -w "%{http_code}" -b "$COOKIE_FILE" "$host/database_backup/list")
     if [ "$response" = "200" ]; then
         return 0
     else
@@ -172,7 +172,7 @@ require_login() {
 backup_list() {
     require_login
     log_info "Fetching backup list..."
-    curl -s -b "$COOKIE_FILE" "$HOST/backup/list" | jq '.' 2>/dev/null || curl -s -b "$COOKIE_FILE" "$HOST/backup/list"
+    curl -s -b "$COOKIE_FILE" "$HOST/database_backup/list" | jq '.' 2>/dev/null || curl -s -b "$COOKIE_FILE" "$HOST/database_backup/list"
 }
 
 backup_create() {
@@ -186,7 +186,7 @@ backup_create() {
     
     log_info "Creating backup for database: $database_id"
     curl -s -b "$COOKIE_FILE" \
-        -X POST "$HOST/backup/create-htmx" \
+        -X POST "$HOST/database_backup/create-htmx" \
         -H "Content-Type: application/x-www-form-urlencoded" \
         -d "database_id=$database_id"
 }
@@ -201,7 +201,7 @@ backup_download() {
     fi
     
     log_info "Downloading backup: $filename"
-    curl -s -b "$COOKIE_FILE" -O "$HOST/backup/download/$filename"
+    curl -s -b "$COOKIE_FILE" -O "$HOST/database_backup/download/$filename"
     log_success "Downloaded: $filename"
 }
 
@@ -216,7 +216,7 @@ backup_delete() {
     
     log_info "Deleting backup: $filename"
     curl -s -b "$COOKIE_FILE" \
-        -X DELETE "$HOST/backup/delete/$filename" \
+        -X DELETE "$HOST/database_backup/delete/$filename" \
         -H "Accept: application/json"
 }
 

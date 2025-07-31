@@ -1233,7 +1233,7 @@ mod tests {
         let response = TestUtils::make_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &capitalized_backup_form,
             Some(auth_cookie.clone()),
         )
@@ -1248,7 +1248,7 @@ mod tests {
         let response = TestUtils::make_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &invalid_backup_form,
             Some(auth_cookie.clone()),
         )
@@ -1264,7 +1264,7 @@ mod tests {
         let response = TestUtils::make_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &valid_backup_form,
             Some(auth_cookie.clone()),
         )

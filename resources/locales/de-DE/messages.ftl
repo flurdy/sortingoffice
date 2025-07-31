@@ -525,15 +525,6 @@ reports-catch-all-header = Catch-All-Alias
 # Configuration
 config-title = "Konfiguration"
 config-description = "Erforderliche Aliase und domainspezifische Überschreibungen verwalten."
-config-domain-overrides-header = "Domain-Überschreibungen"
-config-cancel-button = "Abbrechen"
-config-domain-overrides-description = "Erforderliche Aliase für bestimmte Domains überschreiben."
-config-add-domain-override-button = "Domain-Überschreibung hinzufügen"
-config-remove-domain-button = "Domain entfernen"
-config-required-aliases-label = "Erforderliche Aliase"
-config-common-aliases-label = "Häufige Aliase"
-config-remove-button = "Entfernen"
-config-placeholder-domain = "Domain eingeben (z.B. example.com)"
 
 # Global Feature Toggles
 config-global-features-header = "Globale Feature-Toggles"

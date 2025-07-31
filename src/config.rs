@@ -1,7 +1,7 @@
 use crate::models::RequiredAliasConfig;
 use envsubst::substitute;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 use std::fs;
 use std::path::Path;
 
@@ -14,11 +14,7 @@ pub enum AdminRole {
     Edit,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct DomainOverride {
-    pub required: Vec<String>,
-    pub common: Vec<String>,
-}
+
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AdminCredentials {
@@ -90,8 +86,6 @@ pub struct Config {
     pub required_aliases: Vec<String>,
     pub common_aliases: Vec<String>,
     #[serde(default)]
-    pub domain_overrides: HashMap<String, DomainOverride>,
-    #[serde(default)]
     pub admins: Vec<AdminCredentials>,
     #[serde(default)]
     pub admin: Option<AdminCredentials>,
@@ -159,7 +153,6 @@ impl Config {
                 "dmca".to_string(),
                 "spam".to_string(),
             ],
-            domain_overrides: HashMap::new(),
             admins: vec![],
             admin: None,
             databases: vec![],
@@ -177,21 +170,13 @@ impl Config {
     }
 
     /// Get required aliases for a specific domain
-    pub fn get_required_aliases_for_domain(&self, domain: &str) -> Vec<String> {
-        if let Some(overrides) = self.domain_overrides.get(domain) {
-            overrides.required.clone()
-        } else {
-            self.required_aliases.clone()
-        }
+    pub fn get_required_aliases_for_domain(&self, _domain: &str) -> Vec<String> {
+        self.required_aliases.clone()
     }
 
     /// Get common aliases for a specific domain
-    pub fn get_common_aliases_for_domain(&self, domain: &str) -> Vec<String> {
-        if let Some(overrides) = self.domain_overrides.get(domain) {
-            overrides.common.clone()
-        } else {
-            self.common_aliases.clone()
-        }
+    pub fn get_common_aliases_for_domain(&self, _domain: &str) -> Vec<String> {
+        self.common_aliases.clone()
     }
 
     /// Get all aliases (required + common) for a specific domain
@@ -427,7 +412,6 @@ impl Default for Config {
                 "dmca".to_string(),
                 "spam".to_string(),
             ],
-            domain_overrides: HashMap::new(),
             admins: vec![AdminCredentials {
                 username: "admin".to_string(),
                 password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"

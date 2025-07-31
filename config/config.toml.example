@@ -145,10 +145,7 @@ role = "edit"  # Can be "edit" or "read-only"
 # password_hash = "$2a$12$..."  # Generate this with bcrypt
 # role = "read-only"
 
-# Domain-specific overrides (optional)
-# [domain_overrides."example.com"]
-# required = ["postmaster", "abuse", "hostmaster", "custom"]
-# common = ["webmaster", "admin", "support", "custom-common"]
+
 
 # Contact information for the application maintainer (optional)
 # This information will be displayed on the contact page

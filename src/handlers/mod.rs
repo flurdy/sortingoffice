@@ -101,8 +101,8 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/aliases/{id}", axum::routing::get(show))
         .route("/aliases/search", axum::routing::get(search))
         .route("/aliases/domain-search", axum::routing::get(domain_search))
-        // Read-only backup operations
-        .route("/backups/{id}", axum::routing::get(backups::show))
+        // Read-only domain backup operations
+        .route("/domain_backup/{id}", axum::routing::get(backups::show))
         // Read-only relay operations
         .route("/relays", axum::routing::get(list_relays))
         .route("/relays/{id}", axum::routing::get(show_relay))
@@ -148,22 +148,22 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/database/select", axum::routing::post(select))
         .route("/database/dropdown", axum::routing::get(dropdown))
         .route("/api/databases", axum::routing::get(list_databases))
-        // Backup management
-        .route("/backup", axum::routing::get(backup_index))
-        .route("/backup/create", axum::routing::post(create_backup))
+        // Database backup management
+        .route("/database_backup", axum::routing::get(backup_index))
+        .route("/database_backup/create", axum::routing::post(create_backup))
         .route(
-            "/backup/create-htmx",
+            "/database_backup/create-htmx",
             axum::routing::post(create_backup_htmx),
         )
         .route(
-            "/backup/download/{filename}",
+            "/database_backup/download/{filename}",
             axum::routing::get(download_backup),
         )
         .route(
-            "/backup/delete/{filename}",
+            "/database_backup/delete/{filename}",
             axum::routing::delete(delete_backup),
         )
-        .route("/backup/list", axum::routing::get(list_backups))
+        .route("/database_backup/list", axum::routing::get(list_backups))
         // Wizard routes (read-only access)
         .route("/wizard", axum::routing::get(wizard_index))
         .route("/wizard/domain-config", axum::routing::get(domain_config))
@@ -256,20 +256,20 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
             axum::routing::post(toggle_enabled_domain_show),
         )
         .route("/aliases/{id}/toggle", axum::routing::post(toggle_enabled))
-        // Backup edit operations
-        .route("/backups", axum::routing::post(backups::create))
-        .route("/backups/new", axum::routing::get(backups::new))
+        // Domain backup edit operations
+        .route("/domain_backup", axum::routing::post(backups::create))
+        .route("/domain_backup/new", axum::routing::get(backups::new))
         .route(
-            "/backups/{id}",
+            "/domain_backup/{id}",
             axum::routing::put(backups::update).delete(backups::delete),
         )
-        .route("/backups/{id}/edit", axum::routing::get(backups::edit))
+        .route("/domain_backup/{id}/edit", axum::routing::get(backups::edit))
         .route(
-            "/backups/{id}/toggle-show",
+            "/domain_backup/{id}/toggle-show",
             axum::routing::post(backups::toggle_enabled_show),
         )
         .route(
-            "/backups/{id}/toggle",
+            "/domain_backup/{id}/toggle",
             axum::routing::post(backups::toggle_enabled),
         )
         // Relay edit operations

@@ -516,8 +516,8 @@ pub async fn create(
         // Validate user ID format
         match crate::validation::validate_user_id(&form.id) {
             Ok(_) => {}
-            Err(e) => {
-                let form_translations =
+            Err(_e) => {
+                let _form_translations =
                     crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
                         .await;
                 let error_msg =
@@ -540,8 +540,8 @@ pub async fn create(
         // Validate user paths
         match crate::validation::validate_user_path(&form.maildir) {
             Ok(_) => {}
-            Err(e) => {
-                let form_translations =
+            Err(_e) => {
+                let _form_translations =
                     crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
                         .await;
                 let error_msg =
@@ -563,8 +563,8 @@ pub async fn create(
 
         match crate::validation::validate_user_path(&form.home) {
             Ok(_) => {}
-            Err(e) => {
-                let form_translations =
+            Err(_e) => {
+                let _form_translations =
                     crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
                         .await;
                 let error_msg =
