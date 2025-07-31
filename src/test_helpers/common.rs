@@ -186,7 +186,7 @@ pub fn unique_test_id_with_timestamp() -> String {
 /// Generate a unique test ID with random component
 pub fn unique_test_id_with_random() -> String {
     use rand::Rng;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let random_num: u32 = rng.random();
     format!("test-{}-{}", unique_test_id(), random_num)
 }

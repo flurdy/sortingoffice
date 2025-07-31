@@ -513,8 +513,8 @@ impl TestData {
             "sample.co.uk",
             "trial.io"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let random_domain = domains[rng.gen_range(0..domains.len())];
+        let mut rng = rand::rng();
+        let random_domain = domains[rng.random_range(0..domains.len())];
         format!(
             "{}-{}.{}",
             Self::random_word(),
@@ -544,8 +544,8 @@ impl TestData {
     pub fn random_user() -> String {
         let usernames = ["john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let random_username = usernames[rng.gen_range(0..usernames.len())];
+        let mut rng = rand::rng();
+        let random_username = usernames[rng.random_range(0..usernames.len())];
         format!("{}@{}", random_username, Self::random_domain())
     }
 
@@ -553,8 +553,8 @@ impl TestData {
     pub fn user_for_domain(domain: &str) -> String {
         let usernames = ["admin", "user", "test", "demo", "sample", "trial"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let random_username = usernames[rng.gen_range(0..usernames.len())];
+        let mut rng = rand::rng();
+        let random_username = usernames[rng.random_range(0..usernames.len())];
         format!("{random_username}@{domain}")
     }
 
@@ -578,8 +578,8 @@ impl TestData {
             "help",
             "webmaster"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let random_name = alias_names[rng.gen_range(0..alias_names.len())];
+        let mut rng = rand::rng();
+        let random_name = alias_names[rng.random_range(0..alias_names.len())];
         format!("{}@{}", random_name, Self::random_domain())
     }
 
@@ -587,8 +587,8 @@ impl TestData {
     pub fn alias_for_domain(domain: &str) -> String {
         let alias_names = ["postmaster", "abuse", "webmaster", "admin", "info"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let random_name = alias_names[rng.gen_range(0..alias_names.len())];
+        let mut rng = rand::rng();
+        let random_name = alias_names[rng.random_range(0..alias_names.len())];
         format!("{random_name}@{domain}")
     }
 
@@ -606,8 +606,8 @@ impl TestData {
             "smtp:mx.example.com",
             "smtp:backup.example.com"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        transports[rng.gen_range(0..transports.len())].to_string()
+        let mut rng = rand::rng();
+        transports[rng.random_range(0..transports.len())].to_string()
     }
 
     /// Generate a transport with specific server
@@ -624,8 +624,8 @@ impl TestData {
             "demo123pass",
             "sample456pass"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        passwords[rng.gen_range(0..passwords.len())].to_string()
+        let mut rng = rand::rng();
+        passwords[rng.random_range(0..passwords.len())].to_string()
     }
 
     /// Generate a password with specific pattern
@@ -649,8 +649,8 @@ impl TestData {
             "Edward Garcia",
             "Fiona Rodriguez"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        names[rng.gen_range(0..names.len())].to_string()
+        let mut rng = rand::rng();
+        names[rng.random_range(0..names.len())].to_string()
     }
 
     /// Generate a name with specific pattern
@@ -667,17 +667,17 @@ impl TestData {
     fn random_word() -> String {
         let words = ["test", "demo", "sample", "trial", "example", "mock", "fake", "dummy"];
         use rand::Rng;
-        let mut rng = rand::thread_rng();
-        words[rng.gen_range(0..words.len())].to_string()
+        let mut rng = rand::rng();
+        words[rng.random_range(0..words.len())].to_string()
     }
 
     /// Generate a random string of specified length
     fn random_string(length: usize) -> String {
         use rand::Rng;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz".chars().collect();
         (0..length)
-            .map(|_| chars[rng.gen_range(0..chars.len())])
+            .map(|_| chars[rng.random_range(0..chars.len())])
             .collect()
     }
 

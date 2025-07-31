@@ -116,9 +116,9 @@ The implementation maintains backward compatibility:
 ### Documentation
 
 - **`docs/TEST_DATABASE_SETUP.md`**: Comprehensive guide
-- **`docs/test-suite-analysis.md`**: Current test analysis and status
+- **`docs/UI_TESTS.md`**: UI testing documentation and analysis
+- **`docs/SMOKE_TESTS.md`**: Smoke test documentation and analysis
 - **`tests/README.md`**: Complete testing guide
-- **`docs/UI_TESTS.md`**: UI testing documentation
 - **Code examples**: Available in test files
 
 ## Current Test Organization
