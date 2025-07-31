@@ -1167,45 +1167,25 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             let custom_alias1 = format!("support-{}", rand_str());
             let custom_alias2 = format!("info-{}", rand_str());
 
-            println!("[WIZARD TEST] Test data generated: domains={domain1}, {domain2}");
-
             // 1. Navigate to wizard
-            println!("[WIZARD TEST] Navigating to wizard...");
             let wizard_url = format!("{}/wizard", env.app_url.trim_end_matches('/'));
             timeout60s!(env.driver.get(&wizard_url), "Navigate to wizard page")?;
-            println!("[WIZARD TEST] Wizard page loaded");
 
             // Debug: Check if we're on the right page
-            let current_url = timeout60s!(env.driver.current_url(), "Get current URL")?;
-            println!("[WIZARD TEST] Current URL: {current_url}");
-
             let page_title = timeout60s!(env.driver.title(), "Get page title")?;
-            println!("[WIZARD TEST] Page title: {page_title}");
-
-            // Debug: Get page source to see what's actually on the page
-            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            println!("[WIZARD TEST] Page source contains '/wizard/domain-config': {}", page_source.contains("/wizard/domain-config"));
-            println!("[WIZARD TEST] Page source contains 'Start Wizard': {}", page_source.contains("Start Wizard"));
-            println!("[WIZARD TEST] Page source contains 'Start': {}", page_source.contains("Start"));
-            println!("[WIZARD TEST] Page source contains 'Wizard': {}", page_source.contains("Wizard"));
 
             // Check if we got a 404 or login page
             if page_title.contains("Not Found") || page_title.contains("Sign in") {
-                println!("[WIZARD TEST] Got {page_title} page - wizard may not be available or requires authentication");
-
                 // If it's a login page, try to authenticate
                 if page_title.contains("Sign in") {
-                    println!("[WIZARD TEST] Attempting to authenticate...");
                     authenticate_driver(&env.driver, &env.app_url).await?;
 
                     // Try navigating to wizard again
                     timeout60s!(env.driver.get(&wizard_url), "Navigate to wizard page after auth")?;
 
                     let new_page_title = timeout60s!(env.driver.title(), "Get page title after auth")?;
-                    println!("[WIZARD TEST] Page title after auth: {new_page_title}");
 
                     if new_page_title.contains("Not Found") {
-                        println!("[WIZARD TEST] Wizard still not available after authentication");
                         println!("[WIZARD TEST] Skipping wizard test - wizard route not available in test environment");
                         drop(env.app_container);
                         drop(env.selenium_container);
@@ -1220,23 +1200,19 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             }
 
             // 2. Test domain configuration step
-            println!("[WIZARD TEST] Testing domain configuration step...");
-
             // After navigating to /wizard, we should either be redirected to /wizard/domain-config
             // or the domain config content should be rendered on /wizard
             let redirected_url = timeout60s!(env.driver.current_url(), "Get redirected URL")?;
-            println!("[WIZARD TEST] Redirected URL: {redirected_url}");
 
             // Check if we're on /wizard/domain-config or if the content is rendered on /wizard
             if redirected_url.path().ends_with("/wizard/domain-config") {
-                println!("[WIZARD TEST] Successfully redirected to /wizard/domain-config");
+                // Successfully redirected
             } else if redirected_url.path().ends_with("/wizard") {
                 // Check if the domain config content is rendered on /wizard
                 let page_title = timeout30s!(env.driver.title(), "Get page title")?;
-                println!("[WIZARD TEST] On /wizard with title: {page_title}");
 
                 if page_title.contains("Configure Domains") {
-                    println!("[WIZARD TEST] Domain config content rendered on /wizard");
+                    // Domain config content rendered on /wizard
                 } else {
                     panic!("Expected to be on /wizard/domain-config or have domain config content on /wizard, but was on {redirected_url} with title {page_title}");
                 }
@@ -1249,10 +1225,8 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 env.driver.find(By::Css("h1")),
                 "Wait for domain config page"
             )?;
-            println!("[WIZARD TEST] Domain config page loaded");
 
             // Test dynamic domain fields
-            println!("[WIZARD TEST] Testing dynamic domain fields...");
 
             // Find the first domain input field
             let first_domain_input = timeout60s!(
@@ -1263,7 +1237,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             // Enter first domain
             timeout60s!(first_domain_input.send_keys(&domain1), "Enter first domain")?;
-            println!("[WIZARD TEST] Entered first domain: {domain1}");
 
             // Add second domain field
             let add_button = timeout60s!(
@@ -1272,7 +1245,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 "Find add domain button"
             )?;
             timeout60s!(add_button.click(), "Click add domain button")?;
-            println!("[WIZARD TEST] Added second domain field");
 
             // Find and fill second domain field
             let domain_inputs = timeout60s!(
@@ -1283,7 +1255,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             if domain_inputs.len() >= 2 {
                 timeout60s!(domain_inputs[1].send_keys(&domain2), "Enter second domain")?;
-                println!("[WIZARD TEST] Entered second domain: {domain2}");
             } else {
                 return Err(anyhow::anyhow!(
                     "Expected at least 2 domain input fields, found {}",
@@ -1300,11 +1271,9 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             if !remove_buttons.is_empty() {
                 timeout60s!(remove_buttons[0].click(), "Click remove domain button")?;
-                println!("[WIZARD TEST] Removed a domain field");
             }
 
             // Submit domain configuration
-            println!("[WIZARD TEST] Looking for submit button...");
 
             // Try different selectors to find the submit button
             let submit_button = match timeout60s!(
@@ -1313,14 +1282,12 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             ) {
                 Ok(button) => button,
                 Err(_) => {
-                    println!("[WIZARD TEST] Button not found by ID, trying CSS selector...");
                     match timeout60s!(
                         env.driver.find(By::Css("button[type='submit']")),
                         "Find submit button by CSS"
                     ) {
                         Ok(button) => button,
                         Err(_) => {
-                            println!("[WIZARD TEST] Button not found by CSS, trying text...");
                             timeout60s!(
                                 env.driver.find(By::XPath("//button[contains(text(), 'Next')]")),
                                 "Find submit button by text"
@@ -1330,27 +1297,16 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 }
             };
 
-            // Try to click the button even if it's not displayed
-            println!("[WIZARD TEST] Attempting to click submit button...");
-            let is_displayed = submit_button.is_displayed().await?;
-            let is_enabled = submit_button.is_enabled().await?;
-            println!(
-                "[WIZARD TEST] Submit button - displayed: {is_displayed}, enabled: {is_enabled}"
-            );
-
-            // Try clicking the button with the specific ID
+            // Try clicking the button
             timeout60s!(submit_button.click(), "Submit domain configuration")?;
-            println!("[WIZARD TEST] Submitted domain configuration");
 
             // Wait for redirect to alias configuration
             timeout30s!(
                 env.driver.find(By::Css("h1")),
                 "Wait for alias configuration page"
             )?;
-            println!("[WIZARD TEST] Redirected to alias configuration");
 
             // 3. Test alias configuration step
-            println!("[WIZARD TEST] Testing alias configuration step...");
 
             // Verify domains are displayed in summary
             let domains_summary = timeout60s!(
@@ -1358,7 +1314,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 "Find domains summary"
             )?;
             let summary_text = timeout60s!(domains_summary.text(), "Get domains summary text")?;
-            println!("[WIZARD TEST] Domains summary: {summary_text}");
 
             // Verify our domains are in the summary
             assert!(
@@ -1373,7 +1328,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             }
 
             // Test custom aliases
-            println!("[WIZARD TEST] Testing custom aliases...");
 
             // Find custom aliases container
             let _custom_aliases_container = timeout60s!(
@@ -1404,7 +1358,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                     custom_alias_inputs[0].send_keys(&custom_alias1),
                     "Enter first custom alias"
                 )?;
-                println!("[WIZARD TEST] Entered first custom alias: {custom_alias1}");
             }
 
             // Add second custom alias
@@ -1424,7 +1377,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                     custom_alias_inputs_updated[1].send_keys(&custom_alias2),
                     "Enter second custom alias"
                 )?;
-                println!("[WIZARD TEST] Entered second custom alias: {custom_alias2}");
             }
 
             // Set common destination
@@ -1436,7 +1388,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 destination_input.send_keys("admin@example.com"),
                 "Enter common destination"
             )?;
-            println!("[WIZARD TEST] Set common destination");
 
             // Submit alias configuration
             let alias_submit_button = timeout60s!(
@@ -1444,23 +1395,16 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 "Find alias submit button"
             )?;
             timeout60s!(alias_submit_button.click(), "Submit alias configuration")?;
-            println!("[WIZARD TEST] Submitted alias configuration");
 
             // Wait for redirect to review step
             timeout30s!(env.driver.find(By::Css("h1")), "Wait for review page")?;
-            println!("[WIZARD TEST] Redirected to review step");
 
             // 4. Test review step
-            println!("[WIZARD TEST] Testing review step...");
 
             // Verify review content
             let review_content =
                 timeout60s!(env.driver.find(By::Css("body")), "Find review page content")?;
             let review_text = timeout60s!(review_content.text(), "Get review page text")?;
-            println!(
-                "[WIZARD TEST] Review page content length: {}",
-                review_text.len()
-            );
 
             // Verify our data is in the review
             assert!(
@@ -1482,7 +1426,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 "Find review submit button"
             )?;
             timeout60s!(review_submit_button.click(), "Submit review")?;
-            println!("[WIZARD TEST] Submitted review");
 
             // Wait for redirect to execute step or complete step
             // The execute step might redirect immediately to complete
@@ -1493,24 +1436,20 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 tokio::time::sleep(Duration::from_secs(3)).await;
 
                 let current_url = timeout60s!(env.driver.current_url(), "Get current URL")?;
-                println!("[WIZARD TEST] Current URL after wait: {current_url}");
 
                 // Check if we've been redirected to the complete page
                 if current_url.path().ends_with("/wizard/complete") {
-                    println!("[WIZARD TEST] Successfully redirected to complete page");
                     break;
                 }
 
                 // Check if we're on the executing page
                 let page_title = timeout60s!(env.driver.title(), "Get page title")?;
                 if page_title.contains("Executing") || page_title.contains("Processing") {
-                    println!("[WIZARD TEST] Still executing, attempt {}/{}", attempts + 1, max_attempts);
                     attempts += 1;
                     continue;
                 }
 
                 // If we get here, something unexpected happened
-                println!("[WIZARD TEST] Unexpected page title: {page_title}");
                 break;
             }
 
@@ -1518,14 +1457,10 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 return Err(anyhow::anyhow!("Execution step timed out after {} attempts", max_attempts));
             }
 
-            println!("[WIZARD TEST] Execution completed");
-
             // Wait for redirect to complete step
             timeout30s!(env.driver.find(By::Css("h1")), "Wait for complete page")?;
-            println!("[WIZARD TEST] Redirected to complete step");
 
             // 6. Test complete step
-            println!("[WIZARD TEST] Testing complete step...");
 
             // Verify completion content
             let complete_content = timeout60s!(
@@ -1533,10 +1468,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 "Find complete page content"
             )?;
             let complete_text = timeout60s!(complete_content.text(), "Get complete page text")?;
-            println!(
-                "[WIZARD TEST] Complete page content length: {}",
-                complete_text.len()
-            );
 
             // Verify success message - be more flexible about success indicators
             let success_indicators = [
@@ -1557,7 +1488,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             );
 
             // Test the "View Created Domains" button
-            println!("[WIZARD TEST] Testing 'View Created Domains' button...");
             let view_domains_button = timeout60s!(
                 env.driver.find(By::Css("a[href='/domains']")),
                 "Find View Created Domains button"
@@ -1572,7 +1502,6 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             // Click the button to verify it works
             timeout60s!(view_domains_button.click(), "Click View Created Domains button")?;
-            println!("[WIZARD TEST] Clicked View Created Domains button");
 
             // Wait for redirect to domains page
             timeout30s!(env.driver.find(By::Css("h1")), "Wait for domains page")?;
@@ -1588,12 +1517,10 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             // Note: If domain creation failed due to duplicates, this might not be true
             // So we'll just log the result rather than failing the test
             if domains_page_text.contains(&domain1) {
-                println!("[WIZARD TEST] ✅ Created domain 1 is visible on domains page");
+                // Created domain 1 is visible on domains page
             } else {
-                println!("[WIZARD TEST] ⚠️ Created domain 1 not found on domains page (may have failed due to duplicates)");
+                // Created domain 1 not found on domains page (may have failed due to duplicates)
             }
-
-            println!("[WIZARD TEST] All wizard steps completed successfully!");
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
@@ -1620,7 +1547,6 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
 
             // Verify backup page loads correctly
             let page_source = timeout60s!(env.driver.source(), "Get backup page source")?;
-            println!("Backup page source: {page_source}");
 
             // Check for various possible content that indicates the backup page loaded
             let backup_page_loaded = page_source.contains("Create New Backup")

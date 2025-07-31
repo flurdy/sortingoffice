@@ -22,3 +22,5 @@ Use curl to verify UI changes
 make sure there are no compilation warnings before finishing a task
 
 Delete any unused variables and imports.
+
+Do not suppress unused variable warning by prefixing it with an underscore. Instead delete it unless the rare occasion it is needed.
