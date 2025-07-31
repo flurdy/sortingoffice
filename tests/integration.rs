@@ -943,16 +943,17 @@ mod tests {
             let auth_cookie = TestUtils::create_edit_auth_cookie();
 
             // Test various edge cases
+            let long_domain = "a".repeat(100);
             let edge_cases = vec![
                 ("", "empty domain"),
                 ("a", "single character domain"),
-                ("a".repeat(100), "very long domain"),
+                (&long_domain, "very long domain"),
                 ("test@domain.com", "domain with @ symbol"),
                 ("test.domain.com", "domain with dots"),
                 ("test-domain.com", "domain with hyphens"),
             ];
 
-            for (domain, description) in edge_cases {
+            for (domain, _description) in edge_cases {
                 let form_data = TestData::domain_form_data(domain, "smtp:edge-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
@@ -996,18 +997,19 @@ mod tests {
             TestUtils::assert_status(&create_domain_response, StatusCode::OK);
 
             // Test various alias edge cases
+            let long_alias = format!("{}@{}", "a".repeat(100), domain);
             let edge_cases = vec![
                 ("", "empty alias"),
                 ("a@domain.com", "single character alias"),
                 (
-                    &format!("{}@{}", "a".repeat(100), domain),
+                    &long_alias,
                     "very long alias name",
                 ),
                 ("test@test@domain.com", "alias with multiple @ symbols"),
                 ("test..test@domain.com", "alias with consecutive dots"),
             ];
 
-            for (alias_mail, description) in edge_cases {
+            for (alias_mail, _description) in edge_cases {
                 let user_id = TestData::unique_user_id();
                 let alias_form_data = TestData::alias_form_data(alias_mail, &user_id, true);
                 let response = TestUtils::make_post_request(
@@ -1036,15 +1038,16 @@ mod tests {
             let auth_cookie = TestUtils::create_edit_auth_cookie();
 
             // Test various user edge cases
+            let long_user_id = "a".repeat(100);
             let edge_cases = vec![
                 ("", "empty user ID"),
                 ("a", "single character user ID"),
-                (&"a".repeat(100), "very long user ID"),
+                (&long_user_id, "very long user ID"),
                 ("test@test@domain.com", "user ID with multiple @ symbols"),
                 ("test..test@domain.com", "user ID with consecutive dots"),
             ];
 
-            for (user_id, description) in edge_cases {
+            for (user_id, _description) in edge_cases {
                 let user_form_data = TestData::user_form_data_complete(
                     user_id,
                     "password123",
@@ -1080,15 +1083,16 @@ mod tests {
             let auth_cookie = TestUtils::create_edit_auth_cookie();
 
             // Test various backup edge cases
+            let long_backup_domain = "a".repeat(100);
             let edge_cases = vec![
                 ("", "empty backup domain"),
                 ("a", "single character backup domain"),
-                (&"a".repeat(100), "very long backup domain"),
+                (&long_backup_domain, "very long backup domain"),
                 ("test@domain.com", "backup domain with @ symbol"),
                 ("test..domain.com", "backup domain with consecutive dots"),
             ];
 
-            for (backup_domain, description) in edge_cases {
+            for (backup_domain, _description) in edge_cases {
                 let backup_form_data =
                     TestData::domain_form_data(backup_domain, "smtp:backup-edge-test", true);
                 let response = TestUtils::make_post_request(
@@ -1124,7 +1128,7 @@ mod tests {
                 ("a".repeat(254) + "@domain.com", "user ID at max length"),
             ];
 
-            for (test_value, description) in boundary_tests {
+            for (test_value, _description) in boundary_tests {
                 // Test domain creation with boundary values
                 let domain_form_data =
                     TestData::domain_form_data(&test_value, "smtp:boundary-test", true);
@@ -1163,10 +1167,10 @@ mod tests {
                 ("测试@domain.com", "user ID with Chinese characters"),
             ];
 
-            for (test_value, description) in unicode_tests {
+            for (test_value, _description) in unicode_tests {
                 // Test domain creation with Unicode values
                 let domain_form_data =
-                    TestData::domain_form_data(&test_value, "smtp:unicode-test", true);
+                    TestData::domain_form_data(test_value, "smtp:unicode-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1210,10 +1214,10 @@ mod tests {
                 ),
             ];
 
-            for (test_value, description) in sql_injection_tests {
+            for (test_value, _description) in sql_injection_tests {
                 // Test domain creation with SQL injection attempts
                 let domain_form_data =
-                    TestData::domain_form_data(&test_value, "smtp:sql-test", true);
+                    TestData::domain_form_data(test_value, "smtp:sql-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
@@ -1248,10 +1252,10 @@ mod tests {
                 ("<iframe src=javascript:alert('xss')>", "XSS attempt 5"),
             ];
 
-            for (test_value, description) in xss_tests {
+            for (test_value, _description) in xss_tests {
                 // Test domain creation with XSS attempts
                 let domain_form_data =
-                    TestData::domain_form_data(&test_value, "smtp:xss-test", true);
+                    TestData::domain_form_data(test_value, "smtp:xss-test", true);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,

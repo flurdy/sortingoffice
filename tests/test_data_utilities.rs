@@ -202,10 +202,10 @@ mod tests {
         let pool = container.get_pool();
 
         // Test specific table cleanup
-        sortingoffice::test_helpers::common::cleanup_specific_tables(&pool, &["domains", "users"]);
+        sortingoffice::test_helpers::common::cleanup_specific_tables(pool, &["domains", "users"]);
 
         // Test cleanup with verification
-        let cleanup_result = sortingoffice::test_helpers::common::cleanup_with_verification(&pool);
+        let cleanup_result = sortingoffice::test_helpers::common::cleanup_with_verification(pool);
         assert!(cleanup_result.is_ok());
     }
 
@@ -215,15 +215,15 @@ mod tests {
         let pool = container.get_pool();
 
         // Test creating test data with cleanup
-        let result = TestDataManager::create_test_data_with_cleanup(&pool, |_pool| {
+        let result = TestDataManager::create_test_data_with_cleanup(pool, |_pool| {
             Ok::<String, Box<dyn std::error::Error>>("test-data".to_string())
         });
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "test-data");
 
         // Test creating multiple datasets
-        let datasets = TestDataManager::create_multiple_datasets(&pool, 3, |_pool, index| {
-            Ok::<String, Box<dyn std::error::Error>>(format!("dataset-{}", index))
+        let datasets = TestDataManager::create_multiple_datasets(pool, 3, |_pool, index| {
+            Ok::<String, Box<dyn std::error::Error>>(format!("dataset-{index}"))
         });
         assert!(datasets.is_ok());
         let datasets = datasets.unwrap();
@@ -233,7 +233,7 @@ mod tests {
         assert_eq!(datasets[2], "dataset-2");
 
         // Test with automatic cleanup
-        let result = TestDataManager::with_test_data(&pool, |_pool| {
+        let result = TestDataManager::with_test_data(pool, |_pool| {
             Ok::<String, Box<dyn std::error::Error>>("auto-cleanup-test".to_string())
         });
         assert!(result.is_ok());

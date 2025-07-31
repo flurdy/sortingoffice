@@ -378,7 +378,7 @@ mod tests {
         assert!(destination_counts.len() > 1);
 
         // Each destination should have a count
-        for (_, count) in &destination_counts {
+        for count in destination_counts.values() {
             assert!(*count > 0);
         }
     }

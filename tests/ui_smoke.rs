@@ -219,7 +219,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
             Ok(())
         }
         Ok(Err(e)) => {
-            println!("[SMOKE TEST] ❌ Smoke test failed: {}", e);
+            println!("[SMOKE TEST] ❌ Smoke test failed: {e}");
             Err(e)
         }
         Err(_) => {
@@ -245,7 +245,7 @@ pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
     let container = setup_test_db().await;
     let db_url = container.get_db_url();
 
-    println!("[SMOKE TEST] Test database ready: {}", db_url);
+    println!("[SMOKE TEST] Test database ready: {db_url}");
 
     // For testcontainers, we need to start the app with the test database
     // This would typically be done by spawning the app process
@@ -494,9 +494,8 @@ async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) -> Res
 
     // Find and click the delete button for the user
     let delete_button = timeout30s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
-            user_email
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{user_email}')]//button[contains(@class, 'delete')]"
         ))),
         "Find delete button for user"
     )?;
@@ -525,9 +524,8 @@ async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) -> R
 
     // Find and click the delete button for the alias
     let delete_button = timeout30s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
-            alias_email
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{alias_email}')]//button[contains(@class, 'delete')]"
         ))),
         "Find delete button for alias"
     )?;
@@ -556,9 +554,8 @@ async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str) -> 
 
     // Find and click the delete button for the domain
     let delete_button = timeout30s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//button[contains(@class, 'delete')]",
-            domain_name
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{domain_name}')]//button[contains(@class, 'delete')]"
         ))),
         "Find delete button for domain"
     )?;

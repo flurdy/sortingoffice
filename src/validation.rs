@@ -958,9 +958,9 @@ mod tests {
 
         // Long local parts
         let long_local = "a".repeat(64);
-        assert!(validate_alias_mail(&format!("{}@example.com", long_local)).is_ok());
+        assert!(validate_alias_mail(&format!("{long_local}@example.com")).is_ok());
         let too_long_local = "a".repeat(65);
-        assert!(validate_alias_mail(&format!("{}@example.com", too_long_local)).is_err());
+        assert!(validate_alias_mail(&format!("{too_long_local}@example.com")).is_err());
 
         // Special characters in local part
         assert!(validate_alias_mail("user+tag@example.com").is_ok()); // Plus sign
@@ -1010,9 +1010,9 @@ mod tests {
 
         // Long local parts
         let long_local = "a".repeat(64);
-        assert!(validate_alias_destination(&format!("{}@example.com", long_local)).is_ok());
+        assert!(validate_alias_destination(&format!("{long_local}@example.com")).is_ok());
         let too_long_local = "a".repeat(65);
-        assert!(validate_alias_destination(&format!("{}@example.com", too_long_local)).is_err());
+        assert!(validate_alias_destination(&format!("{too_long_local}@example.com")).is_err());
 
         // Unicode characters
         assert!(validate_alias_destination("userñ@example.com").is_err()); // Unicode not allowed
@@ -1031,9 +1031,9 @@ mod tests {
 
         // Long local parts
         let long_local = "a".repeat(64);
-        assert!(validate_user_id(&format!("{}@example.com", long_local)).is_ok());
+        assert!(validate_user_id(&format!("{long_local}@example.com")).is_ok());
         let too_long_local = "a".repeat(65);
-        assert!(validate_user_id(&format!("{}@example.com", too_long_local)).is_err());
+        assert!(validate_user_id(&format!("{too_long_local}@example.com")).is_err());
 
         // Special characters in local part
         assert!(validate_user_id("user+tag@example.com").is_ok()); // Plus sign

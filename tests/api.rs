@@ -119,8 +119,7 @@ async fn test_api_error_response_format() {
         assert_eq!(
             response.status(),
             StatusCode::NOT_FOUND,
-            "Invalid API endpoint {} should return 404",
-            endpoint
+            "Invalid API endpoint {endpoint} should return 404"
         );
 
         // Check if response body contains error information
@@ -164,9 +163,7 @@ async fn test_api_rate_limiting() {
         assert_eq!(
             *status,
             StatusCode::OK,
-            "Request {} should succeed (status: {})",
-            i,
-            status
+            "Request {i} should succeed (status: {status})"
         );
     }
 }
@@ -202,9 +199,7 @@ async fn test_api_versioning() {
             response.status() == StatusCode::OK
                 || response.status() == StatusCode::UNAUTHORIZED
                 || response.status() == StatusCode::FOUND,
-            "API should handle version header {}: {} gracefully",
-            header_name,
-            header_value
+            "API should handle version header {header_name}: {header_value} gracefully"
         );
     }
 }
@@ -311,8 +306,7 @@ async fn test_api_security_headers() {
         // This test documents current behavior and can be updated when security headers are added
         assert!(
             header_value.is_none(),
-            "Security header {} should not be present yet (not implemented)",
-            header_name
+            "Security header {header_name} should not be present yet (not implemented)"
         );
     }
 }

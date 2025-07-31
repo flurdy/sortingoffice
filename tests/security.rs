@@ -47,8 +47,7 @@ async fn test_sql_injection_domain_creation() {
         assert_ne!(
             response.status(),
             StatusCode::INTERNAL_SERVER_ERROR,
-            "SQL injection payload '{}' caused server error",
-            payload
+            "SQL injection payload '{payload}' caused server error"
         );
 
         // Should either return validation error or not create the domain
@@ -59,8 +58,7 @@ async fn test_sql_injection_domain_creation() {
                 || body_str.contains("error")
                 || body_str.contains("Domain")
                 || body_str.contains("validation"),
-            "SQL injection payload '{}' should be rejected",
-            payload
+            "SQL injection payload '{payload}' should be rejected"
         );
     }
 }
@@ -177,8 +175,7 @@ async fn test_input_validation_edge_cases() {
         assert_ne!(
             response.status(),
             StatusCode::INTERNAL_SERVER_ERROR,
-            "Edge case '{}' caused server error",
-            domain
+            "Edge case '{domain}' caused server error"
         );
 
         // Should either return validation error or handle gracefully
@@ -189,8 +186,7 @@ async fn test_input_validation_edge_cases() {
                 || body_str.contains("error")
                 || body_str.contains("Domain")
                 || body_str.contains("validation"),
-            "Edge case '{}' should be rejected or handled gracefully",
-            domain
+            "Edge case '{domain}' should be rejected or handled gracefully"
         );
     }
 }
