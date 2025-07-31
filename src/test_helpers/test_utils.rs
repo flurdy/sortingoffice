@@ -470,29 +470,241 @@ impl TestData {
         )
     }
 
-    /// Generate form data for creating a domain
+    /// Generate a unique test alias name (without domain)
+    pub fn unique_alias_name() -> String {
+        format!("alias-{}", crate::test_helpers::common::unique_test_id())
+    }
+
+    /// Generate a unique test backup domain
+    pub fn unique_backup_domain() -> String {
+        format!(
+            "backup-{}.example.com",
+            crate::test_helpers::common::unique_test_id()
+        )
+    }
+
+    /// Generate a unique test relay recipient
+    pub fn unique_relay_recipient() -> String {
+        format!(
+            "relay-{}@example.com",
+            crate::test_helpers::common::unique_test_id()
+        )
+    }
+
+    /// Generate a unique test relocated address
+    pub fn unique_relocated_address() -> String {
+        format!(
+            "relocated-{}@example.com",
+            crate::test_helpers::common::unique_test_id()
+        )
+    }
+
+    /// Generate a unique test client name
+    pub fn unique_client_name() -> String {
+        format!("client-{}", crate::test_helpers::common::unique_test_id())
+    }
+
+    // Domain factories
+    /// Create a domain with random data
+    pub fn random_domain() -> String {
+        let domains = vec![
+            "example.com",
+            "test.org",
+            "demo.net",
+            "sample.co.uk",
+            "trial.io",
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_domain = domains[rng.gen_range(0..domains.len())];
+        format!("{}-{}.{}", 
+            Self::random_word(), 
+            crate::test_helpers::common::unique_test_id(),
+            random_domain
+        )
+    }
+
+    /// Create a domain with specific characteristics
+    pub fn domain_with_suffix(suffix: &str) -> String {
+        format!("{}-{}.{}", 
+            Self::random_word(), 
+            crate::test_helpers::common::unique_test_id(),
+            suffix
+        )
+    }
+
+    /// Create a domain with specific length
+    pub fn domain_with_length(length: usize) -> String {
+        let name = Self::random_string(length);
+        format!("{}.example.com", name)
+    }
+
+    // User factories
+    /// Create a user with random data
+    pub fn random_user() -> String {
+        let usernames = vec![
+            "john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_username = usernames[rng.gen_range(0..usernames.len())];
+        format!("{}@{}", random_username, Self::random_domain())
+    }
+
+    /// Create a user with specific domain
+    pub fn user_for_domain(domain: &str) -> String {
+        let usernames = vec![
+            "admin", "user", "test", "demo", "sample", "trial"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_username = usernames[rng.gen_range(0..usernames.len())];
+        format!("{}@{}", random_username, domain)
+    }
+
+    /// Create a user with specific characteristics
+    pub fn user_with_pattern(pattern: &str) -> String {
+        format!("{}-{}@example.com", 
+            pattern, 
+            crate::test_helpers::common::unique_test_id()
+        )
+    }
+
+    // Alias factories
+    /// Create an alias with random data
+    pub fn random_alias() -> String {
+        let alias_names = vec![
+            "info", "admin", "support", "sales", "contact", "help", "webmaster"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_name = alias_names[rng.gen_range(0..alias_names.len())];
+        format!("{}@{}", random_name, Self::random_domain())
+    }
+
+    /// Create an alias for a specific domain
+    pub fn alias_for_domain(domain: &str) -> String {
+        let alias_names = vec![
+            "postmaster", "abuse", "webmaster", "admin", "info"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let random_name = alias_names[rng.gen_range(0..alias_names.len())];
+        format!("{}@{}", random_name, domain)
+    }
+
+    /// Create an alias with specific name and domain
+    pub fn alias_with_name(name: &str, domain: &str) -> String {
+        format!("{}@{}", name, domain)
+    }
+
+    // Transport factories
+    /// Generate a random transport string
+    pub fn random_transport() -> String {
+        let transports = vec![
+            "smtp:localhost",
+            "smtp:mail.example.com",
+            "smtp:relay.example.com",
+            "smtp:mx.example.com",
+            "smtp:backup.example.com"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        transports[rng.gen_range(0..transports.len())].to_string()
+    }
+
+    /// Generate a transport with specific server
+    pub fn transport_with_server(server: &str) -> String {
+        format!("smtp:{}", server)
+    }
+
+    // Password factories
+    /// Generate a random password
+    pub fn random_password() -> String {
+        let passwords = vec![
+            "password123",
+            "securepass456",
+            "testpass789",
+            "demo123pass",
+            "sample456pass"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        passwords[rng.gen_range(0..passwords.len())].to_string()
+    }
+
+    /// Generate a password with specific pattern
+    pub fn password_with_pattern(pattern: &str) -> String {
+        format!("{}{}", pattern, crate::test_helpers::common::unique_test_id())
+    }
+
+    // Name factories
+    /// Generate a random name
+    pub fn random_name() -> String {
+        let names = vec![
+            "John Doe", "Jane Smith", "Bob Wilson", "Alice Brown", 
+            "Charlie Davis", "Diana Miller", "Edward Garcia", "Fiona Rodriguez"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        names[rng.gen_range(0..names.len())].to_string()
+    }
+
+    /// Generate a name with specific pattern
+    pub fn name_with_pattern(pattern: &str) -> String {
+        format!("{} {}", pattern, crate::test_helpers::common::unique_test_id())
+    }
+
+    // Helper methods for randomization
+    /// Generate a random word
+    fn random_word() -> String {
+        let words = vec![
+            "test", "demo", "sample", "trial", "example", "mock", "fake", "dummy"
+        ];
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        words[rng.gen_range(0..words.len())].to_string()
+    }
+
+    /// Generate a random string of specified length
+    fn random_string(length: usize) -> String {
+        use rand::Rng;
+        let mut rng = rand::thread_rng();
+        let chars: Vec<char> = "abcdefghijklmnopqrstuvwxyz".chars().collect();
+        (0..length)
+            .map(|_| chars[rng.gen_range(0..chars.len())])
+            .collect()
+    }
+
+    // Form data factories with improved defaults
+    /// Generate form data for creating a domain with sensible defaults
     pub fn domain_form_data(domain: &str, transport: &str, enabled: bool) -> String {
         let enabled_str = if enabled { "on" } else { "" };
         format!("domain={domain}&transport={transport}&enabled={enabled_str}")
     }
 
-    /// Generate form data for creating a user
+    /// Generate form data for creating a domain with random data
+    pub fn random_domain_form_data() -> String {
+        let domain = Self::random_domain();
+        let transport = Self::random_transport();
+        let enabled = rand::random::<bool>();
+        Self::domain_form_data(&domain, &transport, enabled)
+    }
+
+    /// Generate form data for creating a user with sensible defaults
     pub fn user_form_data(user_id: &str, password: &str, username: &str) -> String {
         format!("id={user_id}&name={username}&password={password}&maildir=testdir&home=/var/spool/mail/virtual")
     }
 
-    /// Generate form data for creating an alias
-    pub fn alias_form_data(mail: &str, destination: &str, enabled: bool) -> String {
-        let enabled_str = if enabled { "on" } else { "" };
-        format!("mail={mail}&destination={destination}&enabled={enabled_str}")
+    /// Generate form data for creating a user with random data
+    pub fn random_user_form_data() -> String {
+        let user_id = Self::random_user();
+        let password = Self::random_password();
+        let username = Self::random_name();
+        Self::user_form_data(&user_id, &password, &username)
     }
 
-    /// Generate form data for creating a backup
-    pub fn backup_form_data(domain: &str, transport: &str) -> String {
-        format!("domain={domain}&transport={transport}")
-    }
-
-    /// Generate form data for creating a user
+    /// Generate form data for creating a user with complete parameters
     pub fn user_form_data_complete(
         user_id: &str,
         password: &str,
@@ -507,5 +719,117 @@ impl TestData {
         format!(
             "id={user_id}&password={password}&name={name}&maildir={maildir}&home={home}&enabled={enabled_str}&change_password={change_password_str}"
         )
+    }
+
+    /// Generate form data for creating a user with random complete data
+    pub fn random_user_form_data_complete() -> String {
+        let user_id = Self::random_user();
+        let password = Self::random_password();
+        let name = Self::random_name();
+        let maildir = format!("{}/", user_id.split('@').next().unwrap_or("user"));
+        let home = "/var/spool/mail/virtual";
+        let enabled = rand::random::<bool>();
+        let change_password = rand::random::<bool>();
+        Self::user_form_data_complete(&user_id, &password, &name, &maildir, home, enabled, change_password)
+    }
+
+    /// Generate form data for creating an alias with sensible defaults
+    pub fn alias_form_data(mail: &str, destination: &str, enabled: bool) -> String {
+        let enabled_str = if enabled { "on" } else { "" };
+        format!("mail={mail}&destination={destination}&enabled={enabled_str}")
+    }
+
+    /// Generate form data for creating an alias with random data
+    pub fn random_alias_form_data() -> String {
+        let mail = Self::random_alias();
+        let destination = Self::random_user();
+        let enabled = rand::random::<bool>();
+        Self::alias_form_data(&mail, &destination, enabled)
+    }
+
+    /// Generate form data for creating a backup with sensible defaults
+    pub fn backup_form_data(domain: &str, transport: &str) -> String {
+        format!("domain={domain}&transport={transport}")
+    }
+
+    /// Generate form data for creating a backup with random data
+    pub fn random_backup_form_data() -> String {
+        let domain = Self::random_domain();
+        let transport = Self::random_transport();
+        Self::backup_form_data(&domain, &transport)
+    }
+
+    /// Generate form data for creating a relay with random data
+    pub fn random_relay_form_data() -> String {
+        let recipient = Self::unique_relay_recipient();
+        let status = "active";
+        let enabled = rand::random::<bool>();
+        let enabled_str = if enabled { "on" } else { "" };
+        format!("recipient={recipient}&status={status}&enabled={enabled_str}")
+    }
+
+    /// Generate form data for creating a relocated entry with random data
+    pub fn random_relocated_form_data() -> String {
+        let old_address = Self::unique_relocated_address();
+        let new_address = Self::unique_relocated_address();
+        let enabled = rand::random::<bool>();
+        let enabled_str = if enabled { "on" } else { "" };
+        format!("old_address={old_address}&new_address={new_address}&enabled={enabled_str}")
+    }
+
+    /// Generate form data for creating a client with random data
+    pub fn random_client_form_data() -> String {
+        let client = Self::unique_client_name();
+        let status = "active";
+        let enabled = rand::random::<bool>();
+        let enabled_str = if enabled { "on" } else { "" };
+        format!("client={client}&status={status}&enabled={enabled_str}")
+    }
+
+    // Test data sets for comprehensive testing
+    /// Generate a complete test dataset (domain, user, alias)
+    pub fn complete_test_dataset() -> (String, String, String) {
+        let domain = Self::unique_domain();
+        let user = Self::user_for_domain(&domain);
+        let alias = Self::alias_for_domain(&domain);
+        (domain, user, alias)
+    }
+
+    /// Generate multiple test datasets
+    pub fn multiple_test_datasets(count: usize) -> Vec<(String, String, String)> {
+        (0..count)
+            .map(|_| Self::complete_test_dataset())
+            .collect()
+    }
+
+    /// Generate edge case test data
+    pub fn edge_case_test_data() -> Vec<(String, String, String)> {
+        vec![
+            ("a.com".to_string(), "user@a.com".to_string(), "alias@a.com".to_string()),
+            ("very-long-domain-name-that-exceeds-normal-limits.example.com".to_string(), 
+             "very-long-user-name@very-long-domain-name-that-exceeds-normal-limits.example.com".to_string(),
+             "very-long-alias-name@very-long-domain-name-that-exceeds-normal-limits.example.com".to_string()),
+            ("test..com".to_string(), "user@test..com".to_string(), "alias@test..com".to_string()),
+            ("test@domain.com".to_string(), "user@test@domain.com".to_string(), "alias@test@domain.com".to_string()),
+        ]
+    }
+
+    /// Generate security test data (SQL injection, XSS attempts)
+    pub fn security_test_data() -> Vec<(String, String, String)> {
+        vec![
+            ("'; DROP TABLE domains; --".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
+            ("<script>alert('xss')</script>.com".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
+            ("' OR '1'='1".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
+            ("javascript:alert('xss')".to_string(), "user@test.com".to_string(), "alias@test.com".to_string()),
+        ]
+    }
+
+    /// Generate Unicode test data
+    pub fn unicode_test_data() -> Vec<(String, String, String)> {
+        vec![
+            ("tëst.com".to_string(), "user@tëst.com".to_string(), "alias@tëst.com".to_string()),
+            ("测试.com".to_string(), "user@测试.com".to_string(), "alias@测试.com".to_string()),
+            ("tëst@domain.com".to_string(), "user@tëst@domain.com".to_string(), "alias@tëst@domain.com".to_string()),
+        ]
     }
 }

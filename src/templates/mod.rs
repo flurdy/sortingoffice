@@ -1,13 +1,13 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
-pub mod backup;
-pub mod backups;
 pub mod clients;
 pub mod config;
 pub mod contact;
 pub mod dashboard;
 pub mod database;
+pub mod database_backup;
+pub mod domain_backup;
 pub mod domains;
 pub mod layout;
 pub mod relays;

@@ -1,13 +1,13 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
-pub mod backup;
-pub mod backups;
 pub mod clients;
 pub mod config;
 pub mod contact;
 pub mod dashboard;
 pub mod database;
+pub mod database_backup;
+pub mod domain_backup;
 pub mod domains;
 pub mod health; // Add health module
 pub mod language;
@@ -28,10 +28,6 @@ pub use aliases::{
     toggle_enabled_domain_show, toggle_enabled_list, toggle_enabled_show, update,
 };
 pub use auth::{login, login_form, logout, require_auth, require_edit_permissions};
-pub use backup::{
-    create_backup, create_backup_htmx, delete_backup, download_backup, index as backup_index,
-    list_backups,
-};
 pub use clients::{
     create_client, create_client_form, delete_client, edit_client_form, list_clients, show_client,
     toggle_client, update_client,
@@ -40,6 +36,10 @@ pub use config::view_config;
 pub use contact::index as contact_index;
 pub use dashboard::index as dashboard_index;
 pub use database::{dropdown, index as database_index, list_databases, select};
+pub use database_backup::{
+    create_backup, create_backup_htmx, delete_backup, download_backup, index as backup_index,
+    list_backups,
+};
 pub use domains::{
     add_missing_required_alias, create as create_domain, delete as delete_domain,
     edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
@@ -102,7 +102,10 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/aliases/search", axum::routing::get(search))
         .route("/aliases/domain-search", axum::routing::get(domain_search))
         // Read-only domain backup operations
-        .route("/domain_backup/{id}", axum::routing::get(backups::show))
+        .route(
+            "/domain_backup/{id}",
+            axum::routing::get(domain_backup::show),
+        )
         // Read-only relay operations
         .route("/relays", axum::routing::get(list_relays))
         .route("/relays/{id}", axum::routing::get(show_relay))
@@ -260,23 +263,23 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         )
         .route("/aliases/{id}/toggle", axum::routing::post(toggle_enabled))
         // Domain backup edit operations
-        .route("/domain_backup", axum::routing::post(backups::create))
-        .route("/domain_backup/new", axum::routing::get(backups::new))
+        .route("/domain_backup", axum::routing::post(domain_backup::create))
+        .route("/domain_backup/new", axum::routing::get(domain_backup::new))
         .route(
             "/domain_backup/{id}",
-            axum::routing::put(backups::update).delete(backups::delete),
+            axum::routing::put(domain_backup::update).delete(domain_backup::delete),
         )
         .route(
             "/domain_backup/{id}/edit",
-            axum::routing::get(backups::edit),
+            axum::routing::get(domain_backup::edit),
         )
         .route(
             "/domain_backup/{id}/toggle-show",
-            axum::routing::post(backups::toggle_enabled_show),
+            axum::routing::post(domain_backup::toggle_enabled_show),
         )
         .route(
             "/domain_backup/{id}/toggle",
-            axum::routing::post(backups::toggle_enabled),
+            axum::routing::post(domain_backup::toggle_enabled),
         )
         // Relay edit operations
         .route("/relays", axum::routing::post(create_relay))

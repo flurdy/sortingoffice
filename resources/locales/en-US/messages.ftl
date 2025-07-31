@@ -768,7 +768,7 @@ reports-destination-header = Destination
 
 # Configuration
 config-title = Configuration
-config-description = Manage required aliases and domain-specific overrides.
+config-description = View and manage global and database-specific configuration options for Sorting Office. Use this page to review feature toggles, database settings, and environment status. Editing is done offline in config.toml.
 
 # Global Feature Toggles
 config-global-features-header = Global Feature Toggles

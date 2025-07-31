@@ -79,7 +79,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     // Get database configs as owned data
     let databases = state.db_manager.get_configs().to_vec();
 
-    let content_template = crate::templates::backup::BackupTemplate {
+    let content_template = crate::templates::database_backup::BackupTemplate {
         title: &translations["database-backup-title"],
         description: &translations["database-backup-description"],
         database_select: &translations["database-backup-database-select"],

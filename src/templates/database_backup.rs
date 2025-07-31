@@ -2,7 +2,7 @@ use crate::config::DatabaseConfig;
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "backup/index.html", escape = "html")]
+#[template(path = "database_backup/index.html", escape = "html")]
 pub struct BackupTemplate<'a> {
     pub title: &'a str,
     pub description: &'a str,

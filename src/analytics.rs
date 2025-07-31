@@ -71,9 +71,7 @@ pub async fn find_database_common_aliases(
         }
         Err(e) => {
             // Error getting aliases, return empty vector
-            println!(
-                "[ANALYTICS DEBUG] Error getting aliases for common alias analysis: {e:?}"
-            );
+            println!("[ANALYTICS DEBUG] Error getting aliases for common alias analysis: {e:?}");
             Vec::new()
         }
     }

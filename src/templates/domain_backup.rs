@@ -2,7 +2,7 @@ use crate::models::*;
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "backups/show.html")]
+#[template(path = "domain_backup/show.html")]
 pub struct BackupShowTemplate {
     pub title: String,
     pub view_edit_settings: String,
@@ -25,7 +25,7 @@ pub struct BackupShowTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "backups/form.html")]
+#[template(path = "domain_backup/form.html")]
 pub struct BackupFormTemplate {
     pub title: String,
     pub form_error: String,

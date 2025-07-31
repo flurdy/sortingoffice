@@ -1,4 +1,4 @@
-use crate::templates::backups::*;
+use crate::templates::domain_backup::*;
 use crate::templates::layout::BaseTemplate;
 use crate::{db, i18n::get_translation, models::*, AppState};
 use askama::Template;
