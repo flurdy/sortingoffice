@@ -161,6 +161,13 @@ fn validate_alias_local_part(local_part: &str) -> Result<(), ValidationError> {
         ));
     }
 
+    // Check length (RFC 5321 allows up to 64 characters)
+    if local_part.len() > 64 {
+        return Err(ValidationError::AliasMailInvalid(
+            "Local part cannot exceed 64 characters".to_string(),
+        ));
+    }
+
     // Check for valid characters in local part
     let valid_local_chars = Regex::new(r"^[a-zA-Z0-9._%+-]+$").unwrap();
     if !valid_local_chars.is_match(local_part) {
@@ -180,6 +187,13 @@ fn validate_alias_local_part(local_part: &str) -> Result<(), ValidationError> {
     if local_part.contains("..") {
         return Err(ValidationError::AliasMailInvalid(
             "Local part cannot have consecutive dots".to_string(),
+        ));
+    }
+
+    // Cannot have consecutive plus signs
+    if local_part.contains("++") {
+        return Err(ValidationError::AliasMailInvalid(
+            "Local part cannot have consecutive plus signs".to_string(),
         ));
     }
 
@@ -246,6 +260,13 @@ pub fn validate_alias_destination(destination: &str) -> Result<(), ValidationErr
 
 /// Validate destination local part
 fn validate_destination_local_part(local_part: &str) -> Result<(), ValidationError> {
+    // Check length (RFC 5321 allows up to 64 characters)
+    if local_part.len() > 64 {
+        return Err(ValidationError::AliasDestinationInvalid(
+            "Local part cannot exceed 64 characters".to_string(),
+        ));
+    }
+
     // Check for valid characters in local part
     let valid_local_chars = Regex::new(r"^[a-zA-Z0-9._%+-]+$").unwrap();
     if !valid_local_chars.is_match(local_part) {
@@ -255,16 +276,16 @@ fn validate_destination_local_part(local_part: &str) -> Result<(), ValidationErr
     }
 
     // + character validation
-    let plus_count = local_part.chars().filter(|&c| c == '+').count();
-    if plus_count > 1 {
-        return Err(ValidationError::AliasDestinationInvalid(
-            "Local part can only contain one + character".to_string(),
-        ));
-    }
-
     if local_part.starts_with('+') {
         return Err(ValidationError::AliasDestinationInvalid(
             "Local part cannot start with +".to_string(),
+        ));
+    }
+
+    // Check for consecutive plus signs
+    if local_part.contains("++") {
+        return Err(ValidationError::AliasDestinationInvalid(
+            "Local part cannot have consecutive plus signs".to_string(),
         ));
     }
 
@@ -346,6 +367,13 @@ pub fn validate_user_path(path: &str) -> Result<(), ValidationError> {
         ));
     }
 
+    // Check for control characters (including tab, newline, carriage return)
+    if path.chars().any(|c| c.is_control()) {
+        return Err(ValidationError::UserPathInvalid(
+            "Path contains control characters".to_string(),
+        ));
+    }
+
     // Check for path traversal attempts
     if path.contains("..") {
         return Err(ValidationError::UserPathInvalid(
@@ -366,6 +394,13 @@ pub fn validate_backup_name(name: &str) -> Result<(), ValidationError> {
     if name.is_empty() {
         return Err(ValidationError::BackupNameInvalid(
             "Backup name cannot be empty".to_string(),
+        ));
+    }
+
+    // Check length (max 63 characters)
+    if name.len() > 63 {
+        return Err(ValidationError::BackupNameInvalid(
+            "Backup name cannot exceed 63 characters".to_string(),
         ));
     }
 
@@ -538,10 +573,6 @@ mod tests {
         assert!(validate_alias_mail("user@example\ncom").is_err()); // Newline in domain
         assert!(validate_alias_mail("user@example\rcom").is_err()); // Carriage return in domain
         assert!(validate_alias_mail("user@example com").is_err()); // Space in domain
-        assert!(validate_alias_mail("user@example\tcom").is_err()); // Tab in domain
-        assert!(validate_alias_mail("user@example\ncom").is_err()); // Newline in domain
-        assert!(validate_alias_mail("user@example\rcom").is_err()); // Carriage return in domain
-        assert!(validate_alias_mail("user@example com").is_err()); // Space in domain
         assert!(validate_alias_mail(".user@example.com").is_err()); // Local part starts with dot
         assert!(validate_alias_mail("user.@example.com").is_err()); // Local part ends with dot
         assert!(validate_alias_mail("user..name@example.com").is_err()); // Consecutive dots in local part
@@ -552,7 +583,7 @@ mod tests {
         assert!(validate_alias_mail("user%%name@example.com").is_ok()); // Consecutive % in local part are allowed
         assert!(validate_alias_mail("user&&name@example.com").is_err()); // Consecutive & in local part
         assert!(validate_alias_mail("user**name@example.com").is_err()); // Consecutive * in local part
-        assert!(validate_alias_mail("user++name@example.com").is_ok()); // Consecutive + in local part are allowed
+        assert!(validate_alias_mail("user++name@example.com").is_err()); // Consecutive + in local part not allowed
         assert!(validate_alias_mail("user==name@example.com").is_err()); // Consecutive = in local part
         assert!(validate_alias_mail("user!!name@example.com").is_err()); // Consecutive ! in local part
         assert!(validate_alias_mail("user??name@example.com").is_err()); // Consecutive ? in local part
@@ -590,7 +621,7 @@ mod tests {
         assert!(validate_alias_destination("a@b.com").is_ok()); // Minimal valid
         assert!(validate_alias_destination("user-name@domain.org").is_ok()); // Hyphen in local part
         assert!(validate_alias_destination("user_name@domain.org").is_ok()); // Underscore in local part
-        assert!(validate_alias_destination("user+tag+another@domain.org").is_err()); // Multiple + in local part not allowed
+        assert!(validate_alias_destination("user+tag+another@domain.org").is_ok()); // Multiple + in local part allowed
         assert!(validate_alias_destination("user@localhost").is_ok()); // Machine name domain
         assert!(validate_alias_destination("user@andromeda-001").is_ok()); // Machine name domain
 
@@ -600,7 +631,7 @@ mod tests {
         assert!(validate_alias_destination("user@").is_err()); // Ends with @
         assert!(validate_alias_destination("user++tag@example.com").is_err()); // Multiple +
         assert!(validate_alias_destination("+user@example.com").is_err()); // Starts with +
-        assert!(validate_alias_destination("user+@example.com").is_err()); // + before @
+        assert!(validate_alias_destination("user+@example.com").is_err()); // Plus before @
         assert!(validate_alias_destination("user@@example.com").is_err()); // Multiple @
         assert!(validate_alias_destination("@example.com@").is_err()); // Multiple @
         assert!(validate_alias_destination("user@example@com").is_err()); // Multiple @
@@ -745,7 +776,7 @@ mod tests {
         assert!(validate_user_id("user%%name@example.com").is_ok()); // Consecutive % in local part are allowed
         assert!(validate_user_id("user&&name@example.com").is_err()); // Consecutive & in local part
         assert!(validate_user_id("user**name@example.com").is_err()); // Consecutive * in local part
-        assert!(validate_user_id("user++name@example.com").is_ok()); // Consecutive + in local part are allowed
+        assert!(validate_user_id("user++name@example.com").is_err()); // Consecutive + in local part not allowed
         assert!(validate_user_id("user==name@example.com").is_err()); // Consecutive = in local part
         assert!(validate_user_id("user!!name@example.com").is_err()); // Consecutive ! in local part
         assert!(validate_user_id("user??name@example.com").is_err()); // Consecutive ? in local part
@@ -793,13 +824,10 @@ mod tests {
         assert!(validate_user_path("/home/user/../other").is_err()); // Path traversal
         assert!(validate_user_path("/home/user/./other").is_ok()); // Current directory is allowed
         assert!(validate_user_path("/home/user/.../other").is_err()); // Multiple dots
-        assert!(validate_user_path("/home/user/\t").is_ok()); // Tab character is allowed in paths
-        assert!(validate_user_path("/home/user/\n").is_ok()); // Newline character is allowed in paths
-        assert!(validate_user_path("/home/user/\r").is_ok()); // Carriage return is allowed in paths
+        assert!(validate_user_path("/home/user/\t").is_err()); // Tab character - control character not allowed
+        assert!(validate_user_path("/home/user/\n").is_err()); // Newline character - control character not allowed
+        assert!(validate_user_path("/home/user/\r").is_err()); // Carriage return - control character not allowed
         assert!(validate_user_path("/home/user/ ").is_ok()); // Space character is allowed in paths
-        assert!(validate_user_path("/home/user/\t").is_ok()); // Tab character is allowed in paths
-        assert!(validate_user_path("/home/user/\n").is_ok()); // Newline character is allowed in paths
-        assert!(validate_user_path("/home/user/\r").is_ok()); // Carriage return is allowed in paths
         assert!(validate_user_path("/home/user/ ").is_ok()); // Space character is allowed in paths
                                                              // Note: Path validation only checks for null characters and path traversal
                                                              // Other characters like #, $, %, etc. are not validated by the current function
@@ -1057,9 +1085,9 @@ mod tests {
         assert!(validate_user_path("/home/user/test_file").is_ok()); // Underscore
         assert!(validate_user_path("/home/user/test.file").is_ok()); // Dot
         assert!(validate_user_path("/home/user/test file").is_ok()); // Space
-        assert!(validate_user_path("/home/user/test\tfile").is_ok()); // Tab
-        assert!(validate_user_path("/home/user/test\nfile").is_ok()); // Newline
-        assert!(validate_user_path("/home/user/test\rfile").is_ok()); // Carriage return
+        assert!(validate_user_path("/home/user/test\tfile").is_err()); // Tab - control character not allowed
+        assert!(validate_user_path("/home/user/test\nfile").is_err()); // Newline - control character not allowed
+        assert!(validate_user_path("/home/user/test\rfile").is_err()); // Carriage return - control character not allowed
 
         // Control characters
         assert!(validate_user_path("/home/user/test\x00file").is_err()); // Null byte
@@ -1115,22 +1143,22 @@ mod tests {
     fn test_validation_error_messages() {
         // Test that error messages are descriptive
         let domain_error = validate_domain("").unwrap_err();
-        assert!(domain_error.to_string().contains("domain"));
+        assert!(domain_error.to_string().contains("Domain"));
 
         let alias_mail_error = validate_alias_mail("").unwrap_err();
-        assert!(alias_mail_error.to_string().contains("alias mail"));
+        assert!(alias_mail_error.to_string().contains("Alias mail"));
 
         let alias_dest_error = validate_alias_destination("").unwrap_err();
-        assert!(alias_dest_error.to_string().contains("alias destination"));
+        assert!(alias_dest_error.to_string().contains("Alias destination"));
 
         let user_id_error = validate_user_id("").unwrap_err();
-        assert!(user_id_error.to_string().contains("user ID"));
+        assert!(user_id_error.to_string().contains("User ID"));
 
         let user_path_error = validate_user_path("").unwrap_err();
-        assert!(user_path_error.to_string().contains("user path"));
+        assert!(user_path_error.to_string().contains("User path"));
 
         let backup_name_error = validate_backup_name("").unwrap_err();
-        assert!(backup_name_error.to_string().contains("backup name"));
+        assert!(backup_name_error.to_string().contains("Backup name"));
     }
 
     #[test]

@@ -118,7 +118,7 @@ impl I18n {
 
         // Simple variable substitution: { $variable }
         for (key, value) in args {
-            let placeholder = format!("{{ ${{{key}}} }}");
+            let placeholder = format!("{{ ${key} }}");
             message = message.replace(&placeholder, &value);
         }
 
@@ -145,7 +145,12 @@ pub fn get_locale_from_headers(headers: &axum::http::HeaderMap) -> String {
             if let Some(lang) = lang_str.split(',').next() {
                 let lang = lang.split(';').next().unwrap_or(lang).trim();
                 if lang.len() >= 2 {
-                    return lang.to_string();
+                    // Validate against supported locales
+                    match lang {
+                        "en-US" | "es-ES" | "fr-FR" | "de-DE" | "nb-NO" => return lang.to_string(),
+                        "en" => return "en-US".to_string(), // Map short codes to full locales
+                        _ => return "en-US".to_string(), // Default for unsupported locales
+                    }
                 }
             }
         }
@@ -537,7 +542,12 @@ mod tests {
             if let Some(idx) = input.find('=') {
                 let (key, value) = input.split_at(idx);
                 let key = key.trim();
-                let value = value[1..].trim().trim_matches('"');
+                let value = value[1..].trim();
+                let value = if value.starts_with('"') && value.ends_with('"') {
+                    &value[1..value.len()-1]
+                } else {
+                    value
+                };
                 assert_eq!((key, value), expected);
             }
         }
