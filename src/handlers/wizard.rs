@@ -174,7 +174,7 @@ fn clear_session() {
 }
 
 // Wizard index page
-pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Redirect {
+pub async fn index(State(_state): State<AppState>, _headers: HeaderMap) -> Redirect {
     // Clear any existing session when starting a new wizard
     clear_session();
 
@@ -202,7 +202,7 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
             "[WIZARD DEBUG] Restoring session with domains: {:?}",
             session.domains
         );
-        println!("[WIZARD DEBUG] Restored domains string: '{}'", domains_str);
+        println!("[WIZARD DEBUG] Restored domains string: '{domains_str}'");
 
         DomainConfigForm {
             domains: domains_str,
@@ -270,7 +270,7 @@ pub async fn domain_config_post(
             title: &translations["wizard-step-1-title"],
             description: &translations["wizard-step-1-description"],
             form: &form,
-            error: &error_msg,
+            error: error_msg,
             domains_label: &translations["wizard-domains-label"],
             domains_description: &translations["wizard-domains-description"],
             domains_placeholder: &translations["wizard-domains-placeholder"],
@@ -299,7 +299,7 @@ pub async fn domain_config_post(
         match crate::validation::validate_domain(domain) {
             Ok(_) => {}
             Err(e) => {
-                let error_msg = format!("Invalid domain '{}': {}", domain, e);
+                let error_msg = format!("Invalid domain '{domain}': {e}");
                 let content_template = WizardDomainConfigTemplate {
                     title: &translations["wizard-step-1-title"],
                     description: &translations["wizard-step-1-description"],
@@ -490,7 +490,7 @@ pub async fn alias_config_post(
         .unwrap_or_default();
 
     let body_string = String::from_utf8_lossy(&body_bytes);
-    println!("[WIZARD DEBUG] Raw form data: {}", body_string);
+    println!("[WIZARD DEBUG] Raw form data: {body_string}");
 
     // Parse form data manually
     let mut required_aliases = Vec::new();
@@ -533,13 +533,13 @@ pub async fn alias_config_post(
     };
 
     // Debug logging
-    println!("[WIZARD DEBUG] Parsed form: {:?}", form);
+    println!("[WIZARD DEBUG] Parsed form: {form:?}");
 
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Get current session
-    let mut session = get_session().unwrap_or_else(|| create_wizard_session());
+    let mut session = get_session().unwrap_or_else(create_wizard_session);
 
     // Validate form data
     if form.common_destination.is_empty() {
@@ -659,7 +659,10 @@ pub async fn alias_config_post(
 }
 
 // Step 3: Review and confirmation
-pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Result<Html<String>, Redirect> {
+pub async fn review(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
@@ -810,7 +813,7 @@ pub async fn execute(
         let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
             Ok(pool) => pool,
             Err(e) => {
-                println!("[WIZARD DEBUG] Failed to get database pool: {:?}", e);
+                println!("[WIZARD DEBUG] Failed to get database pool: {e:?}");
                 continue;
             }
         };
@@ -877,7 +880,7 @@ pub async fn execute(
                     );
                 }
                 Err(e) => {
-                    println!("[WIZARD DEBUG] Failed to create alias {}: {:?}", alias, e);
+                    println!("[WIZARD DEBUG] Failed to create alias {alias}: {e:?}");
                 }
             }
         }
@@ -901,7 +904,10 @@ pub async fn execute(
 }
 
 // Step 5: Complete
-pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Result<Html<String>, Redirect> {
+pub async fn complete(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 

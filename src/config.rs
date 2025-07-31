@@ -14,8 +14,6 @@ pub enum AdminRole {
     Edit,
 }
 
-
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AdminCredentials {
     pub username: String,

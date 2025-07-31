@@ -1,13 +1,11 @@
 use crate::{
-    db,
+    db, get_entity_or_not_found,
     i18n::get_translation,
     models::{PaginatedResult, User, UserForm},
+    render_template, render_template_with_title,
     templates::layout::BaseTemplate,
     templates::users::*,
     AppState,
-    render_template_with_title,
-    get_entity_or_not_found,
-    render_template,
 };
 use askama::Template;
 use axum::{
@@ -473,21 +471,15 @@ pub async fn create(
         // Return error form for restrictions
         let locale = crate::handlers::utils::get_user_locale(&headers);
         let error_message = get_translation(&state, &locale, "error-database-restriction").await;
-        let form_template = build_user_form_template(
-            &state,
-            &locale,
-            None,
-            form.clone(),
-            Some(error_message),
-        )
-        .await;
+        let form_template =
+            build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
+                .await;
         let content = form_template.render().unwrap();
 
         if crate::handlers::utils::is_htmx_request(&headers) {
             return Html(content);
         } else {
-            let (current_db_label, current_db_id) =
-                get_current_db_info(&state, &headers).await;
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "users-new-user").await,
                 content,
@@ -508,22 +500,17 @@ pub async fn create(
     match crate::validation::validate_user_id(&form.id) {
         Ok(_) => {}
         Err(_e) => {
-            let error_message = get_translation(&state, &locale, "validation-user-id-invalid").await;
-            let form_template = build_user_form_template(
-                &state,
-                &locale,
-                None,
-                form.clone(),
-                Some(error_message),
-            )
-            .await;
+            let error_message =
+                get_translation(&state, &locale, "validation-user-id-invalid").await;
+            let form_template =
+                build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
+                    .await;
             let content = form_template.render().unwrap();
 
             if crate::handlers::utils::is_htmx_request(&headers) {
                 return Html(content);
             } else {
-                let (current_db_label, current_db_id) =
-                    get_current_db_info(&state, &headers).await;
+                let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "users-new-user").await,
                     content,
@@ -542,21 +529,15 @@ pub async fn create(
     // Validate password is not empty
     if form.password.trim().is_empty() {
         let error_message = get_translation(&state, &locale, "validation-password-required").await;
-        let form_template = build_user_form_template(
-            &state,
-            &locale,
-            None,
-            form.clone(),
-            Some(error_message),
-        )
-        .await;
+        let form_template =
+            build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
+                .await;
         let content = form_template.render().unwrap();
 
         if crate::handlers::utils::is_htmx_request(&headers) {
             return Html(content);
         } else {
-            let (current_db_label, current_db_id) =
-                get_current_db_info(&state, &headers).await;
+            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
             let template = BaseTemplate::with_i18n(
                 get_translation(&state, &locale, "users-new-user").await,
                 content,
@@ -577,7 +558,8 @@ pub async fn create(
         match crate::validation::validate_user_path(&combined_maildir_path) {
             Ok(_) => {}
             Err(_e) => {
-                let error_message = get_translation(&state, &locale, "validation-user-path-invalid").await;
+                let error_message =
+                    get_translation(&state, &locale, "validation-user-path-invalid").await;
                 let form_template = build_user_form_template(
                     &state,
                     &locale,
@@ -612,22 +594,17 @@ pub async fn create(
     match crate::validation::validate_user_path(&form.home) {
         Ok(_) => {}
         Err(_e) => {
-            let error_message = get_translation(&state, &locale, "validation-user-path-invalid").await;
-            let form_template = build_user_form_template(
-                &state,
-                &locale,
-                None,
-                form.clone(),
-                Some(error_message),
-            )
-            .await;
+            let error_message =
+                get_translation(&state, &locale, "validation-user-path-invalid").await;
+            let form_template =
+                build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
+                    .await;
             let content = form_template.render().unwrap();
 
             if crate::handlers::utils::is_htmx_request(&headers) {
                 return Html(content);
             } else {
-                let (current_db_label, current_db_id) =
-                    get_current_db_info(&state, &headers).await;
+                let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "users-new-user").await,
                     content,
@@ -665,8 +642,7 @@ pub async fn create(
             if crate::handlers::utils::is_htmx_request(&headers) {
                 Html(content)
             } else {
-                let (current_db_label, current_db_id) =
-                    get_current_db_info(&state, &headers).await;
+                let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
                 let template = BaseTemplate::with_i18n(
                     get_translation(&state, &locale, "users-title").await,
                     content,
@@ -681,19 +657,13 @@ pub async fn create(
             }
         }
         Err(e) => {
-            let error_message = crate::handlers::utils::handle_database_error(
-                &state, &locale, e, "user", &form.id,
-            )
-            .await;
+            let error_message =
+                crate::handlers::utils::handle_database_error(&state, &locale, e, "user", &form.id)
+                    .await;
 
-            let form_template = build_user_form_template(
-                &state,
-                &locale,
-                None,
-                form.clone(),
-                Some(error_message),
-            )
-            .await;
+            let form_template =
+                build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
+                    .await;
 
             // Use helper function for template rendering
             crate::handlers::utils::render_form_template(

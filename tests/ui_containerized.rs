@@ -453,11 +453,6 @@ async fn test_navigation_containerized() -> Result<()> {
     .await
 }
 
-
-
-
-
-
 #[tokio::test]
 async fn test_domain_search_containerized() -> Result<()> {
     run_test_with_timeout(
@@ -1231,7 +1226,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             // or the domain config content should be rendered on /wizard
             let redirected_url = timeout60s!(env.driver.current_url(), "Get redirected URL")?;
             println!("[WIZARD TEST] Redirected URL: {}", redirected_url);
-            
+
             // Check if we're on /wizard/domain-config or if the content is rendered on /wizard
             if redirected_url.path().ends_with("/wizard/domain-config") {
                 println!("[WIZARD TEST] Successfully redirected to /wizard/domain-config");
@@ -1239,7 +1234,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 // Check if the domain config content is rendered on /wizard
                 let page_title = timeout30s!(env.driver.title(), "Get page title")?;
                 println!("[WIZARD TEST] On /wizard with title: {}", page_title);
-                
+
                 if page_title.contains("Configure Domains") {
                     println!("[WIZARD TEST] Domain config content rendered on /wizard");
                 } else {
@@ -1310,7 +1305,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             // Submit domain configuration
             println!("[WIZARD TEST] Looking for submit button...");
-            
+
             // Try different selectors to find the submit button
             let submit_button = match timeout60s!(
                 env.driver.find(By::Id("wizard-submit")),
@@ -1494,19 +1489,19 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             // The execute step might redirect immediately to complete
             let mut attempts = 0;
             let max_attempts = 10; // Wait up to 30 seconds
-            
+
             while attempts < max_attempts {
                 tokio::time::sleep(Duration::from_secs(3)).await;
-                
+
                 let current_url = timeout60s!(env.driver.current_url(), "Get current URL")?;
                 println!("[WIZARD TEST] Current URL after wait: {}", current_url);
-                
+
                 // Check if we've been redirected to the complete page
                 if current_url.path().ends_with("/wizard/complete") {
                     println!("[WIZARD TEST] Successfully redirected to complete page");
                     break;
                 }
-                
+
                 // Check if we're on the executing page
                 let page_title = timeout60s!(env.driver.title(), "Get page title")?;
                 if page_title.contains("Executing") || page_title.contains("Processing") {
@@ -1514,16 +1509,16 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                     attempts += 1;
                     continue;
                 }
-                
+
                 // If we get here, something unexpected happened
                 println!("[WIZARD TEST] Unexpected page title: {}", page_title);
                 break;
             }
-            
+
             if attempts >= max_attempts {
                 return Err(anyhow::anyhow!("Execution step timed out after {} attempts", max_attempts));
             }
-            
+
             println!("[WIZARD TEST] Execution completed");
 
             // Wait for redirect to complete step
@@ -1709,7 +1704,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                     env.driver.find(By::Id("backup-status")),
                     "Find backup status area"
                 )?;
-                
+
                 // Wait for the status to be updated with success or error message
                 let mut attempts = 0;
                 let max_attempts = 10;
@@ -1718,53 +1713,59 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                 while attempts < max_attempts {
                     tokio::time::sleep(Duration::from_millis(1000)).await;
                     let status_text = timeout60s!(backup_status.text(), "Get backup status text")?;
-                    
+
                     // Check for success indicators (green styling or success message)
-                    if status_text.contains("successfully") || status_text.contains("Download") || status_text.contains("green") {
+                    if status_text.contains("successfully")
+                        || status_text.contains("Download")
+                        || status_text.contains("green")
+                    {
                         success_found = true;
                         println!("Backup created successfully!");
                         break;
                     }
-                    
+
                     // Check for error indicators
-                    if status_text.contains("error") || status_text.contains("failed") || status_text.contains("red") {
+                    if status_text.contains("error")
+                        || status_text.contains("failed")
+                        || status_text.contains("red")
+                    {
                         println!("Backup creation failed with error: {status_text}");
                         // Don't fail the test if backup creation fails - it might be due to mysqldump not being available
                         // Just log the error and continue
                         break;
                     }
-                    
+
                     attempts += 1;
                 }
 
                 if !success_found {
                     // Check if backups list was updated
-                    let backups_list = timeout60s!(
-                        env.driver.find(By::Id("backups-list")),
-                        "Find backups list"
-                    )?;
-                    let backups_text =
-                        timeout60s!(backups_list.text(), "Get backups list text")?;
+                    let backups_list =
+                        timeout60s!(env.driver.find(By::Id("backups-list")), "Find backups list")?;
+                    let backups_text = timeout60s!(backups_list.text(), "Get backups list text")?;
 
-                    if !backups_text.contains("Loading backups...") && !backups_text.contains("No backups found") {
+                    if !backups_text.contains("Loading backups...")
+                        && !backups_text.contains("No backups found")
+                    {
                         println!("Backups list updated: {backups_text}");
                     }
                 } else {
                     // Check for download link in the success message
                     let download_links = timeout60s!(
-                        env.driver.find_all(By::Css("a[href*='/database_backup/download/']")),
+                        env.driver
+                            .find_all(By::Css("a[href*='/database_backup/download/']")),
                         "Find backup download links"
                     )?;
-                    
+
                     if !download_links.is_empty() {
-                        let download_href = timeout60s!(
-                            download_links[0].attr("href"),
-                            "Get download link href"
-                        )?;
+                        let download_href =
+                            timeout60s!(download_links[0].attr("href"), "Get download link href")?;
 
                         assert!(
                             download_href.is_some()
-                                && download_href.unwrap().contains("/database_backup/download/"),
+                                && download_href
+                                    .unwrap()
+                                    .contains("/database_backup/download/"),
                             "Download link should be present and point to backup download"
                         );
                     }

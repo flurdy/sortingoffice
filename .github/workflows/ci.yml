@@ -62,6 +62,11 @@ jobs:
         RUST_LOG: debug
       run: make test-security
 
+    - name: Run API tests
+      env:
+        RUST_LOG: debug
+      run: make test-api
+
     - name: Build release version
       run: cargo build --release
 

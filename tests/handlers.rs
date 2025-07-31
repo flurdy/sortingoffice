@@ -306,7 +306,7 @@ mod tests {
             &user_id,
             "password123",
             "Test User",
-            "testdir",  // Relative path - will be combined with home directory
+            "testdir", // Relative path - will be combined with home directory
             "/var/spool/mail/virtual",
             true,
             false,

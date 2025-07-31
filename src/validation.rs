@@ -15,19 +15,19 @@ pub enum ValidationError {
 impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ValidationError::DomainInvalid(msg) => write!(f, "Domain validation error: {}", msg),
+            ValidationError::DomainInvalid(msg) => write!(f, "Domain validation error: {msg}"),
             ValidationError::AliasMailInvalid(msg) => {
-                write!(f, "Alias mail validation error: {}", msg)
+                write!(f, "Alias mail validation error: {msg}")
             }
             ValidationError::AliasDestinationInvalid(msg) => {
-                write!(f, "Alias destination validation error: {}", msg)
+                write!(f, "Alias destination validation error: {msg}")
             }
-            ValidationError::UserIdInvalid(msg) => write!(f, "User ID validation error: {}", msg),
+            ValidationError::UserIdInvalid(msg) => write!(f, "User ID validation error: {msg}"),
             ValidationError::UserPathInvalid(msg) => {
-                write!(f, "User path validation error: {}", msg)
+                write!(f, "User path validation error: {msg}")
             }
             ValidationError::BackupNameInvalid(msg) => {
-                write!(f, "Backup name validation error: {}", msg)
+                write!(f, "Backup name validation error: {msg}")
             }
         }
     }
@@ -141,13 +141,13 @@ pub fn validate_alias_mail(mail: &str) -> Result<(), ValidationError> {
         }
         // Validate the domain part
         validate_domain(domain_part).map_err(|e| {
-            ValidationError::AliasMailInvalid(format!("Invalid domain in catchall alias: {}", e))
+            ValidationError::AliasMailInvalid(format!("Invalid domain in catchall alias: {e}"))
         })?;
     } else {
         // Regular alias - validate both parts
         validate_alias_local_part(local_part)?;
         validate_domain(domain_part)
-            .map_err(|e| ValidationError::AliasMailInvalid(format!("Invalid domain: {}", e)))?;
+            .map_err(|e| ValidationError::AliasMailInvalid(format!("Invalid domain: {e}")))?;
     }
 
     Ok(())
@@ -248,7 +248,7 @@ pub fn validate_alias_destination(destination: &str) -> Result<(), ValidationErr
 
     // Validate domain part
     validate_domain(domain_part)
-        .map_err(|e| ValidationError::AliasDestinationInvalid(format!("Invalid domain: {}", e)))?;
+        .map_err(|e| ValidationError::AliasDestinationInvalid(format!("Invalid domain: {e}")))?;
 
     // For destinations, local part can be empty (e.g., @example.com)
     if !local_part.is_empty() {
@@ -334,7 +334,7 @@ pub fn validate_user_id(user_id: &str) -> Result<(), ValidationError> {
 
     // Must be a valid email format
     validate_alias_mail(user_id).map_err(|e| {
-        ValidationError::UserIdInvalid(format!("User ID must be a valid email: {}", e))
+        ValidationError::UserIdInvalid(format!("User ID must be a valid email: {e}"))
     })?;
 
     Ok(())

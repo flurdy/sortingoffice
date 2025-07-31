@@ -496,7 +496,7 @@ mod tests {
 
         for (email, username, password) in users_data {
             let form_data = TestData::user_form_data_complete(
-                email,  // Use the full email address as user_id
+                email, // Use the full email address as user_id
                 password,
                 username,
                 "testdir",
@@ -617,7 +617,7 @@ mod tests {
         for (username, password, name, enabled) in users_data {
             let user_id = format!("{}@user-test.com", username);
             let form_data = TestData::user_form_data_complete(
-                &user_id,  // Use the full email address as user_id
+                &user_id, // Use the full email address as user_id
                 password,
                 name,
                 "testdir",
@@ -854,9 +854,13 @@ mod tests {
         ];
 
         for (username, password, name) in database_users {
-            let user_id = format!("{}@{}-domain.com", username, username.split('-').next().unwrap());
+            let user_id = format!(
+                "{}@{}-domain.com",
+                username,
+                username.split('-').next().unwrap()
+            );
             let form_data = TestData::user_form_data_complete(
-                &user_id,  // Use the full email address as user_id
+                &user_id, // Use the full email address as user_id
                 password,
                 name,
                 "testdir",
@@ -1361,7 +1365,8 @@ mod tests {
         TestUtils::assert_validation_error(response).await;
 
         // Test 2: Email with unicode characters
-        let unicode_email_form = TestData::alias_form_data("tëst@example.com", "dest@example.com", true);
+        let unicode_email_form =
+            TestData::alias_form_data("tëst@example.com", "dest@example.com", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1416,7 +1421,8 @@ mod tests {
         let auth_cookie = TestUtils::create_edit_auth_cookie();
 
         // Test 1: Domain with SQL injection attempt
-        let sql_injection_domain_form = TestData::domain_form_data("'; DROP TABLE domains; --", "smtp:localhost", true);
+        let sql_injection_domain_form =
+            TestData::domain_form_data("'; DROP TABLE domains; --", "smtp:localhost", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1431,7 +1437,11 @@ mod tests {
         TestUtils::assert_validation_error(response).await;
 
         // Test 2: Email with SQL injection attempt
-        let sql_injection_email_form = TestData::alias_form_data("'; DROP TABLE aliases; --@example.com", "dest@example.com", true);
+        let sql_injection_email_form = TestData::alias_form_data(
+            "'; DROP TABLE aliases; --@example.com",
+            "dest@example.com",
+            true,
+        );
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1474,7 +1484,8 @@ mod tests {
         let auth_cookie = TestUtils::create_edit_auth_cookie();
 
         // Test 1: Domain with XSS attempt
-        let xss_domain_form = TestData::domain_form_data("<script>alert('xss')</script>.com", "smtp:localhost", true);
+        let xss_domain_form =
+            TestData::domain_form_data("<script>alert('xss')</script>.com", "smtp:localhost", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1489,7 +1500,11 @@ mod tests {
         TestUtils::assert_validation_error(response).await;
 
         // Test 2: Email with XSS attempt
-        let xss_email_form = TestData::alias_form_data("<script>alert('xss')</script>@example.com", "dest@example.com", true);
+        let xss_email_form = TestData::alias_form_data(
+            "<script>alert('xss')</script>@example.com",
+            "dest@example.com",
+            true,
+        );
         let response = TestUtils::make_post_request(
             &app,
             &state,

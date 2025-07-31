@@ -24,7 +24,8 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         form_transport: get_translation(&state, &locale, "backups-form-transport").await,
         form_active: get_translation(&state, &locale, "backups-form-active").await,
         placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain").await,
-        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport").await,
+        placeholder_transport: get_translation(&state, &locale, "backups-placeholder-transport")
+            .await,
         tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
         tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
         tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
@@ -278,7 +279,7 @@ pub async fn create(
     }
 
     // Validate domain format
-    match crate::validation::validate_domain(&form.domain.trim()) {
+    match crate::validation::validate_domain(form.domain.trim()) {
         Ok(_) => {}
         Err(_e) => {
             let content_template = BackupFormTemplate {

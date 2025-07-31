@@ -150,7 +150,10 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .route("/api/databases", axum::routing::get(list_databases))
         // Database backup management
         .route("/database_backup", axum::routing::get(backup_index))
-        .route("/database_backup/create", axum::routing::post(create_backup))
+        .route(
+            "/database_backup/create",
+            axum::routing::post(create_backup),
+        )
         .route(
             "/database_backup/create-htmx",
             axum::routing::post(create_backup_htmx),
@@ -263,7 +266,10 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
             "/domain_backup/{id}",
             axum::routing::put(backups::update).delete(backups::delete),
         )
-        .route("/domain_backup/{id}/edit", axum::routing::get(backups::edit))
+        .route(
+            "/domain_backup/{id}/edit",
+            axum::routing::get(backups::edit),
+        )
         .route(
             "/domain_backup/{id}/toggle-show",
             axum::routing::post(backups::toggle_enabled_show),

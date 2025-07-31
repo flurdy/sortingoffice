@@ -125,9 +125,9 @@ fn validate_domain_form(form: &DomainForm) -> Result<(), String> {
     }
 
     // Add comprehensive domain validation
-    match crate::validation::validate_domain(&form.domain.trim()) {
+    match crate::validation::validate_domain(form.domain.trim()) {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!("validation-domain-invalid: {}", e)),
+        Err(e) => Err(format!("validation-domain-invalid: {e}")),
     }
 }
 

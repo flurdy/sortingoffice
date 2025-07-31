@@ -59,7 +59,8 @@ pub async fn find_database_common_aliases(
                 aliases.len()
             );
 
-            let common_aliases = find_common_aliases_from_list(&aliases, limit, min_occurrence_count);
+            let common_aliases =
+                find_common_aliases_from_list(&aliases, limit, min_occurrence_count);
 
             println!(
                 "[ANALYTICS DEBUG] Found {} common aliases from database analysis",
@@ -71,8 +72,7 @@ pub async fn find_database_common_aliases(
         Err(e) => {
             // Error getting aliases, return empty vector
             println!(
-                "[ANALYTICS DEBUG] Error getting aliases for common alias analysis: {:?}",
-                e
+                "[ANALYTICS DEBUG] Error getting aliases for common alias analysis: {e:?}"
             );
             Vec::new()
         }
@@ -87,7 +87,9 @@ fn find_most_common_destination_from_list(aliases: &[crate::models::Alias]) -> S
 
     for alias in aliases {
         if !alias.destination.is_empty() {
-            *destination_counts.entry(alias.destination.clone()).or_insert(0) += 1;
+            *destination_counts
+                .entry(alias.destination.clone())
+                .or_insert(0) += 1;
         }
     }
 
@@ -138,7 +140,7 @@ pub async fn find_most_common_destination(state: &AppState, headers: &HeaderMap)
         }
         Err(e) => {
             // Error getting aliases, return empty string
-            println!("[ANALYTICS DEBUG] Error getting aliases: {:?}", e);
+            println!("[ANALYTICS DEBUG] Error getting aliases: {e:?}");
             String::new()
         }
     }
@@ -150,8 +152,6 @@ mod tests {
     use crate::models::Alias;
 
     use std::collections::HashMap;
-
-
 
     // Helper function to create test aliases
     fn create_test_aliases() -> Vec<Alias> {
@@ -238,8 +238,6 @@ mod tests {
             },
         ]
     }
-
-
 
     #[test]
     fn test_find_common_aliases_from_list_basic() {

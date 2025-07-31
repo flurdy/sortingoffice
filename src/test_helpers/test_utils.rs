@@ -374,15 +374,11 @@ impl TestUtils {
         response: axum::http::Response<Body>,
         unexpected_text: &str,
     ) {
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8_lossy(&body);
         assert!(
             !body_str.contains(unexpected_text),
-            "Response body should not contain '{}', but it does: {}",
-            unexpected_text,
-            body_str
+            "Response body should not contain '{unexpected_text}', but it does: {body_str}"
         );
     }
 
@@ -391,24 +387,21 @@ impl TestUtils {
     pub async fn assert_validation_error(response: axum::http::Response<Body>) {
         // First assert that the status is 200 OK
         Self::assert_status(&response, StatusCode::OK);
-        
+
         // Then check that the body contains error keywords
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8_lossy(&body);
-        
+
         // Check for various error keywords that might appear in validation error messages
-        let has_error = body_str.contains("error") 
-            || body_str.contains("invalid") 
-            || body_str.contains("validation") 
-            || body_str.contains("Invalid") 
+        let has_error = body_str.contains("error")
+            || body_str.contains("invalid")
+            || body_str.contains("validation")
+            || body_str.contains("Invalid")
             || body_str.contains("Error");
-            
+
         assert!(
             has_error,
-            "Response should contain validation error message, but body was: {}",
-            body_str
+            "Response should contain validation error message, but body was: {body_str}"
         );
     }
 

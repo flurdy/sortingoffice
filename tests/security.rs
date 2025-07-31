@@ -1,12 +1,15 @@
-use axum::http::StatusCode;
 use axum::body::to_bytes;
+use axum::http::StatusCode;
 use sortingoffice::{
     config::AdminRole,
     test_helpers::test_utils::{TestData, TestUtils},
     test_helpers::testcontainers_setup::setup_test_db,
 };
 
-async fn create_test_app() -> (axum::Router<sortingoffice::AppState>, sortingoffice::AppState) {
+async fn create_test_app() -> (
+    axum::Router<sortingoffice::AppState>,
+    sortingoffice::AppState,
+) {
     let container = setup_test_db().await;
     TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await
 }
@@ -52,7 +55,10 @@ async fn test_sql_injection_domain_creation() {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8_lossy(&body);
         assert!(
-            body_str.contains("invalid") || body_str.contains("error") || body_str.contains("Domain") || body_str.contains("validation"),
+            body_str.contains("invalid")
+                || body_str.contains("error")
+                || body_str.contains("Domain")
+                || body_str.contains("validation"),
             "SQL injection payload '{}' should be rejected",
             payload
         );
@@ -67,11 +73,7 @@ async fn test_authentication_bypass_domains() {
     // Test without authentication
     let form_data = TestData::domain_form_data("test.com", "smtp:localhost", true);
     let response = TestUtils::make_handler_post_request(
-        &app,
-        &_state,
-        "/domains",
-        &form_data,
-        None, // No authentication
+        &app, &_state, "/domains", &form_data, None, // No authentication
     )
     .await;
 
@@ -80,11 +82,11 @@ async fn test_authentication_bypass_domains() {
     let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
     let body_str = String::from_utf8_lossy(&body);
     assert!(
-        status == StatusCode::SEE_OTHER || 
-        status == StatusCode::UNAUTHORIZED ||
-        body_str.contains("Insufficient permissions") ||
-        body_str.contains("authentication") ||
-        body_str.contains("login"),
+        status == StatusCode::SEE_OTHER
+            || status == StatusCode::UNAUTHORIZED
+            || body_str.contains("Insufficient permissions")
+            || body_str.contains("authentication")
+            || body_str.contains("login"),
         "Unauthenticated request should be rejected"
     );
 }
@@ -96,11 +98,7 @@ async fn test_authentication_bypass_users() {
     // Test without authentication
     let form_data = TestData::user_form_data("user@test.com", "password123", "Test User");
     let response = TestUtils::make_handler_post_request(
-        &app,
-        &_state,
-        "/users",
-        &form_data,
-        None, // No authentication
+        &app, &_state, "/users", &form_data, None, // No authentication
     )
     .await;
 
@@ -109,11 +107,11 @@ async fn test_authentication_bypass_users() {
     let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
     let body_str = String::from_utf8_lossy(&body);
     assert!(
-        status == StatusCode::SEE_OTHER || 
-        status == StatusCode::UNAUTHORIZED ||
-        body_str.contains("Insufficient permissions") ||
-        body_str.contains("authentication") ||
-        body_str.contains("login"),
+        status == StatusCode::SEE_OTHER
+            || status == StatusCode::UNAUTHORIZED
+            || body_str.contains("Insufficient permissions")
+            || body_str.contains("authentication")
+            || body_str.contains("login"),
         "Unauthenticated request should be rejected"
     );
 }
@@ -150,17 +148,17 @@ async fn test_input_validation_edge_cases() {
         // Extremely long inputs
         ("a".repeat(1000), "smtp:localhost".to_string()),
         ("test.com".to_string(), "a".repeat(1000)),
-        
         // Null bytes and control characters
         ("test\x00.com".to_string(), "smtp:localhost".to_string()),
         ("test.com".to_string(), "smtp:\x00localhost".to_string()),
-        
         // Unicode injection
         ("test.com".to_string(), "smtp:localhost\u{0000}".to_string()),
         ("test\u{0000}.com".to_string(), "smtp:localhost".to_string()),
-        
         // Path traversal attempts
-        ("../../../etc/passwd".to_string(), "smtp:localhost".to_string()),
+        (
+            "../../../etc/passwd".to_string(),
+            "smtp:localhost".to_string(),
+        ),
         ("test.com".to_string(), "../../../etc/passwd".to_string()),
     ];
 
@@ -187,9 +185,12 @@ async fn test_input_validation_edge_cases() {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let body_str = String::from_utf8_lossy(&body);
         assert!(
-            body_str.contains("invalid") || body_str.contains("error") || body_str.contains("Domain") || body_str.contains("validation"),
+            body_str.contains("invalid")
+                || body_str.contains("error")
+                || body_str.contains("Domain")
+                || body_str.contains("validation"),
             "Edge case '{}' should be rejected or handled gracefully",
             domain
         );
     }
-} 
+}

@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 use std::fs;
 use std::sync::Arc;
@@ -149,7 +148,7 @@ pub fn get_locale_from_headers(headers: &axum::http::HeaderMap) -> String {
                     match lang {
                         "en-US" | "es-ES" | "fr-FR" | "de-DE" | "nb-NO" => return lang.to_string(),
                         "en" => return "en-US".to_string(), // Map short codes to full locales
-                        _ => return "en-US".to_string(), // Default for unsupported locales
+                        _ => return "en-US".to_string(),    // Default for unsupported locales
                     }
                 }
             }
@@ -544,7 +543,7 @@ mod tests {
                 let key = key.trim();
                 let value = value[1..].trim();
                 let value = if value.starts_with('"') && value.ends_with('"') {
-                    &value[1..value.len()-1]
+                    &value[1..value.len() - 1]
                 } else {
                     value
                 };

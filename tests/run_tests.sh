@@ -37,9 +37,10 @@ show_usage() {
     echo "  unit              Run only unit tests (tests in source files)"
     echo "  integration       Run only integration tests (tests in tests/ directory)"
     echo "  security          Run security tests (SQL injection, auth bypass, etc.)"
+    echo "  api               Run API tests (authentication, authorization, etc.)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  smoke             Run end-to-end smoke test against running app"
-    echo "  all               Run all tests (unit + integration + security + UI)"
+    echo "  all               Run all tests (unit + integration + security + api + UI)"
     echo "  help              Show this help message"
     echo ""
     echo "Examples:"
@@ -47,6 +48,7 @@ show_usage() {
     echo "  $0 unit           # Run unit tests"
     echo "  $0 integration    # Run integration tests"
     echo "  $0 security       # Run security tests"
+    echo "  $0 api            # Run API tests"
     echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 smoke          # Run end-to-end smoke test"
     echo "  $0 all            # Run all tests"
@@ -137,6 +139,33 @@ run_security_tests() {
         duration=$((end_time - start_time))
         print_error "Security tests failed in ${duration}s!"
         echo "[CI-SUMMARY] SECURITY FAIL ${duration}s"
+        exit 1
+    fi
+}
+
+# Function to run API tests
+run_api_tests() {
+    print_status "Running API tests for sortingoffice..."
+    
+    # Set test environment
+    export RUST_LOG=error
+    export RUST_BACKTRACE=0
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
+
+    # Run API tests
+    print_status "Running API tests with cargo..."
+    start_time=$(date +%s)
+    if cargo test --test api; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "API tests completed successfully in ${duration}s!"
+        echo "[CI-SUMMARY] API PASS ${duration}s"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "API tests failed in ${duration}s!"
+        echo "[CI-SUMMARY] API FAIL ${duration}s"
         exit 1
     fi
 }
@@ -252,6 +281,8 @@ run_all_tests() {
     echo ""
     run_security_tests
     echo ""
+    run_api_tests
+    echo ""
     run_ui_tests
     end_all=$(date +%s)
     duration_all=$((end_all - start_all))
@@ -269,6 +300,9 @@ case "${1:-unit}" in
         ;;
     "security")
         run_security_tests
+        ;;
+    "api")
+        run_api_tests
         ;;
     "ui")
         run_ui_tests
