@@ -712,10 +712,6 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 - This provides a complete picture of translation key coverage and helps prevent runtime panics
 - Can be used to systematically add missing translations to all language files
 
----
-
-## Remaining Todos
-
 ✅ Remove domain overrides feature in the config page, and elsewhere. I don't see the point in it. - IMPLEMENTED
 - Removed domain_overrides field from Config struct
 - Removed DomainOverride struct definition
@@ -748,9 +744,11 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 - All functionality preserved, only path names changed for better distinction from database backup functionality
 - Application compiles and builds successfully
 
-Please rename the .rs file for backups inline with the path changes above, or similar.
+---
 
-Are all the handlers secure?
+## Remaining Todos
+
+Please rename the .rs file for backups inline with the path changes above, or similar.
 
 Configuration page description no longer makes sense.
 
@@ -761,3 +759,48 @@ Lets go through all the tests to see:
 - are they needed anymore? Keep things lean if possible.
 - are there sufficient coverage? Are there obvious missing tests?
 - are there sufficient negative and edge cases, especially in unit tests?
+
+## Test Suite Improvements - Next Steps
+
+### ✅ Completed
+- Removed empty test files (`tests/lib.rs`, `tests/mod.rs`)
+- Removed debug/ignored tests that didn't add value
+- Fixed wizard test issues (stale element references)
+- All tests now passing (80 unit, 40 handler, 16 integration, 18 UI, 9 utils, 3 testcontainers)
+
+### 🔄 Next Actions
+
+#### High Priority
+- [ ] Add security test suite (`tests/security.rs`)
+  - SQL injection prevention tests
+  - XSS prevention tests  
+  - CSRF protection tests
+  - Input validation edge cases
+  - Authentication bypass attempts
+
+#### Medium Priority  
+- [ ] Add performance test suite (`tests/performance.rs`)
+  - Database query performance benchmarks
+  - Memory usage under load tests
+  - Response time under stress tests
+  - Concurrent user handling tests
+
+- [ ] Add API test suite (`tests/api.rs`)
+  - JSON API endpoint tests
+  - Error response format tests
+  - Rate limiting tests
+  - API versioning tests
+
+#### Low Priority
+- [ ] Improve test organization
+  - Group related tests into modules
+  - Add more descriptive test names
+  - Add test documentation
+
+- [ ] Improve test data utilities
+  - Create shared test data factories
+  - Improve test data randomization
+  - Add test data cleanup utilities
+
+- [ ] Review ignored smoke test
+  - Evaluate `ui_smoke_e2e_flow` for CI integration

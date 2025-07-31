@@ -453,125 +453,10 @@ async fn test_navigation_containerized() -> Result<()> {
     .await
 }
 
-#[tokio::test]
-#[ignore]
-async fn test_minimal_async_testcontainers() {
-    use testcontainers::{runners::AsyncRunner, GenericImage};
-    let image = GenericImage::new("hello-world", "latest");
-    let _container = AsyncRunner::start(image)
-        .await
-        .expect("Failed to start hello-world container");
-    // If this compiles and runs, async API is available
-}
 
-#[tokio::test]
-#[ignore]
-async fn test_selenium_container_starts_and_status() -> Result<()> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    // println!("[DEBUG] Selenium mapped port: {}", selenium_port);
-    // Wait a bit for Selenium to be ready
-    tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
-    // Try to fetch /status
-    let url = format!("http://localhost:{selenium_port}/status");
-    let resp = reqwest::get(&url).await;
-    match resp {
-        Ok(r) => {
-            // println!("[DEBUG] /status response: {}", r.status());
-            let _text = r
-                .text()
-                .await
-                .unwrap_or_else(|_| "<failed to read body>".to_string());
-            // println!("[DEBUG] /status body: {}", text);
-        }
-        Err(e) => {
-            println!("[DEBUG] Error fetching /status: {e}");
-        }
-    }
-    // println!("[DEBUG] Sleeping for 30 seconds. Inspect the container now if needed.");
-    // tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
-    Ok(())
-}
 
-#[tokio::test]
-#[ignore]
-async fn test_minimal_webdriver_session() -> Result<()> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    // println!("[DEBUG] Selenium mapped port: {}", selenium_port);
-    timeout90s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
-        "Wait for selenium ready"
-    )?;
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--remote-debugging-port=9222")?;
-    caps.add_arg("--whitelisted-ips=")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    // println!("[DEBUG] Attempting to create minimal WebDriver session...");
-    let driver_result = timeout(
-        Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
-    )
-    .await;
-    match driver_result {
-        Ok(Ok(_driver)) => {
-            // println!("[DEBUG] Minimal WebDriver session created successfully.");
-            Ok(())
-        }
-        Ok(Err(e)) => {
-            println!("[DEBUG] Minimal WebDriver::new error: {e:#?}");
-            Err(e.into())
-        }
-        Err(e) => {
-            println!("[DEBUG] Timeout waiting for minimal WebDriver::new: {e:#?}");
-            Err(anyhow::anyhow!(
-                "Timeout waiting for minimal WebDriver::new: {:#?}",
-                e
-            ))
-        }
-    }
-}
+
+
 
 #[tokio::test]
 async fn test_domain_search_containerized() -> Result<()> {
@@ -1605,23 +1490,13 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             timeout60s!(review_submit_button.click(), "Submit review")?;
             println!("[WIZARD TEST] Submitted review");
 
-            // Wait for redirect to execute step
-            timeout30s!(env.driver.find(By::Css("h1")), "Wait for execute page")?;
-            println!("[WIZARD TEST] Redirected to execute step");
-
-            // 5. Test execute step
-            println!("[WIZARD TEST] Testing execute step...");
-
-            // The execute page auto-refreshes every 2 seconds, so we need to wait for it to complete
-            // and redirect to the complete page
-            println!("[WIZARD TEST] Waiting for execution to complete (auto-refresh page)...");
-            
-            // Wait for the page to either redirect to complete or show completion
+            // Wait for redirect to execute step or complete step
+            // The execute step might redirect immediately to complete
             let mut attempts = 0;
-            let max_attempts = 30; // Wait up to 60 seconds (30 * 2 second refreshes)
+            let max_attempts = 10; // Wait up to 30 seconds
             
             while attempts < max_attempts {
-                tokio::time::sleep(Duration::from_secs(3)).await; // Wait longer than the 2-second refresh
+                tokio::time::sleep(Duration::from_secs(3)).await;
                 
                 let current_url = timeout60s!(env.driver.current_url(), "Get current URL")?;
                 println!("[WIZARD TEST] Current URL after wait: {}", current_url);
@@ -1632,7 +1507,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                     break;
                 }
                 
-                // Check if we're still on the executing page
+                // Check if we're on the executing page
                 let page_title = timeout60s!(env.driver.title(), "Get page title")?;
                 if page_title.contains("Executing") || page_title.contains("Processing") {
                     println!("[WIZARD TEST] Still executing, attempt {}/{}", attempts + 1, max_attempts);
