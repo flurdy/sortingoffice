@@ -538,7 +538,8 @@ pub async fn create(
         }
 
         // Validate user paths
-        match crate::validation::validate_user_path(&form.maildir) {
+        let combined_maildir_path = format!("{}/{}", form.home, form.maildir);
+        match crate::validation::validate_user_path(&combined_maildir_path) {
             Ok(_) => {}
             Err(_e) => {
                 let _form_translations =
@@ -548,7 +549,7 @@ pub async fn create(
                     get_translation(&state, &locale, "validation-user-path-invalid").await;
                 let form_template =
                     build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
-                        .await;
+                    .await;
 
                 return crate::handlers::utils::render_form_template(
                     form_template,
