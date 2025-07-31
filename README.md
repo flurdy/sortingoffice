@@ -387,6 +387,9 @@ make test-unit
 # Run only UI tests
 make test-ui
 
+# Run smoke tests (end-to-end validation)
+make test-smoke
+
 # Run with specific log level
 RUST_LOG=debug cargo run
 ```
@@ -397,6 +400,9 @@ RUST_LOG=debug cargo run
 - **Unit Tests**: Isolated database operations using testcontainers
 - **Integration Tests**: End-to-end workflows
 - **UI Tests**: Selenium-based browser automation
+- **Smoke Tests**: Complete end-to-end user workflows with testcontainers support
+
+**Smoke Tests**: The application includes comprehensive smoke tests that validate complete user workflows from authentication through resource creation and cleanup. These tests are integrated into CI/CD and can be run both locally and in automated environments. For detailed information, see [UI_TESTS.md](docs/UI_TESTS.md).
 
 ### Database Management
 

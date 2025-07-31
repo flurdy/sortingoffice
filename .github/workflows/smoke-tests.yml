@@ -1,0 +1,117 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  DOCKER_HOST: unix:///var/run/docker.sock
+  SMOKE_TEST_HEADLESS: true
+  SMOKE_TEST_TIMEOUT: 300
+
+jobs:
+  smoke-test:
+    name: Smoke Tests (End-to-End)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Start Docker daemon
+      run: |
+        sudo systemctl start docker
+        sudo systemctl status docker
+
+    - name: Verify Docker is working
+      run: |
+        docker --version
+        docker ps
+        sudo usermod -a -G docker $USER || true
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Start Selenium container
+      run: |
+        docker compose --profile test up -d selenium
+        sleep 10
+        docker ps
+
+    - name: Build application
+      run: |
+        cargo build --release
+
+    - name: Start application in background
+      run: |
+        # Set up test database environment
+        export DATABASE_URL="mysql://root:password@localhost:3306/sortingoffice_test"
+        export RUST_LOG=info
+        
+        # Start the application in background
+        nohup cargo run --release > app.log 2>&1 &
+        echo $! > app.pid
+        
+        # Wait for app to start
+        sleep 30
+        
+        # Check if app is running
+        curl -f http://localhost:3000/health || exit 1
+
+    - name: Run smoke test with testcontainers
+      env:
+        RUST_TEST_THREADS: 1
+        RUST_LOG: info
+        SMOKE_TEST_APP_URL: http://localhost:3000
+        SMOKE_TEST_HEADLESS: true
+        SMOKE_TEST_TIMEOUT: 300
+      run: |
+        # Run the testcontainers version of the smoke test
+        cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+
+    - name: Stop application
+      if: always()
+      run: |
+        if [ -f app.pid ]; then
+          kill $(cat app.pid) || true
+          rm app.pid
+        fi
+
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test-artifacts
+        path: |
+          app.log
+          screenshots/
+          test-results/
+        retention-days: 7
+
+    - name: Cleanup containers
+      if: always()
+      run: |
+        docker compose --profile test down
+        docker system prune -f 

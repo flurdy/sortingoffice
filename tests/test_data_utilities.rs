@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use sortingoffice::test_helpers::common::{cleanup_test_db, TestDataManager};
+    use sortingoffice::test_helpers::common::TestDataManager;
     use sortingoffice::test_helpers::test_utils::TestData;
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 

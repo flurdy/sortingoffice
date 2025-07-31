@@ -71,6 +71,186 @@ macro_rules! timeout30s {
     };
 }
 
+/// Configuration for smoke test execution
+pub struct SmokeTestConfig {
+    /// URL of the application to test
+    pub app_url: String,
+    /// Whether to run in headless mode (for CI)
+    pub headless: bool,
+    /// Timeout for the entire test (in seconds)
+    pub timeout_seconds: u64,
+    /// Whether to enable VNC for debugging
+    pub enable_vnc: bool,
+}
+
+impl Default for SmokeTestConfig {
+    fn default() -> Self {
+        Self {
+            app_url: std::env::var("SMOKE_TEST_APP_URL")
+                .unwrap_or_else(|_| "http://host.docker.internal:3000".to_string()),
+            headless: std::env::var("SMOKE_TEST_HEADLESS")
+                .unwrap_or_else(|_| "false".to_string())
+                .parse()
+                .unwrap_or(false),
+            timeout_seconds: std::env::var("SMOKE_TEST_TIMEOUT")
+                .unwrap_or_else(|_| "300".to_string())
+                .parse()
+                .unwrap_or(300),
+            enable_vnc: std::env::var("SMOKE_TEST_VNC")
+                .unwrap_or_else(|_| "false".to_string())
+                .parse()
+                .unwrap_or(false),
+        }
+    }
+}
+
+/// Wrapper function for running smoke tests with configurable parameters
+pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
+    println!("[SMOKE TEST] Starting smoke test with configuration:");
+    println!("  App URL: {}", config.app_url);
+    println!("  Headless: {}", config.headless);
+    println!("  Timeout: {}s", config.timeout_seconds);
+    println!("  VNC: {}", config.enable_vnc);
+
+    // Setup Chrome capabilities
+    let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    
+    if config.headless {
+        caps.add_arg("--headless")?;
+    } else {
+        caps.add_arg("--window-size=1200,900")?;
+    }
+
+    // Create WebDriver with timeout
+    let driver = timeout(
+        Duration::from_secs(30),
+        WebDriver::new("http://localhost:4444", caps),
+    )
+    .await??;
+
+    println!("[SMOKE TEST] WebDriver created successfully");
+
+    // Run the test with proper error handling
+    let result = timeout(
+        Duration::from_secs(config.timeout_seconds),
+        async {
+            // Authenticate
+            println!("[SMOKE TEST] Authenticating...");
+            authenticate_driver(&driver, &config.app_url).await?;
+            println!("[SMOKE TEST] Authentication successful");
+
+            // Generate random test data
+            let domain_name = format!("{}.test.com", rand_str()).to_lowercase();
+            let alias1 = format!("alias1-{}", rand_str());
+            let alias2 = format!("alias2-{}", rand_str());
+            let user_name = format!("user-{}", rand_str());
+            let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
+            let user_email = format!("{user_name}@{domain_name}");
+
+            println!("[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}");
+
+            // 1. Create a new domain
+            println!("[SMOKE TEST] Creating domain...");
+            create_domain(&driver, &config.app_url, &domain_name).await?;
+            println!("[SMOKE TEST] Domain created successfully");
+
+            // 2. Create two aliases for the domain
+            let alias1domain = format!("{alias1}@{domain_name}");
+            let alias2domain = format!("{alias2}@{domain_name}");
+
+            println!("[SMOKE TEST] Creating first alias...");
+            create_alias(&driver, &config.app_url, &alias1domain, &user_email).await?;
+            println!("[SMOKE TEST] First alias created successfully");
+
+            println!("[SMOKE TEST] Creating second alias...");
+            create_alias(&driver, &config.app_url, &alias2domain, &user_email).await?;
+            println!("[SMOKE TEST] Second alias created successfully");
+
+            // 3. Create a user for the domain
+            println!("[SMOKE TEST] Creating user...");
+            create_user(&driver, &config.app_url, &user_email, &user_name, &user_maildir).await?;
+            println!("[SMOKE TEST] User created successfully");
+
+            // 4. Check reports page
+            println!("[SMOKE TEST] Checking reports page...");
+            check_reports_page(&driver, &config.app_url).await?;
+            println!("[SMOKE TEST] Reports page checked successfully");
+
+            // 5. Cleanup test resources
+            println!("[SMOKE TEST] Starting cleanup...");
+            cleanup_test_resources(
+                &driver,
+                &config.app_url,
+                &domain_name,
+                &alias1domain,
+                &alias2domain,
+                &user_email,
+            )
+            .await?;
+            println!("[SMOKE TEST] Cleanup completed successfully");
+
+            println!("[SMOKE TEST] All test steps completed successfully!");
+            Ok(())
+        },
+    )
+    .await;
+
+    // Cleanup: Always try to quit the driver
+    println!("[SMOKE TEST] Cleaning up WebDriver...");
+    match timeout(Duration::from_secs(10), driver.quit()).await {
+        Ok(Ok(_)) => {
+            println!("[SMOKE TEST] WebDriver quit successfully");
+        }
+        _ => {
+            println!("[SMOKE TEST] WebDriver quit failed or timed out");
+        }
+    }
+
+    match result {
+        Ok(Ok(())) => {
+            println!("[SMOKE TEST] ✅ Smoke test completed successfully!");
+            Ok(())
+        }
+        Ok(Err(e)) => {
+            println!("[SMOKE TEST] ❌ Smoke test failed: {}", e);
+            Err(e)
+        }
+        Err(_) => {
+            println!("[SMOKE TEST] ❌ Smoke test timed out after {} seconds", config.timeout_seconds);
+            Err(anyhow::anyhow!("Smoke test timed out after {} seconds", config.timeout_seconds))
+        }
+    }
+}
+
+/// Run smoke test with testcontainers support
+pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
+    use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
+    
+    println!("[SMOKE TEST] Starting smoke test with testcontainers...");
+    
+    // Setup test database using testcontainers
+    let container = setup_test_db().await;
+    let db_url = container.get_db_url();
+    
+    println!("[SMOKE TEST] Test database ready: {}", db_url);
+    
+    // For testcontainers, we need to start the app with the test database
+    // This would typically be done by spawning the app process
+    let app_url = "http://localhost:3000".to_string();
+    
+    let config = SmokeTestConfig {
+        app_url,
+        headless: true, // Headless for CI
+        timeout_seconds: 300,
+        enable_vnc: false,
+    };
+    
+    run_smoke_test_with_config(config).await
+}
+
 fn rand_str() -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let mut rng = rand::rngs::ThreadRng::default();
@@ -436,139 +616,14 @@ async fn cleanup_test_resources(
 #[tokio::test]
 #[ignore]
 async fn ui_smoke_e2e_flow() -> Result<()> {
-    // Get app URL from environment or use default
-    let app_url = std::env::var("SMOKE_TEST_APP_URL")
-        .unwrap_or_else(|_| "http://host.docker.internal:3000".to_string());
+    // Use the new wrapper with default configuration
+    let config = SmokeTestConfig::default();
+    run_smoke_test_with_config(config).await
+}
 
-    println!("[SMOKE TEST] Starting smoke test against: {app_url}");
-
-    // Setup Chrome capabilities for visible browser
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1200,900")?;
-
-    // Create WebDriver with timeout
-    let driver = timeout(
-        Duration::from_secs(30),
-        WebDriver::new("http://localhost:4444", caps),
-    )
-    .await??;
-
-    println!("[SMOKE TEST] WebDriver created successfully");
-
-    // Run the test with proper error handling
-    let result = timeout(
-        Duration::from_secs(300), // 5 minute total timeout
-        async {
-            // Authenticate
-            println!("[SMOKE TEST] Authenticating...");
-            authenticate_driver(&driver, &app_url).await?;
-            println!("[SMOKE TEST] Authentication successful");
-
-            // Generate random test data
-            let domain_name = format!("{}.test.com", rand_str()).to_lowercase();
-            let alias1 = format!("alias1-{}", rand_str());
-            let alias2 = format!("alias2-{}", rand_str());
-            let user_name = format!("user-{}", rand_str());
-            let user_maildir = format!("{}/user-{}/", domain_name, rand_str());
-            let user_email = format!("{user_name}@{domain_name}");
-
-            println!("[SMOKE TEST] Test data generated: domain={domain_name}, user={user_email}");
-
-            // 1. Create a new domain
-            println!("[SMOKE TEST] Creating domain...");
-            create_domain(&driver, &app_url, &domain_name).await?;
-            println!("[SMOKE TEST] Domain created successfully");
-
-            // 2. Create two aliases for the domain
-            let alias1domain = format!("{alias1}@{domain_name}");
-            let alias2domain = format!("{alias2}@{domain_name}");
-
-            println!("[SMOKE TEST] Creating first alias...");
-            create_alias(&driver, &app_url, &alias1domain, &user_email).await?;
-            println!("[SMOKE TEST] First alias created successfully");
-
-            println!("[SMOKE TEST] Creating second alias...");
-            create_alias(&driver, &app_url, &alias2domain, &user_email).await?;
-            println!("[SMOKE TEST] Second alias created successfully");
-
-            // 3. Create a user for the domain
-            println!("[SMOKE TEST] Creating user...");
-            create_user(&driver, &app_url, &user_email, &user_name, &user_maildir).await?;
-            println!("[SMOKE TEST] User created successfully");
-
-            // 4. Check reports page
-            println!("[SMOKE TEST] Checking reports page...");
-            check_reports_page(&driver, &app_url).await?;
-            println!("[SMOKE TEST] Reports page checked successfully");
-
-            // 5. Cleanup test resources
-            println!("[SMOKE TEST] Starting cleanup...");
-            cleanup_test_resources(
-                &driver,
-                &app_url,
-                &domain_name,
-                &alias1domain,
-                &alias2domain,
-                &user_email,
-            )
-            .await?;
-            println!("[SMOKE TEST] Cleanup completed successfully");
-
-            println!("[SMOKE TEST] All test steps completed successfully!");
-            Ok(())
-        },
-    )
-    .await;
-
-    // Cleanup: Always try to quit the driver
-    println!("[SMOKE TEST] Cleaning up WebDriver...");
-    match timeout(Duration::from_secs(10), driver.quit()).await {
-        Ok(Ok(_)) => {
-            println!("[SMOKE TEST] WebDriver quit successfully");
-        }
-        Ok(Err(e)) => {
-            eprintln!("[SMOKE TEST] Failed to quit WebDriver: {e:?}");
-            // Force kill Chrome processes if quit failed
-            if let Err(kill_err) = std::process::Command::new("docker")
-                .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
-                .output()
-            {
-                eprintln!("[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}");
-            } else {
-                println!("[SMOKE TEST] Force killed Chrome processes");
-            }
-        }
-        Err(_) => {
-            eprintln!("[SMOKE TEST] WebDriver quit timed out after 10 seconds");
-            // Force kill Chrome processes if quit timed out
-            if let Err(kill_err) = std::process::Command::new("docker")
-                .args(["exec", "sortingoffice-selenium", "pkill", "-f", "chrome"])
-                .output()
-            {
-                eprintln!("[SMOKE TEST] Failed to kill Chrome processes: {kill_err:?}");
-            } else {
-                println!("[SMOKE TEST] Force killed Chrome processes after timeout");
-            }
-        }
-    }
-
-    // Return the test result
-    match result {
-        Ok(Ok(())) => {
-            println!("[SMOKE TEST] Test completed successfully");
-            Ok(())
-        }
-        Ok(Err(e)) => {
-            eprintln!("[SMOKE TEST] Test failed: {e:?}");
-            Err(e)
-        }
-        Err(_) => {
-            let err = anyhow::anyhow!("Test timed out after 5 minutes");
-            eprintln!("[SMOKE TEST] Test failed: {err:?}");
-            Err(err)
-        }
-    }
+#[tokio::test]
+#[ignore]
+async fn ui_smoke_e2e_flow_testcontainers() -> Result<()> {
+    // Run smoke test with testcontainers support
+    run_smoke_test_with_testcontainers().await
 }

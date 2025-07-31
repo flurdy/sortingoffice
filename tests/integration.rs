@@ -552,7 +552,7 @@ mod tests {
             TestUtils::assert_status(&create_domain_response, StatusCode::OK);
 
             // Step 2: Create a user
-            let user_form_data = TestData::user_form_data_complete(&user_id, "Test User", true);
+            let user_form_data = TestData::user_form_data_complete(&user_id, "password123", "Test User", "testdir", "/var/spool/mail/virtual", true, false);
             let create_user_response = TestUtils::make_post_request(
                 &app,
                 &state,
@@ -694,7 +694,7 @@ mod tests {
             TestUtils::assert_status(&create_domain_response, StatusCode::OK);
 
             // Create user
-            let user_form_data = TestData::user_form_data_complete(&user_id, "Stats Test User", true);
+            let user_form_data = TestData::user_form_data_complete(&user_id, "password123", "Stats Test User", "testdir", "/var/spool/mail/virtual", true, false);
             let create_user_response = TestUtils::make_post_request(
                 &app,
                 &state,
@@ -730,10 +730,11 @@ mod tests {
             TestUtils::assert_status(&stats_response, StatusCode::OK);
 
             // Step 3: Verify stats contain expected data
-            let stats_body = TestUtils::get_response_body(stats_response).await;
-            assert!(stats_body.contains("domains"));
-            assert!(stats_body.contains("users"));
-            assert!(stats_body.contains("aliases"));
+            let stats_body = axum::body::to_bytes(stats_response.into_body(), usize::MAX).await.unwrap();
+            let stats_text = String::from_utf8_lossy(&stats_body);
+            assert!(stats_text.contains("domains"));
+            assert!(stats_text.contains("users"));
+            assert!(stats_text.contains("aliases"));
 
             // Step 4: Test dashboard endpoint
             let dashboard_response =
@@ -744,8 +745,9 @@ mod tests {
             TestUtils::assert_status(&dashboard_response, StatusCode::OK);
 
             // Step 5: Verify dashboard contains expected data
-            let dashboard_body = TestUtils::get_response_body(dashboard_response).await;
-            assert!(dashboard_body.contains("dashboard"));
+            let dashboard_body = axum::body::to_bytes(dashboard_response.into_body(), usize::MAX).await.unwrap();
+            let dashboard_text = String::from_utf8_lossy(&dashboard_body);
+            assert!(dashboard_text.contains("dashboard"));
         }
     }
 
@@ -974,7 +976,7 @@ mod tests {
             ];
 
             for (user_id, description) in edge_cases {
-                let user_form_data = TestData::user_form_data_complete(user_id, "Edge Test User", true);
+                let user_form_data = TestData::user_form_data_complete(user_id, "password123", "Edge Test User", "testdir", "/var/spool/mail/virtual", true, false);
                 let response = TestUtils::make_post_request(
                     &app,
                     &state,
