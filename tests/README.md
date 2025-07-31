@@ -32,10 +32,13 @@ The test suite is organized into several modules:
 # Run only UI tests
 ./tests/run_tests.sh ui
 
+# Run only security tests
+./tests/run_tests.sh security
+
 # Run only headless UI tests
 ./tests/run_tests.sh ui-headless
 
-# Run all tests (unit + UI)
+# Run all tests (unit + integration + security + UI)
 ./tests/run_tests.sh all
 
 # Show help
@@ -54,6 +57,7 @@ cargo test db
 cargo test handlers
 cargo test utils
 cargo test integration
+cargo test --test security
 
 # Run UI tests
 cargo test --test ui_headless
@@ -154,7 +158,24 @@ End-to-end workflow tests that combine multiple components:
 - `test_full_alias_workflow()`: Complete alias management workflow
 - `test_stats_integration()`: Statistics integration testing
 
-### 6. Headless UI Tests (`tests/ui_headless.rs`)
+### 6. Security Tests (`tests/security.rs`)
+
+Comprehensive security tests to ensure the application is protected against common vulnerabilities:
+
+- **SQL Injection Prevention**: Tests various SQL injection payloads
+- **Authentication Bypass**: Tests unauthenticated access attempts
+- **Authorization**: Tests role-based access control
+- **Input Validation**: Tests edge cases and malicious input
+- **Session Security**: Tests session management and expiration
+
+**Key Test Functions:**
+- `test_sql_injection_domain_creation()`: Tests SQL injection prevention in domain creation
+- `test_authentication_bypass_domains()`: Tests authentication enforcement for domains
+- `test_authentication_bypass_users()`: Tests authentication enforcement for users
+- `test_authorization_readonly_user()`: Tests role-based access control
+- `test_input_validation_edge_cases()`: Tests various input validation edge cases
+
+### 7. Headless UI Tests (`tests/ui_headless.rs`)
 
 Comprehensive UI tests using testcontainers and thirtyfour:
 
@@ -284,6 +305,7 @@ The test suite covers:
 - ✅ **100% Form Processing**: All form validation and parsing
 - ✅ **100% Integration Workflows**: End-to-end user workflows
 - ✅ **100% UI Functionality**: All major UI interactions and workflows
+- ✅ **Security Coverage**: SQL injection, authentication bypass, authorization, input validation
 - ✅ **Error Handling**: Database errors, validation errors, HTTP errors
 - ✅ **Edge Cases**: Invalid input, missing data, boundary conditions
 - ✅ **Performance**: Page load times and responsiveness

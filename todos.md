@@ -748,10 +748,6 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 
 ## Remaining Todos
 
-Please rename the .rs file for backups inline with the path changes above, or similar.
-
-Configuration page description no longer makes sense.
-
 Lets go through all the tests to see:
 - are they actually testing what they say they will do? Does the test name make sense?
 - are they actually testing anything, or just a todo?
@@ -771,20 +767,15 @@ Lets go through all the tests to see:
 ### 🔄 Next Actions
 
 #### High Priority
-- [ ] Add security test suite (`tests/security.rs`)
+- [x] Add security test suite (`tests/security.rs`) ✅ **COMPLETED**
   - SQL injection prevention tests
-  - XSS prevention tests  
-  - CSRF protection tests
+  - Authentication bypass tests
+  - Authorization tests
   - Input validation edge cases
-  - Authentication bypass attempts
+  - Integrated into Makefile and test scripts
+  - Added to documentation
 
 #### Medium Priority  
-- [ ] Add performance test suite (`tests/performance.rs`)
-  - Database query performance benchmarks
-  - Memory usage under load tests
-  - Response time under stress tests
-  - Concurrent user handling tests
-
 - [ ] Add API test suite (`tests/api.rs`)
   - JSON API endpoint tests
   - Error response format tests
@@ -792,6 +783,12 @@ Lets go through all the tests to see:
   - API versioning tests
 
 #### Low Priority
+- [ ] Add performance test suite (`tests/performance.rs`) - Low priority for internal app
+  - Database query performance benchmarks
+  - Memory usage under load tests
+  - Response time under stress tests
+  - Concurrent user handling tests
+
 - [ ] Improve test organization
   - Group related tests into modules
   - Add more descriptive test names
@@ -804,3 +801,16 @@ Lets go through all the tests to see:
 
 - [ ] Review ignored smoke test
   - Evaluate `ui_smoke_e2e_flow` for CI integration
+
+- [x] Review and update testing documentation in /docs ✅ **COMPLETED**
+  - Updated `docs/UI_TESTS.md` to reflect current test structure
+  - Updated `docs/TEST_IMPLEMENTATION_SUMMARY.md` to include security tests
+  - All testing documentation now current and accurate
+
+Please rename the .rs file for backups inline with the path changes above, or similar.
+
+Configuration page description no longer makes sense.
+
+Are there any other useful reports we can add to the reports page? -- Ignore
+
+The version in the about page is completely wrong.

@@ -39,12 +39,13 @@ help:
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make install    - Install dependencies"
-	@echo "  make test       - Run all tests (unit + integration + UI)"
+	@echo "  make test       - Run all tests (unit + integration + security + UI)"
 	@echo "  make test-unit  - Run only unit tests"
 	@echo "  make test-integration - Run only integration tests (set TEST_THREADS=N for parallelism, default 8)"
+	@echo "  make test-security - Run security tests (SQL injection, auth bypass, etc.)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-smoke - Run end-to-end smoke test against running app"
-	@echo "  make test-all   - Run all tests (unit + integration + UI)"
+	@echo "  make test-all   - Run all tests (unit + integration + security + UI)"
 	@echo "  make run-watch  - Run locally with cargo watch (auto-restart on changes)"
 	@echo ""
 	@echo "Code Quality:"
@@ -110,6 +111,11 @@ test-integration:
 	@echo "Running integration tests..."
 	@TEST_THREADS=$${TEST_THREADS:-8} tests/run_tests.sh integration
 
+.PHONY: test-security
+test-security:
+	@echo "Running security tests..."
+	@tests/run_tests.sh security
+
 .PHONY: test-ui
 test-ui:
 	@echo "Running UI tests..."
@@ -126,7 +132,7 @@ test-smoke:
 	@tests/run_tests.sh smoke
 
 .PHONY: test-all
-test-all: test-unit test-integration test-ui
+test-all: test-unit test-integration test-security test-ui
 	@echo "All tests completed!"
 
 run-watch:

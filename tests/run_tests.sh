@@ -36,15 +36,17 @@ show_usage() {
     echo "Options:"
     echo "  unit              Run only unit tests (tests in source files)"
     echo "  integration       Run only integration tests (tests in tests/ directory)"
+    echo "  security          Run security tests (SQL injection, auth bypass, etc.)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  smoke             Run end-to-end smoke test against running app"
-    echo "  all               Run all tests (unit + integration + UI)"
+    echo "  all               Run all tests (unit + integration + security + UI)"
     echo "  help              Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                # Run unit tests"
     echo "  $0 unit           # Run unit tests"
     echo "  $0 integration    # Run integration tests"
+    echo "  $0 security       # Run security tests"
     echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 smoke          # Run end-to-end smoke test"
     echo "  $0 all            # Run all tests"
@@ -108,6 +110,33 @@ run_integration_tests() {
         duration=$((end_time - start_time))
         print_error "Integration tests failed in ${duration}s!"
         echo "[CI-SUMMARY] INTEGRATION FAIL ${duration}s"
+        exit 1
+    fi
+}
+
+# Function to run security tests
+run_security_tests() {
+    print_status "Running security tests for sortingoffice..."
+    
+    # Set test environment
+    export RUST_LOG=error
+    export RUST_BACKTRACE=0
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
+
+    # Run security tests
+    print_status "Running security tests with cargo..."
+    start_time=$(date +%s)
+    if cargo test --test security; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Security tests completed successfully in ${duration}s!"
+        echo "[CI-SUMMARY] SECURITY PASS ${duration}s"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Security tests failed in ${duration}s!"
+        echo "[CI-SUMMARY] SECURITY FAIL ${duration}s"
         exit 1
     fi
 }
@@ -221,6 +250,8 @@ run_all_tests() {
     echo ""
     run_integration_tests
     echo ""
+    run_security_tests
+    echo ""
     run_ui_tests
     end_all=$(date +%s)
     duration_all=$((end_all - start_all))
@@ -235,6 +266,9 @@ case "${1:-unit}" in
         ;;
     "integration")
         run_integration_tests
+        ;;
+    "security")
+        run_security_tests
         ;;
     "ui")
         run_ui_tests
