@@ -198,19 +198,12 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
             .collect::<Vec<String>>()
             .join(", ");
 
-        println!(
-            "[WIZARD DEBUG] Restoring session with domains: {:?}",
-            session.domains
-        );
-        println!("[WIZARD DEBUG] Restored domains string: '{domains_str}'");
-
         DomainConfigForm {
             domains: domains_str,
             transport: session.transport.clone(),
             enabled: session.enabled,
         }
     } else {
-        println!("[WIZARD DEBUG] No session found, using default form");
         DomainConfigForm {
             domains: String::new(),
             transport: "virtual:".to_string(),
@@ -401,14 +394,6 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
     }
 
     // Restore form data from session if available
-    println!(
-        "[WIZARD DEBUG] Session restoration - common_destination: {:?}",
-        session.common_destination
-    );
-    println!(
-        "[WIZARD DEBUG] Session restoration - common_aliases: {:?}",
-        session.common_aliases
-    );
 
     let form = AliasConfigForm {
         required_aliases: if session.common_aliases.is_empty() {
@@ -490,7 +475,6 @@ pub async fn alias_config_post(
         .unwrap_or_default();
 
     let body_string = String::from_utf8_lossy(&body_bytes);
-    println!("[WIZARD DEBUG] Raw form data: {body_string}");
 
     // Parse form data manually
     let mut required_aliases = Vec::new();
@@ -533,7 +517,6 @@ pub async fn alias_config_post(
     };
 
     // Debug logging
-    println!("[WIZARD DEBUG] Parsed form: {form:?}");
 
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
@@ -812,8 +795,7 @@ pub async fn execute(
         // Create domain
         let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
             Ok(pool) => pool,
-            Err(e) => {
-                println!("[WIZARD DEBUG] Failed to get database pool: {e:?}");
+            Err(_e) => {
                 continue;
             }
         };
@@ -828,14 +810,8 @@ pub async fn execute(
             Ok(_) => {
                 _domains_created += 1;
                 successfully_created_domains.push(domain_data.domain.clone());
-                println!("[WIZARD DEBUG] Created domain: {}", domain_data.domain);
             }
-            Err(e) => {
-                println!(
-                    "[WIZARD DEBUG] Failed to create domain {}: {:?}",
-                    domain_data.domain, e
-                );
-            }
+            Err(_e) => {}
         }
 
         // Create aliases for this domain
@@ -874,14 +850,8 @@ pub async fn execute(
             match db::create_alias(&pool, alias_form) {
                 Ok(_) => {
                     _aliases_created += 1;
-                    println!(
-                        "[WIZARD DEBUG] Created alias: {} -> {}",
-                        alias, session.common_destination
-                    );
                 }
-                Err(e) => {
-                    println!("[WIZARD DEBUG] Failed to create alias {alias}: {e:?}");
-                }
+                Err(_e) => {}
             }
         }
     }

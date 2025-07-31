@@ -63,8 +63,6 @@ pub async fn login(
     headers: HeaderMap,
     Form(request): Form<LoginRequest>,
 ) -> Result<Response, Html<String>> {
-    println!("🔐 [AUTH] Login attempt for user: '{}'", request.id);
-
     let locale = crate::handlers::language::get_user_locale(&headers);
     let is_htmx = headers.get("hx-request").is_some();
 
@@ -412,7 +410,11 @@ pub async fn require_auth(
     if is_authenticated(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [AUTH] ❌ Unauthenticated access attempt to: {path}");
+        println!(
+            "🔐 [AUTH] ❌ Authentication required but not authenticated for path: {}",
+            path
+        );
+
         // Redirect to login
         Ok(Response::builder()
             .status(StatusCode::FOUND)
@@ -434,7 +436,11 @@ pub async fn require_edit_permissions(
     if has_edit_permissions(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!("🔐 [AUTH] ❌ Insufficient permissions for access to: {path}");
+        println!(
+            "🔐 [AUTH] ❌ Insufficient edit permissions for path: {}",
+            path
+        );
+
         // Return 403 Forbidden
         Ok(Response::builder()
             .status(StatusCode::FORBIDDEN)

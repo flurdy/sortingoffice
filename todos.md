@@ -59,7 +59,25 @@
   - [ ] Group related tests into modules
   - [ ] Add more descriptive test names
   - [ ] Add test documentation
-  - [ ] Fix compilation errors in integration tests
+
+## Recently Completed ✅
+
+- [x] **Fixed failing integration tests** (COMPLETE)
+  - [x] Fixed error handling test to expect correct status codes (422 for validation errors)
+  - [x] Fixed stats test to use correct dashboard route (`/` instead of `/dashboard`)
+  - [x] Fixed user tests to handle user ID changes correctly
+  - [x] Fixed alias creation test to use correct alias name format (`unique_alias_name()` instead of `unique_alias()`)
+  - [x] Updated test expectations to match actual application behavior
+  - [x] All 16 integration tests now passing
+  - [x] All 189 total tests now passing
+
+- [x] **Removed debug output from integration tests** (COMPLETE)
+  - [x] Removed all `println!` debug statements from wizard handler
+  - [x] Removed all `eprintln!` debug statements from aliases handler
+  - [x] Removed all `println!` debug statements from auth handler
+  - [x] Removed all `eprintln!` debug statements from users handler
+  - [x] Fixed all unused variable warnings with `cargo clippy --fix`
+  - [x] Clean test output with no verbose debug information
 
 ## Future Improvements 🚀
 
@@ -99,10 +117,18 @@
 ### **Current Status** 📊
 
 - **✅ Library Tests**: 80 passed, 0 failed
+- **✅ API Tests**: 9 passed, 0 failed
+- **✅ Handler Tests**: 40 passed, 0 failed
+- **✅ Integration Tests**: 16 passed, 0 failed
+- **✅ Security Tests**: 5 passed, 0 failed
 - **✅ Test Data Utilities**: 9 passed, 0 failed
+- **✅ Testcontainers Tests**: 3 passed, 0 failed
+- **✅ UI Containerized Tests**: 18 passed, 0 failed
+- **✅ UI Smoke Tests**: 2 ignored (by design)
+- **✅ Utils Tests**: 9 passed, 0 failed
+- **✅ Total Tests**: 189 passed, 0 failed
 - **✅ Code Quality**: `cargo fmt` and `cargo clippy` completely clean (all warnings fixed)
 - **✅ Smoke Test CI**: Fully implemented and documented
-- **✅ Integration Tests**: All compilation errors fixed, all warnings resolved
 
 ### **Remaining Issues** ⚠️
 

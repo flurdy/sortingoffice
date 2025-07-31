@@ -507,11 +507,13 @@ impl TestData {
     // Domain factories
     /// Create a domain with random data
     pub fn random_domain() -> String {
-        let domains = ["example.com",
+        let domains = [
+            "example.com",
             "test.org",
             "demo.net",
             "sample.co.uk",
-            "trial.io"];
+            "trial.io",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         let random_domain = domains[rng.random_range(0..domains.len())];
@@ -542,7 +544,9 @@ impl TestData {
     // User factories
     /// Create a user with random data
     pub fn random_user() -> String {
-        let usernames = ["john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona"];
+        let usernames = [
+            "john", "jane", "bob", "alice", "charlie", "diana", "edward", "fiona",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         let random_username = usernames[rng.random_range(0..usernames.len())];
@@ -570,13 +574,15 @@ impl TestData {
     // Alias factories
     /// Create an alias with random data
     pub fn random_alias() -> String {
-        let alias_names = ["info",
+        let alias_names = [
+            "info",
             "admin",
             "support",
             "sales",
             "contact",
             "help",
-            "webmaster"];
+            "webmaster",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         let random_name = alias_names[rng.random_range(0..alias_names.len())];
@@ -600,11 +606,13 @@ impl TestData {
     // Transport factories
     /// Generate a random transport string
     pub fn random_transport() -> String {
-        let transports = ["smtp:localhost",
+        let transports = [
+            "smtp:localhost",
             "smtp:mail.example.com",
             "smtp:relay.example.com",
             "smtp:mx.example.com",
-            "smtp:backup.example.com"];
+            "smtp:backup.example.com",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         transports[rng.random_range(0..transports.len())].to_string()
@@ -618,11 +626,13 @@ impl TestData {
     // Password factories
     /// Generate a random password
     pub fn random_password() -> String {
-        let passwords = ["password123",
+        let passwords = [
+            "password123",
             "securepass456",
             "testpass789",
             "demo123pass",
-            "sample456pass"];
+            "sample456pass",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         passwords[rng.random_range(0..passwords.len())].to_string()
@@ -640,14 +650,16 @@ impl TestData {
     // Name factories
     /// Generate a random name
     pub fn random_name() -> String {
-        let names = ["John Doe",
+        let names = [
+            "John Doe",
             "Jane Smith",
             "Bob Wilson",
             "Alice Brown",
             "Charlie Davis",
             "Diana Miller",
             "Edward Garcia",
-            "Fiona Rodriguez"];
+            "Fiona Rodriguez",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         names[rng.random_range(0..names.len())].to_string()
@@ -665,7 +677,9 @@ impl TestData {
     // Helper methods for randomization
     /// Generate a random word
     fn random_word() -> String {
-        let words = ["test", "demo", "sample", "trial", "example", "mock", "fake", "dummy"];
+        let words = [
+            "test", "demo", "sample", "trial", "example", "mock", "fake", "dummy",
+        ];
         use rand::Rng;
         let mut rng = rand::rng();
         words[rng.random_range(0..words.len())].to_string()

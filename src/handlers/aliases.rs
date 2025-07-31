@@ -515,22 +515,11 @@ pub async fn create(
                         get_translation(&state, &locale, "reports-no-missing-aliases").await;
 
                     // Get alias report for the domain
-                    let alias_report = match db::get_domain_alias_report(&pool, &domain.domain) {
-                        Ok(report) => Some(report),
-                        Err(e) => {
-                            eprintln!("Error getting domain alias report: {e:?}");
-                            None
-                        }
-                    };
+                    let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
 
                     // Get existing aliases for the domain
-                    let existing_aliases = match db::get_aliases_for_domain(&pool, &domain.domain) {
-                        Ok(aliases) => aliases,
-                        Err(e) => {
-                            eprintln!("Error getting aliases for domain: {e:?}");
-                            vec![]
-                        }
-                    };
+                    let existing_aliases =
+                        db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
 
                     let view_edit_settings =
                         get_translation(&state, &locale, "domains-view-edit-settings").await;
@@ -682,16 +671,9 @@ pub async fn create(
                         Html(template.render().unwrap())
                     }
                 }
-                Err(e) => {
-                    eprintln!("Error finding domain by name: {e:?}");
+                Err(_e) => {
                     // Fallback to aliases list if domain not found
-                    let aliases = match db::get_aliases(&pool) {
-                        Ok(aliases) => aliases,
-                        Err(e) => {
-                            eprintln!("Error getting aliases: {e:?}");
-                            vec![]
-                        }
-                    };
+                    let aliases = db::get_aliases(&pool).unwrap_or_default();
                     let locale = get_user_locale(&headers);
                     let title = get_translation(&state, &locale, "aliases-title").await;
                     let description = get_translation(&state, &locale, "aliases-description").await;
@@ -776,8 +758,6 @@ pub async fn create(
             }
         }
         Err(e) => {
-            eprintln!("Error creating alias: {e:?}");
-
             // Handle specific database errors with user-friendly messages
             let locale = get_user_locale(&headers);
             let error_message =
@@ -1026,8 +1006,6 @@ pub async fn update(
             }
         }
         Err(e) => {
-            eprintln!("Error updating alias: {e:?}");
-
             // Handle specific database errors with user-friendly messages
             // Get the original alias for the form
             let original_alias = db::get_alias(&pool, id).ok();
@@ -1092,13 +1070,7 @@ pub async fn delete(
 
     match db::delete_alias(&pool, id) {
         Ok(_) => {
-            let aliases = match db::get_aliases(&pool) {
-                Ok(aliases) => aliases,
-                Err(e) => {
-                    eprintln!("Error getting aliases: {e:?}");
-                    vec![]
-                }
-            };
+            let aliases = db::get_aliases(&pool).unwrap_or_default();
             let locale = get_user_locale(&headers);
             let title = get_translation(&state, &locale, "aliases-title").await;
             let description = get_translation(&state, &locale, "aliases-description").await;
@@ -1290,13 +1262,7 @@ pub async fn toggle_enabled_list(
         .expect("Failed to get database pool");
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
-            let aliases = match db::get_aliases(&pool) {
-                Ok(aliases) => aliases,
-                Err(e) => {
-                    eprintln!("Error getting aliases: {e:?}");
-                    vec![]
-                }
-            };
+            let aliases = db::get_aliases(&pool).unwrap_or_default();
             let locale = get_user_locale(&headers);
             let title = get_translation(&state, &locale, "aliases-title").await;
             let description = get_translation(&state, &locale, "aliases-description").await;

@@ -14,6 +14,7 @@ use axum::{
     response::Html,
 };
 use serde::Deserialize;
+use tracing::error;
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -311,8 +312,14 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::utils::get_user_locale(&headers);
-    // Get users (use regular function for now)
-    let users = db::get_users(&pool).unwrap_or_default();
+    // Get users with error handling
+    let users = match db::get_users(&pool) {
+        Ok(users) => users,
+        Err(e) => {
+            error!("Failed to retrieve users: {:?}", e);
+            vec![]
+        }
+    };
     // Dummy pagination for now
     let paginated = PaginatedResult::new(users.clone(), users.len() as i64, 1, users.len() as i64);
     let translations = crate::handlers::utils::get_translations_batch(
@@ -630,7 +637,7 @@ pub async fn create(
             let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(e) => {
-                    eprintln!("Error getting users: {e:?}");
+                    error!("Failed to retrieve users after creation: {:?}", e);
                     vec![]
                 }
             };
@@ -846,7 +853,13 @@ pub async fn delete(
 
     match db::delete_user(&pool, id) {
         Ok(_) => {
-            let users = db::get_users(&pool).unwrap_or_default();
+            let users = match db::get_users(&pool) {
+                Ok(users) => users,
+                Err(e) => {
+                    error!("Failed to retrieve users after deletion: {:?}", e);
+                    vec![]
+                }
+            };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;
@@ -868,13 +881,22 @@ pub async fn toggle_enabled(
 
     match db::toggle_user_enabled(&pool, id.clone()) {
         Ok(_) => {
-            let users = db::get_users(&pool).unwrap_or_default();
+            let users = match db::get_users(&pool) {
+                Ok(users) => users,
+                Err(e) => {
+                    error!("Failed to retrieve users after toggle: {:?}", e);
+                    vec![]
+                }
+            };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Failed to toggle user status".to_string()),
+        Err(e) => {
+            error!("Failed to toggle user status: {:?}", e);
+            Html("Failed to toggle user status".to_string())
+        }
     }
 }
 
@@ -890,13 +912,22 @@ pub async fn toggle_enabled_list(
 
     match db::toggle_user_enabled(&pool, id.clone()) {
         Ok(_) => {
-            let users = db::get_users(&pool).unwrap_or_default();
+            let users = match db::get_users(&pool) {
+                Ok(users) => users,
+                Err(e) => {
+                    error!("Failed to retrieve users after toggle: {:?}", e);
+                    vec![]
+                }
+            };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Failed to toggle user status".to_string()),
+        Err(e) => {
+            error!("Failed to toggle user status: {:?}", e);
+            Html("Failed to toggle user status".to_string())
+        }
     }
 }
 
