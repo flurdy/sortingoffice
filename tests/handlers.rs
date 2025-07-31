@@ -308,8 +308,6 @@ mod tests {
             "Test User",
             "testdir",  // Relative path - will be combined with home directory
             "/var/spool/mail/virtual",
-            &domain,
-            "100000",
             true,
             false,
         );
@@ -471,8 +469,6 @@ mod tests {
             "Updated User",
             "testdir",
             "/var/spool/mail/virtual",
-            &domain,
-            "100000",
             true,
             false,
         );
@@ -1526,7 +1522,7 @@ mod tests {
         TestUtils::assert_status(&response, StatusCode::OK);
     }
 
-    // Basic wizard test to verify the route exists
+    // Basic wizard test to verify the route exists and redirects properly
     #[tokio::test]
     async fn test_wizard_basic() {
         let (app, _state) = create_test_app().await;
@@ -1539,6 +1535,7 @@ mod tests {
         )
         .await;
 
-        TestUtils::assert_status(&response, StatusCode::OK);
+        // The wizard index now redirects to /wizard/domain-config
+        TestUtils::assert_status(&response, StatusCode::SEE_OTHER);
     }
 }

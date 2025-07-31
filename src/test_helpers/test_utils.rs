@@ -376,11 +376,39 @@ impl TestUtils {
     ) {
         let body = to_bytes(response.into_body(), usize::MAX)
             .await
-            .expect("Failed to read response body");
+            .unwrap();
         let body_str = String::from_utf8_lossy(&body);
         assert!(
             !body_str.contains(unexpected_text),
-            "Expected body to not contain '{unexpected_text}', but got: {body_str}"
+            "Response body should not contain '{}', but it does: {}",
+            unexpected_text,
+            body_str
+        );
+    }
+
+    /// Assert that a response contains validation errors with 200 OK status
+    /// This is the expected behavior for HTMX applications when validation fails
+    pub async fn assert_validation_error(response: axum::http::Response<Body>) {
+        // First assert that the status is 200 OK
+        Self::assert_status(&response, StatusCode::OK);
+        
+        // Then check that the body contains error keywords
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8_lossy(&body);
+        
+        // Check for various error keywords that might appear in validation error messages
+        let has_error = body_str.contains("error") 
+            || body_str.contains("invalid") 
+            || body_str.contains("validation") 
+            || body_str.contains("Invalid") 
+            || body_str.contains("Error");
+            
+        assert!(
+            has_error,
+            "Response should contain validation error message, but body was: {}",
+            body_str
         );
     }
 
@@ -456,8 +484,8 @@ impl TestData {
     }
 
     /// Generate form data for creating a user
-    pub fn user_form_data(user_id: &str, username: &str, password: &str) -> String {
-        format!("user_id={user_id}&username={username}&password={password}")
+    pub fn user_form_data(user_id: &str, password: &str, username: &str) -> String {
+        format!("id={user_id}&name={username}&password={password}&maildir=testdir&home=/var/spool/mail/virtual")
     }
 
     /// Generate form data for creating an alias
@@ -478,15 +506,13 @@ impl TestData {
         name: &str,
         maildir: &str,
         home: &str,
-        domain: &str,
-        quota: &str,
         enabled: bool,
         change_password: bool,
     ) -> String {
         let enabled_str = if enabled { "on" } else { "" };
         let change_password_str = if change_password { "on" } else { "" };
         format!(
-            "id={user_id}&password={password}&name={name}&maildir={maildir}&home={home}&domain={domain}&quota={quota}&enabled={enabled_str}&change_password={change_password_str}"
+            "id={user_id}&password={password}&name={name}&maildir={maildir}&home={home}&enabled={enabled_str}&change_password={change_password_str}"
         )
     }
 }

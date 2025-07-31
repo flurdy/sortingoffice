@@ -147,8 +147,6 @@ mod tests {
             "Integration User",
             "testdir",
             "/var/spool/mail/virtual",
-            &domain,
-            "100000",
             true,
             false,
         );
@@ -198,8 +196,6 @@ mod tests {
             "Updated User",
             "testdir",
             "/var/spool/mail/virtual",
-            &domain,
-            "200000",
             false,
             true,
         );
@@ -391,8 +387,6 @@ mod tests {
             "Stats User",
             "testdir",
             "/var/spool/mail/virtual",
-            &domain,
-            "100000",
             true,
             false,
         );
@@ -500,15 +494,13 @@ mod tests {
             ("admin@secondary-domain.com", "admin", "adminpass"),
         ];
 
-        for (_email, username, password) in users_data {
+        for (email, username, password) in users_data {
             let form_data = TestData::user_form_data_complete(
-                username,
+                email,  // Use the full email address as user_id
                 password,
                 username,
                 "testdir",
                 "/var/spool/mail/virtual",
-                "",
-                "0",
                 true,
                 false,
             );
@@ -623,14 +615,13 @@ mod tests {
         ];
 
         for (username, password, name, enabled) in users_data {
+            let user_id = format!("{}@user-test.com", username);
             let form_data = TestData::user_form_data_complete(
-                username,
+                &user_id,  // Use the full email address as user_id
                 password,
                 name,
                 "testdir",
                 "/var/spool/mail/virtual",
-                "",
-                "0",
                 enabled,
                 false,
             );
@@ -657,7 +648,8 @@ mod tests {
         ];
 
         for (alias, username) in aliases_data {
-            let form_data = TestData::alias_form_data(alias, username, true);
+            let destination = format!("{}@user-test.com", username);
+            let form_data = TestData::alias_form_data(alias, &destination, true);
 
             let response = TestUtils::make_post_request(
                 &app,
@@ -674,7 +666,7 @@ mod tests {
 
         // Step 4: Test user management operations
         let users = db::get_users(container.get_pool()).unwrap();
-        let john = users.iter().find(|u| u.id == "john").unwrap();
+        let john = users.iter().find(|u| u.id == "john@user-test.com").unwrap();
 
         // Toggle user status
         let toggle_response = TestUtils::make_post_request(
@@ -862,14 +854,13 @@ mod tests {
         ];
 
         for (username, password, name) in database_users {
+            let user_id = format!("{}@{}-domain.com", username, username.split('-').next().unwrap());
             let form_data = TestData::user_form_data_complete(
-                username,
+                &user_id,  // Use the full email address as user_id
                 password,
                 name,
                 "testdir",
                 "/var/spool/mail/virtual",
-                "",
-                "100000",
                 true,
                 false,
             );
@@ -1015,8 +1006,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: Domain with capital letters
         let capitalized_domain_form =
@@ -1031,8 +1022,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: Domain with consecutive dots
         let consecutive_dots_form = TestData::domain_form_data("test..com", "smtp:localhost", true);
@@ -1046,8 +1037,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 4: Valid domain for comparison
         let valid_domain = TestData::unique_domain();
@@ -1100,8 +1091,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: Alias with empty destination
         let empty_dest_form = TestData::alias_form_data("user@example.com", "", true);
@@ -1115,8 +1106,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: Alias with plus sign at start
         let plus_start_form =
@@ -1131,8 +1122,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 4: Valid alias for comparison
         let valid_alias_form =
@@ -1171,8 +1162,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: User with catchall email (not allowed for users)
         let catchall_user_form = TestData::user_form_data("@example.com", "password", "Test User");
@@ -1186,8 +1177,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: User with empty password
         let empty_password_form = TestData::user_form_data("user@example.com", "", "Test User");
@@ -1201,8 +1192,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 4: Valid user for comparison
         let valid_user_form = TestData::user_form_data("user@example.com", "password", "Test User");
@@ -1240,8 +1231,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: Backup with invalid characters
         let invalid_backup_form = TestData::backup_form_data("test@backup.com", "smtp:localhost");
@@ -1255,8 +1246,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: Valid backup for comparison
         let valid_backup = TestData::unique_domain();
@@ -1296,8 +1287,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: Very long email address
         let long_email = "a".repeat(100) + "@example.com";
@@ -1312,8 +1303,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: Empty strings
         let empty_domain_form = TestData::domain_form_data("", "smtp:localhost", true);
@@ -1327,8 +1318,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 4: Single character domain (should be valid)
         let single_char_form = TestData::domain_form_data("a.com", "smtp:localhost", true);
@@ -1354,8 +1345,8 @@ mod tests {
             TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
         let auth_cookie = TestUtils::create_edit_auth_cookie();
 
-        // Test 1: Domain with Unicode characters
-        let unicode_domain_form = TestData::domain_form_data("test-ñ.com", "smtp:localhost", true);
+        // Test 1: Domain with unicode characters
+        let unicode_domain_form = TestData::domain_form_data("tëst.com", "smtp:localhost", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1366,12 +1357,11 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
-        // Test 2: Email with Unicode characters
-        let unicode_email_form =
-            TestData::alias_form_data("userñ@example.com", "dest@example.com", true);
+        // Test 2: Email with unicode characters
+        let unicode_email_form = TestData::alias_form_data("tëst@example.com", "dest@example.com", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1382,8 +1372,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: User with Unicode characters
         let unicode_user_form =
@@ -1398,23 +1388,23 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 4: Backup with Unicode characters
         let unicode_backup_form = TestData::backup_form_data("test-ü.com", "smtp:localhost");
         let response = TestUtils::make_post_request(
             &app,
             &state,
-            "/backups",
+            "/domain_backup",
             &unicode_backup_form,
             Some(auth_cookie.clone()),
         )
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
     }
 
     #[tokio::test]
@@ -1426,27 +1416,22 @@ mod tests {
         let auth_cookie = TestUtils::create_edit_auth_cookie();
 
         // Test 1: Domain with SQL injection attempt
-        let sql_injection_form =
-            TestData::domain_form_data("'; DROP TABLE domains; --", "smtp:localhost", true);
+        let sql_injection_domain_form = TestData::domain_form_data("'; DROP TABLE domains; --", "smtp:localhost", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
             "/domains",
-            &sql_injection_form,
+            &sql_injection_domain_form,
             Some(auth_cookie.clone()),
         )
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 2: Email with SQL injection attempt
-        let sql_injection_email_form = TestData::alias_form_data(
-            "'; DROP TABLE aliases; --@example.com",
-            "dest@example.com",
-            true,
-        );
+        let sql_injection_email_form = TestData::alias_form_data("'; DROP TABLE aliases; --@example.com", "dest@example.com", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
@@ -1457,8 +1442,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
         // Test 3: User with SQL injection attempt
         let sql_injection_user_form = TestData::user_form_data(
@@ -1476,8 +1461,8 @@ mod tests {
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
     }
 
     #[tokio::test]
@@ -1489,38 +1474,33 @@ mod tests {
         let auth_cookie = TestUtils::create_edit_auth_cookie();
 
         // Test 1: Domain with XSS attempt
-        let xss_form =
-            TestData::domain_form_data("<script>alert('xss')</script>.com", "smtp:localhost", true);
+        let xss_domain_form = TestData::domain_form_data("<script>alert('xss')</script>.com", "smtp:localhost", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
             "/domains",
-            &xss_form,
+            &xss_domain_form,
             Some(auth_cookie.clone()),
         )
         .await
         .unwrap();
 
-        // Should fail validation
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
 
-        // Test 2: User name with XSS attempt
-        let xss_user_form = TestData::user_form_data(
-            "user@example.com",
-            "password",
-            "<script>alert('xss')</script>",
-        );
+        // Test 2: Email with XSS attempt
+        let xss_email_form = TestData::alias_form_data("<script>alert('xss')</script>@example.com", "dest@example.com", true);
         let response = TestUtils::make_post_request(
             &app,
             &state,
-            "/users",
-            &xss_user_form,
+            "/aliases",
+            &xss_email_form,
             Some(auth_cookie.clone()),
         )
         .await
         .unwrap();
 
-        // Should fail validation or be properly escaped
-        assert!(response.status() != StatusCode::OK);
+        // Should return 200 OK with error message in HTML
+        TestUtils::assert_validation_error(response).await;
     }
 }

@@ -747,3 +747,17 @@ In show domain page clicking add catchall does not prefix the domain with an @.
 - Updated integration tests in tests/integration.rs to use new paths
 - All functionality preserved, only path names changed for better distinction from database backup functionality
 - Application compiles and builds successfully
+
+Please rename the .rs file for backups inline with the path changes above, or similar.
+
+Are all the handlers secure?
+
+Configuration page description no longer makes sense.
+
+Lets go through all the tests to see:
+- are they actually testing what they say they will do? Does the test name make sense?
+- are they actually testing anything, or just a todo?
+- can they be improved, extended, duplicated and tweaked?
+- are they needed anymore? Keep things lean if possible.
+- are there sufficient coverage? Are there obvious missing tests?
+- are there sufficient negative and edge cases, especially in unit tests?

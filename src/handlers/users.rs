@@ -1,15 +1,19 @@
-use crate::templates::layout::BaseTemplate;
-use crate::templates::users::*;
 use crate::{
-    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template,
-    render_template_with_title, AppState,
+    db,
+    i18n::get_translation,
+    models::{PaginatedResult, User, UserForm},
+    templates::layout::BaseTemplate,
+    templates::users::*,
+    AppState,
+    render_template_with_title,
+    get_entity_or_not_found,
+    render_template,
 };
 use askama::Template;
 use axum::{
-    extract::{Path, State},
+    extract::{Form, Path, State},
     http::HeaderMap,
     response::Html,
-    Form,
 };
 use serde::Deserialize;
 
@@ -466,18 +470,26 @@ pub async fn create(
     if let Err(_status_code) =
         crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "create_user")
     {
-        let locale = crate::handlers::language::get_user_locale(&headers);
-        let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
-        let form_template =
-            build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
+        // Return error form for restrictions
+        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let error_message = get_translation(&state, &locale, "error-database-restriction").await;
+        let form_template = build_user_form_template(
+            &state,
+            &locale,
+            None,
+            form.clone(),
+            Some(error_message),
+        )
+        .await;
         let content = form_template.render().unwrap();
 
         if crate::handlers::utils::is_htmx_request(&headers) {
             return Html(content);
         } else {
-            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
+            let (current_db_label, current_db_id) =
+                get_current_db_info(&state, &headers).await;
             let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "users-add-title").await,
+                get_translation(&state, &locale, "users-new-user").await,
                 content,
                 &state,
                 &locale,
@@ -490,139 +502,82 @@ pub async fn create(
         }
     }
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    let locale = crate::handlers::utils::get_user_locale(&headers);
 
-    // Validate required fields
-    if form.id.trim().is_empty() {
-        let form_translations =
-            crate::handlers::utils::get_entity_form_translations(&state, &locale, "users").await;
-        let error_msg = form_translations["validation-username-required"].clone();
-        let form_template =
-            build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg)).await;
+    // Validate user ID
+    match crate::validation::validate_user_id(&form.id) {
+        Ok(_) => {}
+        Err(_e) => {
+            let error_message = get_translation(&state, &locale, "validation-user-id-invalid").await;
+            let form_template = build_user_form_template(
+                &state,
+                &locale,
+                None,
+                form.clone(),
+                Some(error_message),
+            )
+            .await;
+            let content = form_template.render().unwrap();
 
-        // Use helper function for template rendering
-        crate::handlers::utils::render_form_template(
-            form_template,
-            &state,
-            &locale,
-            &headers,
-            "users-add-title".to_string(),
-        )
-        .await
-    } else {
-        // Validate user ID format
-        match crate::validation::validate_user_id(&form.id) {
-            Ok(_) => {}
-            Err(_e) => {
-                let _form_translations =
-                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
-                        .await;
-                let error_msg =
-                    get_translation(&state, &locale, "validation-user-id-invalid").await;
-                let form_template =
-                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
-                        .await;
-
-                return crate::handlers::utils::render_form_template(
-                    form_template,
+            if crate::handlers::utils::is_htmx_request(&headers) {
+                return Html(content);
+            } else {
+                let (current_db_label, current_db_id) =
+                    get_current_db_info(&state, &headers).await;
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, &locale, "users-new-user").await,
+                    content,
                     &state,
                     &locale,
-                    &headers,
-                    "users-add-title".to_string(),
+                    current_db_label,
+                    current_db_id,
                 )
-                .await;
+                .await
+                .unwrap();
+                return Html(template.render().unwrap());
             }
         }
+    }
 
-        // Validate user paths
+    // Validate password is not empty
+    if form.password.trim().is_empty() {
+        let error_message = get_translation(&state, &locale, "validation-password-required").await;
+        let form_template = build_user_form_template(
+            &state,
+            &locale,
+            None,
+            form.clone(),
+            Some(error_message),
+        )
+        .await;
+        let content = form_template.render().unwrap();
+
+        if crate::handlers::utils::is_htmx_request(&headers) {
+            return Html(content);
+        } else {
+            let (current_db_label, current_db_id) =
+                get_current_db_info(&state, &headers).await;
+            let template = BaseTemplate::with_i18n(
+                get_translation(&state, &locale, "users-new-user").await,
+                content,
+                &state,
+                &locale,
+                current_db_label,
+                current_db_id,
+            )
+            .await
+            .unwrap();
+            return Html(template.render().unwrap());
+        }
+    }
+
+    // Validate user paths
+    if !form.maildir.is_empty() && !form.home.is_empty() {
         let combined_maildir_path = format!("{}/{}", form.home, form.maildir);
         match crate::validation::validate_user_path(&combined_maildir_path) {
             Ok(_) => {}
             Err(_e) => {
-                let _form_translations =
-                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
-                        .await;
-                let error_msg =
-                    get_translation(&state, &locale, "validation-user-path-invalid").await;
-                let form_template =
-                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
-                    .await;
-
-                return crate::handlers::utils::render_form_template(
-                    form_template,
-                    &state,
-                    &locale,
-                    &headers,
-                    "users-add-title".to_string(),
-                )
-                .await;
-            }
-        }
-
-        match crate::validation::validate_user_path(&form.home) {
-            Ok(_) => {}
-            Err(_e) => {
-                let _form_translations =
-                    crate::handlers::utils::get_entity_form_translations(&state, &locale, "users")
-                        .await;
-                let error_msg =
-                    get_translation(&state, &locale, "validation-user-path-invalid").await;
-                let form_template =
-                    build_user_form_template(&state, &locale, None, form.clone(), Some(error_msg))
-                        .await;
-
-                return crate::handlers::utils::render_form_template(
-                    form_template,
-                    &state,
-                    &locale,
-                    &headers,
-                    "users-add-title".to_string(),
-                )
-                .await;
-            }
-        }
-        // Create user directly (no domain validation needed)
-        match db::create_user(&pool, form.clone()) {
-            Ok(_) => {
-                let users = match db::get_users(&pool) {
-                    Ok(users) => users,
-                    Err(e) => {
-                        eprintln!("Error getting users: {e:?}");
-                        vec![]
-                    }
-                };
-                let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
-                let content_template =
-                    build_user_list_template(&state, &locale, users, paginated).await;
-                let content = content_template.render().unwrap();
-
-                if crate::handlers::utils::is_htmx_request(&headers) {
-                    Html(content)
-                } else {
-                    let (current_db_label, current_db_id) =
-                        get_current_db_info(&state, &headers).await;
-                    let template = BaseTemplate::with_i18n(
-                        get_translation(&state, &locale, "users-title").await,
-                        content,
-                        &state,
-                        &locale,
-                        current_db_label,
-                        current_db_id,
-                    )
-                    .await
-                    .unwrap();
-                    Html(template.render().unwrap())
-                }
-            }
-            Err(e) => {
-                let error_message = crate::handlers::utils::handle_database_error(
-                    &state, &locale, e, "user", &form.id,
-                )
-                .await;
-
+                let error_message = get_translation(&state, &locale, "validation-user-path-invalid").await;
                 let form_template = build_user_form_template(
                     &state,
                     &locale,
@@ -631,17 +586,124 @@ pub async fn create(
                     Some(error_message),
                 )
                 .await;
+                let content = form_template.render().unwrap();
 
-                // Use helper function for template rendering
-                crate::handlers::utils::render_form_template(
-                    form_template,
+                if crate::handlers::utils::is_htmx_request(&headers) {
+                    return Html(content);
+                } else {
+                    let (current_db_label, current_db_id) =
+                        get_current_db_info(&state, &headers).await;
+                    let template = BaseTemplate::with_i18n(
+                        get_translation(&state, &locale, "users-new-user").await,
+                        content,
+                        &state,
+                        &locale,
+                        current_db_label,
+                        current_db_id,
+                    )
+                    .await
+                    .unwrap();
+                    return Html(template.render().unwrap());
+                }
+            }
+        }
+    }
+
+    match crate::validation::validate_user_path(&form.home) {
+        Ok(_) => {}
+        Err(_e) => {
+            let error_message = get_translation(&state, &locale, "validation-user-path-invalid").await;
+            let form_template = build_user_form_template(
+                &state,
+                &locale,
+                None,
+                form.clone(),
+                Some(error_message),
+            )
+            .await;
+            let content = form_template.render().unwrap();
+
+            if crate::handlers::utils::is_htmx_request(&headers) {
+                return Html(content);
+            } else {
+                let (current_db_label, current_db_id) =
+                    get_current_db_info(&state, &headers).await;
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, &locale, "users-new-user").await,
+                    content,
                     &state,
                     &locale,
-                    &headers,
-                    "users-add-title".to_string(),
+                    current_db_label,
+                    current_db_id,
                 )
                 .await
+                .unwrap();
+                return Html(template.render().unwrap());
             }
+        }
+    }
+
+    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+        .await
+        .expect("Failed to get database pool");
+
+    // Create user directly (no domain validation needed)
+    match db::create_user(&pool, form.clone()) {
+        Ok(_) => {
+            let users = match db::get_users(&pool) {
+                Ok(users) => users,
+                Err(e) => {
+                    eprintln!("Error getting users: {e:?}");
+                    vec![]
+                }
+            };
+            let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
+            let content_template =
+                build_user_list_template(&state, &locale, users, paginated).await;
+            let content = content_template.render().unwrap();
+
+            if crate::handlers::utils::is_htmx_request(&headers) {
+                Html(content)
+            } else {
+                let (current_db_label, current_db_id) =
+                    get_current_db_info(&state, &headers).await;
+                let template = BaseTemplate::with_i18n(
+                    get_translation(&state, &locale, "users-title").await,
+                    content,
+                    &state,
+                    &locale,
+                    current_db_label,
+                    current_db_id,
+                )
+                .await
+                .unwrap();
+                Html(template.render().unwrap())
+            }
+        }
+        Err(e) => {
+            let error_message = crate::handlers::utils::handle_database_error(
+                &state, &locale, e, "user", &form.id,
+            )
+            .await;
+
+            let form_template = build_user_form_template(
+                &state,
+                &locale,
+                None,
+                form.clone(),
+                Some(error_message),
+            )
+            .await;
+
+            // Use helper function for template rendering
+            crate::handlers::utils::render_form_template(
+                form_template,
+                &state,
+                &locale,
+                &headers,
+                "users-add-title".to_string(),
+            )
+            .await
         }
     }
 }

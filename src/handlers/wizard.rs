@@ -17,7 +17,7 @@ use askama::Template;
 use axum::{
     extract::{Form, Query, State},
     http::HeaderMap,
-    response::Html,
+    response::{Html, Redirect},
 };
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -174,12 +174,12 @@ fn clear_session() {
 }
 
 // Wizard index page
-pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Redirect {
     // Clear any existing session when starting a new wizard
     clear_session();
 
     // Redirect directly to domain config step
-    domain_config(State(state), headers).await
+    Redirect::to("/wizard/domain-config")
 }
 
 // Step 1: Domain configuration
@@ -483,7 +483,7 @@ pub async fn alias_config_post(
     State(state): State<AppState>,
     headers: HeaderMap,
     request: axum::extract::Request,
-) -> Html<String> {
+) -> Result<Html<String>, Redirect> {
     // Parse form data manually to handle duplicate field names
     let body_bytes = axum::body::to_bytes(request.into_body(), usize::MAX)
         .await
@@ -586,13 +586,56 @@ pub async fn alias_config_post(
             back_button: &translations["wizard-back"],
         };
 
-        return render_template_with_title!(
-            content_template,
-            content_template.title,
-            &state,
-            &locale,
-            &headers
-        );
+        return {
+            let content = match content_template.render() {
+                Ok(content) => content,
+                Err(e) => {
+                    tracing::error!("Failed to render template: {:?}", e);
+                    return Ok(Html("Error rendering template".to_string()));
+                }
+            };
+
+            if crate::handlers::utils::is_htmx_request(&headers) {
+                Ok(Html(content))
+            } else {
+                // Get current database id from session/cookie or default
+                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                // Get current database label from db_manager
+                let current_db_label = state
+                    .db_manager
+                    .get_configs()
+                    .iter()
+                    .find(|db| db.id == current_db_id)
+                    .map(|db| db.label.clone())
+                    .unwrap_or_else(|| current_db_id.clone());
+
+                let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+                    content_template.title.to_string(),
+                    content,
+                    &state,
+                    &locale,
+                    current_db_label,
+                    current_db_id,
+                )
+                .await
+                {
+                    Ok(template) => template,
+                    Err(e) => {
+                        tracing::error!("Failed to create base template: {:?}", e);
+                        return Ok(Html("Error creating template".to_string()));
+                    }
+                };
+
+                match base_template.render() {
+                    Ok(content) => Ok(Html(content)),
+                    Err(e) => {
+                        tracing::error!("Failed to render base template: {:?}", e);
+                        Ok(Html("Error rendering template".to_string()))
+                    }
+                }
+            }
+        };
     }
 
     // Update session with form data
@@ -609,11 +652,14 @@ pub async fn alias_config_post(
     save_session(session);
 
     // Redirect to review page
-    review(State(state), headers).await
+    match review(State(state), headers).await {
+        Ok(html) => Ok(html),
+        Err(redirect) => Err(redirect),
+    }
 }
 
 // Step 3: Review and confirmation
-pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
@@ -623,7 +669,7 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
         None => {
             // No session found - this shouldn't happen in normal wizard flow
             // Redirect to wizard start
-            return index(State(state), headers).await;
+            return Err(index(State(state), headers).await);
         }
     };
 
@@ -676,13 +722,54 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
         back_button: &translations["wizard-back"],
     };
 
-    render_template_with_title!(
-        content_template,
-        content_template.title,
-        &state,
-        &locale,
-        &headers
-    )
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!("Failed to render template: {:?}", e);
+            return Ok(Html("Error rendering template".to_string()));
+        }
+    };
+
+    if crate::handlers::utils::is_htmx_request(&headers) {
+        Ok(Html(content))
+    } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
+        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+            content_template.title.to_string(),
+            content,
+            &state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        {
+            Ok(template) => template,
+            Err(e) => {
+                tracing::error!("Failed to create base template: {:?}", e);
+                return Ok(Html("Error creating template".to_string()));
+            }
+        };
+
+        match base_template.render() {
+            Ok(content) => Ok(Html(content)),
+            Err(e) => {
+                tracing::error!("Failed to render base template: {:?}", e);
+                Ok(Html("Error rendering template".to_string()))
+            }
+        }
+    }
 }
 
 // Step 4: Execute wizard
@@ -690,7 +777,7 @@ pub async fn execute(
     State(state): State<AppState>,
     headers: HeaderMap,
     Form(form): Form<WizardConfirmForm>,
-) -> Html<String> {
+) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
     let _translations = get_wizard_translations(&state, &locale).await;
 
@@ -705,7 +792,7 @@ pub async fn execute(
         None => {
             // No session found - this shouldn't happen in normal wizard flow
             // Return an error page or redirect to start
-            return review(State(state), headers).await;
+            return Err(index(State(state), headers).await);
         }
     };
 
@@ -814,7 +901,7 @@ pub async fn execute(
 }
 
 // Step 5: Complete
-pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
 
@@ -824,7 +911,7 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
         None => {
             // No session found - this shouldn't happen in normal wizard flow
             // Redirect to wizard start
-            return index(State(state), headers).await;
+            return Err(index(State(state), headers).await);
         }
     };
 
@@ -854,7 +941,7 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
         Ok(pool) => pool,
         Err(e) => {
             error!("Failed to get database pool: {:?}", e);
-            return Html("Database connection error".to_string());
+            return Ok(Html("Database connection error".to_string()));
         }
     };
 
@@ -892,13 +979,54 @@ pub async fn complete(State(state): State<AppState>, headers: HeaderMap) -> Html
     // Clear session after completion
     clear_session();
 
-    render_template_with_title!(
-        content_template,
-        content_template.title,
-        &state,
-        &locale,
-        &headers
-    )
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!("Failed to render template: {:?}", e);
+            return Ok(Html("Error rendering template".to_string()));
+        }
+    };
+
+    if crate::handlers::utils::is_htmx_request(&headers) {
+        Ok(Html(content))
+    } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
+        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+            content_template.title.to_string(),
+            content,
+            &state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        {
+            Ok(template) => template,
+            Err(e) => {
+                tracing::error!("Failed to create base template: {:?}", e);
+                return Ok(Html("Error creating template".to_string()));
+            }
+        };
+
+        match base_template.render() {
+            Ok(content) => Ok(Html(content)),
+            Err(e) => {
+                tracing::error!("Failed to render base template: {:?}", e);
+                Ok(Html("Error rendering template".to_string()))
+            }
+        }
+    }
 }
 
 // Wizard destination search endpoint

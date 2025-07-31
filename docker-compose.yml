@@ -71,6 +71,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sortingoffice-app
+    image: sortingoffice
     restart: unless-stopped
     environment:
       DATABASE_URL: mysql://sortingoffice:sortingoffice@db:3306/sortingoffice
