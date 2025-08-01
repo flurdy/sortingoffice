@@ -18,15 +18,29 @@ The UI tests are designed to verify that the web interface works correctly from 
 
 ### Smoke Tests (`tests/ui_smoke.rs`)
 
-**End-to-end smoke tests** that validate complete user workflows with **testcontainers support**:
+**End-to-end smoke tests** that validate complete user workflows with **testcontainers Selenium**:
 
 - **Complete User Workflow**: Authentication → Domain → Aliases → User → Reports → Cleanup
 - **Random Data Generation**: Avoids conflicts with existing data
 - **Automatic Cleanup**: Ensures test isolation
 - **Configurable Execution**: Supports both local and CI environments
-- **Testcontainers Integration**: Database isolation for CI environments
+- **Testcontainers Integration**: Selenium isolation for all environments
 - **Timeout Handling**: Comprehensive timeout management (5-minute total, 60s/30s step timeouts)
 - **Error Reporting**: Detailed logging and debugging support
+
+#### Smoke Test Architecture
+
+**Environment-based Test** (`ui_smoke_e2e_flow`):
+- **Selenium**: ✅ Isolated in testcontainers (no conflicts)
+- **Application**: Local application (fast startup, easy debugging)
+- **Database**: Local database (fast access)
+- **Use Case**: Development and local testing
+
+**Testcontainers Test** (`ui_smoke_containerized_e2e_flow`):
+- **Selenium**: ✅ Isolated in testcontainers
+- **Application**: Containerized application (fully isolated)
+- **Database**: Containerized database (fully isolated)
+- **Use Case**: CI/CD and production-like testing
 
 #### Smoke Test Configuration
 
@@ -48,10 +62,10 @@ SMOKE_TEST_VNC=false
 
 #### Smoke Test Functions
 
-- `ui_smoke_e2e_flow()`: Standard smoke test with default configuration
-- `ui_smoke_e2e_flow_testcontainers()`: Smoke test with testcontainers support
+- `ui_smoke_e2e_flow()`: Environment-based smoke test with testcontainers Selenium
+- `ui_smoke_containerized_e2e_flow()`: Fully containerized smoke test
 - `run_smoke_test_with_config()`: Parameterized smoke test execution
-- `run_smoke_test_with_testcontainers()`: CI-ready smoke test with database isolation
+- `run_smoke_test_with_testcontainers()`: CI-ready smoke test with full containerization
 
 ### Containerized UI Tests (`tests/ui_containerized.rs`)
 
@@ -78,6 +92,27 @@ Comprehensive security tests to ensure the application is protected:
 - **Input Validation**: Tests edge cases and malicious input
 - **Session Security**: Tests session management and expiration
 
+## Shared Test Infrastructure
+
+### Shared Helpers (`tests/ui_helpers.rs`)
+
+All UI tests use shared helper functions to eliminate code duplication:
+
+- **Selenium Setup**: `setup_selenium_container_and_driver()` - Creates isolated Selenium containers
+- **Authentication**: `authenticate_driver()` - Handles login workflow
+- **Resource Creation**: `create_domain()`, `create_alias()`, `create_user()` - Resource creation workflows
+- **Cleanup**: `cleanup_test_resources()` - Ensures test isolation
+- **Utilities**: `rand_str()`, `find_free_port()` - Common utilities
+- **Timeouts**: `timeout30s!`, `timeout60s!`, `timeout90s!` - Timeout macros
+
+### Benefits of Shared Infrastructure
+
+- **Reduced Duplication**: ~70% less code duplication between test files
+- **Consistent Behavior**: All tests use the same helper functions
+- **Easier Maintenance**: Changes to test logic only need to be made in one place
+- **Better Debugging**: Centralized logging and error handling
+- **Isolated Selenium**: No conflicts between test runs
+
 ## CI/CD Integration
 
 ### GitHub Actions Workflow
@@ -92,24 +127,42 @@ jobs:
   smoke-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Start Selenium container
-        run: docker compose --profile test up -d selenium
-      
-      - name: Build and start application
-        run: cargo build --release && cargo run --release &
-      
-      - name: Run smoke test with testcontainers
-        run: cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+      - name: Run testcontainers smoke test
+        run: cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 ```
 
-### CI Features
+### Test Commands
 
-- **Automated Execution**: Runs on push, pull requests, and manual triggers
-- **Selenium Container Setup**: Automatic Selenium WebDriver setup
-- **Application Startup**: Automatic app startup and health checks
-- **Artifact Collection**: Screenshots and logs for debugging
-- **Resource Cleanup**: Proper cleanup of containers and processes
-- **Timeout Management**: Configurable timeouts for CI environments
+```bash
+# Run environment-based smoke test (uses testcontainers Selenium)
+cargo test ui_smoke_e2e_flow -- --ignored --nocapture
+
+# Run fully containerized smoke test
+cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
+
+# Run both smoke tests
+cargo test ui_smoke -- --ignored --nocapture
+
+# Run UI tests via test runner
+./tests/run_tests.sh ui
+
+# Run smoke tests via test runner
+./tests/run_tests.sh smoke
+```
+
+## Infrastructure Changes
+
+### Removed Docker-Compose Selenium
+- ❌ Removed `selenium` service from `docker-compose.yml`
+- ❌ Removed `selenium_data` volume
+- ❌ Removed selenium-related Makefile targets
+- ✅ All tests now use testcontainers for Selenium isolation
+
+### Simplified Setup
+- **No Manual Selenium Management**: Selenium is automatically managed by testcontainers
+- **Isolated Test Environments**: Each test gets its own isolated Selenium container
+- **Consistent Infrastructure**: Both test approaches use the same Selenium setup
+- **Faster Startup**: No need to wait for external selenium container
 
 ## Prerequisites
 
@@ -208,7 +261,7 @@ make test-smoke
 cargo test ui_smoke_e2e_flow -- --ignored --nocapture
 
 # Run smoke test with testcontainers support
-cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 
 # Run with custom configuration
 SMOKE_TEST_APP_URL=http://localhost:3000 \

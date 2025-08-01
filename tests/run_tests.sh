@@ -234,24 +234,37 @@ run_ui_tests() {
 # Function to run smoke test
 run_smoke_test() {
     print_status "Running end-to-end smoke test for sortingoffice..."
+
+    # Set environment variables
+    export RUST_LOG=info
+    export RUST_BACKTRACE=0
+
+    # Run the smoke test (uses testcontainers for Selenium)
+    print_status "Running smoke test with testcontainers Selenium..."
+    if cargo test ui_smoke_e2e_flow -- --ignored --nocapture; then
+        print_success "Smoke test passed!"
+    else
+        print_error "Smoke test failed!"
+        exit 1
+    fi
+
+    echo ""
+    print_success "Smoke test completed successfully! 🎉"
+}
+
+run_smoke_test_containerized() {
+    print_status "Running end-to-end smoke test for sortingoffice..."
     
     # Check if Docker is available
     if ! command -v docker > /dev/null 2>&1; then
         print_error "Docker is not available. Please install Docker and try again."
-        exit 1
+        exit 1  
     fi
-
+    
     # Check if Docker daemon is running
     if ! docker info > /dev/null 2>&1; then
         print_error "Docker daemon is not running. Please start Docker and try again."
         exit 1
-    fi
-
-    # Check if Selenium container is running
-    if ! docker ps --format "table {{.Names}}" | grep -q "sortingoffice-selenium"; then
-        print_warning "Selenium container is not running. Starting it now..."
-        docker compose --profile test up -d selenium
-        sleep 5
     fi
 
     # Set environment variables
@@ -259,9 +272,9 @@ run_smoke_test() {
     export RUST_BACKTRACE=0
 
     # Run the smoke test
-    print_status "Running smoke test with Selenium..."
-    if SMOKE_TEST_APP_URL=http://host.docker.internal:3000 cargo test ui_smoke_e2e_flow -- --ignored --nocapture; then
-        print_success "Smoke test passed!"
+    print_status "Running smoke test in testcontainers..."
+    if cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture; then
+        print_success "Smoke test passed!"   
     else
         print_error "Smoke test failed!"
         exit 1
@@ -312,6 +325,9 @@ case "${1:-unit}" in
         ;;
     "smoke")
         run_smoke_test
+        ;;
+    "smoke-containerized")
+        run_smoke_test_containerized
         ;;
     "all")
         run_all_tests

@@ -1,7 +1,5 @@
 use anyhow::Result;
-use rand::RngCore;
 use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
-use std::net::TcpListener;
 use std::process::Command;
 
 use testcontainers::core::Mount;
@@ -12,64 +10,9 @@ use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
-fn find_free_port() -> u16 {
-    TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind to random port")
-        .local_addr()
-        .unwrap()
-        .port()
-}
-
-// Helper macro for 10s timeout on Selenium actions
-macro_rules! timeout10s {
-    ($expr:expr, $desc:expr) => {
-        timeout(Duration::from_secs(10), $expr)
-            .await
-            .map_err(|_| anyhow::anyhow!(concat!("Timeout (10s) on: ", $desc)))?
-    };
-}
-
-macro_rules! timeout60s {
-    ($expr:expr, $desc:expr) => {
-        timeout(Duration::from_secs(60), $expr)
-            .await
-            .map_err(|_| anyhow::anyhow!(concat!("Timeout (60s) on: ", $desc)))?
-    };
-}
-
-macro_rules! timeout30s {
-    ($expr:expr, $desc:expr) => {
-        timeout(Duration::from_secs(30), $expr)
-            .await
-            .map_err(|_| anyhow::anyhow!(concat!("Timeout (30s) on: ", $desc)))?
-    };
-}
-
-macro_rules! timeout90s {
-    ($expr:expr, $desc:expr) => {
-        timeout(Duration::from_secs(90), $expr)
-            .await
-            .map_err(|_| anyhow::anyhow!(concat!("Timeout (90s) on: ", $desc)))?
-    };
-}
-
-async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
-    let _client = reqwest::Client::new();
-    let url = format!("http://localhost:{port}/status");
-    let start = std::time::Instant::now();
-    while start.elapsed() < max_wait {
-        match reqwest::get(&url).await {
-            Ok(resp) if resp.status().is_success() => return Ok(()),
-            _ => {
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        }
-    }
-    Err(anyhow::anyhow!(
-        "Timed out waiting for Selenium on port {}",
-        port
-    ))
-}
+#[macro_use]
+mod ui_helpers;
+use ui_helpers::*;
 
 // Helper function to authenticate the driver
 async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
@@ -306,10 +249,10 @@ async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<(
 async fn seed_test_db(container: &TestContainer) {
     let db_name = &container.schema;
     let db_ip = container.get_bridge_ip();
-    
+
     // Add logging to help debug seeding issues
     println!("[SEED] Seeding database: {} at {}", db_name, db_ip);
-    
+
     let status = std::process::Command::new("mysql")
         .arg("-uroot")
         .arg("-h")
@@ -321,7 +264,7 @@ async fn seed_test_db(container: &TestContainer) {
         .arg("source seed_data/all.sql")
         .status()
         .expect("Failed to run mysql seed command");
-    
+
     if !status.success() {
         println!("[SEED] Warning: Seeding DB failed with status: {status:?}");
         // Don't fail the test immediately, as this might be a duplicate key issue

@@ -28,12 +28,13 @@ Smoke tests are the highest-level tests in the SortingOffice test suite. They va
 
 ### File Location
 - **Main Test File**: `tests/ui_smoke.rs`
+- **Shared Helpers**: `tests/ui_helpers.rs`
 - **CI Workflow**: `.github/workflows/smoke-tests.yml`
 
 ### Test Functions
 
 #### `ui_smoke_e2e_flow()`
-Standard smoke test with default configuration:
+Environment-based smoke test with testcontainers Selenium:
 ```rust
 #[tokio::test]
 #[ignore]
@@ -43,12 +44,12 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
 }
 ```
 
-#### `ui_smoke_e2e_flow_testcontainers()`
-Smoke test with testcontainers support for CI environments:
+#### `ui_smoke_containerized_e2e_flow()`
+Fully containerized smoke test with testcontainers:
 ```rust
 #[tokio::test]
 #[ignore]
-async fn ui_smoke_e2e_flow_testcontainers() -> Result<()> {
+async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     run_smoke_test_with_testcontainers().await
 }
 ```
@@ -60,10 +61,31 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()>
 ```
 
 #### `run_smoke_test_with_testcontainers()`
-CI-ready smoke test with database isolation:
+CI-ready smoke test with full containerization:
 ```rust
 pub async fn run_smoke_test_with_testcontainers() -> Result<()>
 ```
+
+## Test Architecture
+
+### Environment-based Test (`ui_smoke_e2e_flow`)
+- **Selenium**: ✅ Isolated in testcontainers (no conflicts)
+- **Application**: Local application (fast startup, easy debugging)
+- **Database**: Local database (fast access)
+- **Use Case**: Development and local testing
+
+### Testcontainers Test (`ui_smoke_containerized_e2e_flow`)
+- **Selenium**: ✅ Isolated in testcontainers
+- **Application**: Containerized application (fully isolated)
+- **Database**: Containerized database (fully isolated)
+- **Use Case**: CI/CD and production-like testing
+
+### Shared Infrastructure
+Both tests use the same helper functions from `tests/ui_helpers.rs`:
+- `setup_selenium_container_and_driver()`: Creates isolated Selenium containers
+- `authenticate_driver()`: Handles login workflow
+- `create_domain()`, `create_alias()`, `create_user()`: Resource creation
+- `cleanup_test_resources()`: Ensures test isolation
 
 ## Configuration
 
@@ -130,7 +152,7 @@ impl Default for SmokeTestConfig {
 cargo test ui_smoke_e2e_flow -- --ignored --nocapture
 
 # Run with testcontainers support
-cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 
 # Run with custom configuration
 SMOKE_TEST_APP_URL=http://localhost:3000 \
@@ -161,14 +183,8 @@ jobs:
   smoke-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Start Selenium container
-        run: docker compose --profile test up -d selenium
-      
-      - name: Build and start application
-        run: cargo build --release && cargo run --release &
-      
-      - name: Run smoke test with testcontainers
-        run: cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+      - name: Run testcontainers smoke test
+        run: cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 ```
 
 ## Test Data Generation
@@ -259,9 +275,10 @@ The CI workflow collects artifacts for debugging:
 
 ### Common Issues
 
-1. **Selenium Connection**: Ensure Selenium container is running
+1. **Testcontainers Setup**: Ensure Docker is running for testcontainers
    ```bash
-   docker compose --profile test up -d selenium
+   docker --version
+   docker ps
    ```
 
 2. **Application Startup**: Check that the app is accessible
@@ -281,7 +298,7 @@ The CI workflow collects artifacts for debugging:
 
 5. **Resource Cleanup**: Check for orphaned containers
    ```bash
-   docker ps -a | grep selenium
+   docker ps -a | grep testcontainers
    docker system prune -f
    ```
 
@@ -327,23 +344,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Start Selenium container
-        run: docker compose --profile test up -d selenium
-      
-      - name: Build application
-        run: cargo build --release
-      
-      - name: Start application
-        run: cargo run --release &
-      
-      - name: Run smoke test
-        run: cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+      - name: Run testcontainers smoke test
+        run: cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 ```
 
 ### CI Features
 - **Automated Execution**: Runs on push, pull requests, and manual triggers
-- **Selenium Container Setup**: Automatic Selenium WebDriver setup
-- **Application Startup**: Automatic app startup and health checks
+- **Testcontainers Setup**: Automatic isolated environment setup
+- **Full Containerization**: Database, application, and Selenium in isolated containers
 - **Artifact Collection**: Screenshots and logs for debugging
 - **Resource Cleanup**: Proper cleanup of containers and processes
 - **Timeout Management**: Configurable timeouts for CI environments

@@ -99,11 +99,9 @@ test-help:
 	@echo "    ./tests/run_tests.sh all  - Alternative: run via test runner"
 	@echo ""
 	@echo "Test Infrastructure:"
-	@echo "  Selenium Setup:"
-	@echo "    make selenium-up        - Start Selenium container"
-	@echo "    make selenium-down      - Stop Selenium container"
-	@echo "    make selenium-logs      - Show Selenium logs"
-	@echo "    make selenium-clean     - Remove Selenium container"
+	@echo "  Selenium Setup (deprecated - now using testcontainers):"
+	@echo "    Selenium is now automatically managed by testcontainers"
+	@echo "    No manual setup required for smoke tests"
 	@echo ""
 	@echo "  Test Database:"
 	@echo "    make test-db-setup      - Setup test database"
@@ -130,15 +128,11 @@ test-help:
 	@echo "  tests/README.md          - Test organization and structure"
 	@echo ""
 	@echo "Quick Start for UI Testing:"
-	@echo "  1. make selenium-up"
-	@echo "  2. make test-ui"
-	@echo "  3. make selenium-down (when done)"
+	@echo "  1. make test-ui (uses testcontainers Selenium)"
 	@echo ""
 	@echo "Quick Start for Smoke Testing:"
-	@echo "  1. make selenium-up"
-	@echo "  2. cargo run (in another terminal)"
-	@echo "  3. make test-smoke"
-	@echo "  4. make selenium-down (when done)"
+	@echo "  1. cargo run (in another terminal)"
+	@echo "  2. make test-smoke (uses testcontainers Selenium)"
 	@echo ""
 	@echo "Quick Start for Smoke Testing (Testcontainers):"
 	@echo "  1. make test-smoke-containerized"
@@ -220,9 +214,9 @@ test-ui:
 test-smoke:
 	@echo "Running end-to-end smoke test..."
 	@echo "Prerequisites:"
-	@echo "  1. Start Selenium: make selenium-up"
-	@echo "  2. Start app: cargo run (in another terminal)"
-	@echo "  3. Ensure app is running on http://localhost:3000"
+	@echo "  1. Start app: cargo run (in another terminal)"
+	@echo "  2. Ensure app is running on http://localhost:3000"
+	@echo "  (Selenium is automatically managed by testcontainers)"
 	@echo ""
 	@tests/run_tests.sh smoke
 
@@ -237,7 +231,7 @@ test-smoke-containerized:
 	@echo "Building Docker image first..."
 	@make build
 	@echo ""
-	@cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+	@tests/run_tests.sh smoke-containerized
 
 .PHONY: test-all
 test-all: test-unit test-integration test-security test-api test-ui
@@ -285,22 +279,10 @@ info:
 
 # Test organization:
 #   src/tests/           - Unit and integration test modules
-#   tests/ui.rs          - Basic UI tests (Selenium)
-#   tests/ui_advanced.rs - Advanced UI tests (Selenium)
+#   tests/ui.rs          - Basic UI tests (testcontainers Selenium)
+#   tests/ui_advanced.rs - Advanced UI tests (testcontainers Selenium)
 #   tests/README.md      - Test documentation
 #   tests/run_tests.sh   - Unified test runner 
 
 test-ui-failfast:
 	./tests/run_tests.sh ui --fail-fast
-
-selenium-up:
-	docker compose --profile test up -d selenium
-
-selenium-down:
-	docker compose --profile test stop selenium
-
-selenium-logs:
-	docker logs -f sortingoffice-selenium
-
-selenium-clean:
-	docker rm -f sortingoffice-selenium || true

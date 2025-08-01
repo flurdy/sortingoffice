@@ -68,7 +68,7 @@ jobs:
       run: |
         # Run the testcontainers version of the smoke test
         # This will start its own isolated database, app, and selenium containers
-        cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
+        cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture
 
     - name: Upload test artifacts
       if: always()
