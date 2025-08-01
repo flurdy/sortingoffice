@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-help run-watch selenium-up selenium-down selenium-logs selenium-clean
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help run-watch selenium-up selenium-down selenium-logs selenium-clean
 
 # Default target
 help:
@@ -46,8 +46,8 @@ help:
 	@echo "  make test-api    - Run API tests (authentication, authorization, etc.)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
 	@echo "  make test-smoke - Run end-to-end smoke test against running app"
+	@echo "  make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "  make test-all   - Run all tests (unit + integration + security + api + UI)"
-	@echo "  make run-watch  - Run locally with cargo watch (auto-restart on changes)"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make fmt        - Format code with cargo fmt"
@@ -86,7 +86,9 @@ test-help:
 	@echo ""
 	@echo "  Smoke Tests:"
 	@echo "    make test-smoke         - Run end-to-end smoke test"
+	@echo "    make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "    cargo test ui_smoke_e2e_flow -- --ignored  - Alternative: run directly"
+	@echo "    cargo test ui_smoke_e2e_flow_testcontainers -- --ignored  - Alternative: run testcontainers directly"
 	@echo ""
 	@echo "  Test Data Utilities:"
 	@echo "    cargo test --test test_data_utilities  - Run test data utility tests"
@@ -137,6 +139,10 @@ test-help:
 	@echo "  2. cargo run (in another terminal)"
 	@echo "  3. make test-smoke"
 	@echo "  4. make selenium-down (when done)"
+	@echo ""
+	@echo "Quick Start for Smoke Testing (Testcontainers):"
+	@echo "  1. make test-smoke-containerized"
+	@echo "  (No setup required - everything runs in isolated containers)"
 
 
 # Docker commands
@@ -219,6 +225,19 @@ test-smoke:
 	@echo "  3. Ensure app is running on http://localhost:3000"
 	@echo ""
 	@tests/run_tests.sh smoke
+
+.PHONY: test-smoke-containerized
+test-smoke-containerized:
+	@echo "Running end-to-end smoke test with testcontainers..."
+	@echo "This will start its own isolated environment with:"
+	@echo "  - Testcontainers database"
+	@echo "  - Testcontainers app container"
+	@echo "  - Testcontainers selenium container"
+	@echo ""
+	@echo "Building Docker image first..."
+	@make build
+	@echo ""
+	@cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
 
 .PHONY: test-all
 test-all: test-unit test-integration test-security test-api test-ui

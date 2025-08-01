@@ -16,7 +16,7 @@ env:
 
 jobs:
   smoke-test:
-    name: Smoke Tests (End-to-End)
+    name: Smoke Tests (End-to-End with Testcontainers DB)
     runs-on: ubuntu-latest
 
     steps:
@@ -54,50 +54,21 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
 
-    - name: Start Selenium container
-      run: |
-        docker compose --profile test up -d selenium
-        sleep 10
-        docker ps
-
     - name: Build application
       run: |
         cargo build --release
-
-    - name: Start application in background
-      run: |
-        # Set up test database environment
-        export DATABASE_URL="mysql://root:password@localhost:3306/sortingoffice_test"
-        export RUST_LOG=info
-        
-        # Start the application in background
-        nohup cargo run --release > app.log 2>&1 &
-        echo $! > app.pid
-        
-        # Wait for app to start
-        sleep 30
-        
-        # Check if app is running
-        curl -f http://localhost:3000/health || exit 1
 
     - name: Run smoke test with testcontainers
       env:
         RUST_TEST_THREADS: 1
         RUST_LOG: info
-        SMOKE_TEST_APP_URL: http://localhost:3000
         SMOKE_TEST_HEADLESS: true
         SMOKE_TEST_TIMEOUT: 300
+        # The testcontainers test will start its own database, app, and selenium containers
       run: |
         # Run the testcontainers version of the smoke test
+        # This will start its own isolated database, app, and selenium containers
         cargo test ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture
-
-    - name: Stop application
-      if: always()
-      run: |
-        if [ -f app.pid ]; then
-          kill $(cat app.pid) || true
-          rm app.pid
-        fi
 
     - name: Upload test artifacts
       if: always()

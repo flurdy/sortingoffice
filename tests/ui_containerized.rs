@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rand::RngCore;
 use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
 use std::net::TcpListener;
 use std::process::Command;
