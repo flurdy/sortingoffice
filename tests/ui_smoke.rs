@@ -51,15 +51,8 @@
 
 use anyhow::Result;
 use rand::RngCore;
-use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-use testcontainers::runners::AsyncRunner;
-use testcontainers::ContainerAsync;
-use testcontainers::GenericImage;
-use testcontainers::ImageExt;
-use testcontainers::core::Mount;
 use thirtyfour::prelude::*;
 use std::time::Duration;
-use std::process::Command;
 use tokio::time::timeout;
 
 // Helper macro for timeouts
@@ -87,149 +80,7 @@ macro_rules! timeout90s {
     };
 }
 
-/// Find a free port for the application
-fn find_free_port() -> u16 {
-    use std::net::TcpListener;
-    TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port()
-}
 
-/// Get container bridge IP
-async fn get_container_bridge_ip(container_id: &str) -> anyhow::Result<String> {
-    let output = Command::new("docker")
-        .args(["inspect", "-f", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}", container_id])
-        .output()
-        .map_err(|e| anyhow::anyhow!("Failed to get container IP: {}", e))?;
-
-    let ip = String::from_utf8(output.stdout)
-        .map_err(|e| anyhow::anyhow!("Failed to parse container IP: {}", e))?
-        .trim()
-        .to_string();
-
-    if ip.is_empty() {
-        return Err(anyhow::anyhow!(
-            "No IP address found for container {}",
-            container_id
-        ));
-    }
-    Ok(ip)
-}
-
-/// Wait for selenium to be ready
-async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
-    let client = reqwest::Client::new();
-    let url = format!("http://localhost:{port}/status");
-    let start = std::time::Instant::now();
-    
-    while start.elapsed() < max_wait {
-        match client.get(&url).send().await {
-            Ok(resp) if resp.status().is_success() => return Ok(()),
-            _ => {
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        }
-    }
-    
-    Err(anyhow::anyhow!(
-        "Timed out waiting for Selenium on port {}",
-        port
-    ))
-}
-
-/// Setup app container
-async fn setup_app_container(
-    db_url: &str,
-    host_port: u16,
-    _admin_username: &str,
-    _admin_password_hash: &str,
-    config_path: &str,
-    container_name: &str,
-    extra_env: &[(&str, &str)],
-) -> anyhow::Result<(ContainerAsync<GenericImage>, String /* bridge IP */)> {
-    let mut app_image = GenericImage::new("sortingoffice", "latest")
-        .with_env_var("DATABASE_URL", db_url)
-        .with_env_var("PORT", "4000")
-        .with_mapped_port(host_port, 4000.into())
-        .with_container_name(container_name)
-        .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
-    for (key, value) in extra_env {
-        app_image = app_image.with_env_var(*key, *value);
-    }
-    let app_container = match AsyncRunner::start(app_image).await {
-        Ok(c) => c,
-        Err(e) => {
-            println!("[ERROR] Failed to start app container: {e:?}");
-            return Err(e.into());
-        }
-    };
-    let app_id = app_container.id();
-    let app_ip = get_container_bridge_ip(app_id).await?;
-    let health_url = format!("http://{app_ip}:4000/health");
-    let client = reqwest::Client::new();
-    let start = std::time::Instant::now();
-    let timeout = std::time::Duration::from_secs(30);
-    loop {
-        match client.get(&health_url).send().await {
-            Ok(resp) if resp.status().is_success() => {
-                break;
-            }
-            Ok(_) | Err(_) => {}
-        }
-        if start.elapsed() > timeout {
-            return Err(anyhow::anyhow!("App /health not healthy after 30s"));
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    }
-    Ok((app_container, app_ip))
-}
-
-/// Setup selenium container and driver
-async fn setup_selenium_container_and_driver(
-) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    timeout90s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
-        "Wait for selenium ready"
-    )?;
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--remote-debugging-port=9222")?;
-    caps.add_arg("--whitelisted-ips=")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    let driver = timeout(
-        Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
-    )
-    .await??;
-    Ok((selenium, driver, selenium_port))
-}
 
 /// Configuration for smoke test execution
 pub struct SmokeTestConfig {
@@ -395,60 +246,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     }
 }
 
-/// Run smoke test with testcontainers support
-pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
-    println!("[SMOKE TEST] Starting smoke test with testcontainers...");
 
-    // Setup test database using testcontainers
-    let db_container = setup_test_db().await;
-    let db_url = db_container.get_db_url();
-
-    println!("[SMOKE TEST] Test database ready: {db_url}");
-
-    // Start Selenium container using the existing UI test function
-    let (selenium_container, driver, selenium_port) = setup_selenium_container_and_driver().await?;
-    println!("[SMOKE TEST] Selenium container ready on port: {}", selenium_port);
-
-    // Start the application container using the existing UI test function
-    let config_path = std::env::current_dir()?.join("config").join("config.toml");
-    let container_name = format!("smoke-test-app-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_millis());
-    let extra_env = &[
-        ("PRIMARY_DB_URL", db_url.as_str()),
-        ("BACKUP1_DB_URL", db_url.as_str()),
-        ("BACKUP2_DB_URL", db_url.as_str()),
-    ];
-    
-    let (app_container, app_ip) = setup_app_container(
-        &db_url,
-        find_free_port(),
-        "admin",
-        "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO",
-        config_path.to_str().unwrap(),
-        &container_name,
-        extra_env,
-    ).await?;
-    
-    let app_url = format!("http://{}:4000", app_ip);
-    println!("[SMOKE TEST] Application container ready at: {}", app_url);
-
-    let config = SmokeTestConfig {
-        app_url,
-        headless: true, // Headless for CI
-        timeout_seconds: 300,
-        enable_vnc: false,
-    };
-
-    // Run the smoke test
-    let result = run_smoke_test_with_config(config).await;
-
-    // Cleanup: drop containers and driver
-    drop(driver);
-    drop(app_container);
-    drop(selenium_container);
-    drop(db_container);
-
-    result
-}
 
 fn rand_str() -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -817,9 +615,4 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
     run_smoke_test_with_config(config).await
 }
 
-#[tokio::test]
-#[ignore]
-async fn ui_smoke_e2e_flow_testcontainers() -> Result<()> {
-    // Run smoke test with testcontainers support
-    run_smoke_test_with_testcontainers().await
-}
+

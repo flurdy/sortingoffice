@@ -40,6 +40,7 @@ show_usage() {
     echo "  api               Run API tests (authentication, authorization, etc.)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  smoke             Run end-to-end smoke test against running app"
+    echo "  smoke-containerized   Run fully containerized smoke test (no external dependencies)"
     echo "  all               Run all tests (unit + integration + security + api + UI)"
     echo "  help              Show this help message"
     echo ""
@@ -51,6 +52,7 @@ show_usage() {
     echo "  $0 api            # Run API tests"
     echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 smoke          # Run end-to-end smoke test"
+    echo "  $0 smoke-containerized  # Run containerized smoke test"
     echo "  $0 all            # Run all tests"
 }
 
@@ -271,6 +273,47 @@ run_smoke_test() {
     print_success "Smoke test completed successfully! 🎉"
 }
 
+# Function to run containerized smoke test
+run_smoke_test_containerized() {
+    print_status "Running fully containerized smoke test for sortingoffice..."
+    
+    # Check if Docker is available
+    if ! command -v docker > /dev/null 2>&1; then
+        print_error "Docker is not available. Please install Docker and try again."
+        exit 1
+    fi
+
+    # Check if Docker daemon is running
+    if ! docker info > /dev/null 2>&1; then
+        print_error "Docker daemon is not running. Please start Docker and try again."
+        exit 1
+    fi
+
+    # Set environment variables
+    export RUST_TEST_THREADS="${TEST_THREADS:-8}"
+    export RUST_LOG=info
+    export RUST_BACKTRACE=0
+
+    # Run the containerized smoke test
+    print_status "Running containerized smoke test with testcontainers..."
+    start_time=$(date +%s)
+    if cargo test --test ui_smoke_containerized ui_smoke_e2e_flow_testcontainers -- --ignored --nocapture --test-threads=$RUST_TEST_THREADS; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Containerized smoke test completed successfully in ${duration}s!"
+        echo "[CI-SUMMARY] SMOKE_CONTAINERIZED PASS ${duration}s"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Containerized smoke test failed in ${duration}s!"
+        echo "[CI-SUMMARY] SMOKE_CONTAINERIZED FAIL ${duration}s"
+        exit 1
+    fi
+
+    echo ""
+    print_success "Containerized smoke test completed successfully! 🎉"
+}
+
 # Function to run all tests
 run_all_tests() {
     print_status "Running all tests..."
@@ -312,6 +355,9 @@ case "${1:-unit}" in
         ;;
     "smoke")
         run_smoke_test
+        ;;
+    "smoke-containerized")
+        run_smoke_test_containerized
         ;;
     "all")
         run_all_tests

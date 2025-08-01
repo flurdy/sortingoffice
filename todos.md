@@ -17,6 +17,9 @@
 - [x] Refactored testcontainers smoke test to reuse UI test functions
 - [x] Fixed compilation issues and container setup
 - [x] Successfully created working testcontainers smoke test infrastructure
+- [x] Separated containerized smoke tests into dedicated file (`tests/ui_smoke_containerized.rs`)
+- [x] Added `smoke-containerized` option to test runner script
+- [x] Cleaned up original smoke test file to only contain external app tests
 
 ## Pending Tasks
 
@@ -59,5 +62,8 @@ The `test-smoke-containerized` target has been successfully created and the infr
 - The CI workflow has been updated to use testcontainers for the database
 - Environment variable substitution has been added to config.toml for database URLs
 - The testcontainers smoke test now reuses the proven UI test functions
-- The app container starts but the application inside fails to respond to health checks
 - **SUCCESS**: We now have a working testcontainers smoke test infrastructure that compiles and runs successfully
+- **IMPROVEMENT**: Smoke tests are now properly separated:
+  - `tests/ui_smoke.rs` - for testing against a running application (requires external setup)
+  - `tests/ui_smoke_containerized.rs` - for fully containerized tests (no external dependencies)
+  - Test runner supports both: `./tests/run_tests.sh smoke` and `./tests/run_tests.sh smoke-containerized`
