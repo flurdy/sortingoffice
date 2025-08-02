@@ -3,7 +3,6 @@ use crate::{
     db, get_entity_or_not_found,
     i18n::get_translation,
     models::{PaginatedResult, User, UserForm},
-    render_template, render_template_with_title,
     templates::layout::BaseTemplate,
     templates::users::*,
     AppState,
@@ -16,6 +15,10 @@ use axum::{
 };
 use serde::Deserialize;
 use tracing::error;
+
+use crate::handlers::utils::{
+    get_current_db_pool, render_user_form_page, render_user_list_page, render_user_show_page,
+};
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -295,103 +298,46 @@ pub async fn build_user_form_template(
 }
 
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
-    let locale = crate::handlers::utils::get_user_locale(&headers);
-    // Get users with error handling
-    let users = match db::get_users(&pool) {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Parse pagination parameters
+    let page = 1; // Default to first page
+    let per_page = 20; // Default per page
+
+    let paginated_users = match db::get_users_paginated(&pool, page, per_page) {
         Ok(users) => users,
         Err(e) => {
             error!("Failed to retrieve users: {:?}", e);
-            vec![]
+            PaginatedResult::new(vec![], 0, 1, per_page)
         }
     };
-    // Dummy pagination for now
-    let paginated = PaginatedResult::new(users.clone(), users.len() as i64, 1, users.len() as i64);
-    let translations = crate::handlers::utils::get_translations_batch(
+
+    render_user_list_page(
+        paginated_users.items.clone(),
+        &paginated_users,
         &state,
         &locale,
-        &[
-            "users-title",
-            "users-description",
-            "users-add",
-            "users-table-header-username",
-            "users-table-header-domain",
-            "users-table-header-enabled",
-            "users-table-header-actions",
-            "status-active",
-            "status-inactive",
-            "action-view",
-            "users-enable-user",
-            "users-disable-user",
-            "users-empty-title",
-            "users-empty-description",
-        ],
+        &headers,
     )
-    .await;
-    let page_range: Vec<i64> = vec![1];
-    let max_item = users.len() as i64;
-    let pagination_translations =
-        crate::handlers::utils::get_pagination_translations(&state, &locale).await;
-    let content_template = UsersListTemplate {
-        title: translations["users-title"].to_string(),
-        description: translations["users-description"].to_string(),
-        add_user: translations["users-add"].to_string(),
-        table_header_username: translations["users-table-header-username"].to_string(),
-        table_header_domain: translations["users-table-header-domain"].to_string(),
-        table_header_enabled: translations["users-table-header-enabled"].to_string(),
-        table_header_actions: translations["users-table-header-actions"].to_string(),
-        status_active: translations["status-active"].to_string(),
-        status_inactive: translations["status-inactive"].to_string(),
-        action_view: translations["action-view"].to_string(),
-        enable_user: translations["users-enable-user"].to_string(),
-        disable_user: translations["users-disable-user"].to_string(),
-        empty_title: translations["users-empty-title"].to_string(),
-        empty_description: translations["users-empty-description"].to_string(),
-        users,
-        pagination: paginated,
-        page_range,
-        max_item,
-        pagination_previous: pagination_translations["pagination-previous"].clone(),
-        pagination_next: pagination_translations["pagination-next"].clone(),
-        pagination_showing: pagination_translations["pagination-showing"].clone(),
-        pagination_to: pagination_translations["pagination-to"].clone(),
-        pagination_of: pagination_translations["pagination-of"].clone(),
-        pagination_results: pagination_translations["pagination-results"].clone(),
-    };
-    render_template_with_title!(
-        content_template,
-        content_template.title,
-        &state,
-        &locale,
-        &headers
-    )
+    .await
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::language::get_user_locale(&headers);
     let form = UserForm {
-        id: "".to_string(),
-        password: "".to_string(),
-        name: "".to_string(),
-        maildir: "".to_string(),
-        home: "/var/spool/mail/maildir".to_string(),
+        id: String::new(),
+        password: String::new(),
+        name: String::new(),
+        maildir: String::new(),
+        home: String::new(),
         enabled: true,
         change_password: false,
     };
 
-    let content_template = build_user_form_template(&state, &locale, None, form, None).await;
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
-        &state,
-        &locale,
-        &headers,
-        "users-add-title".to_string(),
-    )
-    .await
+    render_user_form_page(form, None, "users-new-user", &state, &locale, &headers).await
 }
 
 pub async fn show(
@@ -399,18 +345,19 @@ pub async fn show(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
     let user = get_entity_or_not_found!(
         db::get_user(&pool, id),
         &state,
-        &crate::handlers::utils::get_user_locale(&headers),
+        &locale,
         "users-not-found"
     );
-    let locale = crate::handlers::utils::get_user_locale(&headers);
-    let content_template = build_user_show_template(&state, &locale, user).await;
-    render_template!(content_template, &state, &locale, &headers)
+
+    render_user_show_page(user, &state, &locale, &headers).await
 }
 
 pub async fn edit(
@@ -418,27 +365,21 @@ pub async fn edit(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let user = match db::get_user(&pool, id) {
-        Ok(user) => user,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "users",
-                "users-not-found",
-            )
-            .await;
-        }
-    };
+    let user = get_entity_or_not_found!(
+        db::get_user(&pool, id),
+        &state,
+        &locale,
+        "users-not-found"
+    );
 
     let form = UserForm {
         id: user.id.clone(),
-        password: "".to_string(), // Don't populate password for security
+        password: String::new(), // Don't populate password for security
         name: user.name.clone(),
         maildir: user.maildir.clone(),
         home: user.home.clone(),
@@ -446,17 +387,7 @@ pub async fn edit(
         change_password: user.change_password,
     };
 
-    let content_template = build_user_form_template(&state, &locale, Some(user), form, None).await;
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
-        &state,
-        &locale,
-        &headers,
-        "users-edit-title".to_string(),
-    )
-    .await
+    render_user_form_page(form, Some(user), "users-edit-user-title", &state, &locale, &headers).await
 }
 
 pub async fn create(

@@ -637,7 +637,7 @@ impl Default for PaginationParams {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PaginatedResult<T> {
     pub items: Vec<T>,
     pub total_count: i64,

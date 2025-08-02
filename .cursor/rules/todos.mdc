@@ -4,10 +4,22 @@ globs:
 alwaysApply: false
 ---
 
+Do not rewrite or reformat the todo list.
+
 Update the todo file with tick when finished a task.
+
+You can add sub tasks to implemented or new todos.
+
+You can add future outstanding todo tasks.
 
 Before starting a new todo ask for confirmation.
 
 Once started the first thing is to add an unchecked emoji to the todo task.
 
-do not move todos instead work your way down the list.
+Do not move todos instead work your way down the list.
+
+Do not spam the todos with notes, achievements and other irrelevant noise.
+
+If notes, status or achievements is necessary create a separate file.
+
+No todo can be marked done unless code has been checked, formatted and tested.
