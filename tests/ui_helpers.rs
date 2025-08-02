@@ -688,6 +688,20 @@ pub async fn create_user(
     )?;
     timeout30s!(add_user_btn.click(), "Click Add User button")?;
 
+    // Wait for HTMX request to complete and form to be loaded
+    println!("[CREATE] Waiting for HTMX form to load...");
+    tokio::time::sleep(Duration::from_millis(2000)).await;
+
+    // Wait for the form to appear in the main content
+    let form = timeout60s!(
+        driver.find(By::Css("form")),
+        "Wait for form to be loaded by HTMX"
+    )?;
+    println!("[CREATE] Form found and loaded");
+    
+    // Wait a bit more for any animations or JavaScript to complete
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+
     let user_id_input = timeout60s!(
         driver.find(By::Css("input[name='id']")),
         "Find user id input"
@@ -724,7 +738,7 @@ pub async fn create_user(
         "Find submit button for user"
     )?;
     timeout60s!(user_submit_btn.click(), "Submit user form")?;
-    tokio::time::sleep(Duration::from_millis(5000)).await;
+    tokio::time::sleep(Duration::from_millis(2000)).await;
 
     // After form submission, we should be redirected to the users list page
     // Verify the user appears in the list
@@ -741,45 +755,28 @@ pub async fn create_user(
     let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
     println!("[CREATE] 3. Current URL after user creation: {}", current_url);
 
-    // Verify the user appears in the list   
-    let main_content = timeout60s!(
-        driver.find(By::Id("main-content")),
-        "Find main content area"
-    )?;
-    let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    
-    println!(
-        "[CREATE] Checking if user {} appears in users list",
-        user_email
-    );
-    // println!("[CREATE] Main content: {}", main_content_text);
-    println!(
-        "[CREATE] Page source contains user email: {}",
-        main_content_text.contains(user_email)
-    );
+    // Verify the user appears in the list using pagination
+    let user_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/users",
+        user_email,
+        10, // max pages to check
+    ).await?;
 
-    if !main_content_text.contains(user_email) {
-        // Let's check if there are any error messages or if the page shows something else
-        if main_content_text.contains("error") || main_content_text.contains("Error") {
-            println!("[CREATE] Error detected in page source after user creation");
-        }
-        if main_content_text.contains("No users") {
-            println!("[CREATE] Page shows 'No users' - user creation may have failed");
-        }
-
-        return Err(anyhow::anyhow!(
-            "User {} was not found in the users list after creation. Current URL: {}. Page source: {}",
-            user_email,
-            current_url,
-            main_content_text
-        ));
+    if user_found {
+        println!(
+            "[CREATE] User {} successfully created and visible in list",
+            user_email
+        );
+        Ok(())
+    } else {
+        println!("[CREATE] User {} not found in paginated list - creation may have failed", user_email);
+        Err(anyhow::anyhow!(
+            "User {} not found in paginated list - creation may have failed",
+            user_email
+        ))
     }
-    println!(
-        "[CREATE] User {} successfully created and visible in list",
-        user_email
-    );
-
-    Ok(())
 }
 
 /// Check reports page
@@ -811,21 +808,24 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
         timeout60s!(driver.get(&users_url), "Navigate to users list page after re-auth")?;
     }
 
-    // Check if the user exists in the list by extracting just the main content area
-    let main_content = timeout60s!(
-        driver.find(By::Id("main-content")),
-        "Find main content area"
-    )?;
-    let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    
-    if !main_content_text.contains(user_email) {
+    // Check if the user exists in the list using pagination
+    let user_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/users",
+        user_email,
+        10, // max pages to check
+    ).await?;
+
+    if !user_found {
         return Err(anyhow::anyhow!(
-            "User {} not found in list - this indicates a problem with the creation process",
+            "User {} not found in paginated users list - cannot delete user",
             user_email
         ));
     }
 
-    // Find the specific user row and click its "View" link
+    // Now navigate to the specific page where the user was found and click its "View" link
+    // We need to find the user again on the current page to get its view link
     let view_link = timeout60s!(
         driver.find(By::XPath(&format!(
             "//tr[contains(., '{}')]//a[contains(@href, '/users/')]",

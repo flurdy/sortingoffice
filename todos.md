@@ -52,6 +52,7 @@ All major smoke test issues have been resolved! The environment smoke test now w
 - **✅ Fixed Deletion Functions**: 
   - Fixed domain deletion to use pagination and handle alerts
   - Fixed alias deletion to use pagination and handle alerts
+  - Fixed user deletion to use pagination and handle alerts
   - All deletion functions now work with paginated lists
 
 ## Remaining Tasks 📋
