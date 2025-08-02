@@ -384,27 +384,32 @@ pub async fn delete_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated delete request for ID: {}", relocated_id);
 
-    match db::delete_relocated(&pool, relocated_id) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::delete_relocated(&pool, relocated_id) },
+        &state,
+        &locale,
+        "delete relocated",
+        &relocated_id.to_string(),
+        "Successfully deleted relocated",
+    )
+    .await
+    {
         Ok(_) => {
             info!("Successfully deleted relocated entry ID: {}", relocated_id);
             Html("<script>window.location.href='/relocated';</script>".to_string())
         }
-        Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            Html(not_found_msg)
-        }
-        Err(e) => {
-            error!("Failed to delete relocated entry {}: {:?}", relocated_id, e);
-            let error_msg = get_translation(&state, &locale, "relocated-delete-error").await;
-            Html(error_msg)
-        }
+        Err(error) => error,
     }
 }
 
@@ -414,9 +419,12 @@ pub async fn toggle_enabled(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!(
@@ -424,7 +432,17 @@ pub async fn toggle_enabled(
         relocated_id
     );
 
-    match db::toggle_relocated_enabled(&pool, relocated_id) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_relocated_enabled(&pool, relocated_id) },
+        &state,
+        &locale,
+        "toggle relocated",
+        &relocated_id.to_string(),
+        "Successfully toggled relocated",
+    )
+    .await
+    {
         Ok(relocated) => {
             let enabled_text = if relocated.enabled {
                 get_translation(&state, &locale, "status-enabled").await
@@ -475,16 +493,6 @@ pub async fn toggle_enabled(
                 }
             }
         }
-        Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            Html(format!(
-                "<span class=\"text-danger\">{not_found_msg}</span>"
-            ))
-        }
-        Err(e) => {
-            error!("Failed to toggle relocated entry {}: {:?}", relocated_id, e);
-            let error_msg = get_translation(&state, &locale, "relocated-toggle-error").await;
-            Html(format!("<span class=\"text-danger\">{error_msg}</span>"))
-        }
+        Err(error) => error,
     }
 }

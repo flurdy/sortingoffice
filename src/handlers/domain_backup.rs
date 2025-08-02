@@ -523,16 +523,30 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
 
-    match db::delete_backup(&pool, id) {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::delete_backup(&pool, id) },
+        &state,
+        &locale,
+        "delete backup",
+        &id.to_string(),
+        "Successfully deleted backup",
+    )
+    .await
+    {
         Ok(_) => {
             // Redirect to domains page after deleting backup
             Html("<script>window.location.href='/domains';</script>".to_string())
         }
-        Err(_) => Html("Error deleting backup".to_string()),
+        Err(error) => error,
     }
 }
 
@@ -541,43 +555,76 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_backup_enabled(&pool, id) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_backup_enabled(&pool, id) },
+        &state,
+        &locale,
+        "toggle backup",
+        &id.to_string(),
+        "Successfully toggled backup",
+    )
+    .await
+    {
         Ok(_) => {
-            let backup = match db::get_backup(&pool, id) {
-                Ok(backup) => backup,
-                Err(_) => return Html("Backup not found".to_string()),
-            };
+            // Get updated backup using helper function
+            match crate::handlers::utils::get_entity_or_handle_error(
+                || async { db::get_backup(&pool, id) },
+                &state,
+                &locale,
+                "backups-not-found",
+            )
+            .await
+            {
+                Ok(backup) => {
+                    // Use helper function for translations
+                    let translations = crate::handlers::utils::get_entity_show_translations(
+                        &state, &locale, "backups",
+                    )
+                    .await;
 
-            let content_template = BackupShowTemplate {
-                title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
-                    .await,
-                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information")
-                    .await,
-                backup_details: get_translation(&state, &locale, "backups-backup-details").await,
-                domain: get_translation(&state, &locale, "backups-domain").await,
-                transport: get_translation(&state, &locale, "backups-transport").await,
-                status: get_translation(&state, &locale, "backups-status").await,
-                created: get_translation(&state, &locale, "backups-created").await,
-                modified: get_translation(&state, &locale, "backups-modified").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                edit_backup: get_translation(&state, &locale, "backups-edit-backup").await,
-                enable_backup: get_translation(&state, &locale, "backups-enable-backup").await,
-                disable_backup: get_translation(&state, &locale, "backups-disable-backup").await,
-                delete_backup: get_translation(&state, &locale, "backups-delete-backup").await,
-                delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
-                backup,
-            };
-            Html(content_template.render().unwrap())
+                    let content_template = BackupShowTemplate {
+                        title: translations["backups-show-title"].clone(),
+                        view_edit_settings: translations["backups-view-edit-settings"].clone(),
+                        back_to_domains: translations["domains-back-to-domains"].clone(),
+                        backup_information: translations["backups-backup-information"].clone(),
+                        backup_details: translations["backups-backup-details"].clone(),
+                        domain: translations["backups-domain"].clone(),
+                        transport: translations["backups-transport"].clone(),
+                        status: translations["backups-status"].clone(),
+                        created: translations["backups-created"].clone(),
+                        modified: translations["backups-modified"].clone(),
+                        status_active: translations["status-active"].clone(),
+                        status_inactive: translations["status-inactive"].clone(),
+                        edit_backup: translations["backups-edit-backup"].clone(),
+                        enable_backup: translations["backups-enable-backup"].clone(),
+                        disable_backup: translations["backups-disable-backup"].clone(),
+                        delete_backup: translations["backups-delete-backup"].clone(),
+                        delete_confirm: translations["backups-delete-confirm"].clone(),
+                        backup,
+                    };
+
+                    // Use helper function for template rendering
+                    crate::handlers::utils::render_show_template(
+                        content_template,
+                        &state,
+                        &locale,
+                        &headers,
+                    )
+                    .await
+                }
+                Err(error) => error,
+            }
         }
-        Err(_) => Html("Error toggling backup status".to_string()),
+        Err(error) => error,
     }
 }
 
