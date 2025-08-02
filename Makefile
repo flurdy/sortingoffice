@@ -51,6 +51,15 @@ help:
 	@echo "  make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "  make test-all   - Run all tests (unit + integration + security + api + UI)"
 	@echo ""
+	@echo "SSH Tunnel Management:"
+	@echo "  make tunnel-prod            - Start production SSH tunnel"
+	@echo "  make tunnel-staging         - Start staging SSH tunnel"
+	@echo "  make tunnel-backup          - Start backup SSH tunnel"
+	@echo "  make tunnel-all             - Start all SSH tunnels"
+	@echo "  make tunnel-stop            - Stop all SSH tunnels"
+	@echo "  make tunnel-status          - Show tunnel status"
+	@echo "  make tunnel-logs            - Show tunnel logs"
+	@echo ""
 	@echo "Code Quality:"
 	@echo "  make fmt        - Format code with cargo fmt"
 	@echo "  make check      - Check code compilation"
@@ -255,6 +264,40 @@ info:
 	@echo "  - Sorting Office: http://localhost:3000"
 	@echo "  - phpMyAdmin: http://localhost:8080"
 	@echo "  - MySQL: localhost:3306"
+	@echo ""
+	@echo "SSH Tunnels:"
+	@echo "  - Production: localhost:3306"
+	@echo "  - Staging: localhost:3307"
+	@echo "  - Backup: localhost:3308"
+
+# SSH Tunnel Management
+tunnel-prod:
+	@echo "Starting production SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-prod
+
+tunnel-staging:
+	@echo "Starting staging SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-staging
+
+tunnel-backup:
+	@echo "Starting backup SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-backup
+
+tunnel-all:
+	@echo "Starting all SSH tunnels..."
+	@docker-compose -f docker-compose.tunnels.yml up -d
+
+tunnel-stop:
+	@echo "Stopping all SSH tunnels..."
+	@docker-compose -f docker-compose.tunnels.yml down
+
+tunnel-status:
+	@echo "SSH Tunnel Status:"
+	@docker-compose -f docker-compose.tunnels.yml ps
+
+tunnel-logs:
+	@echo "SSH Tunnel Logs:"
+	@docker-compose -f docker-compose.tunnels.yml logs
 
 # Test organization:
 #   src/tests/           - Unit and integration test modules

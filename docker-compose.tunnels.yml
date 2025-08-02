@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # SSH Tunnel for Production Database
+  tunnel-prod:
+    image: alpine:latest
+    container_name: sortingoffice-tunnel-prod
+    restart: unless-stopped
+    volumes:
+      - ~/.ssh:/root/.ssh:ro
+      - ./scripts:/scripts:ro
+    environment:
+      - SSH_HOST=${PROD_SSH_HOST:-your-prod-server.com}
+      - SSH_USER=${PROD_SSH_USER:-root}
+      - SSH_PORT=${PROD_SSH_PORT:-22}
+      - LOCAL_PORT=${PROD_LOCAL_PORT:-3306}
+      - REMOTE_PORT=${PROD_REMOTE_PORT:-3306}
+      - SSH_KEY_FILE=${PROD_SSH_KEY_FILE:-~/.ssh/prod_key}
+    command: >
+      sh -c "
+        apk add --no-cache openssh-client &&
+        ssh -i $SSH_KEY_FILE 
+             -L $LOCAL_PORT:localhost:$REMOTE_PORT 
+             -N -f 
+             -o ExitOnForwardFailure=yes 
+             -o ServerAliveInterval=60 
+             -o ServerAliveCountMax=3 
+             -o StrictHostKeyChecking=no 
+             $SSH_USER@$SSH_HOST -p $SSH_PORT &&
+        echo 'Production tunnel established' &&
+        tail -f /dev/null
+      "
+    networks:
+      - sortingoffice-network
+
+  # SSH Tunnel for Staging Database
+  tunnel-staging:
+    image: alpine:latest
+    container_name: sortingoffice-tunnel-staging
+    restart: unless-stopped
+    volumes:
+      - ~/.ssh:/root/.ssh:ro
+      - ./scripts:/scripts:ro
+    environment:
+      - SSH_HOST=${STAGING_SSH_HOST:-your-staging-server.com}
+      - SSH_USER=${STAGING_SSH_USER:-root}
+      - SSH_PORT=${STAGING_SSH_PORT:-22}
+      - LOCAL_PORT=${STAGING_LOCAL_PORT:-3307}
+      - REMOTE_PORT=${STAGING_REMOTE_PORT:-3306}
+      - SSH_KEY_FILE=${STAGING_SSH_KEY_FILE:-~/.ssh/staging_key}
+    command: >
+      sh -c "
+        apk add --no-cache openssh-client &&
+        ssh -i $SSH_KEY_FILE 
+             -L $LOCAL_PORT:localhost:$REMOTE_PORT 
+             -N -f 
+             -o ExitOnForwardFailure=yes 
+             -o ServerAliveInterval=60 
+             -o ServerAliveCountMax=3 
+             -o StrictHostKeyChecking=no 
+             $SSH_USER@$SSH_HOST -p $SSH_PORT &&
+        echo 'Staging tunnel established' &&
+        tail -f /dev/null
+      "
+    networks:
+      - sortingoffice-network
+
+  # SSH Tunnel for Backup Database
+  tunnel-backup:
+    image: alpine:latest
+    container_name: sortingoffice-tunnel-backup
+    restart: unless-stopped
+    volumes:
+      - ~/.ssh:/root/.ssh:ro
+      - ./scripts:/scripts:ro
+    environment:
+      - SSH_HOST=${BACKUP_SSH_HOST:-your-backup-server.com}
+      - SSH_USER=${BACKUP_SSH_USER:-root}
+      - SSH_PORT=${BACKUP_SSH_PORT:-22}
+      - LOCAL_PORT=${BACKUP_LOCAL_PORT:-3308}
+      - REMOTE_PORT=${BACKUP_REMOTE_PORT:-3306}
+      - SSH_KEY_FILE=${BACKUP_SSH_KEY_FILE:-~/.ssh/backup_key}
+    command: >
+      sh -c "
+        apk add --no-cache openssh-client &&
+        ssh -i $SSH_KEY_FILE 
+             -L $LOCAL_PORT:localhost:$REMOTE_PORT 
+             -N -f 
+             -o ExitOnForwardFailure=yes 
+             -o ServerAliveInterval=60 
+             -o ServerAliveCountMax=3 
+             -o StrictHostKeyChecking=no 
+             $SSH_USER@$SSH_HOST -p $SSH_PORT &&
+        echo 'Backup tunnel established' &&
+        tail -f /dev/null
+      "
+    networks:
+      - sortingoffice-network
+
+  # Tunnel Health Check Service
+  tunnel-health:
+    image: alpine:latest
+    container_name: sortingoffice-tunnel-health
+    restart: unless-stopped
+    volumes:
+      - ./scripts:/scripts:ro
+    environment:
+      - PROD_PORT=${PROD_LOCAL_PORT:-3306}
+      - STAGING_PORT=${STAGING_LOCAL_PORT:-3307}
+      - BACKUP_PORT=${BACKUP_LOCAL_PORT:-3308}
+    command: >
+      sh -c "
+        apk add --no-cache netcat-openbsd &&
+        while true; do
+          echo 'Checking tunnel health...'
+          
+          # Check production tunnel
+          if nc -z localhost $PROD_PORT 2>/dev/null; then
+            echo '✓ Production tunnel is healthy'
+          else
+            echo '✗ Production tunnel is down'
+          fi
+          
+          # Check staging tunnel
+          if nc -z localhost $STAGING_PORT 2>/dev/null; then
+            echo '✓ Staging tunnel is healthy'
+          else
+            echo '✗ Staging tunnel is down'
+          fi
+          
+          # Check backup tunnel
+          if nc -z localhost $BACKUP_PORT 2>/dev/null; then
+            echo '✓ Backup tunnel is healthy'
+          else
+            echo '✗ Backup tunnel is down'
+          fi
+          
+          sleep 30
+        done
+      "
+    networks:
+      - sortingoffice-network
+
+networks:
+  sortingoffice-network:
+    driver: bridge 
