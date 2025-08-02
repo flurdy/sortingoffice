@@ -10,7 +10,7 @@ use crate::{
     db,
     handlers::{
         language::get_user_locale,
-        utils::{get_current_db_pool, get_translations_batch, handle_database_error},
+        utils::{get_translations_batch, handle_database_error},
     },
     i18n::get_translation,
     models::{PaginatedResult, PaginationParams},
@@ -42,18 +42,22 @@ pub async fn list(
     headers: HeaderMap,
     Query(params): Query<PaginationParams>,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
     let sort_by = params.sort_by.as_deref();
     let sort_order = params.sort_order.as_deref();
+
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
+
     let paginated_aliases =
         match db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order) {
             Ok(aliases) => aliases,
             Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
         };
+
     let locale = get_user_locale(&headers);
 
     // Use the new resource-specific helper function
@@ -115,9 +119,11 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
+
     let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
         Err(_) => {
@@ -130,6 +136,7 @@ pub async fn show(
             .await;
         }
     };
+
     let locale = get_user_locale(&headers);
 
     // Extract domain from alias mail and look it up
@@ -146,9 +153,10 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
@@ -182,9 +190,10 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<crate::models::AliasForm>,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     // Validate alias mail using helper function
     if let Err(error_html) = crate::handlers::utils::validate_alias_form_field(
@@ -300,9 +309,10 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<crate::models::AliasForm>,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     // Validate alias mail
     match crate::validation::validate_alias_mail(&form.mail) {
@@ -493,9 +503,10 @@ pub async fn toggle_enabled_list(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
             let aliases = db::get_aliases(&pool).unwrap_or_default();
@@ -517,9 +528,10 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
             let alias = match db::get_alias(&pool, id) {
@@ -552,9 +564,10 @@ pub async fn toggle_enabled_domain_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
             let alias = match db::get_alias(&pool, id) {
@@ -592,9 +605,10 @@ pub async fn search(
     headers: HeaderMap,
     Query(query): Query<AliasSearchQuery>,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     // Get the query string
     let query_string = if let Some(alias_query) = &query.alias {
@@ -688,9 +702,10 @@ pub async fn domain_search(
     headers: HeaderMap,
     Query(query): Query<DomainSearchQuery>,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     let query_string = query.domain.unwrap_or_default();
 

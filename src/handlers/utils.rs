@@ -19,10 +19,7 @@ pub fn render_template_safely<T: Template>(template: T) -> Result<String, String
 }
 
 /// Helper function to get current database info without unnecessary cloning
-pub fn get_current_db_info_optimized(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> (String, String) {
+pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     let current_db_label = state
@@ -34,6 +31,73 @@ pub fn get_current_db_info_optimized(
         .unwrap_or_else(|| current_db_id.clone());
 
     (current_db_label, current_db_id)
+}
+
+/// Helper function to get database pool with consistent error handling
+pub async fn get_db_pool_or_handle_error(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::DbPool, Html<String>> {
+    match get_current_db_pool(state, headers).await {
+        Ok(pool) => Ok(pool),
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            Err(Html("Database connection error".to_string()))
+        }
+    }
+}
+
+/// Helper function to handle database operations with consistent error handling
+pub async fn handle_db_operation<T, F, Fut>(
+    operation: F,
+    state: &AppState,
+    headers: &HeaderMap,
+    error_message: &str,
+) -> Result<T, Html<String>>
+where
+    F: FnOnce(&crate::DbPool) -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    let pool = get_db_pool_or_handle_error(state, headers).await?;
+
+    match operation(&pool).await {
+        Ok(result) => Ok(result),
+        Err(e) => {
+            error!("Database operation failed: {} - {:?}", error_message, e);
+            Err(Html(format!(
+                "Database operation failed: {}",
+                error_message
+            )))
+        }
+    }
+}
+
+/// Helper function to handle entity retrieval with not found handling
+pub async fn get_entity_or_not_found<T, F, Fut>(
+    entity_fetch: F,
+    state: &AppState,
+    headers: &HeaderMap,
+    entity_name: &str,
+    not_found_key: &str,
+) -> Result<T, Html<String>>
+where
+    F: FnOnce(&crate::DbPool) -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    let pool = get_db_pool_or_handle_error(state, headers).await?;
+
+    match entity_fetch(&pool).await {
+        Ok(entity) => Ok(entity),
+        Err(Error::NotFound) => {
+            let locale = get_user_locale(headers);
+            let error_message = get_translation(state, &locale, not_found_key).await;
+            Err(Html(error_message))
+        }
+        Err(e) => {
+            error!("Failed to get {}: {:?}", entity_name, e);
+            Err(Html(format!("Failed to retrieve {}", entity_name)))
+        }
+    }
 }
 
 /// Macro to fetch multiple translations at once

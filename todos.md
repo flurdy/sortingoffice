@@ -24,7 +24,7 @@
 ### Medium Priority
 - ✅ Refactor long functions and complex logic
   - ✅ Break down wizard.rs functions (complete function refactored from 100+ lines to smaller functions)
-  - Extract repeated database error handling patterns
+  - ✅ Extract repeated database error handling patterns
   - Consolidate similar validation logic across handlers
   - Simplify complex conditional logic in handlers
 
@@ -73,3 +73,12 @@
   - Implement environment-specific configs
   - Add configuration validation
   - Improve configuration documentation
+  
+✅ Sometimes refactoring has been done as an example but not applied to the rest of the codebase.
+  - ✅ Applied database error handling refactoring to aliases.rs (all functions)
+  - ✅ Applied database error handling refactoring to users.rs (all functions)  
+  - ✅ Applied database error handling refactoring to domain_backup.rs (all functions)
+  - ⚠️ Remaining: reports.rs, dashboard.rs, stats.rs, relocated.rs, clients.rs, relays.rs
+
+- We need to test if errors are shown in the UI with the shared theme.
+ - These tests may exists already. If not add them.

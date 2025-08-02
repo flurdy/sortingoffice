@@ -10,9 +10,7 @@ use axum::{
 };
 use log::error;
 
-use crate::handlers::utils::{
-    get_current_db_pool, render_backup_form_page, render_backup_show_page,
-};
+use crate::handlers::utils::{render_backup_form_page, render_backup_show_page};
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -30,9 +28,10 @@ pub async fn show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let backup = get_entity_or_not_found!(
@@ -50,9 +49,10 @@ pub async fn edit(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let backup = get_entity_or_not_found!(
@@ -87,9 +87,10 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -249,9 +250,10 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<BackupForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -493,9 +495,10 @@ pub async fn toggle_enabled_show(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
     match db::toggle_backup_enabled(&pool, id) {
         Ok(_) => {

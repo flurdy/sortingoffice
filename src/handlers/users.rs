@@ -16,9 +16,7 @@ use axum::{
 use serde::Deserialize;
 use tracing::error;
 
-use crate::handlers::utils::{
-    get_current_db_pool, render_user_form_page, render_user_list_page, render_user_show_page,
-};
+use crate::handlers::utils::{render_user_form_page, render_user_list_page, render_user_show_page};
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -298,9 +296,10 @@ pub async fn build_user_form_template(
 }
 
 pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Parse pagination parameters
@@ -345,9 +344,10 @@ pub async fn show(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let user =
@@ -361,9 +361,10 @@ pub async fn edit(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let user =
@@ -531,9 +532,10 @@ pub async fn create(
         }
     }
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     // Create user directly (no domain validation needed)
     match db::create_user(&pool, form.clone()) {
@@ -607,9 +609,11 @@ pub async fn update(
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
 
         // Get existing user for form display
-        let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-            .await
-            .expect("Failed to get database pool");
+        let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await
+        {
+            Ok(pool) => pool,
+            Err(error_html) => return error_html,
+        };
         let existing_user = match db::get_user(&pool, id.clone()) {
             Ok(user) => user,
             Err(_) => return Html("User not found".to_string()),
@@ -643,9 +647,10 @@ pub async fn update(
         }
     }
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // First get the existing user
@@ -928,9 +933,10 @@ pub async fn change_password_form(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => return Html("User not found".to_string()),
@@ -947,9 +953,10 @@ pub async fn change_password_post(
     headers: HeaderMap,
     Form(form): Form<ChangePasswordForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
@@ -1017,9 +1024,10 @@ pub async fn toggle_change_password(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let user = match db::get_user(&pool, id.clone()) {

@@ -896,10 +896,7 @@ fn calculate_total_aliases(session: &DomainWizardSession) -> i32 {
 }
 
 // Helper function to get domain IDs from domain names
-async fn get_domain_ids_from_names(
-    pool: &DbPool,
-    domain_names: &[String],
-) -> Vec<i32> {
+async fn get_domain_ids_from_names(pool: &DbPool, domain_names: &[String]) -> Vec<i32> {
     let mut domain_ids = Vec::new();
     for domain_name in domain_names {
         match db::get_domain_by_name(pool, domain_name) {
