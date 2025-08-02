@@ -148,8 +148,13 @@ pub async fn show_client(
     let client = match db::get_client(&pool, client_id) {
         Ok(client) => client,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "clients-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "clients",
+                "clients-not-found",
+            )
+            .await;
         }
     };
 
@@ -281,8 +286,13 @@ pub async fn edit_client_form(
     let client = match db::get_client(&pool, client_id) {
         Ok(client) => client,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "clients-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "clients",
+                "clients-not-found",
+            )
+            .await;
         }
     };
 

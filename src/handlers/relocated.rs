@@ -292,8 +292,13 @@ pub async fn edit_form(
     let relocated = match db::get_relocated_by_id(&pool, relocated_id) {
         Ok(relocated) => relocated,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "relocated",
+                "relocated-not-found",
+            )
+            .await;
         }
     };
 

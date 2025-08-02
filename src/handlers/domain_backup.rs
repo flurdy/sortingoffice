@@ -62,7 +62,15 @@ pub async fn show(
 
     let backup = match db::get_backup(&pool, id) {
         Ok(backup) => backup,
-        Err(_) => return Html("Backup not found".to_string()),
+        Err(_) => {
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "backups",
+                "backups-not-found",
+            )
+            .await;
+        }
     };
 
     let content_template = BackupShowTemplate {
@@ -98,9 +106,8 @@ pub async fn show(
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
         .unwrap_or_else(|| current_db_id.clone());
-
     let template = BaseTemplate::with_i18n(
-        get_translation(&state, &locale, "backups-title").await,
+        get_translation(&state, &locale, "backups-show-title").await,
         content,
         &state,
         &locale,
@@ -125,7 +132,15 @@ pub async fn edit(
 
     let backup = match db::get_backup(&pool, id) {
         Ok(backup) => backup,
-        Err(_) => return Html("Backup not found".to_string()),
+        Err(_) => {
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "backups",
+                "backups-not-found",
+            )
+            .await;
+        }
     };
 
     let form = BackupForm {

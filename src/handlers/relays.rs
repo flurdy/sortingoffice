@@ -133,8 +133,13 @@ pub async fn show_relay(
     let relay = match db::get_relay(&pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "relays",
+                "relays-not-found",
+            )
+            .await;
         }
     };
 
@@ -226,7 +231,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     .await;
 
     let content_template = RelayFormTemplate {
-        title: &form_translations["relays-new-relay"],
+        title: &form_translations["relays-add-relay"],
         action: "/relays",
         form,
         field_recipient: &field_translations["relays-field-recipient"],
@@ -247,7 +252,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         &state,
         &locale,
         &headers,
-        form_translations["relays-add-title"].clone(),
+        form_translations["relays-add-relay"].clone(),
     )
     .await
 }
@@ -263,7 +268,7 @@ pub async fn create_relay(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    debug!("Handling relay create request");
+    debug!("Handling relay creation request");
 
     match db::create_relay(&pool, form) {
         Ok(relay) => {
@@ -297,8 +302,13 @@ pub async fn edit_form(
     let relay = match db::get_relay(&pool, relay_id) {
         Ok(relay) => relay,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "relays",
+                "relays-not-found",
+            )
+            .await;
         }
     };
 
