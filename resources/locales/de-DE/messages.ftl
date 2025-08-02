@@ -379,10 +379,12 @@ stats-recent-clients = Letzte Clients
 # Forms
 form-domain = Domain
 form-transport = Transport
+form-enabled = Aktiviert
 
 # Form validation
 validation-domain-required = Domain-Name ist erforderlich. Bitte geben Sie einen gültigen Domain-Namen ein.
 validation-username-required = Benutzername ist erforderlich.
+validation-password-required = Passwort ist erforderlich.
 validation-domain-invalid = Ungültiger Domain-Name. Bitte überprüfen Sie das Format.
 validation-alias-mail-invalid = Ungültige Alias-E-Mail-Adresse. Bitte überprüfen Sie das Format.
 validation-alias-destination-invalid = Ungültiges Alias-Ziel. Bitte überprüfen Sie das Format.

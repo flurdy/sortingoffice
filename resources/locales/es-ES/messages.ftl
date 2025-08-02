@@ -375,10 +375,12 @@ stats-recent-clients = Clientes Recientes
 # Forms
 form-domain = Dominio
 form-transport = Transporte
+form-enabled = Habilitado
 
 # Form validation
 validation-domain-required = El nombre del dominio es requerido. Por favor ingrese un nombre de dominio válido.
 validation-username-required = El nombre de usuario es requerido.
+validation-password-required = La contraseña es requerida.
 validation-domain-invalid = Nombre de dominio inválido. Por favor verifique el formato.
 validation-alias-mail-invalid = Dirección de correo de alias inválida. Por favor verifique el formato.
 validation-alias-destination-invalid = Destino de alias inválido. Por favor verifique el formato.

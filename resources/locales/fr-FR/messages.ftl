@@ -570,6 +570,7 @@ form-cancel = Annuler
 form-create = Créer
 form-update = Mettre à Jour
 form-active = Actif
+form-enabled = Activé
 form-placeholder-domain = exemple.com
 form-placeholder-transport = virtual
 form-placeholder-username = utilisateur
@@ -615,6 +616,7 @@ error-validation-description = Les données fournies ne sont pas valides.
 # Form validation
 validation-domain-required = Le nom de domaine est requis. Veuillez entrer un nom de domaine valide.
 validation-username-required = Le nom d'utilisateur est requis.
+validation-password-required = Le mot de passe est requis.
 validation-domain-invalid = Nom de domaine invalide. Veuillez vérifier le format.
 validation-alias-mail-invalid = Adresse e-mail d'alias invalide. Veuillez vérifier le format.
 validation-alias-destination-invalid = Destination d'alias invalide. Veuillez vérifier le format.

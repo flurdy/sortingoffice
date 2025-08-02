@@ -1186,7 +1186,7 @@ where
             error!("Failed to {} {}: {:?}", entity_name, identifier, e);
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to {} {}", entity_name, identifier),
+                format!("Failed to {entity_name} {identifier}"),
             ))
         }
     }
@@ -1194,6 +1194,7 @@ where
 
 /// Helper function to validate form and handle errors consistently
 pub async fn validate_form_and_handle_error<F, V, E>(
+    _state: &AppState,
     form: &F,
     validator: V,
     state: &AppState,

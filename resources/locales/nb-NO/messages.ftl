@@ -603,6 +603,7 @@ validation-already-exists = Eksisterer allerede
 validation-not-found = Ikke funnet
 validation-domain-required = Domenaavn er påkrevd. Vennligst skriv inn et gyldig domenaavn.
 validation-username-required = Brukernavn er påkrevd.
+validation-password-required = Passord er påkrevd.
 validation-domain-invalid = Ugyldig domenaavn. Vennligst sjekk formatet.
 validation-alias-mail-invalid = Ugyldig alias e-postadresse. Vennligst sjekk formatet.
 validation-alias-destination-invalid = Ugyldig alias destinasjon. Vennligst sjekk formatet.

@@ -57,6 +57,7 @@ form-cancel = Cancel
 form-create = Create
 form-update = Update
 form-active = Active
+form-enabled = Enabled
 form-placeholder-domain = example.com
 form-placeholder-transport = virtual
 form-tooltip-domain = The domain name (e.g., example.com)
@@ -71,6 +72,7 @@ form-transport = Transport
 # Form validation
 validation-domain-required = Domain name is required. Please enter a valid domain name.
 validation-username-required = Username is required.
+validation-password-required = Password is required.
 validation-domain-invalid = Invalid domain name. Please check the format.
 validation-alias-mail-invalid = Invalid alias email address. Please check the format.
 validation-alias-destination-invalid = Invalid alias destination. Please check the format.
