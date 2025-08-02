@@ -14,38 +14,25 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let title = crate::i18n::get_translation(&state, &locale, "login-title").await;
-    let user_id = crate::i18n::get_translation(&state, &locale, "login-user-id").await;
-    let password = crate::i18n::get_translation(&state, &locale, "login-password").await;
-    let sign_in = crate::i18n::get_translation(&state, &locale, "login-sign-in").await;
-    let app_title = crate::i18n::get_translation(&state, &locale, "app-title").await;
-    let app_subtitle = crate::i18n::get_translation(&state, &locale, "app-subtitle").await;
-    let language_selector =
-        crate::i18n::get_translation(&state, &locale, "language-selector").await;
-    let theme_toggle = crate::i18n::get_translation(&state, &locale, "theme-toggle").await;
-    let language_english = crate::i18n::get_translation(&state, &locale, "language-english").await;
-    let language_spanish = crate::i18n::get_translation(&state, &locale, "language-spanish").await;
-    let language_french = crate::i18n::get_translation(&state, &locale, "language-french").await;
-    let language_norwegian =
-        crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
-    let language_german = crate::i18n::get_translation(&state, &locale, "language-german").await;
+    // Get all login translations using consolidated helper function
+    let translations = crate::handlers::utils::get_login_translations(&state, &locale).await;
 
     let template = LoginTemplate {
-        title: &title,
+        title: &translations["login-title"],
         error: "",
-        login_title: &title,
-        user_id: &user_id,
-        password: &password,
-        sign_in: &sign_in,
-        app_title: &app_title,
-        app_subtitle: &app_subtitle,
-        language_selector: &language_selector,
-        theme_toggle: &theme_toggle,
-        language_english: &language_english,
-        language_spanish: &language_spanish,
-        language_french: &language_french,
-        language_norwegian: &language_norwegian,
-        language_german: &language_german,
+        login_title: &translations["login-title"],
+        user_id: &translations["login-user-id"],
+        password: &translations["login-password"],
+        sign_in: &translations["login-sign-in"],
+        app_title: &translations["app-title"],
+        app_subtitle: &translations["app-subtitle"],
+        language_selector: &translations["language-selector"],
+        theme_toggle: &translations["theme-toggle"],
+        language_english: &translations["language-english"],
+        language_spanish: &translations["language-spanish"],
+        language_french: &translations["language-french"],
+        language_norwegian: &translations["language-norwegian"],
+        language_german: &translations["language-german"],
         current_locale: &locale,
     };
 
@@ -97,42 +84,25 @@ pub async fn login(
                 .unwrap());
         } else {
             // Return full page for regular requests
-            let title = crate::i18n::get_translation(&state, &locale, "login-title").await;
-            let user_id = crate::i18n::get_translation(&state, &locale, "login-user-id").await;
-            let password = crate::i18n::get_translation(&state, &locale, "login-password").await;
-            let sign_in = crate::i18n::get_translation(&state, &locale, "login-sign-in").await;
-            let app_title = crate::i18n::get_translation(&state, &locale, "app-title").await;
-            let app_subtitle = crate::i18n::get_translation(&state, &locale, "app-subtitle").await;
-            let language_selector =
-                crate::i18n::get_translation(&state, &locale, "language-selector").await;
-            let theme_toggle = crate::i18n::get_translation(&state, &locale, "theme-toggle").await;
-            let language_english =
-                crate::i18n::get_translation(&state, &locale, "language-english").await;
-            let language_spanish =
-                crate::i18n::get_translation(&state, &locale, "language-spanish").await;
-            let language_french =
-                crate::i18n::get_translation(&state, &locale, "language-french").await;
-            let language_norwegian =
-                crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
-            let language_german =
-                crate::i18n::get_translation(&state, &locale, "language-german").await;
+            let translations =
+                crate::handlers::utils::get_login_translations(&state, &locale).await;
 
             let template = LoginTemplate {
-                title: &title,
+                title: &translations["login-title"],
                 error: &error,
-                login_title: &title,
-                user_id: &user_id,
-                password: &password,
-                sign_in: &sign_in,
-                app_title: &app_title,
-                app_subtitle: &app_subtitle,
-                language_selector: &language_selector,
-                theme_toggle: &theme_toggle,
-                language_english: &language_english,
-                language_spanish: &language_spanish,
-                language_french: &language_french,
-                language_norwegian: &language_norwegian,
-                language_german: &language_german,
+                login_title: &translations["login-title"],
+                user_id: &translations["login-user-id"],
+                password: &translations["login-password"],
+                sign_in: &translations["login-sign-in"],
+                app_title: &translations["app-title"],
+                app_subtitle: &translations["app-subtitle"],
+                language_selector: &translations["language-selector"],
+                theme_toggle: &translations["theme-toggle"],
+                language_english: &translations["language-english"],
+                language_spanish: &translations["language-spanish"],
+                language_french: &translations["language-french"],
+                language_norwegian: &translations["language-norwegian"],
+                language_german: &translations["language-german"],
                 current_locale: &locale,
             };
             return Err(Html(template.render().unwrap()));
@@ -410,9 +380,7 @@ pub async fn require_auth(
     if is_authenticated(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!(
-            "🔐 [AUTH] ❌ Authentication required but not authenticated for path: {path}"
-        );
+        println!("🔐 [AUTH] ❌ Authentication required but not authenticated for path: {path}");
 
         // Redirect to login
         Ok(Response::builder()
@@ -435,9 +403,7 @@ pub async fn require_edit_permissions(
     if has_edit_permissions(&headers) {
         Ok(next.run(request).await)
     } else {
-        println!(
-            "🔐 [AUTH] ❌ Insufficient edit permissions for path: {path}"
-        );
+        println!("🔐 [AUTH] ❌ Insufficient edit permissions for path: {path}");
 
         // Return 403 Forbidden
         Ok(Response::builder()

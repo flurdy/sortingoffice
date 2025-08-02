@@ -1,11 +1,14 @@
+use crate::models::PaginatedResult;
 use crate::{i18n::get_translation, AppState};
 use askama::Template;
 use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::Html;
+use diesel::result::Error;
 use std::collections::HashMap;
 use tracing::debug;
 use tracing::error;
+use tracing::info;
 
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
@@ -350,7 +353,8 @@ pub async fn get_status_translations(
 ) -> HashMap<String, String> {
     let mut translations = HashMap::new();
 
-    let status_keys = if entity == "clients" {
+    // Entity-specific status keys
+    let entity_status_keys = if entity == "clients" {
         vec![
             format!("{entity}-status-ok"),
             format!("{entity}-status-reject"),
@@ -370,7 +374,24 @@ pub async fn get_status_translations(
         ]
     };
 
-    for key in status_keys {
+    // Common status keys
+    let common_status_keys = [
+        "status-enabled",
+        "status-disabled",
+        "status-active",
+        "status-inactive",
+        "status-ok",
+        "status-reject",
+    ];
+
+    // Combine entity-specific and common status keys
+    let all_keys = [
+        entity_status_keys,
+        common_status_keys.iter().map(|s| s.to_string()).collect(),
+    ]
+    .concat();
+
+    for key in all_keys {
         let value = get_translation(state, locale, &key).await;
         translations.insert(key, value);
     }
@@ -386,7 +407,8 @@ pub async fn get_action_translations(
 ) -> HashMap<String, String> {
     let mut translations = HashMap::new();
 
-    let action_keys = [
+    // Entity-specific action keys
+    let entity_action_keys = [
         format!("{entity}-action-view"),
         format!("{entity}-action-edit"),
         format!("{entity}-action-enable"),
@@ -396,7 +418,28 @@ pub async fn get_action_translations(
         format!("{entity}-delete-confirm"),
     ];
 
-    for key in action_keys {
+    // Common action keys
+    let common_action_keys = [
+        "action-view",
+        "action-edit",
+        "action-enable",
+        "action-disable",
+        "action-delete",
+        "action-save",
+        "action-cancel",
+    ];
+
+    // Combine entity-specific and common action keys
+    let all_keys = [
+        entity_action_keys
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>(),
+        common_action_keys.iter().map(|s| s.to_string()).collect(),
+    ]
+    .concat();
+
+    for key in all_keys {
         let value = get_translation(state, locale, &key).await;
         translations.insert(key, value);
     }
@@ -778,5 +821,381 @@ where
         .await
         .unwrap();
         Html(template.render().unwrap())
+    }
+}
+
+/// Helper function to fetch entity-specific translations for list pages
+pub async fn get_entity_list_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    // Common entity list translations
+    let entity_keys = vec![
+        format!("{entity}-title"),
+        format!("{entity}-add"),
+        format!("{entity}-list-description"),
+        format!("{entity}-empty-title"),
+        format!("{entity}-empty-description"),
+        format!("{entity}-not-found"),
+        format!("{entity}-not-available"),
+    ];
+
+    // Table header translations
+    let table_header_keys = vec![
+        format!("{entity}-table-header-id"),
+        format!("{entity}-table-header-name"),
+        format!("{entity}-table-header-domain"),
+        format!("{entity}-table-header-email"),
+        format!("{entity}-table-header-enabled"),
+        format!("{entity}-table-header-status"),
+        format!("{entity}-table-header-actions"),
+        format!("{entity}-table-header-created"),
+        format!("{entity}-table-header-modified"),
+    ];
+
+    // Combine all keys
+    let all_keys = [entity_keys, table_header_keys].concat();
+
+    for key in all_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch entity-specific translations for show pages
+pub async fn get_entity_show_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    // Common show page translations
+    let show_keys = vec![
+        format!("{entity}-show-title"),
+        format!("{entity}-show-title-label"),
+        format!("{entity}-info-title"),
+        format!("{entity}-info-description"),
+        format!("{entity}-view-edit-settings"),
+        format!("{entity}-back-to-list"),
+        format!("{entity}-back-to-{entity}"),
+        format!("{entity}-delete-confirm"),
+    ];
+
+    // Field translations
+    let field_keys = vec![
+        format!("{entity}-field-id"),
+        format!("{entity}-field-name"),
+        format!("{entity}-field-domain"),
+        format!("{entity}-field-email"),
+        format!("{entity}-field-enabled"),
+        format!("{entity}-field-status"),
+        format!("{entity}-field-created"),
+        format!("{entity}-field-modified"),
+        format!("{entity}-field-recipient"),
+        format!("{entity}-field-old-address"),
+        format!("{entity}-field-new-address"),
+    ];
+
+    // Combine all keys
+    let all_keys = [show_keys, field_keys].concat();
+
+    for key in all_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch entity-specific error translations
+pub async fn get_entity_error_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut translations = HashMap::new();
+
+    let error_keys = vec![
+        format!("{entity}-create-error"),
+        format!("{entity}-update-error"),
+        format!("{entity}-delete-error"),
+        format!("{entity}-toggle-error"),
+        format!("{entity}-not-found"),
+        format!("{entity}-not-available"),
+    ];
+
+    for key in error_keys {
+        let value = get_translation(state, locale, &key).await;
+        translations.insert(key, value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch all common translations for an entity
+pub async fn get_entity_all_translations(
+    state: &AppState,
+    locale: &str,
+    entity: &str,
+) -> HashMap<String, String> {
+    let mut all_translations = HashMap::new();
+
+    // Get all entity-specific translations
+    let list_translations = get_entity_list_translations(state, locale, entity).await;
+    let show_translations = get_entity_show_translations(state, locale, entity).await;
+    let error_translations = get_entity_error_translations(state, locale, entity).await;
+    let form_translations = get_entity_form_translations(state, locale, entity).await;
+
+    // Get common translations
+    let status_translations = get_status_translations(state, locale, entity).await;
+    let action_translations = get_action_translations(state, locale, entity).await;
+
+    // Merge all translations
+    all_translations.extend(list_translations);
+    all_translations.extend(show_translations);
+    all_translations.extend(error_translations);
+    all_translations.extend(form_translations);
+    all_translations.extend(status_translations);
+    all_translations.extend(action_translations);
+
+    all_translations
+}
+
+/// Helper function to fetch login-related translations
+pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
+    let login_keys = vec![
+        "login-title",
+        "login-user-id",
+        "login-password",
+        "login-sign-in",
+        "login-error-empty-fields",
+        "login-error-invalid-credentials",
+        "app-title",
+        "app-subtitle",
+        "language-selector",
+        "theme-toggle",
+        "language-english",
+        "language-spanish",
+        "language-french",
+        "language-norwegian",
+        "language-german",
+    ];
+
+    let mut translations = HashMap::new();
+    for key in login_keys {
+        let value = get_translation(state, locale, key).await;
+        translations.insert(key.to_string(), value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch reports-related translations
+pub async fn get_reports_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
+    let reports_keys = vec![
+        "reports-cross-db-matrix-title",
+        "reports-cross-db-matrix-description",
+        "reports-domain-header",
+        "reports-database-header",
+        "reports-primary-domain",
+        "reports-backup-domain",
+        "reports-not-present",
+        "reports-legend-title",
+        "reports-no-domains",
+        "reports-no-domains-description",
+        "reports-list-title",
+        "reports-list-description",
+        "reports-matrix-title",
+        "reports-matrix-description",
+        "reports-orphaned-aliases-title",
+        "reports-orphaned-aliases-description",
+        "reports-external-forwarders-title",
+        "reports-external-forwarders-description",
+        "reports-alias-cross-domain-title",
+        "reports-alias-cross-domain-description",
+        "reports-cross-db-user-distribution-title",
+        "reports-cross-db-user-distribution-description",
+        "reports-cross-db-feature-toggle-title",
+        "reports-cross-db-feature-toggle-description",
+        "reports-cross-db-migration-title",
+        "reports-cross-db-migration-description",
+        "reports-view-report",
+        "reports-user-header",
+        "reports-present",
+        "reports-no-users",
+        "reports-no-users-description",
+        "reports-disabled",
+        "reports-database-status-header",
+        "reports-read-only",
+        "reports-no-new-users",
+        "reports-no-new-domains",
+        "reports-no-password-updates",
+        "reports-enabled",
+        "reports-status-header",
+        "reports-last-migration-header",
+        "reports-migration-count-header",
+    ];
+
+    let mut translations = HashMap::new();
+    for key in reports_keys {
+        let value = get_translation(state, locale, key).await;
+        translations.insert(key.to_string(), value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch not-found related translations
+pub async fn get_not_found_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
+    let not_found_keys = vec!["not-found-title", "not-found-message"];
+
+    let mut translations = HashMap::new();
+    for key in not_found_keys {
+        let value = get_translation(state, locale, key).await;
+        translations.insert(key.to_string(), value);
+    }
+
+    translations
+}
+
+/// Helper function to fetch pagination-related translations
+pub async fn get_pagination_translations(
+    state: &AppState,
+    locale: &str,
+) -> HashMap<String, String> {
+    let pagination_keys = vec![
+        "pagination-previous",
+        "pagination-next",
+        "pagination-showing",
+        "pagination-to",
+        "pagination-of",
+        "pagination-results",
+    ];
+
+    let mut translations = HashMap::new();
+    for key in pagination_keys {
+        let value = get_translation(state, locale, key).await;
+        translations.insert(key.to_string(), value);
+    }
+
+    translations
+}
+
+/// Helper function to get database pool with consistent error handling
+pub async fn get_db_pool_or_error(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::DbPool, Html<String>> {
+    match get_current_db_pool(state, headers).await {
+        Ok(pool) => Ok(pool),
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            Err(Html("Database connection error".to_string()))
+        }
+    }
+}
+
+/// Helper function to get entity with consistent not-found handling
+pub async fn get_entity_or_handle_error<T, F, Fut>(
+    entity_fetch: F,
+    state: &AppState,
+    locale: &str,
+    not_found_key: &str,
+) -> Result<T, Html<String>>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    match entity_fetch().await {
+        Ok(entity) => Ok(entity),
+        Err(_) => {
+            let not_found_msg = get_translation(state, locale, not_found_key).await;
+            Err(Html(not_found_msg))
+        }
+    }
+}
+
+/// Helper function to handle entity operations with consistent error handling
+pub async fn handle_entity_operation<T, F, Fut>(
+    operation: F,
+    state: &AppState,
+    locale: &str,
+    entity_name: &str,
+    identifier: &str,
+    success_message: &str,
+) -> Result<T, Html<String>>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    match operation().await {
+        Ok(result) => {
+            info!("{}: {}", success_message, identifier);
+            Ok(result)
+        }
+        Err(e) => {
+            error!("Failed to {} {}: {:?}", entity_name, identifier, e);
+            let error_message =
+                handle_database_error(state, locale, e, entity_name, identifier).await;
+            Err(Html(error_message))
+        }
+    }
+}
+
+/// Helper function to validate form and handle errors consistently
+pub async fn validate_form_and_handle_error<F, V, E>(
+    form: &F,
+    validator: V,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+    error_handler: E,
+) -> Result<(), Html<String>>
+where
+    F: Clone,
+    V: FnOnce(&F) -> Result<(), String>,
+    E: FnOnce(
+        &AppState,
+        &str,
+        &HeaderMap,
+        F,
+        &str,
+        bool,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Html<String>> + Send>>,
+{
+    if let Err(error_key) = validator(form) {
+        let form_clone = form.clone();
+        return Err(error_handler(state, locale, headers, form_clone, &error_key, true).await);
+    }
+    Ok(())
+}
+
+/// Helper function to get entity list with pagination
+pub async fn get_entity_list_with_pagination<T, F, Fut>(
+    entity_fetch: F,
+    pool: &crate::DbPool,
+    page: i64,
+    per_page: i64,
+) -> Result<PaginatedResult<T>, Html<String>>
+where
+    F: FnOnce(&crate::DbPool) -> Fut,
+    Fut: std::future::Future<Output = Result<Vec<T>, Error>>,
+    T: Clone,
+{
+    match entity_fetch(pool).await {
+        Ok(entities) => {
+            let total = entities.len() as i64;
+            Ok(PaginatedResult::new(entities, total, page, per_page))
+        }
+        Err(e) => {
+            error!("Failed to retrieve entity list: {:?}", e);
+            Err(Html("Failed to retrieve data".to_string()))
+        }
     }
 }

@@ -64,27 +64,9 @@ pub async fn list_clients(
         }
     };
 
-    // Get all translations
-    let title = get_translation(&state, &locale, "clients-title").await;
-    let description = get_translation(&state, &locale, "clients-description").await;
-    let add_client = get_translation(&state, &locale, "clients-add").await;
-    let table_header_client = get_translation(&state, &locale, "clients-table-header-client").await;
-    let table_header_status = get_translation(&state, &locale, "clients-table-header-status").await;
-    let table_header_actions =
-        get_translation(&state, &locale, "clients-table-header-actions").await;
-    let table_header_enabled =
-        get_translation(&state, &locale, "clients-table-header-enabled").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-ok").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-reject").await;
-    let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
-    let action_view = get_translation(&state, &locale, "clients-action-view").await;
-    let action_enable = get_translation(&state, &locale, "clients-action-enable").await;
-    let action_disable = get_translation(&state, &locale, "clients-action-disable").await;
-    let action_delete = get_translation(&state, &locale, "clients-action-delete").await;
-    let delete_confirm = get_translation(&state, &locale, "clients-delete-confirm").await;
-    let empty_title = get_translation(&state, &locale, "clients-empty-title").await;
-    let empty_description = get_translation(&state, &locale, "clients-empty-description").await;
+    // Get all translations using consolidated helper functions
+    let translations =
+        crate::handlers::utils::get_entity_all_translations(&state, &locale, "clients").await;
 
     let paginated = PaginatedResult::new(
         paginated_clients.items.clone(),
@@ -98,24 +80,24 @@ pub async fn list_clients(
         paginated.total_count,
     );
     let content_template = ClientsListTemplate {
-        title: &title,
-        description: &description,
-        add_client: &add_client,
-        table_header_client: &table_header_client,
-        table_header_status: &table_header_status,
-        table_header_enabled: &table_header_enabled,
-        table_header_actions: &table_header_actions,
-        status_allowed: &status_allowed,
-        status_blocked: &status_blocked,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        action_view: &action_view,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        action_delete: &action_delete,
-        delete_confirm: &delete_confirm,
-        empty_title: &empty_title,
-        empty_description: &empty_description,
+        title: &translations["clients-title"],
+        description: &translations["clients-description"],
+        add_client: &translations["clients-add"],
+        table_header_client: &translations["clients-table-header-client"],
+        table_header_status: &translations["clients-table-header-status"],
+        table_header_enabled: &translations["clients-table-header-enabled"],
+        table_header_actions: &translations["clients-table-header-actions"],
+        status_allowed: &translations["clients-status-ok"],
+        status_blocked: &translations["clients-status-reject"],
+        status_enabled: &translations["clients-status-enabled"],
+        status_disabled: &translations["clients-status-disabled"],
+        action_view: &translations["clients-action-view"],
+        action_enable: &translations["clients-action-enable"],
+        action_disable: &translations["clients-action-disable"],
+        action_delete: &translations["clients-action-delete"],
+        delete_confirm: &translations["clients-delete-confirm"],
+        empty_title: &translations["clients-empty-title"],
+        empty_description: &translations["clients-empty-description"],
         clients: &paginated_clients.items,
         pagination: &paginated,
         page_range: &page_range,
@@ -137,7 +119,7 @@ pub async fn list_clients(
             .map(|db| db.label.clone())
             .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            title,
+            translations["clients-title"].clone(),
             content,
             &state,
             &locale,
@@ -173,47 +155,31 @@ pub async fn show_client(
 
     info!("Successfully retrieved client: {}", client.client);
 
-    let title = get_translation(&state, &locale, "clients-show-title").await;
-    let view_edit_settings = get_translation(&state, &locale, "clients-view-edit-settings").await;
-    let back_to_clients = get_translation(&state, &locale, "clients-back-to-clients").await;
-    let client_information = get_translation(&state, &locale, "clients-info-title").await;
-    let client_details = get_translation(&state, &locale, "clients-info-description").await;
-    let client_name = get_translation(&state, &locale, "clients-field-client").await;
-    let status = get_translation(&state, &locale, "clients-field-status").await;
-    let status_allowed = get_translation(&state, &locale, "clients-status-ok").await;
-    let status_blocked = get_translation(&state, &locale, "clients-status-reject").await;
-    let status_enabled = get_translation(&state, &locale, "clients-status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "clients-status-disabled").await;
-    let created = get_translation(&state, &locale, "clients-field-created").await;
-    let updated = get_translation(&state, &locale, "clients-field-updated").await;
-    let edit_client = get_translation(&state, &locale, "clients-action-edit").await;
-    let action_enable = get_translation(&state, &locale, "clients-action-enable").await;
-    let action_disable = get_translation(&state, &locale, "clients-action-disable").await;
-    let delete_client = get_translation(&state, &locale, "clients-action-delete").await;
-    let delete_confirm = get_translation(&state, &locale, "clients-delete-confirm").await;
-    let enabled_label = get_translation(&state, &locale, "clients-field-enabled").await;
+    // Get all translations using consolidated helper functions
+    let translations =
+        crate::handlers::utils::get_entity_all_translations(&state, &locale, "clients").await;
 
     let content_template = ClientShowTemplate {
-        title: &title,
+        title: &translations["clients-show-title"],
         client,
-        view_edit_settings: &view_edit_settings,
-        back_to_clients: &back_to_clients,
-        client_information: &client_information,
-        client_details: &client_details,
-        client_name: &client_name,
-        status: &status,
-        status_allowed: &status_allowed,
-        status_blocked: &status_blocked,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        created: &created,
-        updated: &updated,
-        edit_client: &edit_client,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        delete_client: &delete_client,
-        delete_confirm: &delete_confirm,
-        enabled_label: &enabled_label,
+        view_edit_settings: &translations["clients-view-edit-settings"],
+        back_to_clients: &translations["clients-back-to-clients"],
+        client_information: &translations["clients-info-title"],
+        client_details: &translations["clients-info-description"],
+        client_name: &translations["clients-field-client"],
+        status: &translations["clients-field-status"],
+        status_allowed: &translations["clients-status-ok"],
+        status_blocked: &translations["clients-status-reject"],
+        status_enabled: &translations["clients-status-enabled"],
+        status_disabled: &translations["clients-status-disabled"],
+        created: &translations["clients-field-created"],
+        updated: &translations["clients-field-updated"],
+        edit_client: &translations["clients-action-edit"],
+        action_enable: &translations["clients-action-enable"],
+        action_disable: &translations["clients-action-disable"],
+        delete_client: &translations["clients-action-delete"],
+        delete_confirm: &translations["clients-delete-confirm"],
+        enabled_label: &translations["clients-field-enabled"],
     };
 
     let content = match content_template.render() {
@@ -237,7 +203,7 @@ pub async fn show_client(
             .map(|db| db.label.clone())
             .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            title,
+            translations["clients-show-title"].clone(),
             content,
             &state,
             &locale,

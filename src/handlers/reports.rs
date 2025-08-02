@@ -120,18 +120,8 @@ pub async fn cross_database_domain_matrix_report(
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    // Get translations
-    let title = get_translation(&state, &locale, "reports-cross-db-matrix-title").await;
-    let description = get_translation(&state, &locale, "reports-cross-db-matrix-description").await;
-    let domain_header = get_translation(&state, &locale, "reports-domain-header").await;
-    let database_header = get_translation(&state, &locale, "reports-database-header").await;
-    let primary_domain = get_translation(&state, &locale, "reports-primary-domain").await;
-    let backup_domain = get_translation(&state, &locale, "reports-backup-domain").await;
-    let not_present = get_translation(&state, &locale, "reports-not-present").await;
-    let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
-    let no_domains = get_translation(&state, &locale, "reports-no-domains").await;
-    let no_domains_description =
-        get_translation(&state, &locale, "reports-no-domains-description").await;
+    // Get all reports translations using consolidated helper function
+    let translations = crate::handlers::utils::get_reports_translations(&state, &locale).await;
 
     // Get cross-database domain matrix report data
     let report = match db::get_cross_database_domain_matrix_report(&state.db_manager).await {
@@ -147,16 +137,16 @@ pub async fn cross_database_domain_matrix_report(
 
     // Create the cross-database matrix report template
     let content_template = CrossDatabaseMatrixReportTemplate {
-        title: &title,
-        description: &description,
-        domain_header: &domain_header,
-        database_header: &database_header,
-        primary_domain: &primary_domain,
-        backup_domain: &backup_domain,
-        not_present: &not_present,
-        legend_title: &legend_title,
-        no_domains: &no_domains,
-        no_domains_description: &no_domains_description,
+        title: &translations["reports-cross-db-matrix-title"],
+        description: &translations["reports-cross-db-matrix-description"],
+        domain_header: &translations["reports-domain-header"],
+        database_header: &translations["reports-database-header"],
+        primary_domain: &translations["reports-primary-domain"],
+        backup_domain: &translations["reports-backup-domain"],
+        not_present: &translations["reports-not-present"],
+        legend_title: &translations["reports-legend-title"],
+        no_domains: &translations["reports-no-domains"],
+        no_domains_description: &translations["reports-no-domains-description"],
         report: &report,
     };
 
@@ -185,7 +175,7 @@ pub async fn cross_database_domain_matrix_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        title,
+        translations["reports-cross-db-matrix-title"].clone(),
         content,
         &state,
         &locale,

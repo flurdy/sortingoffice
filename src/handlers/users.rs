@@ -332,6 +332,8 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
     .await;
     let page_range: Vec<i64> = vec![1];
     let max_item = users.len() as i64;
+    let pagination_translations =
+        crate::handlers::utils::get_pagination_translations(&state, &locale).await;
     let content_template = UsersListTemplate {
         title: translations["users-title"].to_string(),
         description: translations["users-description"].to_string(),
@@ -351,12 +353,12 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         pagination: paginated,
         page_range,
         max_item,
-        pagination_previous: get_translation(&state, &locale, "pagination-previous").await,
-        pagination_next: get_translation(&state, &locale, "pagination-next").await,
-        pagination_showing: get_translation(&state, &locale, "pagination-showing").await,
-        pagination_to: get_translation(&state, &locale, "pagination-to").await,
-        pagination_of: get_translation(&state, &locale, "pagination-of").await,
-        pagination_results: get_translation(&state, &locale, "pagination-results").await,
+        pagination_previous: pagination_translations["pagination-previous"].clone(),
+        pagination_next: pagination_translations["pagination-next"].clone(),
+        pagination_showing: pagination_translations["pagination-showing"].clone(),
+        pagination_to: pagination_translations["pagination-to"].clone(),
+        pagination_of: pagination_translations["pagination-of"].clone(),
+        pagination_results: pagination_translations["pagination-results"].clone(),
     };
     render_template_with_title!(
         content_template,

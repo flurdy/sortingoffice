@@ -117,9 +117,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     let selenium_port = selenium.get_host_port_ipv4(4444).await?;
 
     println!("[SMOKE TEST] Selenium container started");
-    println!(
-        "[SMOKE TEST] Selenium URL: http://localhost:{selenium_port}"
-    );
+    println!("[SMOKE TEST] Selenium URL: http://localhost:{selenium_port}");
     println!(
         "[SMOKE TEST] Selenium VNC URL: vnc://localhost:{}",
         selenium.get_host_port_ipv4(5900).await?
@@ -151,9 +149,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
 
     println!("[SMOKE TEST] Chrome configured with minimal settings to avoid conflicts");
 
-    println!(
-        "[SMOKE TEST] Connecting to WebDriver at http://localhost:{selenium_port}"
-    );
+    println!("[SMOKE TEST] Connecting to WebDriver at http://localhost:{selenium_port}");
     let driver = timeout(
         Duration::from_secs(20),
         WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
@@ -264,9 +260,7 @@ async fn find_app_url() -> anyhow::Result<String> {
     while start.elapsed() < timeout {
         match client.get(localhost_url).send().await {
             Ok(resp) if resp.status().is_success() => {
-                println!(
-                    "[SMOKE TEST] Found running application at {localhost_url}"
-                );
+                println!("[SMOKE TEST] Found running application at {localhost_url}");
 
                 // For Selenium container to reach host localhost, we need to use the host's bridge IP
                 // On Linux, host.docker.internal doesn't work, so we need to get the host's IP

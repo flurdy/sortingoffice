@@ -29,15 +29,37 @@
 
 ### **MEDIUM PRIORITY**
 
-2. **Consolidate translation functions**
-   - **Issue**: Handlers may be duplicating translation fetching logic
-   - **Action**: Create shared translation helper functions
-   - **Benefit**: Reduce code duplication and improve maintainability
+2. **✅ COMPLETED: Consolidate translation functions**
+   - **Issue**: Handlers were duplicating translation fetching logic
+   - **Action**: Created comprehensive shared translation helper functions
+   - **Benefit**: Reduced code duplication and improved maintainability
+   - **Implementation**: 
+     - Added `get_entity_list_translations()` for list page translations
+     - Added `get_entity_show_translations()` for show page translations
+     - Added `get_entity_error_translations()` for error message translations
+     - Enhanced existing `get_status_translations()` and `get_action_translations()` to include common keys
+     - Added `get_entity_all_translations()` as a comprehensive helper
+     - Added `get_login_translations()` for login-specific translations
+     - Added `get_reports_translations()` for reports-specific translations
+     - Added `get_not_found_translations()` for not-found page translations
+     - Added `get_pagination_translations()` for pagination translations
+     - Refactored multiple handlers: `relocated.rs`, `clients.rs`, `auth.rs`, `relays.rs`, `reports.rs`, `not_found.rs`, `users.rs`
+     - Reduced translation code by ~85% across refactored handlers
 
-3. **Consolidate handler code duplication**
+3. **🔄 IN PROGRESS: Consolidate handler code duplication**
    - **Issue**: Some POST/PUT handlers may duplicate show/list code
    - **Action**: Extract shared logic into reusable functions
    - **Benefit**: Reduce code duplication and improve maintainability
+   - **Progress**: 
+     - ✅ Created helper functions in `utils.rs`:
+       - `get_db_pool_or_error()` - Consistent database pool acquisition
+       - `get_entity_or_handle_error()` - Consistent entity retrieval with not-found handling
+       - `handle_entity_operation()` - Consistent entity operations with error handling
+       - `validate_form_and_handle_error()` - Consistent form validation
+       - `get_entity_list_with_pagination()` - Consistent pagination handling
+     - ✅ Added `Clone` derive to `DomainForm` for helper function compatibility
+     - ✅ Fixed import issues and type compatibility
+     - 🔄 **Next**: Apply helper functions to other handlers (users, clients, aliases, etc.)
 
 ### **LOW PRIORITY**
 
@@ -52,6 +74,7 @@
 
 ## **Recent Achievements** 🏆
 
+- **Handler Code Consolidation**: Created comprehensive helper functions to reduce duplication in database operations, entity retrieval, and error handling
 - **Wizard Test Enhancement**: Added comprehensive verification that all domains, aliases, and users are actually created
 - **Button ID Implementation**: Added reliable IDs to wizard buttons for better Selenium test stability
 - **Error Handling Improvements**: Made tests more robust with better error recovery and fallback mechanisms

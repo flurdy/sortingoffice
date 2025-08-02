@@ -93,9 +93,7 @@ pub async fn setup_selenium_container_and_driver(
     let selenium_port = selenium.get_host_port_ipv4(4444).await?;
 
     // println!("[UI HELPERS] Selenium container started");
-    println!(
-        "[UI HELPERS] Selenium URL: http://localhost:{selenium_port}"
-    );
+    println!("[UI HELPERS] Selenium URL: http://localhost:{selenium_port}");
     // println!(
     //     "[UI HELPERS] Selenium VNC URL: vnc://localhost:{}",
     //     selenium.get_host_port_ipv4(5900).await?
@@ -1122,8 +1120,6 @@ pub async fn check_item_in_paginated_list(
         }
     }
 
-    println!(
-        "[CHECK] Item '{item_name}' not found after checking {max_pages} pages"
-    );
+    println!("[CHECK] Item '{item_name}' not found after checking {max_pages} pages");
     Ok(false)
 }

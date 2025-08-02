@@ -48,45 +48,27 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         }
     };
 
-    // Get translations
-    let title = get_translation(&state, &locale, "relocated-title").await;
-    let add_relocated = get_translation(&state, &locale, "relocated-add").await;
-    let table_header_old_address =
-        get_translation(&state, &locale, "relocated-table-header-old-address").await;
-    let table_header_new_address =
-        get_translation(&state, &locale, "relocated-table-header-new-address").await;
-    let table_header_enabled =
-        get_translation(&state, &locale, "relocated-table-header-enabled").await;
-    let table_header_actions =
-        get_translation(&state, &locale, "relocated-table-header-actions").await;
-    let status_enabled = get_translation(&state, &locale, "status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-    let action_view = get_translation(&state, &locale, "action-view").await;
-    let action_enable = get_translation(&state, &locale, "action-enable").await;
-    let action_disable = get_translation(&state, &locale, "action-disable").await;
-    let delete_confirm = get_translation(&state, &locale, "relocated-delete-confirm").await;
-    let empty_title = get_translation(&state, &locale, "relocated-empty-title").await;
-    let empty_description = get_translation(&state, &locale, "relocated-empty-description").await;
-    let relocated_list_description =
-        get_translation(&state, &locale, "relocated-list-description").await;
+    // Get all translations using consolidated helper functions
+    let translations =
+        crate::handlers::utils::get_entity_all_translations(&state, &locale, "relocated").await;
 
     let content_template = RelocatedListTemplate {
-        title: &title,
-        add_relocated: &add_relocated,
-        table_header_old_address: &table_header_old_address,
-        table_header_new_address: &table_header_new_address,
-        table_header_enabled: &table_header_enabled,
-        table_header_actions: &table_header_actions,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        action_view: &action_view,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        delete_confirm: &delete_confirm,
-        empty_title: &empty_title,
-        empty_description: &empty_description,
+        title: &translations["relocated-title"],
+        add_relocated: &translations["relocated-add"],
+        table_header_old_address: &translations["relocated-table-header-old-address"],
+        table_header_new_address: &translations["relocated-table-header-new-address"],
+        table_header_enabled: &translations["relocated-table-header-enabled"],
+        table_header_actions: &translations["relocated-table-header-actions"],
+        status_enabled: &translations["status-enabled"],
+        status_disabled: &translations["status-disabled"],
+        action_view: &translations["action-view"],
+        action_enable: &translations["action-enable"],
+        action_disable: &translations["action-disable"],
+        delete_confirm: &translations["relocated-delete-confirm"],
+        empty_title: &translations["relocated-empty-title"],
+        empty_description: &translations["relocated-empty-description"],
         relocated,
-        relocated_list_description: &relocated_list_description,
+        relocated_list_description: &translations["relocated-list-description"],
     };
 
     let content = match content_template.render() {

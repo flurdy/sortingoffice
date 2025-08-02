@@ -206,7 +206,7 @@ pub struct NewAlias {
 }
 
 // Form data structures for HTMX
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct DomainForm {
     pub domain: String,
     pub transport: String,

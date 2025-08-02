@@ -852,15 +852,14 @@ pub async fn update(
         return handle_domain_form_error(&state, &locale, &headers, form, &error_key, true).await;
     }
 
-    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
         Ok(pool) => pool,
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            return Html("Database connection error".to_string());
-        }
+        Err(error) => return error,
     };
 
     let domain_name = form.domain.clone();
+
     match db::update_domain(&pool, id, form) {
         Ok(_) => {
             info!("Successfully updated domain: {}", domain_name);
@@ -894,15 +893,8 @@ pub async fn update(
                 enabled: true,
             };
 
-            return handle_domain_form_error(
-                &state,
-                &locale,
-                &headers,
-                error_form,
-                &error_message,
-                true,
-            )
-            .await;
+            handle_domain_form_error(&state, &locale, &headers, error_form, &error_message, true)
+                .await
         }
     }
 }
@@ -912,12 +904,10 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
         Ok(pool) => pool,
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            return Html("Database connection error".to_string());
-        }
+        Err(error) => return error,
     };
 
     match db::delete_domain(&pool, id) {

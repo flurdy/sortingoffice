@@ -43,47 +43,29 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
         }
     };
 
-    // Get translations
-    let title = get_translation(&state, &locale, "relays-title").await;
-    let add_relay = get_translation(&state, &locale, "relays-add").await;
-    let table_header_recipient =
-        get_translation(&state, &locale, "relays-table-header-recipient").await;
-    let table_header_status = get_translation(&state, &locale, "relays-table-header-status").await;
-    let table_header_enabled =
-        get_translation(&state, &locale, "relays-table-header-enabled").await;
-    let table_header_actions =
-        get_translation(&state, &locale, "relays-table-header-actions").await;
-    let status_enabled = get_translation(&state, &locale, "status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-    let status_ok = get_translation(&state, &locale, "status-ok").await;
-    let status_reject = get_translation(&state, &locale, "status-reject").await;
-    let action_view = get_translation(&state, &locale, "action-view").await;
-    let action_enable = get_translation(&state, &locale, "action-enable").await;
-    let action_disable = get_translation(&state, &locale, "action-disable").await;
-    let delete_confirm = get_translation(&state, &locale, "relays-delete-confirm").await;
-    let empty_title = get_translation(&state, &locale, "relays-empty-title").await;
-    let empty_description = get_translation(&state, &locale, "relays-empty-description").await;
-    let relays_list_description = get_translation(&state, &locale, "relays-list-description").await;
+    // Get all translations using consolidated helper functions
+    let translations =
+        crate::handlers::utils::get_entity_all_translations(&state, &locale, "relays").await;
 
     let content_template = RelayListTemplate {
-        title: &title,
-        add_relay: &add_relay,
-        table_header_recipient: &table_header_recipient,
-        table_header_status: &table_header_status,
-        table_header_enabled: &table_header_enabled,
-        table_header_actions: &table_header_actions,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        status_ok: &status_ok,
-        status_reject: &status_reject,
-        action_view: &action_view,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        delete_confirm: &delete_confirm,
-        empty_title: &empty_title,
-        empty_description: &empty_description,
+        title: &translations["relays-title"],
+        add_relay: &translations["relays-add"],
+        table_header_recipient: &translations["relays-table-header-recipient"],
+        table_header_status: &translations["relays-table-header-status"],
+        table_header_enabled: &translations["relays-table-header-enabled"],
+        table_header_actions: &translations["relays-table-header-actions"],
+        status_enabled: &translations["status-enabled"],
+        status_disabled: &translations["status-disabled"],
+        status_ok: &translations["status-ok"],
+        status_reject: &translations["status-reject"],
+        action_view: &translations["action-view"],
+        action_enable: &translations["action-enable"],
+        action_disable: &translations["action-disable"],
+        delete_confirm: &translations["relays-delete-confirm"],
+        empty_title: &translations["relays-empty-title"],
+        empty_description: &translations["relays-empty-description"],
         relays,
-        relays_list_description: &relays_list_description,
+        relays_list_description: &translations["relays-list-description"],
     };
 
     let content = match content_template.render() {
@@ -113,7 +95,7 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
             .map(|db| db.label.clone())
             .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relays-title").await,
+            translations["relays-title"].clone(),
             content,
             &state,
             &locale,
@@ -156,51 +138,33 @@ pub async fn show_relay(
         }
     };
 
-    let title = get_translation(&state, &locale, "relays-title").await;
-    let action_edit = get_translation(&state, &locale, "action-edit").await;
-    let action_enable = get_translation(&state, &locale, "action-enable").await;
-    let action_disable = get_translation(&state, &locale, "action-disable").await;
-    let action_delete = get_translation(&state, &locale, "action-delete").await;
-    let delete_confirm = get_translation(&state, &locale, "relays-delete-confirm").await;
-    let back_to_list = get_translation(&state, &locale, "relays-back-to-list").await;
-    let field_id = get_translation(&state, &locale, "relays-field-id").await;
-    let field_recipient = get_translation(&state, &locale, "relays-field-recipient").await;
-    let field_status = get_translation(&state, &locale, "relays-field-status").await;
-    let field_enabled = get_translation(&state, &locale, "relays-field-enabled").await;
-    let field_created = get_translation(&state, &locale, "relays-field-created").await;
-    let field_modified = get_translation(&state, &locale, "relays-field-modified").await;
-    let status_enabled = get_translation(&state, &locale, "status-enabled").await;
-    let status_disabled = get_translation(&state, &locale, "status-disabled").await;
-    let status_ok = get_translation(&state, &locale, "status-ok").await;
-    let status_reject = get_translation(&state, &locale, "status-reject").await;
-    let view_edit_settings = get_translation(&state, &locale, "relays-view-edit-settings").await;
-    let relay_show_title = get_translation(&state, &locale, "relays-show-title-label").await;
-    let relay_info_title = get_translation(&state, &locale, "relays-info-title").await;
-    let relay_info_description = get_translation(&state, &locale, "relays-info-description").await;
+    // Get all translations using consolidated helper functions
+    let translations =
+        crate::handlers::utils::get_entity_all_translations(&state, &locale, "relays").await;
 
     let content_template = RelayShowTemplate {
-        title: &title,
+        title: &translations["relays-title"],
         relay,
-        action_edit: &action_edit,
-        action_enable: &action_enable,
-        action_disable: &action_disable,
-        action_delete: &action_delete,
-        delete_confirm: &delete_confirm,
-        back_to_list: &back_to_list,
-        field_id: &field_id,
-        field_recipient: &field_recipient,
-        field_status: &field_status,
-        field_enabled: &field_enabled,
-        field_created: &field_created,
-        field_modified: &field_modified,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        status_ok: &status_ok,
-        status_reject: &status_reject,
-        view_edit_settings: &view_edit_settings,
-        relay_show_title: &relay_show_title,
-        relay_info_title: &relay_info_title,
-        relay_info_description: &relay_info_description,
+        action_edit: &translations["action-edit"],
+        action_enable: &translations["action-enable"],
+        action_disable: &translations["action-disable"],
+        action_delete: &translations["action-delete"],
+        delete_confirm: &translations["relays-delete-confirm"],
+        back_to_list: &translations["relays-back-to-list"],
+        field_id: &translations["relays-field-id"],
+        field_recipient: &translations["relays-field-recipient"],
+        field_status: &translations["relays-field-status"],
+        field_enabled: &translations["relays-field-enabled"],
+        field_created: &translations["relays-field-created"],
+        field_modified: &translations["relays-field-modified"],
+        status_enabled: &translations["status-enabled"],
+        status_disabled: &translations["status-disabled"],
+        status_ok: &translations["status-ok"],
+        status_reject: &translations["status-reject"],
+        view_edit_settings: &translations["relays-view-edit-settings"],
+        relay_show_title: &translations["relays-show-title-label"],
+        relay_info_title: &translations["relays-info-title"],
+        relay_info_description: &translations["relays-info-description"],
     };
 
     let content = match content_template.render() {
@@ -224,7 +188,7 @@ pub async fn show_relay(
             .map(|db| db.label.clone())
             .unwrap_or_else(|| current_db_id.clone());
         let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relays-title").await,
+            translations["relays-title"].clone(),
             content,
             &state,
             &locale,
