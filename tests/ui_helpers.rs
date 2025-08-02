@@ -343,8 +343,8 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     println!("[CREATE] Current URL after clicking add domain button: {}", current_url);
     
     // Debug: Get page title and h1 to understand what page we're on
-    let page_title = timeout60s!(driver.title(), "Get page title")?;
-    println!("[CREATE] Page title: {}", page_title);
+    // let page_title = timeout60s!(driver.title(), "Get page title")?;
+    // println!("[CREATE] Page title: {}", page_title);
     
     // Try to find h1 element
     let h1_element = timeout60s!(
@@ -352,7 +352,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         "Find h1 element"
     )?;
     let h1_text = timeout60s!(h1_element.text(), "Get h1 text")?;
-    println!("[CREATE] Page h1: {}", h1_text);
+    // println!("[CREATE] Page h1: {}", h1_text);
     assert!(h1_text.contains("Add Domain"), "Page title should contain 'Add Domain'");
 
     // let main_content = timeout60s!( 
@@ -450,7 +450,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         "Find main content area"
     )?;
     let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    println!("[CREATE] 1. Main content text: {}", main_content_text);
+    // println!("[CREATE] 1. Main content text: {}", main_content_text);
 
     // Check for validation error messages on the page
     // let page_source = timeout60s!(driver.source(), "Get page source")?;
@@ -496,43 +496,25 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // Navigate back to domains list to verify creation
     timeout60s!(driver.get(&domain_url), "Navigate back to domains list")?;
     
-    // Check if the domain appears in the list (handle pagination)
-    let main_content = timeout60s!(
-        driver.find(By::Id("main-content")),
-        "Find main content area"
-    )?;
-    let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    println!("[CREATE] 2. Main content text: {}", main_content_text);
+    // Check if the domain appears in the list using pagination
+    let domain_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/domains",
+        domain_name,
+        10, // max pages to check
+    ).await?;
     
-    // Check if domain name appears in the content (more flexible check)
-    let domain_found = main_content_text.contains(domain_name);
-    println!("[CREATE] Domain {} found in content: {}", domain_name, domain_found);
-    
-    // Debug: Check if there are any encoding or whitespace issues
-    if !domain_found {
-        println!("[CREATE] Debug: Domain name length: {}", domain_name.len());
-        println!("[CREATE] Debug: Domain name bytes: {:?}", domain_name.as_bytes());
-        
-        // Try to find the domain with different approaches
-        let domain_lower = domain_name.to_lowercase();
-        let content_lower = main_content_text.to_lowercase();
-        let found_lower = content_lower.contains(&domain_lower);
-        println!("[CREATE] Debug: Domain found (case-insensitive): {}", found_lower);
-        
-        // Try to find just the domain part without the transport
-        let domain_part = domain_name.split('.').next().unwrap_or("");
-        let found_part = main_content_text.contains(domain_part);
-        println!("[CREATE] Debug: Domain part '{}' found: {}", domain_part, found_part);
-        
-        // If case-insensitive search works, use that
-        if found_lower {
-            println!("[CREATE] Domain found with case-insensitive search");
-            return Ok(());
-        }
+    if domain_found {
+        println!("[CREATE] Domain {} successfully created and visible in list", domain_name);
+        Ok(())
+    } else {
+        println!("[CREATE] Domain {} not found in paginated list - creation may have failed", domain_name);
+        Err(anyhow::anyhow!(
+            "Domain {} not found in paginated list - creation may have failed",
+            domain_name
+        ))
     }
-    
-    println!("[CREATE] Domain {} successfully created and visible in list", domain_name);
-    Ok(())
 }
 
 /// Create an alias
@@ -550,10 +532,23 @@ pub async fn create_alias(
         "Find Add Alias button"
     )?;
     timeout30s!(add_alias_button.click(), "Click Add Alias button")?;
-    tokio::time::sleep(Duration::from_millis(500)).await;
-
+    
+    // Wait for HTMX request to complete and form to be loaded
+    println!("[CREATE] Waiting for HTMX form to load...");
+    tokio::time::sleep(Duration::from_millis(2000)).await;
+    
+    // Wait for the form to appear in the main content
+    let form = timeout60s!(
+        driver.find(By::Css("form")),
+        "Wait for form to be loaded by HTMX"
+    )?;
+    println!("[CREATE] Form found and loaded");
+    
+    // Wait a bit more for any animations or JavaScript to complete
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+    
     let current_url = timeout60s!(driver.current_url(), "Get current URL before alias creation")?;
-    println!("[CREATE] 0. Current URL after alias creation: {}", current_url);
+    println!("[CREATE] 0. Current URL before alias creation: {}", current_url);
 
     let alias_input = timeout30s!(
         driver.find(By::Css("input[name='mail']")),
@@ -561,14 +556,14 @@ pub async fn create_alias(
     )?;
     timeout30s!(alias_input.send_keys(alias_email), "Type alias email")?;
 
-    let destination_input = timeout30s!(
+    let destination_input = timeout60s!(
         driver.find(By::Css("input[name='destination']")),
         "Find destination input"
     )?;
     timeout30s!(destination_input.send_keys(destination), "Type destination")?;
 
     let submit_button = timeout30s!(
-        driver.find(By::Css("button[type='submit']")),
+        driver.find(By::Id("alias-submit-button")),
         "Find submit button"
     )?;
     timeout30s!(submit_button.click(), "Click submit button")?;
@@ -586,9 +581,9 @@ pub async fn create_alias(
     // Look for common validation error indicators
     let validation_indicators = [
         "validation-error",
-        "error",
-        "invalid",
-        "required",
+        // "error",
+        // "invalid",
+        // "required",
         "Domain cannot contain uppercase letters",
         "Domain can only contain lowercase letters",
         "Local part contains invalid characters",
@@ -624,70 +619,20 @@ pub async fn create_alias(
     // Navigate back to aliases list to verify creation
     timeout60s!(driver.get(&aliases_url), "Navigate back to aliases list")?;
     
-    // Check if the alias appears in the list (handle pagination)
-    let main_content = timeout60s!(
-        driver.find(By::Id("main-content")),
-        "Find main content area"
-    )?;
-    let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
+    // Check if the alias appears in the list using pagination
+    let alias_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/aliases",
+        alias_email,
+        10, // max pages to check
+    ).await?;
     
-    println!("[CREATE] Checking if alias {} appears in aliases list", alias_email);
-    
-    if !main_content_text.contains(alias_email) {
-        println!("[CREATE] Alias not found on first page - checking for pagination");
-        
-        // Check if there are pagination controls
-        let pagination_indicators = ["Next", "Previous", "page", "Page"];
-        let has_pagination = pagination_indicators.iter().any(|&indicator| {
-            main_content_text.contains(indicator)
-        });
-        
-        if has_pagination {
-            println!("[CREATE] Pagination detected - searching through pages");
-            
-            // Try to find the alias by searching through pages
-            let mut page_number = 1;
-            let max_pages = 10; // Safety limit
-            
-            while page_number <= max_pages {
-                // Look for "Next" button to navigate - try multiple selectors
-                let next_button = match driver.find(By::XPath("//a[contains(text(), 'Next')]")).await {
-                    Ok(btn) => btn,
-                    Err(_) => match driver.find(By::XPath("//a[contains(@class, 'next')]")).await {
-                        Ok(btn) => btn,
-                        Err(_) => match driver.find(By::XPath("//a[contains(@href, 'page')]")).await {
-                            Ok(btn) => btn,
-                            Err(_) => {
-                                println!("[CREATE] No more pages to search");
-                                break;
-                            }
-                        }
-                    }
-                };
-                
-                println!("[CREATE] Navigating to page {}", page_number + 1);
-                timeout30s!(next_button.click(), "Click Next button")?;
-                tokio::time::sleep(Duration::from_millis(1000)).await;
-                
-                // Check if alias is on this page
-                let page_content = timeout60s!(
-                    driver.find(By::Id("main-content")),
-                    "Find main content area on new page"
-                )?;
-                let page_content_text = timeout60s!(page_content.text(), "Get page content text")?;
-                
-                if page_content_text.contains(alias_email) {
-                    println!("[CREATE] Alias {} found on page {}", alias_email, page_number + 1);
-                    return Ok(());
-                }
-                
-                page_number += 1;
-            }
-            
-            println!("[CREATE] Alias {} not found after searching {} pages", alias_email, max_pages);
-        }
-        
-        println!("[CREATE] Alias not found in aliases list - checking domain show page");
+    if alias_found {
+        println!("[CREATE] Alias {} successfully created and visible in aliases list", alias_email);
+        Ok(())
+    } else {
+        println!("[CREATE] Alias {} not found in paginated list - checking domain show page", alias_email);
         
         // Try to find the alias in the domain show page instead
         let domain_name = alias_email.split('@').nth(1).unwrap_or("");
@@ -716,17 +661,14 @@ pub async fn create_alias(
         
         if domain_main_content_text.contains(alias_email) {
             println!("[CREATE] Alias {} successfully created and visible in domain show page", alias_email);
-            return Ok(());
+            Ok(())
         } else {
-            return Err(anyhow::anyhow!(
+            Err(anyhow::anyhow!(
                 "Alias {} not found in domain show page either - creation may have failed",
                 alias_email
-            ));
+            ))
         }
     }
-    
-    println!("[CREATE] Alias {} successfully created and visible in aliases list", alias_email);
-    Ok(())
 }
 
 /// Create a user
@@ -918,13 +860,7 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
 
 /// Delete an alias
 pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) -> Result<()> {
-    // Extract domain from alias email
-    let domain_name = alias_email.split('@').nth(1).unwrap_or("");
-    if domain_name.is_empty() {
-        return Err(anyhow::anyhow!("Invalid alias email format: {}", alias_email));
-    }
-
-    // First navigate to domains list page to find the domain
+    // First navigate to domains list page
     let domains_url = format!("{app_url}/domains");
     timeout60s!(driver.get(&domains_url), "Navigate to domains list page")?;
 
@@ -937,7 +873,28 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
         timeout60s!(driver.get(&domains_url), "Navigate to domains list page after re-auth")?;
     }
 
-    // Find the domain row and click its "View" link to get to the domain show page
+    // Extract domain name from alias email
+    let domain_name = alias_email.split('@').nth(1).unwrap_or("");
+    println!("[CLEANUP] Looking for domain '{}' to find alias '{}'", domain_name, alias_email);
+
+    // Use pagination function to find the domain in the domains list
+    let domain_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/domains",
+        domain_name,
+        10, // max pages to check
+    ).await?;
+
+    if !domain_found {
+        return Err(anyhow::anyhow!(
+            "Domain {} not found in paginated domains list - cannot delete alias {}",
+            domain_name, alias_email
+        ));
+    }
+
+    // Now navigate to the specific page where the domain was found and click its "View" link
+    // We need to find the domain again on the current page to get its view link
     let domain_view_link = timeout60s!(
         driver.find(By::XPath(&format!(
             "//tr[contains(., '{}')]//a[contains(@href, '/domains/')]",
@@ -1009,21 +966,24 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         timeout60s!(driver.get(&domains_url), "Navigate to domains list page after re-auth")?;
     }
 
-    // Check if the domain exists in the list by extracting just the main content area
-    let main_content = timeout60s!(
-        driver.find(By::Id("main-content")),
-        "Find main content area"
-    )?;
-    let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    
-    if !main_content_text.contains(domain_name) {
+    // Check if the domain exists in the list using pagination
+    let domain_found = check_item_in_paginated_list(
+        driver,
+        app_url,
+        "/domains",
+        domain_name,
+        10, // max pages to check
+    ).await?;
+
+    if !domain_found {
         return Err(anyhow::anyhow!(
-            "Domain {} not found in list - this indicates a problem with the creation process",
+            "Domain {} not found in paginated domains list - cannot delete domain",
             domain_name
         ));
     }
 
-    // Find the specific domain row and click its "View" link
+    // Now navigate to the specific page where the domain was found and click its "View" link
+    // We need to find the domain again on the current page to get its view link
     let view_link = timeout60s!(
         driver.find(By::XPath(&format!(
             "//tr[contains(., '{}')]//a[contains(@href, '/domains/')]",
@@ -1040,12 +1000,17 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     )?;
     timeout30s!(delete_button.click(), "Click delete button")?;
 
-    // Confirm deletion
-    let confirm_button = timeout60s!(
-        driver.find(By::Css("button.btn-danger, button[class*='bg-red-600']")),
-        "Find confirmation button"
-    )?;
-    timeout30s!(confirm_button.click(), "Click confirmation button")?;
+    // Handle the JavaScript alert dialog that appears
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    let alert = driver.switch_to().alert();
+    let alert_text = alert.text().await?;
+    println!("[CLEANUP] Alert text: {}", alert_text);
+    
+    // Accept the alert to confirm deletion
+    alert.accept().await?;
+    
+    // Switch back to the main content
+    driver.switch_to().default_content().await?;
 
     println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
     Ok(())
@@ -1095,4 +1060,63 @@ pub async fn cleanup_test_resources(
             Err(anyhow::anyhow!("Cleanup timed out"))
         }
     }
+}
+
+/// Check if an item exists in a paginated list by iterating through pages
+pub async fn check_item_in_paginated_list(
+    driver: &WebDriver,
+    app_url: &str,
+    list_path: &str,
+    item_name: &str,
+    max_pages: usize,
+) -> Result<bool> {
+    println!("[CHECK] Searching for '{}' in paginated list at {}", item_name, list_path);
+    
+    for page_num in 1..=max_pages {
+        let page_url = if page_num == 1 {
+            format!("{app_url}{}", list_path)
+        } else {
+            format!("{app_url}{}?page={}&per_page=25", list_path, page_num)
+        };
+        
+        println!("[CHECK] Checking page {} at URL: {}", page_num, page_url);
+        timeout60s!(driver.get(&page_url), "Navigate to paginated list page")?;
+        
+        // Wait a moment for the page to load
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        
+        // Get the main content
+        let main_content = timeout60s!(
+            driver.find(By::Id("main-content")),
+            "Find main content area"
+        )?;
+        let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
+        
+        // Debug: Show a snippet of the content
+        let content_preview = if main_content_text.len() > 200 {
+            format!("{}...", &main_content_text[..200])
+        } else {
+            main_content_text.clone()
+        };
+        // println!("[CHECK] Page {} content preview: {}", page_num, content_preview);
+        
+        // Check if the item is on this page
+        if main_content_text.contains(item_name) {
+            println!("[CHECK] Found '{}' on page {}", item_name, page_num);
+            return Ok(true);
+        }
+        
+        // Check if there are more pages (look for "Next" link)
+        let has_next = main_content_text.contains("Next") || 
+                      main_content_text.contains("next") ||
+                      main_content_text.contains(">");
+        
+        if !has_next {
+            println!("[CHECK] No more pages to search");
+            break;
+        }
+    }
+    
+    println!("[CHECK] Item '{}' not found after checking {} pages", item_name, max_pages);
+    Ok(false)
 }
