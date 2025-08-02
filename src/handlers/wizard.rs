@@ -845,6 +845,7 @@ pub async fn execute(
                 destination: session.common_destination.clone(),
                 enabled: true,
                 return_url: None,
+                redirect_to: None,
             };
 
             match db::create_alias(&pool, alias_form) {

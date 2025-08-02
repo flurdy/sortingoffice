@@ -77,7 +77,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             {% if alias.enabled %}{{ disable_alias_button }}{% else %}{{ enable_alias_button }}{% endif %}
         </button>
-        <button
+        <button id="delete-alias-button"
             hx-delete="/aliases/{{ alias.pkid }}"
             hx-target="#main-content"
             hx-confirm="{{ delete_confirm }}"

@@ -83,7 +83,7 @@
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
             {% if user.enabled %}{{ disable_user }}{% else %}{{ enable_user }}{% endif %}
         </button>
-        <button
+        <button id="delete-user-button"
             hx-delete="/users/{{ user.id }}"
             hx-target="#main-content"
             hx-confirm="{{ delete_confirm }}"

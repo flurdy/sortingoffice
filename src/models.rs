@@ -223,6 +223,7 @@ pub struct AliasForm {
     #[serde(deserialize_with = "deserialize_checkbox")]
     pub enabled: bool,
     pub return_url: Option<String>,
+    pub redirect_to: Option<String>, // "aliases" or "domain" (default)
 }
 
 // Statistics models

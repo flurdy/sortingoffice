@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help run-watch selenium-up selenium-down selenium-logs selenium-clean
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help run-watch run
 
 # Default target
 help:
@@ -24,6 +24,8 @@ help:
 	@echo "Development:"
 	@echo "  make dev        - Start development environment"
 	@echo "  make dev-down   - Stop development environment"
+	@echo "  make run        - Run application with cargo"
+	@echo "  make run-watch  - Run application with cargo watch"
 	@echo ""
 	@echo "Shell Access:"
 	@echo "  make shell      - Open shell in application container"
@@ -111,33 +113,9 @@ test-help:
 	@echo "    make test-clean         - Remove all test containers"
 	@echo "    make clean-rust         - Clean Rust artifacts"
 	@echo ""
-	@echo "Test Configuration:"
-	@echo "  Environment Variables:"
-	@echo "    TEST_THREADS=N         - Set integration test parallelism (default: 8)"
-	@echo "    SMOKE_TEST_HEADLESS    - Run smoke tests in headless mode"
-	@echo "    SMOKE_TEST_TIMEOUT     - Set smoke test timeout (default: 300s)"
-	@echo ""
 	@echo "  Test Runner:"
 	@echo "    ./tests/run_tests.sh help  - Show test runner help"
 	@echo "    ./tests/run_tests.sh unit  - Run specific test type"
-	@echo ""
-	@echo "Test Documentation:"
-	@echo "  docs/UI_TESTS.md         - UI testing documentation"
-	@echo "  docs/SMOKE_TESTS.md      - Smoke test documentation"
-	@echo "  docs/TEST_DATABASE_SETUP.md - Test database setup"
-	@echo "  tests/README.md          - Test organization and structure"
-	@echo ""
-	@echo "Quick Start for UI Testing:"
-	@echo "  1. make test-ui (uses testcontainers Selenium)"
-	@echo ""
-	@echo "Quick Start for Smoke Testing:"
-	@echo "  1. cargo run (in another terminal)"
-	@echo "  2. make test-smoke (uses testcontainers Selenium)"
-	@echo ""
-	@echo "Quick Start for Smoke Testing (Testcontainers):"
-	@echo "  1. make test-smoke-containerized"
-	@echo "  (No setup required - everything runs in isolated containers)"
-
 
 # Docker commands
 build:
@@ -228,9 +206,9 @@ test-smoke-containerized:
 	@echo "  - Testcontainers app container"
 	@echo "  - Testcontainers selenium container"
 	@echo ""
-	@echo "Building Docker image first..."
-	@make build
-	@echo ""
+	# @echo "Building Docker image first..."
+	# @make build
+	# @echo ""
 	@tests/run_tests.sh smoke-containerized
 
 .PHONY: test-all
@@ -238,9 +216,10 @@ test-all: test-unit test-integration test-security test-api test-ui
 	@echo "All tests completed!"
 
 run-watch:
-	cargo watch -d 5 -x run
+	cargo watch -d 5 -w src -w static -w templates --why -x run
 
-
+run:
+	cargo run
 
 # Utility commands
 fmt:

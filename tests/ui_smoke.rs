@@ -54,6 +54,7 @@ use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 use std::time::Duration;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
+use testcontainers::ContainerAsync;
 use testcontainers::GenericImage;
 use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
@@ -62,6 +63,73 @@ use tokio::time::timeout;
 #[macro_use]
 mod ui_helpers;
 use ui_helpers::*;
+
+// Simple copy of the working setup function
+async fn setup_ui_test_env() -> anyhow::Result<(
+    ContainerAsync<GenericImage>,
+    ContainerAsync<GenericImage>,
+    WebDriver,
+    String,
+)> {
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.toml");
+    let config_path_str = config_path.to_str().unwrap();
+
+    // Set up test database
+    let test_db = setup_test_db().await;
+    let db_url = format!(
+        "mysql://root@{}:3306/{}",
+        test_db.get_bridge_ip(),
+        test_db.schema
+    );
+
+    let port = find_free_port();
+    let unique_app_name = format!("app-{port}");
+    let admin_username = "admin";
+    let admin_password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
+    let extra_env = vec![];
+
+    let (app_container, app_ip) = setup_app_container(
+        &db_url,
+        port,
+        admin_username,
+        admin_password_hash,
+        config_path_str,
+        &unique_app_name,
+        &extra_env,
+    )
+    .await?;
+
+    // Seed the database
+    let db_name = &test_db.schema;
+    let db_ip = test_db.get_bridge_ip();
+    println!("[SEED] Seeding database: {} at {}", db_name, db_ip);
+
+    let status = std::process::Command::new("mysql")
+        .arg("-uroot")
+        .arg("-h")
+        .arg(db_ip)
+        .arg("-P")
+        .arg("3306")
+        .arg(db_name)
+        .arg("-e")
+        .arg("source seed_data/all.sql")
+        .status()
+        .expect("Failed to run mysql seed command");
+
+    if !status.success() {
+        println!("[SEED] Warning: Seeding DB failed with status: {status:?}");
+    } else {
+        println!("[SEED] Successfully seeded database: {}", db_name);
+    }
+
+    let (selenium_container, driver, _selenium_port) =
+        setup_selenium_container_and_driver().await?;
+    let app_url = format!("http://{app_ip}:4000");
+
+    Ok((app_container, selenium_container, driver, app_url))
+}
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
@@ -110,18 +178,32 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
         .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
         .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
         .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
+        .with_env_var("SE_NODE_HOST", "localhost")
         .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
 
     let selenium = AsyncRunner::start(selenium_image).await?;
     let selenium_port = selenium.get_host_port_ipv4(4444).await?;
 
+    println!("[SMOKE TEST] Selenium container started");
+    println!(
+        "[SMOKE TEST] Selenium URL: http://localhost:{}",
+        selenium_port
+    );
+    println!(
+        "[SMOKE TEST] Selenium VNC URL: vnc://localhost:{}",
+        selenium.get_host_port_ipv4(5900).await?
+    );
+
     // Wait for Selenium to be ready
+    println!("[SMOKE TEST] Waiting for Selenium to be ready...");
     timeout90s!(
         wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
         "Wait for selenium ready"
     )?;
+    println!("[SMOKE TEST] ✅ Selenium is ready and responding");
 
     // Set up WebDriver capabilities
+    println!("[SMOKE TEST] Setting up WebDriver capabilities...");
     let mut caps = DesiredCapabilities::chrome();
     if config.headless {
         caps.add_arg("--headless=new")?;
@@ -136,11 +218,18 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     caps.add_arg("--whitelisted-ips=")?;
     caps.add_arg("--disable-features=VizDisplayCompositor")?;
 
+    println!("[SMOKE TEST] Chrome configured with minimal settings to avoid conflicts");
+
+    println!(
+        "[SMOKE TEST] Connecting to WebDriver at http://localhost:{}",
+        selenium_port
+    );
     let driver = timeout(
         Duration::from_secs(20),
         WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
     )
     .await??;
+    println!("[SMOKE TEST] ✅ WebDriver connected successfully");
 
     // Run the actual test with timeout
     let test_result = timeout(
@@ -172,12 +261,18 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
     println!("[SMOKE TEST] ✅ Authentication successful");
 
     // Step 2: Create test data
-    let domain_name = format!("test-{}.example.com", rand_str());
+    let domain_name = format!("test-{}.example.com", rand_domain_str());
     let alias1domain = format!("alias1@{}", domain_name);
     let alias2domain = format!("alias2@{}", domain_name);
     let user_email = format!("user@{}", domain_name);
     let user_name = "Test User";
     let user_maildir = "testdir";
+
+    println!("[SMOKE TEST] Test data prepared:");
+    println!("[SMOKE TEST]   Domain: {}", domain_name);
+    println!("[SMOKE TEST]   Alias 1: {}", alias1domain);
+    println!("[SMOKE TEST]   Alias 2: {}", alias2domain);
+    println!("[SMOKE TEST]   User: {}", user_email);
 
     // Step 3: Create domain
     println!("[SMOKE TEST] Step 2: Creating domain: {}", domain_name);
@@ -200,8 +295,9 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
     check_reports_page(driver, app_url).await?;
     println!("[SMOKE TEST] ✅ Reports page loaded successfully");
 
-    // Step 7: Cleanup test resources
+    // Step 6: Cleaning up test resources...
     println!("[SMOKE TEST] Step 6: Cleaning up test resources...");
+
     cleanup_test_resources(
         driver,
         app_url,
@@ -217,22 +313,147 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
     Ok(())
 }
 
+/// Find the application URL to use for testing
+/// Either uses SMOKE_TEST_APP_URL environment variable or tries to find localhost:3000
+async fn find_app_url() -> anyhow::Result<String> {
+    // Check if SMOKE_TEST_APP_URL is set - if so, use it directly
+    if let Ok(app_url) = std::env::var("SMOKE_TEST_APP_URL") {
+        println!("[SMOKE TEST] Using provided app URL: {}", app_url);
+        return Ok(app_url);
+    }
+
+    // If no URL provided, try to use localhost:3000 with retries
+    println!("[SMOKE TEST] No SMOKE_TEST_APP_URL provided, trying localhost:3000...");
+
+    // Try to connect to localhost:3000 with retries (app might be restarting)
+    let localhost_url = "http://localhost:3000";
+    let client = reqwest::Client::new();
+    let timeout = std::time::Duration::from_secs(30);
+    let start = std::time::Instant::now();
+
+    while start.elapsed() < timeout {
+        match client.get(localhost_url).send().await {
+            Ok(resp) if resp.status().is_success() => {
+                println!(
+                    "[SMOKE TEST] Found running application at {}",
+                    localhost_url
+                );
+
+                // For Selenium container to reach host localhost, we need to use the host's bridge IP
+                // On Linux, host.docker.internal doesn't work, so we need to get the host's IP
+                let host_ip = std::env::var("HOST_IP").unwrap_or_else(|_| {
+                    // Try to get the host's actual IP address, not the gateway
+                    let output = std::process::Command::new("ip")
+                        .args(["route", "get", "8.8.8.8"])
+                        .output();
+
+                    if let Ok(output) = output {
+                        if let Ok(stdout) = String::from_utf8(output.stdout) {
+                            if let Some(line) = stdout.lines().next() {
+                                // The source IP is the 7th field in the output
+                                if let Some(src_ip) = line.split_whitespace().nth(6) {
+                                    return src_ip.to_string();
+                                }
+                            }
+                        }
+                    }
+
+                    // Fallback: try to get the IP of the default interface
+                    let output = std::process::Command::new("ip")
+                        .args(["route", "show", "default"])
+                        .output();
+
+                    if let Ok(output) = output {
+                        if let Ok(stdout) = String::from_utf8(output.stdout) {
+                            if let Some(line) = stdout.lines().next() {
+                                if let Some(dev) = line.split_whitespace().nth(4) {
+                                    // Get the IP of this interface
+                                    let if_output = std::process::Command::new("ip")
+                                        .args(["addr", "show", dev])
+                                        .output();
+
+                                    if let Ok(if_output) = if_output {
+                                        if let Ok(if_stdout) = String::from_utf8(if_output.stdout) {
+                                            for line in if_stdout.lines() {
+                                                if line.contains("inet ") && !line.contains("127.0.0.1")
+                                                {
+                                                    if let Some(ip) = line.split_whitespace().nth(1) {
+                                                        if let Some(ip_only) = ip.split('/').next() {
+                                                            return ip_only.to_string();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Final fallback to common Docker bridge IP
+                    "172.17.0.1".to_string()
+                });
+
+                let app_url_for_selenium = format!("http://{}:3000", host_ip);
+                println!(
+                    "[SMOKE TEST] Using {} for Selenium container to reach host application",
+                    app_url_for_selenium
+                );
+
+                return Ok(app_url_for_selenium);
+            }
+            _ => {
+                // App not ready yet, wait a bit and retry
+                let elapsed = start.elapsed();
+                let remaining = timeout - elapsed;
+                println!(
+                    "[SMOKE TEST] Application not ready at {} (elapsed: {:?}, remaining: {:?})",
+                    localhost_url, elapsed, remaining
+                );
+                
+                if remaining.as_secs() > 0 {
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    println!("[SMOKE TEST] No application found at localhost:3000 after 30 seconds");
+    println!("[SMOKE TEST] Please start the application or set SMOKE_TEST_APP_URL environment variable");
+    Err(anyhow::anyhow!(
+        "No application found at localhost:3000 and no SMOKE_TEST_APP_URL provided"
+    ))
+}
+
 /// Main smoke test function (environment-based)
 #[tokio::test]
 #[ignore]
 async fn ui_smoke_e2e_flow() -> Result<()> {
-    let config = SmokeTestConfig::default();
-    run_smoke_test_with_config(config).await
+    println!("[SMOKE TEST] Starting environment-based smoke test...");
+
+    // Find the application URL to test
+    let app_url = find_app_url().await?;
+
+    // Set up Selenium container and driver
+    let (selenium_container, driver, _selenium_port) =
+        setup_selenium_container_and_driver().await?;
+
+    // Run the actual test workflow
+    let test_result = run_smoke_test_workflow(&driver, &app_url).await;
+
+    // Clean up selenium container
+    let _ = driver.quit().await;
+    let _ = selenium_container.stop().await;
+
+    test_result
 }
 
 /// Testcontainers-based smoke test (separate function to avoid --ignored conflicts)
 #[tokio::test]
 async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
-    run_smoke_test_with_testcontainers().await
-}
-
-/// Run smoke test with testcontainers (database + app + selenium)
-pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
     println!("[SMOKE TEST] Starting testcontainers smoke test...");
 
     // Set up test database
@@ -252,8 +473,21 @@ pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
             .as_millis()
     );
 
-    // Convert the database URL to use host.docker.internal for container networking
-    let db_url_for_container = db_url.replace("127.0.0.1", "host.docker.internal");
+    // Convert the database URL to use the database container's bridge IP for container networking
+    let db_url_for_container = if db_url.contains("127.0.0.1:") {
+        // Use the database container's bridge IP instead of host.docker.internal
+        let db_bridge_ip = test_db.get_bridge_ip();
+        let converted_url = format!(
+            "mysql://root@{}:3306/{}",
+            db_bridge_ip,
+            db_url.split('/').last().unwrap_or("test")
+        );
+        println!("[SMOKE TEST] Original DB URL: {}", db_url);
+        println!("[SMOKE TEST] Converted DB URL: {}", converted_url);
+        converted_url
+    } else {
+        db_url.clone()
+    };
     let extra_env = &[("DATABASE_URL", db_url_for_container.as_str())];
 
     let (app_container, app_ip) = setup_app_container(
@@ -267,8 +501,25 @@ pub async fn run_smoke_test_with_testcontainers() -> Result<()> {
     )
     .await?;
 
-    let app_url = format!("http://{}:4000", app_ip);
+    let app_url = format!("http://{}:3000", app_ip);
     println!("[SMOKE TEST] App container ready at: {}", app_url);
+    println!("[SMOKE TEST] Using database URL: {}", db_url_for_container);
+    println!(
+        "[SMOKE TEST] Config file mounted from: {}",
+        config_path.to_str().unwrap()
+    );
+
+    // Debug: Check container logs to see what config is being loaded
+    let app_id = app_container.id();
+    if let Ok(logs) = std::process::Command::new("docker")
+        .args(["logs", app_id])
+        .output()
+    {
+        println!(
+            "[SMOKE TEST] Container logs: {}",
+            String::from_utf8_lossy(&logs.stdout)
+        );
+    }
 
     // Set up Selenium container and driver
     let (selenium_container, driver, _selenium_port) =

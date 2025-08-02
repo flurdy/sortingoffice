@@ -1,82 +1,87 @@
-# Sorting Office - TODO List
+# TODO List
 
-## Completed Tasks
+## Completed Tasks ✅
 
-### 2025-01-31
-- [x] Restored useful runtime logging (auth failures, permission issues, unexpected flows)
-- [x] Removed verbose debug logs from integration tests (full page source dumps)
-- [x] Removed unused variables entirely instead of suppressing warnings
-- [x] Fixed UI test duplicate data issues with INSERT IGNORE
-- [x] Updated smoke test to use testcontainers for database isolation
-- [x] Modified CI workflow to use testcontainers database approach
-- [x] Added testcontainers for app containerization using GenericImage
-- [x] Added testcontainers for selenium containerization using GenericImage
-- [x] Updated CI workflow to remove manual selenium setup
-- [x] Added Makefile target for testcontainers smoke test (`test-smoke-containerized`)
-- [x] Updated config.toml to support environment variable substitution
-- [x] Fixed environment-based smoke test by adding missing environment variables to .env file
-- [x] Added dotenv loading to main.rs to properly load .env file
-- [x] **REFACTORED: Eliminated code duplication between ui_smoke.rs and ui_containerized.rs**
-  - [x] Created shared `tests/ui_helpers.rs` module with common functions
-  - [x] Moved all duplicated helper functions to shared module
-  - [x] Updated both test files to use shared helpers
-  - [x] Reduced code duplication by ~70% (from ~2000 lines to ~600 lines)
-  - [x] Improved maintainability by centralizing common test logic
-- [x] **FIXED: Test separation issue with --ignored flag**
-  - [x] Created separate test functions with different names to avoid conflicts
-  - [x] Environment-based test: `ui_smoke_e2e_flow`
-  - [x] Testcontainers test: `ui_smoke_containerized_e2e_flow`
-  - [x] Tests now run independently when specified by name
-- [x] **CLEANUP: Removed docker-compose selenium setup**
-  - [x] Both smoke tests now use testcontainers for Selenium
-  - [x] Removed selenium service from docker-compose.yml
-  - [x] Removed selenium-related Makefile targets
-  - [x] Updated test scripts to remove selenium dependency
-  - [x] Updated CI workflow to use new test names
-  - [x] Simplified test setup - no manual selenium management required
-- [x] **UPDATED: Documentation to reflect current test architecture**
-  - [x] Updated `docs/SMOKE_TESTS.md` with current test architecture
-  - [x] Updated `docs/UI_TESTS.md` with shared infrastructure details
-  - [x] Updated `docs/TEST_ORGANIZATION.md` with current organization
-  - [x] Removed references to docker-compose selenium setup
-  - [x] Updated test names and commands throughout documentation
-  - [x] Added information about shared helpers and testcontainers Selenium
+- **Fixed the environment smoke test**
+  - **Problem**: `net::ERR_NAME_NOT_RESOLVED` error when trying to connect to `http://host.docker.internal:3000`
+  - **Solution**: Implemented dynamic host IP detection using `ip route get 8.8.8.8` and `ip addr show` commands
+  - **Result**: Test now successfully connects to existing localhost:3000 application using bridge IP (e.g., `192.168.11.42:3000`)
 
-## Current Status
+- **Fixed the containerized smoke test cleanup issues**
+  - **Problem**: Created items not appearing in list pages during cleanup, leading to "Element not found" errors
+  - **Solution**: 
+    - Added explicit navigation back to list pages after creation
+    - Added assertions to verify items appear in lists after creation
+    - Made cleanup functions stricter (fail if deletion fails instead of accepting gracefully)
+    - Improved deletion functions to use main content area instead of full page source
+  - **Result**: Test now properly verifies creation success and handles cleanup failures
 
-### ❌ **Failing: Environment-based Smoke Test**
+- **Fixed user deletion in cleanup**
+  - **Problem**: User deletion failing with "unexpected alert" error
+  - **Solution**: Added proper JavaScript alert dialog handling in `delete_user` function
+  - **Result**: User deletion now successfully handles confirmation dialogs
 
-### ❌ **Still Failing: Testcontainers Smoke Test**
-- **Status**: ❌ **FAILING** with `App /health not healthy after 30s`
-- **Command**: `cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture`
-- **Infrastructure**: Uses testcontainers for database, app, and selenium
-- **Root Cause**: Application container starts but doesn't respond to health checks
-- **Debugging Progress**:
-  - ❌ Fixed config file mismatch (using `config.docker.toml`)
-  - ✅ Fixed environment variable mismatch (using `DATABASE_URL`)
-  - ✅ Fixed container networking (using `host.docker.internal`)
-  - ✅ Confirmed Docker image has working environment variable substitution
-  - ❌ **Remaining Issue**: Container mount not working as expected
+- **Fixed email validation in smoke tests**
+  - **Problem**: Test email addresses failing validation due to uppercase letters in domain names
+  - **Solution**: Created `rand_domain_str()` function that generates only lowercase letters and numbers
+  - **Result**: Test domains now pass strict email validation rules
 
+- **Fixed user creation in smoke tests**
+  - **Problem**: User creation failing with "validation-password-required" error
+  - **Solution**: Added password field to user creation form
+  - **Result**: User creation now works successfully
 
-## Next Steps
+- **Improved alias creation handler architecture**
+  - **Problem**: Massive code duplication in alias create handler recreating domain show page
+  - **Solution**: 
+    - Created shared `render_domain_show_page()` function in domains handler
+    - Added `redirect_to` parameter to `AliasForm` to support smart redirect logic
+    - Refactored alias create handler to use shared function and implement redirect logic
+  - **Result**: Much cleaner, more maintainable code following DRY principle
 
-### Priority 1: Fix Testcontainers Smoke Test
-1. **Investigate container mount issue**: The config file mount isn't working as expected
-2. **Debug container startup**: Check why the application container isn't responding to health checks
-3. **Test alternative approaches**: Consider using docker-compose for testcontainers setup
+- **Fixed authentication issues during cleanup**
+  - **Problem**: Cleanup functions failing due to expired authentication sessions
+  - **Solution**: Added authentication verification and re-authentication logic to all deletion functions
+  - **Result**: User deletion now works perfectly with proper authentication handling
 
-### Priority 2: Fix Selenium Issues
-1. **Environment-based test**: Fix selenium user data directory conflict
-2. **Add unique user data directories**: Ensure each test run uses a unique Chrome profile
-3. **Improve selenium cleanup**: Better cleanup between test runs
+## Current Issues 🔍
 
-### Priority 3: Improve Test Infrastructure
-1. **Add more shared helpers**: Move remaining duplicated functions to ui_helpers.rs
-2. **Create test utilities**: Add more common test patterns to shared module
-3. **Documentation**: Update test documentation to reflect new shared structure
+- **CRITICAL**: Fix alias creation form interaction issue
+  - **Problem**: Alias input field is "not interactable" during alias creation
+  - **Root Cause**: Same HTMX form interaction issue that we fixed for domain creation
+  - **Evidence**: 
+    - ✅ Domain creation is now working perfectly
+    - ✅ Domain verification is working
+    - ✅ Test progresses to alias creation step
+    - ❌ Alias creation fails with "element not interactable" error
+  - **Next Steps**:
+    1. Apply the same HTMX form handling fixes to alias creation
+    2. Add proper waiting for HTMX form loading
+    3. Use the same form interaction approach that worked for domains
 
-### Priority 4: CI/CD Integration
-1. **Update CI workflow**: Ensure both smoke test approaches work in CI
-2. **Add test reporting**: Better reporting for test failures
-3. **Performance optimization**: Reduce test execution time
+- **CRITICAL**: Fix database visibility issue in creation/deletion
+  - **Problem**: Items are created successfully and visible in specific contexts (e.g., domain show page), but not visible in list pages during cleanup
+  - **Root Cause**: This appears to be a database transaction or context issue where items are created in one database context but not visible in list operations
+  - **Evidence**: 
+    - Aliases are created and visible in domain show page ✅
+    - Aliases are not found in aliases list page ❌
+    - Domains are created and visible in domain show page ✅
+    - Domains are not found in domains list page ❌
+    - Users are created and visible in users list page ✅
+  - **Next Steps**:
+    1. Investigate database connection handling in list operations vs show operations
+    2. Check if there are transaction isolation issues
+    3. Verify database context is consistent between creation and list operations
+    4. Consider adding database connection debugging to understand the issue
+
+## Future/Remaining Tasks 📋
+
+- See where the UI tests are failing and fix them
+- Fix the database visibility issue in the cleanup functions
+- Make sure both UI and smoke tests use the helpers and don't double up on similar functions
+- Remove unused `timeout10s` macro
+- Consider consolidating duplicate setup functions between `ui_smoke.rs` and `ui_containerized.rs`
+- If a similarly named function exists in several files, perhaps consider moving it to a helper function
+- Clean up unused functions in `ui_helpers.rs`
+- Consider bundling translation fetching into helper functions to reduce repetitive code
+- validation-password-required seems untranslated

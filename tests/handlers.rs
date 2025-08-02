@@ -565,6 +565,7 @@ mod tests {
             destination: destination.to_string(),
             enabled: true,
             return_url: None,
+            redirect_to: None,
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
@@ -663,6 +664,7 @@ mod tests {
             destination: destination.to_string(),
             enabled: true,
             return_url: None,
+            redirect_to: None,
         };
         let _alias = db::create_alias(&pool, alias_form).unwrap();
 
@@ -1374,6 +1376,7 @@ mod tests {
             destination: destination1.to_string(),
             enabled: true,
             return_url: None,
+            redirect_to: None,
         };
         let _alias1 = db::create_alias(&pool, alias1).unwrap();
 
@@ -1384,6 +1387,7 @@ mod tests {
             destination: destination2.to_string(),
             enabled: true,
             return_url: None,
+            redirect_to: None,
         };
         let _alias2 = db::create_alias(&pool, alias2).unwrap();
 

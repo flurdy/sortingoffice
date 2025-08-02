@@ -1071,7 +1071,7 @@ mod tests {
         assert!(validate_user_path("/home/user/").is_ok()); // Trailing slash
 
         // Long paths
-        let long_path = "/home/".to_string() + &"user/".repeat(100);
+        let long_path = format!("/home/{}", "user/".repeat(100));
         assert!(validate_user_path(&long_path).is_ok());
 
         // Path traversal attempts

@@ -273,7 +273,7 @@ run_smoke_test_containerized() {
 
     # Run the smoke test
     print_status "Running smoke test in testcontainers..."
-    if cargo test ui_smoke_containerized_e2e_flow -- --ignored --nocapture; then
+    if cargo test ui_smoke_containerized_e2e_flow -- --nocapture; then
         print_success "Smoke test passed!"   
     else
         print_error "Smoke test failed!"
