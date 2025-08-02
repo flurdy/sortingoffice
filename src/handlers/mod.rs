@@ -21,6 +21,11 @@ pub mod users;
 pub mod utils;
 pub mod wizard;
 
+use axum::{
+    http::StatusCode,
+    response::Response,
+};
+
 // Re-export specific functions and types
 pub use about::index as about_index;
 pub use aliases::{
@@ -78,6 +83,33 @@ pub use wizard::{
     alias_config, alias_config_post, complete, destination_search, domain_config,
     domain_config_post, execute, index as wizard_index, review,
 };
+
+// Security headers middleware
+async fn security_headers(
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> Result<Response, StatusCode> {
+    let mut response = next.run(request).await;
+    
+    let headers = response.headers_mut();
+    
+    // Security headers
+    headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
+    headers.insert("X-Frame-Options", "DENY".parse().unwrap());
+    headers.insert("X-XSS-Protection", "1; mode=block".parse().unwrap());
+    headers.insert("Referrer-Policy", "strict-origin-when-cross-origin".parse().unwrap());
+    
+    // Content Security Policy
+    let csp = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';";
+    headers.insert("Content-Security-Policy", csp.parse().unwrap());
+    
+    // HSTS (only in production)
+    if std::env::var("RUST_ENV").unwrap_or_default() == "production" {
+        headers.insert("Strict-Transport-Security", "max-age=31536000; includeSubDomains".parse().unwrap());
+    }
+    
+    Ok(response)
+}
 
 use axum::{middleware, Router};
 use tower_http::trace::TraceLayer;
@@ -352,6 +384,7 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .merge(read_only_routes)
         .merge(edit_routes)
         .with_state(app_state.clone())
+        .layer(middleware::from_fn(security_headers))
         .layer(TraceLayer::new_for_http())
         .fallback(|headers, state| async move { not_found(headers, state).await })
 }

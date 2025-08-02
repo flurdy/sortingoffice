@@ -18,6 +18,72 @@ fn create_auth_cookie(role: AdminRole) -> axum::http::HeaderValue {
     TestUtils::create_auth_cookie(role)
 }
 
+// Security Headers Tests
+#[tokio::test]
+async fn test_security_headers_comprehensive() {
+    let (app, _state) = create_test_app().await;
+
+    // Test various endpoints to ensure security headers are applied consistently
+    let test_endpoints = vec![
+        "/",
+        "/domains",
+        "/users",
+        "/clients",
+        "/aliases",
+        "/relays",
+        "/relocated",
+        "/health",
+    ];
+
+    for endpoint in test_endpoints {
+        let response = TestUtils::make_handler_get_request(&app, &_state, endpoint, None).await;
+
+        // Check for all security headers
+        let security_headers = vec![
+            ("x-content-type-options", "nosniff"),
+            ("x-frame-options", "DENY"),
+            ("x-xss-protection", "1; mode=block"),
+            ("referrer-policy", "strict-origin-when-cross-origin"),
+        ];
+
+        for (header_name, expected_value) in security_headers {
+            let header_value = response.headers().get(header_name);
+            assert!(
+                header_value.is_some(),
+                "Security header {header_name} should be present on {endpoint}"
+            );
+
+            let value_str = header_value.unwrap().to_str().unwrap();
+            assert!(
+                value_str == expected_value,
+                "Security header {header_name} should be '{expected_value}' on {endpoint}, got '{value_str}'"
+            );
+        }
+
+        // Check for Content Security Policy (should be present)
+        let csp_header = response.headers().get("content-security-policy");
+        assert!(
+            csp_header.is_some(),
+            "Content Security Policy header should be present on {endpoint}"
+        );
+
+        let csp_value = csp_header.unwrap().to_str().unwrap();
+        // Verify CSP contains essential directives
+        assert!(
+            csp_value.contains("default-src"),
+            "CSP should contain default-src directive on {endpoint}"
+        );
+        assert!(
+            csp_value.contains("script-src"),
+            "CSP should contain script-src directive on {endpoint}"
+        );
+        assert!(
+            csp_value.contains("style-src"),
+            "CSP should contain style-src directive on {endpoint}"
+        );
+    }
+}
+
 // SQL Injection Tests
 #[tokio::test]
 async fn test_sql_injection_domain_creation() {

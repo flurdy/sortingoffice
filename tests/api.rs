@@ -294,19 +294,26 @@ async fn test_api_security_headers() {
 
     // Check for security headers
     let security_headers = vec![
-        "x-content-type-options",
-        "x-frame-options",
-        "x-xss-protection",
-        "strict-transport-security",
+        ("x-content-type-options", "nosniff"),
+        ("x-frame-options", "DENY"),
+        ("x-xss-protection", "1; mode=block"),
+        ("referrer-policy", "strict-origin-when-cross-origin"),
+        ("content-security-policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"),
     ];
 
-    for header_name in security_headers {
+    for (header_name, expected_value) in security_headers {
         let header_value = response.headers().get(header_name);
-        // Currently no security headers implemented
-        // This test documents current behavior and can be updated when security headers are added
         assert!(
-            header_value.is_none(),
-            "Security header {header_name} should not be present yet (not implemented)"
+            header_value.is_some(),
+            "Security header {header_name} should be present"
         );
+        
+        if let Some(value) = header_value {
+            let value_str = value.to_str().unwrap_or("");
+            assert!(
+                value_str.contains(expected_value),
+                "Security header {header_name} should contain '{expected_value}', got '{value_str}'"
+            );
+        }
     }
 }
