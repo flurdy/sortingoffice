@@ -37,7 +37,7 @@ pub async fn show(
     let backup = get_entity_or_not_found!(
         db::get_backup(&pool, id),
         &state,
-        &locale,
+        &headers,
         "backups-not-found"
     );
 
@@ -58,7 +58,7 @@ pub async fn edit(
     let backup = get_entity_or_not_found!(
         db::get_backup(&pool, id),
         &state,
-        &locale,
+        &headers,
         "backups-not-found"
     );
 
@@ -291,7 +291,7 @@ pub async fn update(
         Ok(_) => {
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return Html("Backup not found".to_string()),
+                Err(_) => return crate::handlers::utils::render_backup_not_found_page(&state, &headers).await,
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
@@ -504,7 +504,7 @@ pub async fn toggle_enabled_show(
         Ok(_) => {
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return Html("Backup not found".to_string()),
+                Err(_) => return crate::handlers::utils::render_backup_not_found_page(&state, &headers).await,
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
@@ -530,6 +530,6 @@ pub async fn toggle_enabled_show(
             };
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Error toggling backup status".to_string()),
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }
 }

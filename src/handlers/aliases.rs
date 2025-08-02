@@ -160,7 +160,9 @@ pub async fn edit(
 
     let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
-        Err(_) => return Html("Alias not found".to_string()),
+        Err(_) => {
+            return crate::handlers::utils::render_alias_not_found_page(&state, &headers).await
+        }
     };
 
     let form = crate::models::AliasForm {
@@ -519,7 +521,7 @@ pub async fn toggle_enabled_list(
             )
             .await
         }
-        Err(_) => Html("Error toggling alias status".to_string()),
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }
 }
 
@@ -536,7 +538,10 @@ pub async fn toggle_enabled_show(
         Ok(_) => {
             let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
-                Err(_) => return Html("Alias not found".to_string()),
+                Err(_) => {
+                    return crate::handlers::utils::render_alias_not_found_page(&state, &headers)
+                        .await
+                }
             };
 
             let locale = get_user_locale(&headers);
@@ -555,7 +560,7 @@ pub async fn toggle_enabled_show(
             )
             .await
         }
-        Err(_) => Html("Error toggling alias status".to_string()),
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }
 }
 
@@ -572,14 +577,20 @@ pub async fn toggle_enabled_domain_show(
         Ok(_) => {
             let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
-                Err(_) => return Html("Alias not found".to_string()),
+                Err(_) => {
+                    return crate::handlers::utils::render_alias_not_found_page(&state, &headers)
+                        .await
+                }
             };
 
             // Extract domain from alias mail and look it up
             let domain_name = alias.mail.split('@').next_back().unwrap_or("");
             let domain = match db::get_domain_by_name(&pool, domain_name) {
                 Ok(domain) => domain,
-                Err(_) => return Html("Domain not found".to_string()),
+                Err(_) => {
+                    return crate::handlers::utils::render_domain_not_found_page(&state, &headers)
+                        .await
+                }
             };
 
             let locale = get_user_locale(&headers);
@@ -596,7 +607,7 @@ pub async fn toggle_enabled_domain_show(
             )
             .await
         }
-        Err(_) => Html("Error toggling alias status".to_string()),
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }
 }
 

@@ -393,6 +393,19 @@ error-duplicate-backup = Ya existe un servidor de respaldo para el dominio '{ $d
 error-duplicate-user = Ya existe un usuario con este nombre de usuario.
 error-constraint-violation = Los datos no cumplen con las restricciones requeridas. Por favor verifique su entrada.
 error-operation-not-allowed = Esta operación no está permitida en la base de datos actual debido a restricciones.
+
+# Error page
+error-page-title = Error
+error-page-not-found-title = No Encontrado
+error-page-not-found-message = El recurso solicitado no se pudo encontrar.
+error-page-database-error-title = Error de Base de Datos
+error-page-database-error-message = Ha ocurrido un error en la base de datos. Por favor, inténtalo más tarde.
+error-page-entity-not-found-title = { $entity } No Encontrado
+error-page-entity-not-found-message = El { $entity } solicitado no se pudo encontrar.
+error-page-operation-failed-title = Operación Fallida
+error-page-operation-failed-message = La operación solicitada no se pudo completar.
+error-page-validation-error-title = Error de Validación
+error-page-validation-error-message = Por favor, verifica tu entrada e inténtalo de nuevo.
 error-passwords-do-not-match = Las contraseñas no coinciden
 error-password-too-short = La contraseña debe tener al menos 8 caracteres
 error-failed-to-update-password = No se pudo actualizar la contraseña

@@ -66,7 +66,7 @@ pub async fn show_relocated(
     let relocated = get_entity_or_not_found!(
         db::get_relocated_by_id(&pool, relocated_id),
         &state,
-        &locale,
+        &headers,
         "relocated-not-found"
     );
 
@@ -141,7 +141,7 @@ pub async fn edit_form(
     let relocated = get_entity_or_not_found!(
         db::get_relocated_by_id(&pool, relocated_id),
         &state,
-        &locale,
+        &headers,
         "relocated-not-found"
     );
 

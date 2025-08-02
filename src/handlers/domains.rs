@@ -869,7 +869,7 @@ pub async fn delete(
         }
         Err(e) => {
             error!("Failed to delete domain: {:?}", e);
-            Html("Error deleting domain".to_string())
+            return crate::handlers::utils::render_500_page(&state, &headers).await;
         }
     }
 }
@@ -906,7 +906,7 @@ pub async fn toggle_enabled(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            Html("Error toggling domain status".to_string())
+            return crate::handlers::utils::render_500_page(&state, &headers).await;
         }
     }
 }
@@ -1006,7 +1006,7 @@ pub async fn toggle_enabled_list(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            Html("Error toggling domain status".to_string())
+            return crate::handlers::utils::render_500_page(&state, &headers).await;
         }
     }
 }
@@ -1046,7 +1046,7 @@ pub async fn toggle_enabled_show(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            Html("Error toggling domain status".to_string())
+            return crate::handlers::utils::render_500_page(&state, &headers).await;
         }
     }
 }

@@ -38,3 +38,5 @@ Prefer small functions ala clean-code, using with shared helpers and libraries.
 Do not repeat yourself, use helper functions.
  
 Prefer more domain based logic.
+
+Avoid very big files. 

@@ -9,6 +9,7 @@ pub mod database;
 pub mod database_backup;
 pub mod domain_backup;
 pub mod domains;
+pub mod error;
 pub mod layout;
 pub mod relays;
 pub mod relocated;

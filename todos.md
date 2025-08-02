@@ -9,22 +9,13 @@
 
 ### High Priority
 - ✅ Fix clippy warnings and formatting issues
-  - ✅ Fix uninlined format args in domain_backup.rs:406
-  - ✅ Run `cargo fmt --all` to fix formatting issues
-  - ✅ Address unused variable warnings in test files
   - ⚠️ Remaining: Deprecated Selenium methods (lower priority)
 
 - ✅ Complete I18N implementation
-  - ✅ Handlers updated (aliases, users, domains, backups)
-  - ✅ Resource-specific helper functions implemented
-  - ✅ Translation keys properly integrated
-  - ✅ BaseTemplate with i18n support working
   - ⚠️ Remaining: Locale detection and switching (lower priority)
 
 ### Medium Priority
 - ✅ Refactor long functions and complex logic
-  - ✅ Break down wizard.rs functions (complete function refactored from 100+ lines to smaller functions)
-  - ✅ Extract repeated database error handling patterns
   - Consolidate similar validation logic across handlers
   - Simplify complex conditional logic in handlers
 
@@ -86,9 +77,12 @@
   - ✅ Applied database error handling refactoring to reports.rs (all functions)
   - ✅ **COMPLETED: All handlers now use consistent database error handling patterns**
 
-- We need to test if errors are shown in the UI with the shared theme.
- - These tests may exists already. If not add them.
+- ✅ We need to test if errors are shown in the UI with the shared theme.
+ - ✅ These tests exist and are running but one is failing on theme consistency
+ - ✅ Fixed error page rendering to use proper themed templates instead of plain text
+ - ✅ Added missing translation key for users-not-found
+ - ✅ Test now passing - error pages properly themed with consistent CSS classes
 
 - Are there any other obvious localisation issues? Are there some other key language for mail servers that we should add?
 
--Sometimes refactoring has been done as an example but not applied to the rest of the codebase.
+- Sometimes refactoring has been done as an example but not applied to the rest of the codebase. THis is not about the error handling refactor but older ones.

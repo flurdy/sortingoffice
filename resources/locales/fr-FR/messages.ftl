@@ -1152,3 +1152,16 @@ error-duplicate-domain = Un domaine avec ce nom existe déjà
 error-duplicate-backup = Un serveur de sauvegarde pour le domaine "{domain}" existe déjà
 error-constraint-violation = Violation de contrainte
 error-unexpected = Une erreur inattendue s'est produite
+
+# Error page
+error-page-title = Erreur
+error-page-not-found-title = Non Trouvé
+error-page-not-found-message = La ressource demandée n'a pas pu être trouvée.
+error-page-database-error-title = Erreur de Base de Données
+error-page-database-error-message = Une erreur de base de données s'est produite. Veuillez réessayer plus tard.
+error-page-entity-not-found-title = { $entity } Non Trouvé
+error-page-entity-not-found-message = Le { $entity } demandé n'a pas pu être trouvé.
+error-page-operation-failed-title = Échec de l'Opération
+error-page-operation-failed-message = L'opération demandée n'a pas pu être complétée.
+error-page-validation-error-title = Erreur de Validation
+error-page-validation-error-message = Veuillez vérifier votre saisie et réessayer.

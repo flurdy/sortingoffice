@@ -397,6 +397,19 @@ error-duplicate-backup = Ein Backup-Server für Domain '{ $domain }' existiert b
 error-duplicate-user = Ein Benutzer mit diesem Benutzernamen existiert bereits.
 error-constraint-violation = Die Daten erfüllen nicht die erforderlichen Einschränkungen. Bitte überprüfen Sie Ihre Eingabe.
 error-operation-not-allowed = Diese Operation ist auf der aktuellen Datenbank aufgrund von Einschränkungen nicht erlaubt.
+
+# Error page
+error-page-title = Fehler
+error-page-not-found-title = Nicht Gefunden
+error-page-not-found-message = Die angeforderte Ressource konnte nicht gefunden werden.
+error-page-database-error-title = Datenbankfehler
+error-page-database-error-message = Ein Datenbankfehler ist aufgetreten. Bitte versuchen Sie es später erneut.
+error-page-entity-not-found-title = { $entity } Nicht Gefunden
+error-page-entity-not-found-message = Die angeforderte { $entity } konnte nicht gefunden werden.
+error-page-operation-failed-title = Operation Fehlgeschlagen
+error-page-operation-failed-message = Die angeforderte Operation konnte nicht abgeschlossen werden.
+error-page-validation-error-title = Validierungsfehler
+error-page-validation-error-message = Bitte überprüfen Sie Ihre Eingabe und versuchen Sie es erneut.
 error-passwords-do-not-match = Die Passwörter stimmen nicht überein
 error-password-too-short = Das Passwort muss mindestens 8 Zeichen lang sein
 error-failed-to-update-password = Passwort konnte nicht aktualisiert werden

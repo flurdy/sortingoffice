@@ -10,6 +10,204 @@ use tracing::debug;
 use tracing::error;
 use tracing::info;
 
+/// Helper function to render error pages consistently with proper theming and translations
+pub async fn render_error_page(
+    title_key: &str,
+    message_key: &str,
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    let locale = get_user_locale(headers);
+    let (current_db_label, current_db_id) = get_current_db_info_optimized(state, headers);
+    
+    let title = get_translation(state, &locale, title_key).await;
+    let message = get_translation(state, &locale, message_key).await;
+    
+    println!("[DEBUG] Rendering error page with title: {}, message: {}", title, message);
+    
+    match crate::templates::error::ErrorTemplate::new(
+        &title,
+        &message,
+        state,
+        &locale,
+        &current_db_label,
+        &current_db_id,
+    ).await {
+        Ok(template) => {
+            match render_template_safely(template) {
+                Ok(html) => {
+                    println!("[DEBUG] Error template rendered successfully, length: {}", html.len());
+                    Html(html)
+                },
+                Err(e) => {
+                    println!("[DEBUG] Error rendering template: {}", e);
+                    Html("Error rendering error page".to_string())
+                },
+            }
+        }
+        Err(e) => {
+            println!("[DEBUG] Error creating template: {:?}", e);
+            Html("Error creating error page".to_string())
+        }
+    }
+}
+
+/// Render a 404 Not Found error page
+pub async fn render_404_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-not-found-title",
+        "error-page-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a 500 Internal Server Error page
+pub async fn render_500_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-operation-failed-title",
+        "error-page-operation-failed-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a 403 Forbidden error page
+pub async fn render_403_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-validation-error-title",
+        "error-page-validation-error-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a 401 Unauthorized error page
+pub async fn render_401_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-validation-error-title",
+        "error-page-validation-error-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a database error page
+pub async fn render_database_error_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-database-error-title",
+        "error-page-database-error-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a domain not found error page
+pub async fn render_domain_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a user not found error page
+pub async fn render_user_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render an alias not found error page
+pub async fn render_alias_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a client not found error page
+pub async fn render_client_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a relay not found error page
+pub async fn render_relay_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a backup not found error page
+pub async fn render_backup_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
+/// Render a relocated not found error page
+pub async fn render_relocated_not_found_page(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Html<String> {
+    render_error_page(
+        "error-page-entity-not-found-title",
+        "error-page-entity-not-found-message",
+        state,
+        headers,
+    ).await
+}
+
 /// Helper function to render template safely with error handling
 pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
     template.render().map_err(|e| {
@@ -229,16 +427,14 @@ macro_rules! render_template_with_title {
 }
 
 /// Macro to handle common "not found" error patterns
-/// Usage: let entity = get_entity_or_not_found!(db::get_entity(&pool, id), &state, &locale, "entity-not-found").await?;
+/// Usage: let entity = get_entity_or_not_found!(db::get_entity(&pool, id), &state, &headers, "entity-not-found").await?;
 #[macro_export]
 macro_rules! get_entity_or_not_found {
-    ($db_call:expr, $state:expr, $locale:expr, $not_found_key:expr) => {{
+    ($db_call:expr, $state:expr, $headers:expr, $not_found_key:expr) => {{
         match $db_call {
             Ok(entity) => entity,
             Err(_) => {
-                let not_found_msg =
-                    $crate::i18n::get_translation($state, $locale, $not_found_key).await;
-                return Html(not_found_msg);
+                return $crate::handlers::utils::render_404_page($state, $headers).await;
             }
         }
     }};
@@ -1337,14 +1533,21 @@ where
 
 /// Helper function to handle entity not found errors consistently
 pub async fn handle_entity_not_found(
-    _state: &AppState,
+    state: &AppState,
     headers: &HeaderMap,
-    _entity_type: &str,
-    error_key: &str,
+    entity_type: &str,
+    _error_key: &str,
 ) -> Html<String> {
-    let locale = crate::handlers::language::get_user_locale(headers);
-    let error_message = get_translation(_state, &locale, error_key).await;
-    Html(error_message)
+    match entity_type {
+        "domain" => render_domain_not_found_page(state, headers).await,
+        "user" => render_user_not_found_page(state, headers).await,
+        "alias" => render_alias_not_found_page(state, headers).await,
+        "client" => render_client_not_found_page(state, headers).await,
+        "relay" => render_relay_not_found_page(state, headers).await,
+        "backup" => render_backup_not_found_page(state, headers).await,
+        "relocated" => render_relocated_not_found_page(state, headers).await,
+        _ => render_404_page(state, headers).await,
+    }
 }
 
 /// Helper function to validate alias form field and return error template if validation fails

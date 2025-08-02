@@ -774,3 +774,16 @@ error-duplicate-domain = Et domene med dette navnet eksisterer allerede
 error-duplicate-backup = En backup-server for domene "{domain}" eksisterer allerede
 error-constraint-violation = Begrensningsbrudd
 error-unexpected = En uventet feil oppstod
+
+# Error page
+error-page-title = Feil
+error-page-not-found-title = Ikke Funnet
+error-page-not-found-message = Den forespurte ressursen kunne ikke finnes.
+error-page-database-error-title = Databasefeil
+error-page-database-error-message = En databasefeil oppstod. Vennligst prøv igjen senere.
+error-page-entity-not-found-title = { $entity } Ikke Funnet
+error-page-entity-not-found-message = Den forespurte { $entity } kunne ikke finnes.
+error-page-operation-failed-title = Operasjon Mislyktes
+error-page-operation-failed-message = Den forespurte operasjonen kunne ikke fullføres.
+error-page-validation-error-title = Valideringsfeil
+error-page-validation-error-message = Vennligst sjekk inndataene dine og prøv igjen.

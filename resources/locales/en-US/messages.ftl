@@ -86,6 +86,19 @@ error-duplicate-user = A user with this username already exists.
 error-constraint-violation = The data does not meet the required constraints. Please check your input.
 error-operation-not-allowed = This operation is not allowed on the current database due to restrictions.
 
+# Error page
+error-page-title = Error
+error-page-not-found-title = Not Found
+error-page-not-found-message = The requested resource could not be found.
+error-page-database-error-title = Database Error
+error-page-database-error-message = A database error occurred. Please try again later.
+error-page-entity-not-found-title = { $entity } Not Found
+error-page-entity-not-found-message = The requested { $entity } could not be found.
+error-page-operation-failed-title = Operation Failed
+error-page-operation-failed-message = The requested operation could not be completed.
+error-page-validation-error-title = Validation Error
+error-page-validation-error-message = Please check your input and try again.
+
 # Login
 login-title = Sign in to Sorting Office
 login-user-id = User ID
@@ -486,6 +499,7 @@ users-enable-user = Enable
 users-disable-user = Disable
 users-delete-user = Delete User
 users-delete-confirm = Are you sure you want to delete this user?
+users-not-found = User not found
 users-new-user = New User
 users-edit-user-title = Edit User
 users-form-name = Username
