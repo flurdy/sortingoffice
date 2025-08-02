@@ -1,9 +1,4 @@
-use crate::templates::layout::BaseTemplate;
-use crate::templates::relocated::*;
-use crate::{
-    db, get_entity_or_not_found, i18n::get_translation, models::*, AppState,
-};
-use askama::Template;
+use crate::{db, get_entity_or_not_found, i18n::get_translation, models::*, AppState};
 use axum::{
     extract::{Path, State},
     http::HeaderMap,
@@ -14,7 +9,8 @@ use diesel::result::Error;
 use tracing::{debug, error, info};
 
 use crate::handlers::utils::{
-    get_current_db_pool, render_relocated_form_page, render_relocated_list_page, render_relocated_show_page,
+    get_current_db_pool, render_relocated_form_page, render_relocated_list_page,
+    render_relocated_show_page,
 };
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
@@ -85,7 +81,15 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         enabled: true,
     };
 
-    render_relocated_form_page(form, "relocated-add-title", "relocated-add-action", &state, &locale, &headers).await
+    render_relocated_form_page(
+        form,
+        "relocated-add-title",
+        "relocated-add-action",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 // Create a new relocated entry
@@ -144,7 +148,15 @@ pub async fn edit_form(
         enabled: relocated.enabled,
     };
 
-    render_relocated_form_page(form, "relocated-edit-title", "relocated-edit-action", &state, &locale, &headers).await
+    render_relocated_form_page(
+        form,
+        "relocated-edit-title",
+        "relocated-edit-action",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 // Update a relocated entry

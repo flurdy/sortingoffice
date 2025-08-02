@@ -350,12 +350,8 @@ pub async fn show(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let user = get_entity_or_not_found!(
-        db::get_user(&pool, id),
-        &state,
-        &locale,
-        "users-not-found"
-    );
+    let user =
+        get_entity_or_not_found!(db::get_user(&pool, id), &state, &locale, "users-not-found");
 
     render_user_show_page(user, &state, &locale, &headers).await
 }
@@ -370,12 +366,8 @@ pub async fn edit(
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    let user = get_entity_or_not_found!(
-        db::get_user(&pool, id),
-        &state,
-        &locale,
-        "users-not-found"
-    );
+    let user =
+        get_entity_or_not_found!(db::get_user(&pool, id), &state, &locale, "users-not-found");
 
     let form = UserForm {
         id: user.id.clone(),
@@ -387,7 +379,15 @@ pub async fn edit(
         change_password: user.change_password,
     };
 
-    render_user_form_page(form, Some(user), "users-edit-user-title", &state, &locale, &headers).await
+    render_user_form_page(
+        form,
+        Some(user),
+        "users-edit-user-title",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn create(
@@ -450,7 +450,11 @@ pub async fn create(
             &state,
             &headers,
             &form,
-            |_| Err(crate::validation::ValidationError::UserIdInvalid("Password is required".to_string())),
+            |_| {
+                Err(crate::validation::ValidationError::UserIdInvalid(
+                    "Password is required".to_string(),
+                ))
+            },
             "validation-password-required",
         )
         .await

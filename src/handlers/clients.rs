@@ -1,7 +1,5 @@
-use crate::templates::clients::*;
-use crate::templates::layout::BaseTemplate;
-use crate::{db, models::*, AppState};
-use askama::Template;
+use crate::models::*;
+use crate::{db, AppState};
 use axum::{
     extract::{Path, Query, State},
     http::{HeaderMap, StatusCode},
@@ -18,10 +16,6 @@ use crate::handlers::utils::{
 #[derive(Deserialize)]
 pub struct ToggleClientRedirectQuery {
     pub redirect: Option<String>,
-}
-
-fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 pub async fn list_clients(
@@ -112,7 +106,15 @@ pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMa
         enabled: true,
     };
 
-    render_client_form_page(form, None, "clients-form-create-title", &state, &locale, &headers).await
+    render_client_form_page(
+        form,
+        None,
+        "clients-form-create-title",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn edit_client_form(
@@ -144,7 +146,15 @@ pub async fn edit_client_form(
         enabled: client.enabled,
     };
 
-    render_client_form_page(form, Some(client), "clients-form-edit-title", &state, &locale, &headers).await
+    render_client_form_page(
+        form,
+        Some(client),
+        "clients-form-edit-title",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn create_client(

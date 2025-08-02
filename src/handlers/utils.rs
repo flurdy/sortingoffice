@@ -1168,7 +1168,7 @@ where
 /// Helper function to handle entity operations with consistent error handling for redirect handlers
 pub async fn handle_entity_operation_redirect<T, F, Fut>(
     operation: F,
-    state: &AppState,
+    _state: &AppState,
     entity_name: &str,
     identifier: &str,
     success_message: &str,
@@ -1247,14 +1247,14 @@ where
 
 /// Helper function to handle entity not found errors consistently
 pub async fn handle_entity_not_found(
-    state: &AppState,
+    _state: &AppState,
     headers: &HeaderMap,
-    entity_name: &str,
-    not_found_key: &str,
+    _entity_type: &str,
+    error_key: &str,
 ) -> Html<String> {
-    let locale = get_user_locale(headers);
-    let not_found_msg = get_translation(state, &locale, not_found_key).await;
-    Html(not_found_msg)
+    let locale = crate::handlers::language::get_user_locale(headers);
+    let error_message = get_translation(_state, &locale, error_key).await;
+    Html(error_message)
 }
 
 /// Helper function to validate alias form field and return error template if validation fails
@@ -1380,7 +1380,8 @@ pub async fn render_alias_list_page(
     let description = get_translation(state, locale, "aliases-description").await;
     let add_alias = get_translation(state, locale, "aliases-add").await;
     let table_header_mail = get_translation(state, locale, "aliases-table-header-mail").await;
-    let table_header_destination = get_translation(state, locale, "aliases-table-header-destination").await;
+    let table_header_destination =
+        get_translation(state, locale, "aliases-table-header-destination").await;
     let table_header_domain = get_translation(state, locale, "aliases-table-header-domain").await;
     let table_header_enabled = get_translation(state, locale, "aliases-table-header-enabled").await;
     let table_header_actions = get_translation(state, locale, "aliases-table-header-actions").await;
@@ -1494,7 +1495,8 @@ pub async fn render_alias_form_page(
     let mail_address = get_translation(state, locale, "aliases-form-mail").await;
     let destination = get_translation(state, locale, "aliases-form-destination").await;
     let placeholder_mail = get_translation(state, locale, "aliases-placeholder-mail").await;
-    let placeholder_destination = get_translation(state, locale, "aliases-placeholder-destination").await;
+    let placeholder_destination =
+        get_translation(state, locale, "aliases-placeholder-destination").await;
     let tooltip_mail = get_translation(state, locale, "aliases-tooltip-mail").await;
     let tooltip_destination = get_translation(state, locale, "aliases-tooltip-destination").await;
     let active = get_translation(state, locale, "form-enabled").await;
@@ -1507,7 +1509,7 @@ pub async fn render_alias_form_page(
         title: &title.clone(),
         alias,
         form,
-        error: None, // Will be set by validation functions if needed
+        error: None,      // Will be set by validation functions if needed
         return_url: None, // Will be set by calling function if needed
         edit_alias: &edit_alias,
         new_alias: &new_alias,
@@ -1542,7 +1544,8 @@ pub async fn render_domain_list_page(
     let description = get_translation(state, locale, "domains-description").await;
     let add_domain = get_translation(state, locale, "domains-add").await;
     let table_header_domain = get_translation(state, locale, "domains-table-header-domain").await;
-    let table_header_transport = get_translation(state, locale, "domains-table-header-transport").await;
+    let table_header_transport =
+        get_translation(state, locale, "domains-table-header-transport").await;
     let table_header_enabled = get_translation(state, locale, "domains-table-header-enabled").await;
     let table_header_actions = get_translation(state, locale, "domains-table-header-actions").await;
     let status_active = get_translation(state, locale, "status-active").await;
@@ -1552,20 +1555,26 @@ pub async fn render_domain_list_page(
     let action_disable = get_translation(state, locale, "action-disable").await;
     let empty_title = get_translation(state, locale, "domains-empty-title").await;
     let empty_description = get_translation(state, locale, "domains-empty-description").await;
-    
+
     // Backup translations
     let backups_title = get_translation(state, locale, "backups-title").await;
     let backups_description = get_translation(state, locale, "backups-description").await;
     let add_backup = get_translation(state, locale, "backups-add").await;
-    let backups_table_header_domain = get_translation(state, locale, "backups-table-header-domain").await;
-    let backups_table_header_transport = get_translation(state, locale, "backups-table-header-transport").await;
-    let backups_table_header_enabled = get_translation(state, locale, "backups-table-header-enabled").await;
-    let backups_table_header_actions = get_translation(state, locale, "backups-table-header-actions").await;
+    let backups_table_header_domain =
+        get_translation(state, locale, "backups-table-header-domain").await;
+    let backups_table_header_transport =
+        get_translation(state, locale, "backups-table-header-transport").await;
+    let backups_table_header_enabled =
+        get_translation(state, locale, "backups-table-header-enabled").await;
+    let backups_table_header_actions =
+        get_translation(state, locale, "backups-table-header-actions").await;
     let backups_view = get_translation(state, locale, "backups-view").await;
     let backups_enable = get_translation(state, locale, "backups-enable").await;
     let backups_disable = get_translation(state, locale, "backups-disable").await;
-    let backups_empty_no_backup_servers = get_translation(state, locale, "backups-empty-no-backup-servers").await;
-    let backups_empty_get_started = get_translation(state, locale, "backups-empty-get-started").await;
+    let backups_empty_no_backup_servers =
+        get_translation(state, locale, "backups-empty-no-backup-servers").await;
+    let backups_empty_get_started =
+        get_translation(state, locale, "backups-empty-get-started").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -1637,14 +1646,18 @@ pub async fn render_domain_show_page(
     let disable_domain = get_translation(state, locale, "domains-disable-domain").await;
     let delete_domain = get_translation(state, locale, "domains-delete-domain").await;
     let delete_confirm = get_translation(state, locale, "domains-delete-confirm").await;
-    
+
     // Alias report translations
     let catch_all_header = get_translation(state, locale, "reports-catch-all-header").await;
     let destination_header = get_translation(state, locale, "reports-destination-header").await;
-    let required_aliases_header = get_translation(state, locale, "reports-required-aliases-header").await;
-    let missing_aliases_header = get_translation(state, locale, "reports-missing-aliases-header").await;
-    let missing_required_alias_header = get_translation(state, locale, "reports-missing-required-aliases-header").await;
-    let missing_common_aliases_header = get_translation(state, locale, "reports-missing-common-aliases-header").await;
+    let required_aliases_header =
+        get_translation(state, locale, "reports-required-aliases-header").await;
+    let missing_aliases_header =
+        get_translation(state, locale, "reports-missing-aliases-header").await;
+    let missing_required_alias_header =
+        get_translation(state, locale, "reports-missing-required-aliases-header").await;
+    let missing_common_aliases_header =
+        get_translation(state, locale, "reports-missing-common-aliases-header").await;
     let mail_header = get_translation(state, locale, "reports-mail-header").await;
     let status_header = get_translation(state, locale, "reports-status-header").await;
     let enabled_header = get_translation(state, locale, "reports-enabled-header").await;
@@ -1652,10 +1665,14 @@ pub async fn render_domain_show_page(
     let no_required_aliases = get_translation(state, locale, "reports-no-required-aliases").await;
     let no_missing_aliases = get_translation(state, locale, "reports-no-missing-aliases").await;
     let alias_report_title = get_translation(state, locale, "domains-alias-report-title").await;
-    let alias_report_description = get_translation(state, locale, "domains-alias-report-description").await;
-    let existing_aliases_header = get_translation(state, locale, "domains-existing-aliases-header").await;
-    let add_missing_required_alias_button = get_translation(state, locale, "reports-add-missing-required-alias-button").await;
-    let add_common_alias_button = get_translation(state, locale, "reports-add-common-alias-button").await;
+    let alias_report_description =
+        get_translation(state, locale, "domains-alias-report-description").await;
+    let existing_aliases_header =
+        get_translation(state, locale, "domains-existing-aliases-header").await;
+    let add_missing_required_alias_button =
+        get_translation(state, locale, "reports-add-missing-required-alias-button").await;
+    let add_common_alias_button =
+        get_translation(state, locale, "reports-add-common-alias-button").await;
     let add_catch_all_button = get_translation(state, locale, "reports-add-catch-all-button").await;
     let add_alias_button = get_translation(state, locale, "domains-add-alias-button").await;
     let no_catch_all_message = get_translation(state, locale, "domains-no-catch-all-message").await;
@@ -1664,13 +1681,17 @@ pub async fn render_domain_show_page(
     let disable_alias = get_translation(state, locale, "aliases-disable-alias").await;
     let enable_missing_alias = get_translation(state, locale, "aliases-enable-missing-alias").await;
     let domains_mail_header = get_translation(state, locale, "domains-mail-header").await;
-    let domains_destination_header = get_translation(state, locale, "domains-destination-header").await;
+    let domains_destination_header =
+        get_translation(state, locale, "domains-destination-header").await;
     let domains_enabled_header = get_translation(state, locale, "domains-enabled-header").await;
     let domains_actions_header = get_translation(state, locale, "domains-actions-header").await;
-    let domains_missing_aliases_header = get_translation(state, locale, "domains-missing-aliases-header").await;
+    let domains_missing_aliases_header =
+        get_translation(state, locale, "domains-missing-aliases-header").await;
     let domains_catch_all_header = get_translation(state, locale, "domains-catch-all-header").await;
-    let analytics_common_aliases_header = get_translation(state, locale, "analytics-common-aliases-header").await;
-    let analytics_common_aliases_description = get_translation(state, locale, "analytics-common-aliases-description").await;
+    let analytics_common_aliases_header =
+        get_translation(state, locale, "analytics-common-aliases-header").await;
+    let analytics_common_aliases_description =
+        get_translation(state, locale, "analytics-common-aliases-description").await;
 
     let content_template = crate::templates::domains::DomainShowTemplate {
         title: &title,
@@ -1748,10 +1769,13 @@ pub async fn render_domain_form_page(
     let form_cancel = get_translation(state, locale, "form-cancel").await;
     let form_create_domain = get_translation(state, locale, "domains-form-create-domain").await;
     let form_update_domain = get_translation(state, locale, "domains-form-update-domain").await;
-    let form_placeholder_domain = get_translation(state, locale, "domains-form-placeholder-domain").await;
-    let form_placeholder_transport = get_translation(state, locale, "domains-form-placeholder-transport").await;
+    let form_placeholder_domain =
+        get_translation(state, locale, "domains-form-placeholder-domain").await;
+    let form_placeholder_transport =
+        get_translation(state, locale, "domains-form-placeholder-transport").await;
     let form_tooltip_domain = get_translation(state, locale, "domains-form-tooltip-domain").await;
-    let form_tooltip_transport = get_translation(state, locale, "domains-form-tooltip-transport").await;
+    let form_tooltip_transport =
+        get_translation(state, locale, "domains-form-tooltip-transport").await;
     let form_tooltip_enable = get_translation(state, locale, "domains-form-tooltip-enable").await;
     let form_enabled = get_translation(state, locale, "form-enabled").await;
     let form_disabled = get_translation(state, locale, "form-disabled").await;
@@ -1791,7 +1815,8 @@ pub async fn render_relay_list_page(
     let title = get_translation(state, locale, "relays-title").await;
     let relays_list_description = get_translation(state, locale, "relays-list-description").await;
     let add_relay = get_translation(state, locale, "relays-add").await;
-    let table_header_recipient = get_translation(state, locale, "relays-table-header-recipient").await;
+    let table_header_recipient =
+        get_translation(state, locale, "relays-table-header-recipient").await;
     let table_header_status = get_translation(state, locale, "relays-table-header-status").await;
     let table_header_enabled = get_translation(state, locale, "relays-table-header-enabled").await;
     let table_header_actions = get_translation(state, locale, "relays-table-header-actions").await;
@@ -1906,7 +1931,8 @@ pub async fn render_relay_form_page(
     let action_save = get_translation(state, locale, "action-save").await;
     let action_cancel = get_translation(state, locale, "action-cancel").await;
     let back_to_list = get_translation(state, locale, "relays-back-to-list").await;
-    let placeholder_recipient = get_translation(state, locale, "relays-placeholder-recipient").await;
+    let placeholder_recipient =
+        get_translation(state, locale, "relays-placeholder-recipient").await;
     let placeholder_status = get_translation(state, locale, "relays-placeholder-status").await;
 
     let content_template = crate::templates::relays::RelayFormTemplate {
@@ -2020,12 +2046,18 @@ pub async fn render_user_show_page(
     let disable_user = get_translation(state, locale, "users-disable-user").await;
     let delete_user = get_translation(state, locale, "users-delete-user").await;
     let delete_confirm = get_translation(state, locale, "users-delete-confirm").await;
-    let password_change_required_label = get_translation(state, locale, "users-password-change-required-label").await;
-    let password_change_required_yes = get_translation(state, locale, "users-password-change-required-yes").await;
-    let password_change_required_no = get_translation(state, locale, "users-password-change-required-no").await;
-    let password_management_title = get_translation(state, locale, "users-password-management-title").await;
-    let change_password_button = get_translation(state, locale, "users-change-password-button").await;
-    let require_password_change_button = get_translation(state, locale, "users-require-password-change-button").await;
+    let password_change_required_label =
+        get_translation(state, locale, "users-password-change-required-label").await;
+    let password_change_required_yes =
+        get_translation(state, locale, "users-password-change-required-yes").await;
+    let password_change_required_no =
+        get_translation(state, locale, "users-password-change-required-no").await;
+    let password_management_title =
+        get_translation(state, locale, "users-password-management-title").await;
+    let change_password_button =
+        get_translation(state, locale, "users-change-password-button").await;
+    let require_password_change_button =
+        get_translation(state, locale, "users-require-password-change-button").await;
 
     let content_template = crate::templates::users::UserShowTemplate {
         title,
@@ -2073,18 +2105,24 @@ pub async fn render_user_form_page(
     let form_password = get_translation(state, locale, "users-form-password").await;
     let form_name = get_translation(state, locale, "users-form-name").await;
     let form_active = get_translation(state, locale, "users-form-active").await;
-    let placeholder_user_email = get_translation(state, locale, "users-placeholder-user-email").await;
+    let placeholder_user_email =
+        get_translation(state, locale, "users-placeholder-user-email").await;
     let placeholder_name = get_translation(state, locale, "users-placeholder-name").await;
     let tooltip_user_id = get_translation(state, locale, "users-tooltip-user-id").await;
     let tooltip_password = get_translation(state, locale, "users-tooltip-password").await;
     let tooltip_name = get_translation(state, locale, "users-tooltip-name").await;
     let tooltip_active = get_translation(state, locale, "users-tooltip-active").await;
     let users_change_password = get_translation(state, locale, "users-change-password").await;
-    let users_change_password_tooltip = get_translation(state, locale, "users-change-password-tooltip").await;
-    let users_placeholder_password = get_translation(state, locale, "users-placeholder-password").await;
-    let password_management_title = get_translation(state, locale, "users-password-management-title").await;
-    let change_password_button = get_translation(state, locale, "users-change-password-button").await;
-    let toggle_change_password_button = get_translation(state, locale, "users-toggle-change-password-button").await;
+    let users_change_password_tooltip =
+        get_translation(state, locale, "users-change-password-tooltip").await;
+    let users_placeholder_password =
+        get_translation(state, locale, "users-placeholder-password").await;
+    let password_management_title =
+        get_translation(state, locale, "users-password-management-title").await;
+    let change_password_button =
+        get_translation(state, locale, "users-change-password-button").await;
+    let toggle_change_password_button =
+        get_translation(state, locale, "users-toggle-change-password-button").await;
     let cancel = get_translation(state, locale, "form-cancel").await;
     let create_user = get_translation(state, locale, "users-create-user").await;
     let update_user = get_translation(state, locale, "users-update-user").await;
@@ -2092,7 +2130,8 @@ pub async fn render_user_form_page(
     let edit_user_title = get_translation(state, locale, "users-edit-user-title").await;
     let users_maildir = get_translation(state, locale, "users-maildir").await;
     let users_tooltip_maildir = get_translation(state, locale, "users-tooltip-maildir").await;
-    let users_placeholder_maildir = get_translation(state, locale, "users-placeholder-maildir").await;
+    let users_placeholder_maildir =
+        get_translation(state, locale, "users-placeholder-maildir").await;
     let users_home = get_translation(state, locale, "users-home").await;
     let users_tooltip_home = get_translation(state, locale, "users-tooltip-home").await;
     let users_placeholder_home = get_translation(state, locale, "users-placeholder-home").await;
@@ -2250,7 +2289,7 @@ pub async fn render_client_show_page(
 }
 
 pub async fn render_client_form_page(
-    form: crate::models::ClientForm,
+    _form: crate::models::ClientForm,
     client: Option<crate::models::Client>,
     title_key: &str,
     state: &AppState,
@@ -2266,7 +2305,8 @@ pub async fn render_client_form_page(
     let form_cancel = get_translation(state, locale, "form-cancel").await;
     let form_create_client = get_translation(state, locale, "clients-form-create-client").await;
     let form_update_client = get_translation(state, locale, "clients-form-update-client").await;
-    let form_placeholder_client = get_translation(state, locale, "clients-form-placeholder-client").await;
+    let form_placeholder_client =
+        get_translation(state, locale, "clients-form-placeholder-client").await;
     let form_tooltip_client = get_translation(state, locale, "clients-form-tooltip-client").await;
     let form_tooltip_status = get_translation(state, locale, "clients-form-tooltip-status").await;
     let form_tooltip_enabled = get_translation(state, locale, "clients-form-tooltip-enabled").await;
@@ -2363,7 +2403,8 @@ pub async fn render_backup_form_page(
     let form_transport = get_translation(state, locale, "backups-form-transport").await;
     let form_active = get_translation(state, locale, "backups-form-active").await;
     let placeholder_domain = get_translation(state, locale, "backups-placeholder-domain").await;
-    let placeholder_transport = get_translation(state, locale, "backups-placeholder-transport").await;
+    let placeholder_transport =
+        get_translation(state, locale, "backups-placeholder-transport").await;
     let tooltip_domain = get_translation(state, locale, "backups-tooltip-domain").await;
     let tooltip_transport = get_translation(state, locale, "backups-tooltip-transport").await;
     let tooltip_active = get_translation(state, locale, "backups-tooltip-active").await;
@@ -2406,12 +2447,17 @@ pub async fn render_relocated_list_page(
 ) -> Html<String> {
     // Fetch all required translations for relocated list
     let title = get_translation(state, locale, "relocated-title").await;
-    let relocated_list_description = get_translation(state, locale, "relocated-list-description").await;
+    let relocated_list_description =
+        get_translation(state, locale, "relocated-list-description").await;
     let add_relocated = get_translation(state, locale, "relocated-add").await;
-    let table_header_old_address = get_translation(state, locale, "relocated-table-header-old-address").await;
-    let table_header_new_address = get_translation(state, locale, "relocated-table-header-new-address").await;
-    let table_header_enabled = get_translation(state, locale, "relocated-table-header-enabled").await;
-    let table_header_actions = get_translation(state, locale, "relocated-table-header-actions").await;
+    let table_header_old_address =
+        get_translation(state, locale, "relocated-table-header-old-address").await;
+    let table_header_new_address =
+        get_translation(state, locale, "relocated-table-header-new-address").await;
+    let table_header_enabled =
+        get_translation(state, locale, "relocated-table-header-enabled").await;
+    let table_header_actions =
+        get_translation(state, locale, "relocated-table-header-actions").await;
     let status_enabled = get_translation(state, locale, "status-enabled").await;
     let status_disabled = get_translation(state, locale, "status-disabled").await;
     let action_view = get_translation(state, locale, "action-view").await;
@@ -2468,7 +2514,8 @@ pub async fn render_relocated_show_page(
     let view_edit_settings = get_translation(state, locale, "relocated-view-edit-settings").await;
     let relocated_show_title = get_translation(state, locale, "relocated-show-title").await;
     let relocated_info_title = get_translation(state, locale, "relocated-info-title").await;
-    let relocated_info_description = get_translation(state, locale, "relocated-info-description").await;
+    let relocated_info_description =
+        get_translation(state, locale, "relocated-info-description").await;
 
     let content_template = crate::templates::relocated::RelocatedShowTemplate {
         title: &title,
@@ -2510,13 +2557,17 @@ pub async fn render_relocated_form_page(
     let field_old_address = get_translation(state, locale, "relocated-field-old-address").await;
     let field_new_address = get_translation(state, locale, "relocated-field-new-address").await;
     let field_enabled = get_translation(state, locale, "relocated-field-enabled").await;
-    let field_old_address_help = get_translation(state, locale, "relocated-field-old-address-help").await;
-    let field_new_address_help = get_translation(state, locale, "relocated-field-new-address-help").await;
+    let field_old_address_help =
+        get_translation(state, locale, "relocated-field-old-address-help").await;
+    let field_new_address_help =
+        get_translation(state, locale, "relocated-field-new-address-help").await;
     let action_save = get_translation(state, locale, "action-save").await;
     let action_cancel = get_translation(state, locale, "action-cancel").await;
     let back_to_list = get_translation(state, locale, "relocated-back-to-list").await;
-    let placeholder_old_address = get_translation(state, locale, "relocated-placeholder-old-address").await;
-    let placeholder_new_address = get_translation(state, locale, "relocated-placeholder-new-address").await;
+    let placeholder_old_address =
+        get_translation(state, locale, "relocated-placeholder-old-address").await;
+    let placeholder_new_address =
+        get_translation(state, locale, "relocated-placeholder-new-address").await;
 
     let content_template = crate::templates::relocated::RelocatedFormTemplate {
         title: &title.clone(),

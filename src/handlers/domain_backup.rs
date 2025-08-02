@@ -64,11 +64,22 @@ pub async fn edit(
 
     let form = BackupForm {
         domain: backup.domain.clone(),
-        transport: backup.transport.clone().unwrap_or_else(|| "smtp:[]".to_string()),
+        transport: backup
+            .transport
+            .clone()
+            .unwrap_or_else(|| "smtp:[]".to_string()),
         enabled: backup.enabled,
     };
 
-    render_backup_form_page(form, Some(backup), "backups-edit-backup-title", &state, &locale, &headers).await
+    render_backup_form_page(
+        form,
+        Some(backup),
+        "backups-edit-backup-title",
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn create(
@@ -422,12 +433,26 @@ pub async fn toggle_enabled(
                 Ok(backup) => {
                     let content_template = BackupShowTemplate {
                         title: get_translation(&state, &locale, "backups-show-title").await,
-                        view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
+                        view_edit_settings: get_translation(
+                            &state,
+                            &locale,
+                            "backups-view-edit-settings",
+                        )
+                        .await,
+                        back_to_domains: get_translation(
+                            &state,
+                            &locale,
+                            "domains-back-to-domains",
+                        )
+                        .await,
+                        backup_information: get_translation(
+                            &state,
+                            &locale,
+                            "backups-backup-information",
+                        )
+                        .await,
+                        backup_details: get_translation(&state, &locale, "backups-backup-details")
                             .await,
-                        back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                        backup_information: get_translation(&state, &locale, "backups-backup-information")
-                            .await,
-                        backup_details: get_translation(&state, &locale, "backups-backup-details").await,
                         domain: get_translation(&state, &locale, "backups-domain").await,
                         transport: get_translation(&state, &locale, "backups-transport").await,
                         status: get_translation(&state, &locale, "backups-status").await,
@@ -436,10 +461,14 @@ pub async fn toggle_enabled(
                         status_active: get_translation(&state, &locale, "status-active").await,
                         status_inactive: get_translation(&state, &locale, "status-inactive").await,
                         edit_backup: get_translation(&state, &locale, "backups-edit-backup").await,
-                        enable_backup: get_translation(&state, &locale, "backups-enable-backup").await,
-                        disable_backup: get_translation(&state, &locale, "backups-disable-backup").await,
-                        delete_backup: get_translation(&state, &locale, "backups-delete-backup").await,
-                        delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
+                        enable_backup: get_translation(&state, &locale, "backups-enable-backup")
+                            .await,
+                        disable_backup: get_translation(&state, &locale, "backups-disable-backup")
+                            .await,
+                        delete_backup: get_translation(&state, &locale, "backups-delete-backup")
+                            .await,
+                        delete_confirm: get_translation(&state, &locale, "backups-delete-confirm")
+                            .await,
                         backup,
                     };
 
