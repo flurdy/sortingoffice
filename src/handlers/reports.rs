@@ -40,9 +40,10 @@ pub async fn matrix_report(
     .await;
 
     // Get matrix report data
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
     let report = match db::get_domain_alias_matrix_report(&pool) {
         Ok(report) => report,
         Err(e) => {
@@ -329,9 +330,10 @@ pub async fn orphaned_report(
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
     let report = match db::get_orphaned_aliases_report(&pool) {
         Ok(report) => report,
         Err(e) => {
@@ -398,9 +400,10 @@ pub async fn external_forwarders_report(
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
     let report = match db::get_external_forwarders_report(&pool) {
         Ok(report) => report,
         Err(e) => {
@@ -471,9 +474,10 @@ pub async fn alias_cross_domain_report(
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
     let alias = params.get("alias").cloned().unwrap_or_default();
     let report = match db::get_alias_cross_domain_report(&pool, &alias) {
         Ok(report) => report,

@@ -5,9 +5,10 @@ use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     // Get the current database pool based on session selection
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
 
     // Use the new macro for SystemStats retrieval
     let stats = get_system_stats_or_default!(db::get_system_stats(&pool));

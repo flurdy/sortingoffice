@@ -78,7 +78,17 @@
   - ✅ Applied database error handling refactoring to aliases.rs (all functions)
   - ✅ Applied database error handling refactoring to users.rs (all functions)  
   - ✅ Applied database error handling refactoring to domain_backup.rs (all functions)
-  - ⚠️ Remaining: reports.rs, dashboard.rs, stats.rs, relocated.rs, clients.rs, relays.rs
+  - ✅ Applied database error handling refactoring to stats.rs (all functions)
+  - ✅ Applied database error handling refactoring to dashboard.rs (all functions)
+  - ✅ Applied database error handling refactoring to clients.rs (all functions)
+  - ✅ Applied database error handling refactoring to relays.rs (all functions)
+  - ✅ Applied database error handling refactoring to relocated.rs (all functions)
+  - ✅ Applied database error handling refactoring to reports.rs (all functions)
+  - ✅ **COMPLETED: All handlers now use consistent database error handling patterns**
 
 - We need to test if errors are shown in the UI with the shared theme.
  - These tests may exists already. If not add them.
+
+- Are there any other obvious localisation issues? Are there some other key language for mail servers that we should add?
+
+-Sometimes refactoring has been done as an example but not applied to the rest of the codebase.

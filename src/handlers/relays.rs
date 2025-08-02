@@ -14,9 +14,10 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relays
 pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
@@ -50,9 +51,10 @@ pub async fn show_relay(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
@@ -112,9 +114,10 @@ pub async fn create_relay(
     headers: HeaderMap,
     Form(form): Form<RelayForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay creation request");
@@ -141,9 +144,10 @@ pub async fn edit_form(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay edit form request for ID: {}", relay_id);
@@ -186,9 +190,10 @@ pub async fn update_relay(
     headers: HeaderMap,
     Form(form): Form<RelayForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay update request for ID: {}", relay_id);

@@ -9,8 +9,7 @@ use diesel::result::Error;
 use tracing::{debug, error, info};
 
 use crate::handlers::utils::{
-    get_current_db_pool, render_relocated_form_page, render_relocated_list_page,
-    render_relocated_show_page,
+    render_relocated_form_page, render_relocated_list_page, render_relocated_show_page,
 };
 
 fn is_htmx_request(headers: &HeaderMap) -> bool {
@@ -19,9 +18,10 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 
 // List all relocated entries
 pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
@@ -57,9 +57,10 @@ pub async fn show_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let relocated = get_entity_or_not_found!(
@@ -98,9 +99,10 @@ pub async fn create_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated create request");
@@ -130,9 +132,10 @@ pub async fn edit_form(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let relocated = get_entity_or_not_found!(
@@ -166,9 +169,10 @@ pub async fn update_relocated(
     headers: HeaderMap,
     Form(form): Form<RelocatedForm>,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated update request for ID: {}", relocated_id);
