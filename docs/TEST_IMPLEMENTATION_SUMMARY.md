@@ -42,6 +42,7 @@ Instead of an in-memory database, we implemented **Testcontainers** with MySQL c
    - Authentication bypass tests
    - Authorization tests
    - Input validation edge cases
+   - Security headers validation tests
 
 6. **`tests/run_tests.sh`** - Unified test runner:
    - Handles all test types (unit, integration, security, UI)
@@ -138,7 +139,7 @@ tests/
 ├── README.md          # Complete testing documentation
 ├── run_tests.sh       # Unified test runner
 ├── ui_containerized.rs # UI tests (18 tests)
-├── security.rs        # Security tests (5 tests)
+├── security.rs        # Security tests (6 tests)
 └── testcontainers_test.rs # Testcontainers tests (3 tests)
 ```
 
@@ -168,4 +169,4 @@ This approach provides:
 - **Usability**: Unified test interface
 - **Maintainability**: Clear organization and documentation
 
-The test suite now covers 163 total tests across all categories with excellent isolation and security coverage. 
+The test suite now covers 164 total tests across all categories with excellent isolation and security coverage. 

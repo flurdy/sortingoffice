@@ -442,6 +442,7 @@ source scripts/set-env.sh docker # Docker
 - **Session Management**: HTTP-only cookies with automatic expiration and CSRF protection
 - **SQL Injection Protection**: All database operations use Diesel ORM with parameterized queries
 - **Input Validation**: Comprehensive validation and sanitization of all user inputs
+- **Security Headers**: Comprehensive security headers including X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Content Security Policy, and Strict-Transport-Security
 - **HTTPS Ready**: Designed for HTTPS deployment with secure cookie attributes
 
 For detailed security information, see [AUTHENTICATION.md](docs/AUTHENTICATION.md).

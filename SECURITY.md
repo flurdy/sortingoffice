@@ -70,8 +70,13 @@ We follow responsible disclosure practices:
 ### Network Security
 
 - **HTTPS enforcement** in production
-- **Secure headers** implementation
-- **Content Security Policy** (CSP) headers
+- **Comprehensive security headers** implementation:
+  - **X-Content-Type-Options**: `nosniff` - Prevents MIME type sniffing
+  - **X-Frame-Options**: `DENY` - Prevents clickjacking attacks
+  - **X-XSS-Protection**: `1; mode=block` - Enables XSS protection
+  - **Referrer-Policy**: `strict-origin-when-cross-origin` - Controls referrer information
+  - **Content Security Policy**: Comprehensive CSP with safe defaults for scripts, styles, and resources
+  - **Strict-Transport-Security**: Added for production environments (HSTS)
 - **Rate limiting** for API endpoints
 
 ## Security Best Practices
