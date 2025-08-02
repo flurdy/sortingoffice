@@ -411,8 +411,7 @@ pub async fn require_auth(
         Ok(next.run(request).await)
     } else {
         println!(
-            "🔐 [AUTH] ❌ Authentication required but not authenticated for path: {}",
-            path
+            "🔐 [AUTH] ❌ Authentication required but not authenticated for path: {path}"
         );
 
         // Redirect to login
@@ -437,8 +436,7 @@ pub async fn require_edit_permissions(
         Ok(next.run(request).await)
     } else {
         println!(
-            "🔐 [AUTH] ❌ Insufficient edit permissions for path: {}",
-            path
+            "🔐 [AUTH] ❌ Insufficient edit permissions for path: {path}"
         );
 
         // Return 403 Forbidden

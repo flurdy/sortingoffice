@@ -1,3 +1,4 @@
+use crate::handlers::utils::get_current_db_info;
 use crate::{
     db, get_entity_or_not_found,
     i18n::get_translation,
@@ -20,20 +21,6 @@ use tracing::error;
 pub struct ChangePasswordForm {
     pub new_password: String,
     pub confirm_password: String,
-}
-
-// Helper function to get current database info
-async fn get_current_db_info(state: &AppState, headers: &HeaderMap) -> (String, String) {
-    let current_db_id = crate::handlers::auth::get_selected_database(headers)
-        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    let current_db_label = state
-        .db_manager
-        .get_configs()
-        .iter()
-        .find(|db| db.id == current_db_id)
-        .map(|db| db.label.clone())
-        .unwrap_or_else(|| current_db_id.clone());
-    (current_db_label, current_db_id)
 }
 
 async fn build_user_list_template(

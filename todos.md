@@ -1,77 +1,58 @@
 # TODO List
 
-## 🎉 **COMPLETED: Smoke Tests Fixed!** ✅
+## 🎉 **COMPLETED: Major Test Infrastructure Improvements!** ✅
 
-All major smoke test issues have been resolved! The environment smoke test now works perfectly:
+### **UI Test Improvements**
+- **✅ Fixed Environment Smoke Test**: Resolved `net::ERR_NAME_NOT_RESOLVED` by using host bridge IP
+- **✅ Fixed Domain/Alias/User Creation**: All HTMX forms now work perfectly with pagination
+- **✅ Fixed Pagination Handling**: Created reusable `check_item_in_paginated_list` function
+- **✅ Fixed Authentication Issues**: Added proper session handling and re-authentication
+- **✅ Fixed Deletion Functions**: All deletion functions work with paginated lists and alerts
+- **✅ Fixed Validation Issues**: Email/domain validation and password requirements working
+- **✅ Eliminated Code Duplication**: Consolidated duplicate functions between test files
+- **✅ Added Button IDs**: Improved Selenium reliability by adding IDs to wizard buttons
+- **✅ Enhanced Wizard Test**: Added comprehensive verification of created resources
 
-- **✅ Environment Smoke Test**: Fully working
-- **✅ Domain Creation**: Working with HTMX forms and pagination
-- **✅ Alias Creation**: Working with HTMX forms and pagination  
-- **✅ User Creation**: Working perfectly
-- **✅ Cleanup**: Working with pagination and alert handling
-- **✅ Pagination**: Reusable function for searching paginated lists
-- **✅ Authentication**: Proper handling of expired sessions
-- **✅ Alert Handling**: JavaScript confirmation dialogs handled correctly
+### **Code Quality Improvements**
+- **✅ Cleaned up unused functions**: Removed unused macros and functions
+- **✅ Fixed compilation warnings**: Resolved all compiler warnings
+- **✅ Improved test reliability**: Better error handling and fallback mechanisms
 
-## Completed Tasks ✅
+## **Remaining Tasks** 📋
 
-- **✅ Fixed Environment Smoke Test**: 
-  - Fixed `net::ERR_NAME_NOT_RESOLVED` by using host bridge IP
-  - Added resilient app detection with 30-second timeout
-  - Extracted app URL finding logic into separate function
-  - Test now properly detects and connects to existing environment
+### **HIGH PRIORITY**
 
-- **✅ Fixed Domain Creation**: 
-  - Fixed HTMX form loading and waiting
-  - Fixed "element not interactable" issue for domain creation
-  - Fixed domain verification with pagination support
-  - Domain creation now works perfectly
+1. **✅ COMPLETED: Fix duplicate `get_current_db_info` function**
+   - **Location**: Found duplicate in `src/handlers/users.rs` and `src/handlers/utils.rs`
+   - **Action**: Removed private function from `users.rs`, imported public function from `utils.rs`
+   - **Result**: Eliminated code duplication, all tests passing
 
-- **✅ Fixed Alias Creation**: 
-  - Fixed HTMX form loading and waiting
-  - Fixed "element not interactable" issue for alias creation
-  - Fixed alias verification with pagination support
-  - Alias creation now works perfectly
+### **MEDIUM PRIORITY**
 
-- **✅ Fixed Pagination Handling**: 
-  - Created reusable `check_item_in_paginated_list` function
-  - Properly handles `/domains?page={{ page_num }}&per_page=25` URLs
-  - Correctly searches through pages until item is found or no more pages
-  - Applied to both domain and alias verification and deletion
+2. **Consolidate translation functions**
+   - **Issue**: Handlers may be duplicating translation fetching logic
+   - **Action**: Create shared translation helper functions
+   - **Benefit**: Reduce code duplication and improve maintainability
 
-- **✅ Fixed Authentication Issues**: 
-  - Added authentication check and re-authentication logic to cleanup functions
-  - Fixed "unexpected alert open" during user deletion
-  - Added proper alert handling for confirmation dialogs
+3. **Consolidate handler code duplication**
+   - **Issue**: Some POST/PUT handlers may duplicate show/list code
+   - **Action**: Extract shared logic into reusable functions
+   - **Benefit**: Reduce code duplication and improve maintainability
 
-- **✅ Fixed Validation Issues**: 
-  - Fixed email/domain validation by using lowercase-only domain names
-  - Fixed password requirement in user creation
-  - Added comprehensive post-creation validation checks
+### **LOW PRIORITY**
 
-- **✅ Fixed Deletion Functions**: 
-  - Fixed domain deletion to use pagination and handle alerts
-  - Fixed alias deletion to use pagination and handle alerts
-  - Fixed user deletion to use pagination and handle alerts
-  - All deletion functions now work with paginated lists
+4. **Fix untranslated strings**
+   - `validation-password-required`
+   - `form-enabled`
+   - **Action**: Add missing translations to locale files
 
-## Remaining Tasks 📋
+5. **Consider bundling translation fetching**
+   - **Action**: Create helper functions for common translation patterns
+   - **Benefit**: Reduce boilerplate in handlers
 
-- **✅ COMPLETED**: Clean up unused functions in ui_helpers.rs
-  - Removed unused `timeout10s` macro
-  - Removed unused `rand_str` function  
-  - Removed unused `setup_ui_test_env` function from ui_smoke.rs
-  - Kept necessary functions that are actually used
-  - Fixed compilation errors and warnings
+## **Recent Achievements** 🏆
 
-- **MEDIUM**: Remove unused timeout10s macro (already done)
-- **✅ COMPLETED**: Consider consolidating duplicate setup functions between ui_smoke.rs and ui_containerized.rs
-  - Removed duplicate `get_container_bridge_ip` and `setup_app_container` from ui_containerized.rs
-  - Added timeout macros and necessary functions to ui_containerized.rs to fix compilation
-  - **IMPROVED**: Renamed duplicated functions to distinguish different behaviors:
-    - `setup_app_container_containerized` (uses port 4000) vs `setup_app_container` (uses port 3000)
-    - `get_container_bridge_ip_containerized` (explicit error handling) vs `get_container_bridge_ip` (lossy error handling)
-  - Main smoke test (ui_smoke_e2e_flow) is working perfectly
-  - All tests now compile and run successfully
-- **LOW**: Consider bundling translation fetching into helper functions
-- **LOW**: Fix untranslated strings (validation-password-required, form-enabled)
+- **Wizard Test Enhancement**: Added comprehensive verification that all domains, aliases, and users are actually created
+- **Button ID Implementation**: Added reliable IDs to wizard buttons for better Selenium test stability
+- **Error Handling Improvements**: Made tests more robust with better error recovery and fallback mechanisms
+- **Code Duplication Elimination**: Consolidated duplicate functions between `ui_containerized.rs` and `ui_helpers.rs`

@@ -94,8 +94,7 @@ pub async fn setup_selenium_container_and_driver(
 
     // println!("[UI HELPERS] Selenium container started");
     println!(
-        "[UI HELPERS] Selenium URL: http://localhost:{}",
-        selenium_port
+        "[UI HELPERS] Selenium URL: http://localhost:{selenium_port}"
     );
     // println!(
     //     "[UI HELPERS] Selenium VNC URL: vnc://localhost:{}",
@@ -460,7 +459,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     }
 
     if !found_errors.is_empty() {
-        println!("[CREATE] Validation errors detected: {:?}", found_errors);
+        println!("[CREATE] Validation errors detected: {found_errors:?}");
         println!(
             "[CREATE] Page source contains validation errors - domain creation may have failed"
         );
@@ -498,8 +497,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         Ok(())
     } else {
         println!(
-            "[CREATE] Domain {} not found in paginated list - creation may have failed",
-            domain_name
+            "[CREATE] Domain {domain_name} not found in paginated list - creation may have failed"
         );
         Err(anyhow::anyhow!(
             "Domain {} not found in paginated list - creation may have failed",
@@ -594,7 +592,7 @@ pub async fn create_alias(
     }
 
     if !found_errors.is_empty() {
-        println!("[CREATE] Validation errors detected: {:?}", found_errors);
+        println!("[CREATE] Validation errors detected: {found_errors:?}");
         println!(
             "[CREATE] Page source contains validation errors - alias creation may have failed"
         );
@@ -632,8 +630,7 @@ pub async fn create_alias(
         Ok(())
     } else {
         println!(
-            "[CREATE] Alias {} not found in paginated list - checking domain show page",
-            alias_email
+            "[CREATE] Alias {alias_email} not found in paginated list - checking domain show page"
         );
 
         // Try to find the alias in the domain show page instead
@@ -643,9 +640,8 @@ pub async fn create_alias(
 
         // Find and click the domain view link
         let domain_view_link = timeout60s!(
-            driver.find(By::XPath(&format!(
-                "//tr[contains(., '{}')]//a[contains(@href, '/domains/')]",
-                domain_name
+            driver.find(By::XPath(format!(
+                "//tr[contains(., '{domain_name}')]//a[contains(@href, '/domains/')]"
             ))),
             "Find domain view link"
         )?;
@@ -774,8 +770,7 @@ pub async fn create_user(
         Ok(())
     } else {
         println!(
-            "[CREATE] User {} not found in paginated list - creation may have failed",
-            user_email
+            "[CREATE] User {user_email} not found in paginated list - creation may have failed"
         );
         Err(anyhow::anyhow!(
             "User {} not found in paginated list - creation may have failed",
@@ -832,9 +827,8 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
     // Now navigate to the specific page where the user was found and click its "View" link
     // We need to find the user again on the current page to get its view link
     let view_link = timeout60s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//a[contains(@href, '/users/')]",
-            user_email
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{user_email}')]//a[contains(@href, '/users/')]"
         ))),
         "Find user view link"
     )?;
@@ -906,9 +900,8 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
     // Now navigate to the specific page where the domain was found and click its "View" link
     // We need to find the domain again on the current page to get its view link
     let domain_view_link = timeout60s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//a[contains(@href, '/domains/')]",
-            domain_name
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{domain_name}')]//a[contains(@href, '/domains/')]"
         ))),
         "Find domain view link"
     )?;
@@ -930,9 +923,8 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
 
     // Find the specific alias row and click its "View" link in the domain show page
     let view_link = timeout60s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//a[contains(@href, '/aliases/')]",
-            alias_email
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{alias_email}')]//a[contains(@href, '/aliases/')]"
         ))),
         "Find alias view link in domain show page"
     )?;
@@ -999,9 +991,8 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // Now navigate to the specific page where the domain was found and click its "View" link
     // We need to find the domain again on the current page to get its view link
     let view_link = timeout60s!(
-        driver.find(By::XPath(&format!(
-            "//tr[contains(., '{}')]//a[contains(@href, '/domains/')]",
-            domain_name
+        driver.find(By::XPath(format!(
+            "//tr[contains(., '{domain_name}')]//a[contains(@href, '/domains/')]"
         ))),
         "Find domain view link"
     )?;
@@ -1046,21 +1037,21 @@ pub async fn cleanup_test_resources(
         // Delete user first
         // println!("[CLEANUP] Attempting to delete user: {}", user_email);
         delete_user(driver, app_url, user_email).await?;
-        println!("[CLEANUP] Successfully deleted user: {}", user_email);
+        println!("[CLEANUP] Successfully deleted user: {user_email}");
 
         // Delete aliases
         // println!("[CLEANUP] Attempting to delete alias1: {}", alias1domain);
         delete_alias(driver, app_url, alias1domain).await?;
-        println!("[CLEANUP] Successfully deleted alias1: {}", alias1domain);
+        println!("[CLEANUP] Successfully deleted alias1: {alias1domain}");
 
         // println!("[CLEANUP] Attempting to delete alias2: {}", alias2domain);
         delete_alias(driver, app_url, alias2domain).await?;
-        println!("[CLEANUP] Successfully deleted alias2: {}", alias2domain);
+        println!("[CLEANUP] Successfully deleted alias2: {alias2domain}");
 
         // Delete domain last
         // println!("[CLEANUP] Attempting to delete domain: {}", domain_name);
         delete_domain(driver, app_url, domain_name).await?;
-        println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
+        println!("[CLEANUP] Successfully deleted domain: {domain_name}");
 
         println!("[SMOKE TEST] Cleanup completed successfully");
         Ok(())
@@ -1088,9 +1079,9 @@ pub async fn check_item_in_paginated_list(
 
     for page_num in 1..=max_pages {
         let page_url = if page_num == 1 {
-            format!("{app_url}{}", list_path)
+            format!("{app_url}{list_path}")
         } else {
-            format!("{app_url}{}?page={}&per_page=25", list_path, page_num)
+            format!("{app_url}{list_path}?page={page_num}&per_page=25")
         };
 
         // println!("[CHECK] Checking page {} at URL: {}", page_num, page_url);
@@ -1116,7 +1107,7 @@ pub async fn check_item_in_paginated_list(
 
         // Check if the item is on this page
         if main_content_text.contains(item_name) {
-            println!("[CHECK] Found '{}' on page {}", item_name, page_num);
+            println!("[CHECK] Found '{item_name}' on page {page_num}");
             return Ok(true);
         }
 
@@ -1132,8 +1123,7 @@ pub async fn check_item_in_paginated_list(
     }
 
     println!(
-        "[CHECK] Item '{}' not found after checking {} pages",
-        item_name, max_pages
+        "[CHECK] Item '{item_name}' not found after checking {max_pages} pages"
     );
     Ok(false)
 }

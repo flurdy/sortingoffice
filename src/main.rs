@@ -7,7 +7,7 @@ async fn main() {
     let config_path =
         std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config/config.toml".to_string());
     let config = Config::load_config_with_env(&config_path)
-        .unwrap_or_else(|e| panic!("Failed to load configuration from {}: {e:?}", config_path));
+        .unwrap_or_else(|e| panic!("Failed to load configuration from {config_path}: {e:?}"));
     // Debug: log all loaded database configs
     fn mask_db_url(url: &str) -> String {
         // Only mask mysql://user:pass@host/db or similar

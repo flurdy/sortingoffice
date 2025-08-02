@@ -54,7 +54,6 @@ use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 use std::time::Duration;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
-use testcontainers::ContainerAsync;
 use testcontainers::GenericImage;
 use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
@@ -91,7 +90,7 @@ impl Default for SmokeTestConfig {
 
 /// Run the smoke test with the given configuration
 pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
-    println!("[SMOKE TEST] Starting smoke test with config: {:?}", config);
+    println!("[SMOKE TEST] Starting smoke test with config: {config:?}");
 
     // Set up Selenium with VNC for debugging
     let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
@@ -119,8 +118,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
 
     println!("[SMOKE TEST] Selenium container started");
     println!(
-        "[SMOKE TEST] Selenium URL: http://localhost:{}",
-        selenium_port
+        "[SMOKE TEST] Selenium URL: http://localhost:{selenium_port}"
     );
     println!(
         "[SMOKE TEST] Selenium VNC URL: vnc://localhost:{}",
@@ -154,8 +152,7 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
     println!("[SMOKE TEST] Chrome configured with minimal settings to avoid conflicts");
 
     println!(
-        "[SMOKE TEST] Connecting to WebDriver at http://localhost:{}",
-        selenium_port
+        "[SMOKE TEST] Connecting to WebDriver at http://localhost:{selenium_port}"
     );
     let driver = timeout(
         Duration::from_secs(20),
@@ -195,20 +192,20 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
 
     // Step 2: Create test data
     let domain_name = format!("test-{}.example.com", rand_domain_str());
-    let alias1domain = format!("alias1@{}", domain_name);
-    let alias2domain = format!("alias2@{}", domain_name);
-    let user_email = format!("user@{}", domain_name);
+    let alias1domain = format!("alias1@{domain_name}");
+    let alias2domain = format!("alias2@{domain_name}");
+    let user_email = format!("user@{domain_name}");
     let user_name = "Test User";
     let user_maildir = "testdir";
 
     println!("[SMOKE TEST] Test data prepared:");
-    println!("[SMOKE TEST]   Domain: {}", domain_name);
-    println!("[SMOKE TEST]   Alias 1: {}", alias1domain);
-    println!("[SMOKE TEST]   Alias 2: {}", alias2domain);
-    println!("[SMOKE TEST]   User: {}", user_email);
+    println!("[SMOKE TEST]   Domain: {domain_name}");
+    println!("[SMOKE TEST]   Alias 1: {alias1domain}");
+    println!("[SMOKE TEST]   Alias 2: {alias2domain}");
+    println!("[SMOKE TEST]   User: {user_email}");
 
     // Step 3: Create domain
-    println!("[SMOKE TEST] Step 2: Creating domain: {}", domain_name);
+    println!("[SMOKE TEST] Step 2: Creating domain: {domain_name}");
     create_domain(driver, app_url, &domain_name).await?;
     println!("[SMOKE TEST] ✅ Domain created successfully");
 
@@ -219,7 +216,7 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
     println!("[SMOKE TEST] ✅ Aliases created successfully");
 
     // Step 5: Create user
-    println!("[SMOKE TEST] Step 4: Creating user: {}", user_email);
+    println!("[SMOKE TEST] Step 4: Creating user: {user_email}");
     create_user(driver, app_url, &user_email, user_name, user_maildir).await?;
     println!("[SMOKE TEST] ✅ User created successfully");
 
@@ -251,7 +248,7 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
 async fn find_app_url() -> anyhow::Result<String> {
     // Check if SMOKE_TEST_APP_URL is set - if so, use it directly
     if let Ok(app_url) = std::env::var("SMOKE_TEST_APP_URL") {
-        println!("[SMOKE TEST] Using provided app URL: {}", app_url);
+        println!("[SMOKE TEST] Using provided app URL: {app_url}");
         return Ok(app_url);
     }
 
@@ -268,8 +265,7 @@ async fn find_app_url() -> anyhow::Result<String> {
         match client.get(localhost_url).send().await {
             Ok(resp) if resp.status().is_success() => {
                 println!(
-                    "[SMOKE TEST] Found running application at {}",
-                    localhost_url
+                    "[SMOKE TEST] Found running application at {localhost_url}"
                 );
 
                 // For Selenium container to reach host localhost, we need to use the host's bridge IP
@@ -331,10 +327,9 @@ async fn find_app_url() -> anyhow::Result<String> {
                     "172.17.0.1".to_string()
                 });
 
-                let app_url_for_selenium = format!("http://{}:3000", host_ip);
+                let app_url_for_selenium = format!("http://{host_ip}:3000");
                 println!(
-                    "[SMOKE TEST] Using {} for Selenium container to reach host application",
-                    app_url_for_selenium
+                    "[SMOKE TEST] Using {app_url_for_selenium} for Selenium container to reach host application"
                 );
 
                 return Ok(app_url_for_selenium);
@@ -344,8 +339,7 @@ async fn find_app_url() -> anyhow::Result<String> {
                 let elapsed = start.elapsed();
                 let remaining = timeout - elapsed;
                 println!(
-                    "[SMOKE TEST] Application not ready at {} (elapsed: {:?}, remaining: {:?})",
-                    localhost_url, elapsed, remaining
+                    "[SMOKE TEST] Application not ready at {localhost_url} (elapsed: {elapsed:?}, remaining: {remaining:?})"
                 );
 
                 if remaining.as_secs() > 0 {
@@ -397,7 +391,7 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     // Set up test database
     let test_db = setup_test_db().await;
     let db_url = test_db.get_db_url();
-    println!("[SMOKE TEST] Test database ready: {}", db_url);
+    println!("[SMOKE TEST] Test database ready: {db_url}");
 
     // Start the application container using the existing UI test function
     let config_path = std::env::current_dir()?
@@ -418,10 +412,10 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
         let converted_url = format!(
             "mysql://root@{}:3306/{}",
             db_bridge_ip,
-            db_url.split('/').last().unwrap_or("test")
+            db_url.split('/').next_back().unwrap_or("test")
         );
-        println!("[SMOKE TEST] Original DB URL: {}", db_url);
-        println!("[SMOKE TEST] Converted DB URL: {}", converted_url);
+        println!("[SMOKE TEST] Original DB URL: {db_url}");
+        println!("[SMOKE TEST] Converted DB URL: {converted_url}");
         converted_url
     } else {
         db_url.clone()
@@ -439,9 +433,9 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     )
     .await?;
 
-    let app_url = format!("http://{}:3000", app_ip);
-    println!("[SMOKE TEST] App container ready at: {}", app_url);
-    println!("[SMOKE TEST] Using database URL: {}", db_url_for_container);
+    let app_url = format!("http://{app_ip}:3000");
+    println!("[SMOKE TEST] App container ready at: {app_url}");
+    println!("[SMOKE TEST] Using database URL: {db_url_for_container}");
     println!(
         "[SMOKE TEST] Config file mounted from: {}",
         config_path.to_str().unwrap()
