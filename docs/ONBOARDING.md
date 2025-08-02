@@ -17,18 +17,27 @@ This guide provides step-by-step instructions for setting up and running the Sor
 
 ## Prerequisites
 
+### Backup
+
+> ⚠️ **Warning**  
+> All the data in your production mail databases are at risk!
+
+Before you let this application anywhere near your live mail databases,
+back them up. 
+
+Once up and runnig there is backup feature in this app as well.
+
+You never know if there any accidental database commands or broken migration 
+which deletes any existing data, so better be safe and do an initial manual backup.
+
+### Tools
+
 Before you begin, ensure you have the following installed:
 
-### For Development
 - **Rust** (latest stable version)
 - **MySQL** (5.7+ or 8.0+)
 - **Docker** and **Docker Compose** (optional, for containerized setup)
-- **Make** (for using the provided Makefile commands)
-
-### For Production
-- **Docker** and **Docker Compose** (recommended)
-- **MySQL** (5.7+ or 8.0+)
-- **Make** (optional, for convenience commands)
+- **Make** (Optional, for using the provided Makefile commands)
 
 ## Getting the Code
 

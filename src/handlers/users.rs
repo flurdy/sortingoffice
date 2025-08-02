@@ -140,7 +140,7 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
     }
 }
 
-async fn build_user_form_template(
+pub async fn build_user_form_template(
     state: &AppState,
     locale: &str,
     user: Option<User>,
@@ -425,7 +425,15 @@ pub async fn edit(
 
     let user = match db::get_user(&pool, id) {
         Ok(user) => user,
-        Err(_) => return Html("User not found".to_string()),
+        Err(_) => {
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "users",
+                "users-not-found",
+            )
+            .await;
+        }
     };
 
     let form = UserForm {
@@ -492,59 +500,31 @@ pub async fn create(
 
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
-    // Validate user ID
-    match crate::validation::validate_user_id(&form.id) {
-        Ok(_) => {}
-        Err(_e) => {
-            let error_message =
-                get_translation(&state, &locale, "validation-user-id-invalid").await;
-            let form_template =
-                build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
-                    .await;
-            let content = form_template.render().unwrap();
-
-            if crate::handlers::utils::is_htmx_request(&headers) {
-                return Html(content);
-            } else {
-                let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-                let template = BaseTemplate::with_i18n(
-                    get_translation(&state, &locale, "users-new-user").await,
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                return Html(template.render().unwrap());
-            }
-        }
+    // Validate user ID using helper function
+    if let Err(error_html) = crate::handlers::utils::validate_user_form_field(
+        &state,
+        &headers,
+        &form,
+        |f| crate::validation::validate_user_id(&f.id),
+        "validation-user-id-invalid",
+    )
+    .await
+    {
+        return error_html;
     }
 
-    // Validate password is not empty
+    // Validate password is not empty using helper function
     if form.password.trim().is_empty() {
-        let error_message = get_translation(&state, &locale, "validation-password-required").await;
-        let form_template =
-            build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
-                .await;
-        let content = form_template.render().unwrap();
-
-        if crate::handlers::utils::is_htmx_request(&headers) {
-            return Html(content);
-        } else {
-            let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "users-new-user").await,
-                content,
-                &state,
-                &locale,
-                current_db_label,
-                current_db_id,
-            )
-            .await
-            .unwrap();
-            return Html(template.render().unwrap());
+        if let Err(error_html) = crate::handlers::utils::validate_user_form_field(
+            &state,
+            &headers,
+            &form,
+            |_| Err(crate::validation::ValidationError::UserIdInvalid("Password is required".to_string())),
+            "validation-password-required",
+        )
+        .await
+        {
+            return error_html;
         }
     }
 

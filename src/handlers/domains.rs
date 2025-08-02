@@ -542,8 +542,13 @@ pub async fn show(
     let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "domains",
+                "domains-not-found",
+            )
+            .await;
         }
     };
 
@@ -569,8 +574,13 @@ pub async fn edit(
     let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::utils::handle_entity_not_found(
+                &state,
+                &headers,
+                "domains",
+                "domains-not-found",
+            )
+            .await;
         }
     };
 
