@@ -64,73 +64,6 @@ use tokio::time::timeout;
 mod ui_helpers;
 use ui_helpers::*;
 
-// Simple copy of the working setup function
-async fn setup_ui_test_env() -> anyhow::Result<(
-    ContainerAsync<GenericImage>,
-    ContainerAsync<GenericImage>,
-    WebDriver,
-    String,
-)> {
-    let config_path = std::env::current_dir()
-        .unwrap()
-        .join("config/config.docker.toml");
-    let config_path_str = config_path.to_str().unwrap();
-
-    // Set up test database
-    let test_db = setup_test_db().await;
-    let db_url = format!(
-        "mysql://root@{}:3306/{}",
-        test_db.get_bridge_ip(),
-        test_db.schema
-    );
-
-    let port = find_free_port();
-    let unique_app_name = format!("app-{port}");
-    let admin_username = "admin";
-    let admin_password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
-    let extra_env = vec![];
-
-    let (app_container, app_ip) = setup_app_container(
-        &db_url,
-        port,
-        admin_username,
-        admin_password_hash,
-        config_path_str,
-        &unique_app_name,
-        &extra_env,
-    )
-    .await?;
-
-    // Seed the database
-    let db_name = &test_db.schema;
-    let db_ip = test_db.get_bridge_ip();
-    println!("[SEED] Seeding database: {} at {}", db_name, db_ip);
-
-    let status = std::process::Command::new("mysql")
-        .arg("-uroot")
-        .arg("-h")
-        .arg(db_ip)
-        .arg("-P")
-        .arg("3306")
-        .arg(db_name)
-        .arg("-e")
-        .arg("source seed_data/all.sql")
-        .status()
-        .expect("Failed to run mysql seed command");
-
-    if !status.success() {
-        println!("[SEED] Warning: Seeding DB failed with status: {status:?}");
-    } else {
-        println!("[SEED] Successfully seeded database: {}", db_name);
-    }
-
-    let (selenium_container, driver, _selenium_port) =
-        setup_selenium_container_and_driver().await?;
-    let app_url = format!("http://{app_ip}:4000");
-
-    Ok((app_container, selenium_container, driver, app_url))
-}
-
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
 pub struct SmokeTestConfig {
@@ -375,10 +308,13 @@ async fn find_app_url() -> anyhow::Result<String> {
                                     if let Ok(if_output) = if_output {
                                         if let Ok(if_stdout) = String::from_utf8(if_output.stdout) {
                                             for line in if_stdout.lines() {
-                                                if line.contains("inet ") && !line.contains("127.0.0.1")
+                                                if line.contains("inet ")
+                                                    && !line.contains("127.0.0.1")
                                                 {
-                                                    if let Some(ip) = line.split_whitespace().nth(1) {
-                                                        if let Some(ip_only) = ip.split('/').next() {
+                                                    if let Some(ip) = line.split_whitespace().nth(1)
+                                                    {
+                                                        if let Some(ip_only) = ip.split('/').next()
+                                                        {
                                                             return ip_only.to_string();
                                                         }
                                                     }
@@ -411,7 +347,7 @@ async fn find_app_url() -> anyhow::Result<String> {
                     "[SMOKE TEST] Application not ready at {} (elapsed: {:?}, remaining: {:?})",
                     localhost_url, elapsed, remaining
                 );
-                
+
                 if remaining.as_secs() > 0 {
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                 } else {
@@ -422,7 +358,9 @@ async fn find_app_url() -> anyhow::Result<String> {
     }
 
     println!("[SMOKE TEST] No application found at localhost:3000 after 30 seconds");
-    println!("[SMOKE TEST] Please start the application or set SMOKE_TEST_APP_URL environment variable");
+    println!(
+        "[SMOKE TEST] Please start the application or set SMOKE_TEST_APP_URL environment variable"
+    );
     Err(anyhow::anyhow!(
         "No application found at localhost:3000 and no SMOKE_TEST_APP_URL provided"
     ))

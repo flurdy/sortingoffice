@@ -463,26 +463,37 @@ pub async fn create(
                             let aliases = db::get_aliases(&pool).unwrap_or_default();
                             let locale = get_user_locale(&headers);
                             let title = get_translation(&state, &locale, "aliases-title").await;
-                            let description = get_translation(&state, &locale, "aliases-description").await;
+                            let description =
+                                get_translation(&state, &locale, "aliases-description").await;
                             let add_alias = get_translation(&state, &locale, "aliases-add").await;
                             let table_header_mail =
                                 get_translation(&state, &locale, "aliases-table-header-mail").await;
-                            let table_header_destination =
-                                get_translation(&state, &locale, "aliases-table-header-destination").await;
+                            let table_header_destination = get_translation(
+                                &state,
+                                &locale,
+                                "aliases-table-header-destination",
+                            )
+                            .await;
                             let table_header_domain =
-                                get_translation(&state, &locale, "aliases-table-header-domain").await;
+                                get_translation(&state, &locale, "aliases-table-header-domain")
+                                    .await;
                             let table_header_enabled =
-                                get_translation(&state, &locale, "aliases-table-header-enabled").await;
+                                get_translation(&state, &locale, "aliases-table-header-enabled")
+                                    .await;
                             let table_header_actions =
-                                get_translation(&state, &locale, "aliases-table-header-actions").await;
-                            let status_active = get_translation(&state, &locale, "status-active").await;
-                            let status_inactive = get_translation(&state, &locale, "status-inactive").await;
+                                get_translation(&state, &locale, "aliases-table-header-actions")
+                                    .await;
+                            let status_active =
+                                get_translation(&state, &locale, "status-active").await;
+                            let status_inactive =
+                                get_translation(&state, &locale, "status-inactive").await;
                             let action_view = get_translation(&state, &locale, "action-view").await;
                             let enable_alias =
                                 get_translation(&state, &locale, "aliases-enable-alias").await;
                             let disable_alias =
                                 get_translation(&state, &locale, "aliases-disable-alias").await;
-                            let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
+                            let empty_title =
+                                get_translation(&state, &locale, "aliases-empty-title").await;
                             let empty_description =
                                 get_translation(&state, &locale, "aliases-empty-description").await;
                             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
@@ -520,8 +531,10 @@ pub async fn create(
                                 Html(content)
                             } else {
                                 let locale = get_user_locale(&headers);
-                                let current_db_id = get_selected_database(&headers)
-                                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+                                let current_db_id =
+                                    get_selected_database(&headers).unwrap_or_else(|| {
+                                        state.db_manager.get_default_db_id().to_string()
+                                    });
                                 let current_db_label = state
                                     .db_manager
                                     .get_configs()
@@ -544,11 +557,17 @@ pub async fn create(
                         }
                         Some("domain") | None => {
                             // Redirect to domain show page using shared function
-                            crate::handlers::domains::render_domain_show_page(&state, &headers, domain).await
+                            crate::handlers::domains::render_domain_show_page(
+                                &state, &headers, domain,
+                            )
+                            .await
                         }
                         _ => {
                             // Invalid redirect_to value, default to domain show page
-                            crate::handlers::domains::render_domain_show_page(&state, &headers, domain).await
+                            crate::handlers::domains::render_domain_show_page(
+                                &state, &headers, domain,
+                            )
+                            .await
                         }
                     }
                 }

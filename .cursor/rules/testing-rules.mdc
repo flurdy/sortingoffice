@@ -21,3 +21,5 @@ Most of the integration and UI tests use testcontainers for selenium and databas
 Once finished editing a test please run `cargo check --tests` to make sure it will compile
 
 If needing to curl, check the scrips folder for helpers.
+
+If any runtime code changes needed for testing, make sure the docker image is rebuilt first.

@@ -1,8 +1,8 @@
 use crate::{
     analytics::find_database_common_aliases,
     db,
-    handlers::utils::{get_entity_form_translations, get_field_translations},
     handlers::auth::get_selected_database,
+    handlers::utils::{get_entity_form_translations, get_field_translations},
     i18n::get_translation,
     models::{Domain, DomainForm, NewDomain, PaginatedResult, PaginationParams},
     render_template_with_title,
@@ -326,7 +326,8 @@ pub async fn render_domain_show_page(
         alias_report_title: &translations["domains-alias-report-title"],
         alias_report_description: &translations["domains-alias-report-description"],
         existing_aliases_header: &translations["domains-existing-aliases-header"],
-        add_missing_required_alias_button: &translations["domains-add-missing-required-aliases-button"],
+        add_missing_required_alias_button: &translations
+            ["domains-add-missing-required-aliases-button"],
         add_common_alias_button: &translations["reports-add-common-alias-button"],
         add_catch_all_button: &translations["domains-add-catch-all-button"],
         add_alias_button: &translations["domains-add-alias-button"],
@@ -334,7 +335,8 @@ pub async fn render_domain_show_page(
         existing_aliases: &existing_aliases,
         analytics_common_aliases: &filtered_analytics_aliases,
         analytics_common_aliases_header: &translations["domains-analytics-common-aliases-header"],
-        analytics_common_aliases_description: &translations["domains-analytics-common-aliases-description"],
+        analytics_common_aliases_description: &translations
+            ["domains-analytics-common-aliases-description"],
         action_view: &translations["action-view"],
         enable_alias: &translations["aliases-enable-alias"],
         disable_alias: &translations["aliases-disable-alias"],
