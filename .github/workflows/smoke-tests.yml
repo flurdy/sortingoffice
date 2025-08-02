@@ -18,6 +18,7 @@ jobs:
   smoke-test:
     name: Smoke Tests (End-to-End with Testcontainers DB)
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # Set timeout to 10 minutes for smoke tests
 
     steps:
     - name: Checkout code

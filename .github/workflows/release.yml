@@ -12,6 +12,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # Set timeout to 20 minutes for release build and push
     permissions:
       contents: read
       packages: write

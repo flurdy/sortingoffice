@@ -16,6 +16,7 @@ jobs:
   ui-tests:
     name: UI Tests (Containerized)
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Set timeout to 15 minutes to allow for container setup and test execution
 
     steps:
     - name: Checkout code

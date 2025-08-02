@@ -14,6 +14,7 @@ jobs:
   nightly-test:
     name: Nightly Comprehensive Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Set timeout to 30 minutes for comprehensive nightly testing
 
     steps:
     - name: Checkout code
@@ -77,6 +78,7 @@ jobs:
   dependency-update:
     name: Check for Dependency Updates
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Set timeout to 15 minutes for dependency checks
     
     steps:
     - name: Checkout code
