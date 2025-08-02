@@ -427,6 +427,30 @@ make prod-db-reset  # Development database
 make test-db-reset  # Test database
 ```
 
+### Health Check
+
+For quick health checks, use the simple curl scripts:
+
+```bash
+# Basic health check (detailed)
+./scripts/health-check.sh
+
+# Health check with verbose output
+./scripts/health-check.sh -v
+
+# Health check remote host
+./scripts/health-check.sh -h 192.168.1.100:3000
+
+# Health check with custom timeout
+./scripts/health-check.sh -t 5
+
+# Super simple one-liner health check
+./scripts/health-check-simple.sh
+
+# Simple health check for remote host
+./scripts/health-check-simple.sh 192.168.1.100:3000
+```
+
 **Environment Management**:
 ```bash
 # Set up different environments

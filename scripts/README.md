@@ -88,6 +88,48 @@ source ./scripts/set-env.sh
 - Sets up test environment variables
 - Manages Docker Compose configurations
 
+### `health-check.sh` - Comprehensive Health Check
+
+A detailed health check script with verbose output and configuration options.
+
+**Usage:**
+```bash
+# Basic health check
+./scripts/health-check.sh
+
+# Verbose output with timing
+./scripts/health-check.sh -v
+
+# Custom host and timeout
+./scripts/health-check.sh -h 192.168.1.100:3000 -t 5
+```
+
+**Features:**
+- Colored output with status indicators
+- Configurable timeout and host
+- Verbose mode for debugging
+- Environment variable support
+- Detailed timing information
+
+### `health-check-simple.sh` - Simple Health Check
+
+A minimal one-liner health check for quick status checks.
+
+**Usage:**
+```bash
+# Check localhost:3000
+./scripts/health-check-simple.sh
+
+# Check remote host
+./scripts/health-check-simple.sh 192.168.1.100:3000
+```
+
+**Features:**
+- Minimal output with emoji indicators
+- Fast execution (5s timeout)
+- Simple command line interface
+- Exit codes for automation
+
 ### `consolidate-migrations.sh` - Migration Management
 
 Consolidate multiple database migrations into a single migration file.
