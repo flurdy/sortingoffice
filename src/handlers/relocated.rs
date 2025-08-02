@@ -1,7 +1,7 @@
 use crate::templates::layout::BaseTemplate;
 use crate::templates::relocated::*;
 use crate::{
-    db, get_entity_or_not_found, i18n::get_translation, models::*, render_template, AppState,
+    db, get_entity_or_not_found, i18n::get_translation, models::*, AppState,
 };
 use askama::Template;
 use axum::{
@@ -13,13 +13,17 @@ use axum::{
 use diesel::result::Error;
 use tracing::{debug, error, info};
 
+use crate::handlers::utils::{
+    get_current_db_pool, render_relocated_form_page, render_relocated_list_page, render_relocated_show_page,
+};
+
 fn is_htmx_request(headers: &HeaderMap) -> bool {
     headers.get("HX-Request").is_some_and(|v| v == "true")
 }
 
 // List all relocated entries
 pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -48,71 +52,7 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         }
     };
 
-    // Get all translations using consolidated helper functions
-    let translations =
-        crate::handlers::utils::get_entity_all_translations(&state, &locale, "relocated").await;
-
-    let content_template = RelocatedListTemplate {
-        title: &translations["relocated-title"],
-        add_relocated: &translations["relocated-add"],
-        table_header_old_address: &translations["relocated-table-header-old-address"],
-        table_header_new_address: &translations["relocated-table-header-new-address"],
-        table_header_enabled: &translations["relocated-table-header-enabled"],
-        table_header_actions: &translations["relocated-table-header-actions"],
-        status_enabled: &translations["status-enabled"],
-        status_disabled: &translations["status-disabled"],
-        action_view: &translations["action-view"],
-        action_enable: &translations["action-enable"],
-        action_disable: &translations["action-disable"],
-        delete_confirm: &translations["relocated-delete-confirm"],
-        empty_title: &translations["relocated-empty-title"],
-        empty_description: &translations["relocated-empty-description"],
-        relocated,
-        relocated_list_description: &translations["relocated-list-description"],
-    };
-
-    let content = match content_template.render() {
-        Ok(content) => {
-            debug!(
-                "Template rendered successfully, content length: {}",
-                content.len()
-            );
-            content
-        }
-        Err(e) => {
-            error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if is_htmx_request(&headers) {
-        Html(content)
-    } else {
-        // Get current database id from session/cookie or default
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        // Get current database label from db_manager
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-
-        let template = BaseTemplate::with_i18n(
-            get_translation(&state, &locale, "relocated-title").await,
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        .unwrap();
-
-        Html(template.render().unwrap())
-    }
+    render_relocated_list_page(relocated, &state, &locale, &headers).await
 }
 
 // Show a specific relocated entry
@@ -121,14 +61,11 @@ pub async fn show_relocated(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
-    debug!("Handling relocated show request for ID: {}", relocated_id);
-
-    // Use the new macro for "not found" error handling
     let relocated = get_entity_or_not_found!(
         db::get_relocated_by_id(&pool, relocated_id),
         &state,
@@ -136,109 +73,19 @@ pub async fn show_relocated(
         "relocated-not-found"
     );
 
-    // Use the batch translation fetcher for common translations
-    let translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
-        &[
-            "relocated-title",
-            "action-edit",
-            "action-enable",
-            "action-disable",
-            "action-delete",
-            "relocated-delete-confirm",
-            "relocated-back-to-list",
-            "relocated-field-id",
-            "relocated-field-old-address",
-            "relocated-field-new-address",
-            "relocated-field-enabled",
-            "relocated-field-created",
-            "relocated-field-modified",
-            "status-enabled",
-            "status-disabled",
-            "relocated-view-edit-settings",
-            "relocated-show-title",
-            "relocated-info-title",
-            "relocated-info-description",
-        ],
-    )
-    .await;
-
-    let content_template = RelocatedShowTemplate {
-        title: &translations["relocated-title"],
-        action_edit: &translations["action-edit"],
-        action_enable: &translations["action-enable"],
-        action_disable: &translations["action-disable"],
-        action_delete: &translations["action-delete"],
-        delete_confirm: &translations["relocated-delete-confirm"],
-        back_to_list: &translations["relocated-back-to-list"],
-        field_id: &translations["relocated-field-id"],
-        field_old_address: &translations["relocated-field-old-address"],
-        field_new_address: &translations["relocated-field-new-address"],
-        field_enabled: &translations["relocated-field-enabled"],
-        field_created: &translations["relocated-field-created"],
-        field_modified: &translations["relocated-field-modified"],
-        status_enabled: &translations["status-enabled"],
-        status_disabled: &translations["status-disabled"],
-        view_edit_settings: &translations["relocated-view-edit-settings"],
-        relocated_show_title: &translations["relocated-show-title"],
-        relocated_info_title: &translations["relocated-info-title"],
-        relocated_info_description: &translations["relocated-info-description"],
-        relocated,
-    };
-
-    // Use the new render template macro
-    render_template!(content_template, &state, &locale, &headers)
+    render_relocated_show_page(relocated, &state, &locale, &headers).await
 }
 
 // Show form for creating a new relocated entry
 pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
-
-    debug!("Handling relocated create form request");
-
     let form = RelocatedForm {
-        old_address: "".to_string(),
-        new_address: "".to_string(),
+        old_address: String::new(),
+        new_address: String::new(),
         enabled: true,
     };
 
-    // Use helper functions to fetch translations in batches
-    let form_translations =
-        crate::handlers::utils::get_entity_form_translations(&state, &locale, "relocated").await;
-    let field_translations = crate::handlers::utils::get_field_translations(
-        &state,
-        &locale,
-        "relocated",
-        &["old_address", "new_address", "enabled"],
-    )
-    .await;
-
-    let content_template = RelocatedFormTemplate {
-        title: &form_translations["relocated-new-relocated"],
-        action: "/relocated",
-        form,
-        field_old_address: &field_translations["relocated-field-old-address"],
-        field_new_address: &field_translations["relocated-field-new-address"],
-        field_enabled: &field_translations["relocated-field-enabled"],
-        field_old_address_help: &field_translations["relocated-field-old-address-help"],
-        field_new_address_help: &field_translations["relocated-field-new-address-help"],
-        action_save: &form_translations["action-save"],
-        action_cancel: &form_translations["action-cancel"],
-        back_to_list: &form_translations["relocated-back-to-list"],
-        placeholder_old_address: &field_translations["relocated-placeholder-old-address"],
-        placeholder_new_address: &field_translations["relocated-placeholder-new-address"],
-    };
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
-        &state,
-        &locale,
-        &headers,
-        form_translations["relocated-add-title"].clone(),
-    )
-    .await
+    render_relocated_form_page(form, "relocated-add-title", "relocated-add-action", &state, &locale, &headers).await
 }
 
 // Create a new relocated entry
@@ -279,28 +126,17 @@ pub async fn edit_form(
     Path(relocated_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
+    let pool = get_current_db_pool(&state, &headers)
         .await
         .expect("Failed to get database pool");
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    debug!(
-        "Handling relocated edit form request for ID: {}",
-        relocated_id
+    let relocated = get_entity_or_not_found!(
+        db::get_relocated_by_id(&pool, relocated_id),
+        &state,
+        &locale,
+        "relocated-not-found"
     );
-
-    let relocated = match db::get_relocated_by_id(&pool, relocated_id) {
-        Ok(relocated) => relocated,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "relocated",
-                "relocated-not-found",
-            )
-            .await;
-        }
-    };
 
     let form = RelocatedForm {
         old_address: relocated.old_address.clone(),
@@ -308,42 +144,7 @@ pub async fn edit_form(
         enabled: relocated.enabled,
     };
 
-    // Use helper functions to fetch translations in batches
-    let form_translations =
-        crate::handlers::utils::get_entity_form_translations(&state, &locale, "relocated").await;
-    let field_translations = crate::handlers::utils::get_field_translations(
-        &state,
-        &locale,
-        "relocated",
-        &["old_address", "new_address", "enabled"],
-    )
-    .await;
-
-    let content_template = RelocatedFormTemplate {
-        title: &form_translations["relocated-edit-relocated"],
-        action: &format!("/relocated/{relocated_id}"),
-        form,
-        field_old_address: &field_translations["relocated-field-old-address"],
-        field_new_address: &field_translations["relocated-field-new-address"],
-        field_enabled: &field_translations["relocated-field-enabled"],
-        field_old_address_help: &field_translations["relocated-field-old-address-help"],
-        field_new_address_help: &field_translations["relocated-field-new-address-help"],
-        action_save: &form_translations["action-save"],
-        action_cancel: &form_translations["action-cancel"],
-        back_to_list: &form_translations["relocated-back-to-list"],
-        placeholder_old_address: &field_translations["relocated-placeholder-old-address"],
-        placeholder_new_address: &field_translations["relocated-placeholder-new-address"],
-    };
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
-        &state,
-        &locale,
-        &headers,
-        form_translations["relocated-edit-title"].clone(),
-    )
-    .await
+    render_relocated_form_page(form, "relocated-edit-title", "relocated-edit-action", &state, &locale, &headers).await
 }
 
 // Update a relocated entry

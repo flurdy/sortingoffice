@@ -2297,3 +2297,242 @@ pub async fn render_client_form_page(
 
     render_form_template(content_template, state, locale, headers, title).await
 }
+
+/// Resource-specific helper functions for Domain Backup
+pub async fn render_backup_show_page(
+    backup: crate::models::Backup,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for backup show
+    let title = get_translation(state, locale, "backups-show-title").await;
+    let view_edit_settings = get_translation(state, locale, "backups-view-edit-settings").await;
+    let back_to_domains = get_translation(state, locale, "domains-back-to-domains").await;
+    let backup_information = get_translation(state, locale, "backups-backup-information").await;
+    let backup_details = get_translation(state, locale, "backups-backup-details").await;
+    let domain = get_translation(state, locale, "backups-domain").await;
+    let transport = get_translation(state, locale, "backups-transport").await;
+    let status = get_translation(state, locale, "backups-status").await;
+    let created = get_translation(state, locale, "backups-created").await;
+    let modified = get_translation(state, locale, "backups-modified").await;
+    let status_active = get_translation(state, locale, "status-active").await;
+    let status_inactive = get_translation(state, locale, "status-inactive").await;
+    let edit_backup = get_translation(state, locale, "backups-edit-backup").await;
+    let enable_backup = get_translation(state, locale, "backups-enable-backup").await;
+    let disable_backup = get_translation(state, locale, "backups-disable-backup").await;
+    let delete_backup = get_translation(state, locale, "backups-delete-backup").await;
+    let delete_confirm = get_translation(state, locale, "backups-delete-confirm").await;
+
+    let content_template = crate::templates::domain_backup::BackupShowTemplate {
+        title,
+        view_edit_settings,
+        back_to_domains,
+        backup_information,
+        backup_details,
+        domain,
+        transport,
+        status,
+        created,
+        modified,
+        status_active,
+        status_inactive,
+        edit_backup,
+        enable_backup,
+        disable_backup,
+        delete_backup,
+        delete_confirm,
+        backup,
+    };
+
+    render_show_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_backup_form_page(
+    form: crate::models::BackupForm,
+    backup: Option<crate::models::Backup>,
+    title_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for backup form
+    let title = get_translation(state, locale, title_key).await;
+    let form_error = get_translation(state, locale, "backups-form-error").await;
+    let form_domain = get_translation(state, locale, "backups-form-domain").await;
+    let form_transport = get_translation(state, locale, "backups-form-transport").await;
+    let form_active = get_translation(state, locale, "backups-form-active").await;
+    let placeholder_domain = get_translation(state, locale, "backups-placeholder-domain").await;
+    let placeholder_transport = get_translation(state, locale, "backups-placeholder-transport").await;
+    let tooltip_domain = get_translation(state, locale, "backups-tooltip-domain").await;
+    let tooltip_transport = get_translation(state, locale, "backups-tooltip-transport").await;
+    let tooltip_active = get_translation(state, locale, "backups-tooltip-active").await;
+    let cancel = get_translation(state, locale, "backups-cancel").await;
+    let create_backup = get_translation(state, locale, "backups-create-backup").await;
+    let update_backup = get_translation(state, locale, "backups-update-backup").await;
+    let new_backup = get_translation(state, locale, "backups-new-backup").await;
+    let edit_backup_title = get_translation(state, locale, "backups-edit-backup-title").await;
+
+    let content_template = crate::templates::domain_backup::BackupFormTemplate {
+        title: title.clone(),
+        form_error,
+        form_domain,
+        form_transport,
+        form_active,
+        placeholder_domain,
+        placeholder_transport,
+        tooltip_domain,
+        tooltip_transport,
+        tooltip_active,
+        cancel,
+        create_backup,
+        update_backup,
+        new_backup,
+        edit_backup_title,
+        backup,
+        form,
+        error: None, // Will be set by validation functions if needed
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}
+
+/// Resource-specific helper functions for Relocated
+pub async fn render_relocated_list_page(
+    relocated: Vec<crate::models::Relocated>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relocated list
+    let title = get_translation(state, locale, "relocated-title").await;
+    let relocated_list_description = get_translation(state, locale, "relocated-list-description").await;
+    let add_relocated = get_translation(state, locale, "relocated-add").await;
+    let table_header_old_address = get_translation(state, locale, "relocated-table-header-old-address").await;
+    let table_header_new_address = get_translation(state, locale, "relocated-table-header-new-address").await;
+    let table_header_enabled = get_translation(state, locale, "relocated-table-header-enabled").await;
+    let table_header_actions = get_translation(state, locale, "relocated-table-header-actions").await;
+    let status_enabled = get_translation(state, locale, "status-enabled").await;
+    let status_disabled = get_translation(state, locale, "status-disabled").await;
+    let action_view = get_translation(state, locale, "action-view").await;
+    let action_enable = get_translation(state, locale, "action-enable").await;
+    let action_disable = get_translation(state, locale, "action-disable").await;
+    let delete_confirm = get_translation(state, locale, "relocated-delete-confirm").await;
+    let empty_title = get_translation(state, locale, "relocated-empty-title").await;
+    let empty_description = get_translation(state, locale, "relocated-empty-description").await;
+
+    let content_template = crate::templates::relocated::RelocatedListTemplate {
+        title: &title,
+        relocated_list_description: &relocated_list_description,
+        add_relocated: &add_relocated,
+        table_header_old_address: &table_header_old_address,
+        table_header_new_address: &table_header_new_address,
+        table_header_enabled: &table_header_enabled,
+        table_header_actions: &table_header_actions,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        action_view: &action_view,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
+        delete_confirm: &delete_confirm,
+        empty_title: &empty_title,
+        empty_description: &empty_description,
+        relocated,
+    };
+
+    render_list_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_relocated_show_page(
+    relocated: crate::models::Relocated,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relocated show
+    let title = get_translation(state, locale, "relocated-show-title").await;
+    let action_edit = get_translation(state, locale, "action-edit").await;
+    let action_enable = get_translation(state, locale, "action-enable").await;
+    let action_disable = get_translation(state, locale, "action-disable").await;
+    let action_delete = get_translation(state, locale, "action-delete").await;
+    let delete_confirm = get_translation(state, locale, "relocated-delete-confirm").await;
+    let back_to_list = get_translation(state, locale, "relocated-back-to-list").await;
+    let field_id = get_translation(state, locale, "relocated-field-id").await;
+    let field_old_address = get_translation(state, locale, "relocated-field-old-address").await;
+    let field_new_address = get_translation(state, locale, "relocated-field-new-address").await;
+    let field_enabled = get_translation(state, locale, "relocated-field-enabled").await;
+    let field_created = get_translation(state, locale, "relocated-field-created").await;
+    let field_modified = get_translation(state, locale, "relocated-field-modified").await;
+    let status_enabled = get_translation(state, locale, "status-enabled").await;
+    let status_disabled = get_translation(state, locale, "status-disabled").await;
+    let view_edit_settings = get_translation(state, locale, "relocated-view-edit-settings").await;
+    let relocated_show_title = get_translation(state, locale, "relocated-show-title").await;
+    let relocated_info_title = get_translation(state, locale, "relocated-info-title").await;
+    let relocated_info_description = get_translation(state, locale, "relocated-info-description").await;
+
+    let content_template = crate::templates::relocated::RelocatedShowTemplate {
+        title: &title,
+        action_edit: &action_edit,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
+        action_delete: &action_delete,
+        delete_confirm: &delete_confirm,
+        back_to_list: &back_to_list,
+        field_id: &field_id,
+        field_old_address: &field_old_address,
+        field_new_address: &field_new_address,
+        field_enabled: &field_enabled,
+        field_created: &field_created,
+        field_modified: &field_modified,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        view_edit_settings: &view_edit_settings,
+        relocated_show_title: &relocated_show_title,
+        relocated_info_title: &relocated_info_title,
+        relocated_info_description: &relocated_info_description,
+        relocated,
+    };
+
+    render_show_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_relocated_form_page(
+    form: crate::models::RelocatedForm,
+    title_key: &str,
+    action_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relocated form
+    let title = get_translation(state, locale, title_key).await;
+    let action = get_translation(state, locale, action_key).await;
+    let field_old_address = get_translation(state, locale, "relocated-field-old-address").await;
+    let field_new_address = get_translation(state, locale, "relocated-field-new-address").await;
+    let field_enabled = get_translation(state, locale, "relocated-field-enabled").await;
+    let field_old_address_help = get_translation(state, locale, "relocated-field-old-address-help").await;
+    let field_new_address_help = get_translation(state, locale, "relocated-field-new-address-help").await;
+    let action_save = get_translation(state, locale, "action-save").await;
+    let action_cancel = get_translation(state, locale, "action-cancel").await;
+    let back_to_list = get_translation(state, locale, "relocated-back-to-list").await;
+    let placeholder_old_address = get_translation(state, locale, "relocated-placeholder-old-address").await;
+    let placeholder_new_address = get_translation(state, locale, "relocated-placeholder-new-address").await;
+
+    let content_template = crate::templates::relocated::RelocatedFormTemplate {
+        title: &title.clone(),
+        action: &action,
+        form,
+        field_old_address: &field_old_address,
+        field_new_address: &field_new_address,
+        field_enabled: &field_enabled,
+        field_old_address_help: &field_old_address_help,
+        field_new_address_help: &field_new_address_help,
+        action_save: &action_save,
+        action_cancel: &action_cancel,
+        back_to_list: &back_to_list,
+        placeholder_old_address: &placeholder_old_address,
+        placeholder_new_address: &placeholder_new_address,
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}
