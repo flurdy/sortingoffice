@@ -2,7 +2,6 @@ use crate::{
     analytics::find_database_common_aliases,
     db,
     handlers::auth::get_selected_database,
-    handlers::utils::{get_entity_form_translations, get_field_translations},
     i18n::get_translation,
     models::{Domain, DomainForm, NewDomain, PaginatedResult, PaginationParams},
     render_template_with_title,
@@ -412,62 +411,16 @@ pub async fn list(
         }
     };
 
-    // Create template directly
-    let translations = get_domain_list_translations(&state, &locale).await;
-
-    let paginated = PaginatedResult::new(
+    // Use the new resource-specific helper function
+    crate::handlers::utils::render_domain_list_page(
         paginated_domains.items.clone(),
-        paginated_domains.total_count,
-        paginated_domains.current_page,
-        paginated_domains.per_page,
-    );
-    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
-    let max_item = std::cmp::min(
-        paginated.current_page * paginated.per_page,
-        paginated.total_count,
-    );
-
-    let content_template = DomainsListTemplate {
-        title: &translations["domains-title"],
-        description: &translations["domains-description"],
-        add_domain: &translations["domains-add"],
-        table_header_domain: &translations["domains-table-header-domain"],
-        table_header_enabled: &translations["domains-table-header-enabled"],
-        table_header_actions: &translations["domains-table-header-actions"],
-        table_header_transport: &translations["domains-transport"],
-        status_active: &translations["status-active"],
-        status_inactive: &translations["status-inactive"],
-        action_view: &translations["action-view"],
-        action_enable: &translations["action-enable"],
-        action_disable: &translations["action-disable"],
-        empty_title: &translations["domains-empty-title"],
-        empty_description: &translations["domains-empty-description"],
-        domains: &paginated_domains.items,
-        pagination: &paginated,
-        page_range: &page_range,
-        max_item,
-        backups_title: &translations["backups-title"],
-        backups_description: &translations["backups-description"],
-        add_backup: &translations["backups-add"],
-        backups_table_header_domain: &translations["backups-table-header-domain"],
-        backups_table_header_transport: &translations["backups-table-header-transport"],
-        backups_table_header_enabled: &translations["backups-table-header-enabled"],
-        backups_table_header_actions: &translations["backups-table-header-actions"],
-        backups: &backups,
-        backups_view: &translations["backups-view"],
-        backups_enable: &translations["backups-enable"],
-        backups_disable: &translations["backups-disable"],
-        backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
-        backups_empty_get_started: &translations["backups-empty-get-started"],
-    };
-
-    render_template_with_title!(
-        content_template,
-        content_template.title,
+        backups,
+        &paginated_domains,
         &state,
         &locale,
-        &headers
+        &headers,
     )
+    .await
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
@@ -478,47 +431,14 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         enabled: true,
     };
 
-    // Use helper functions to fetch translations in batches
-    let mut form_translations = get_entity_form_translations(&state, &locale, "domains").await;
-    let field_translations = get_field_translations(
-        &state,
-        &locale,
-        "domains",
-        &["domain", "transport", "active"],
-    )
-    .await;
-
-    // Merge field translations into form translations
-    form_translations.extend(field_translations);
-
-    let content_template = DomainFormTemplate {
-        title: &form_translations["domains-add-title"],
-        domain: None,
+    // Use the new resource-specific helper function
+    crate::handlers::utils::render_domain_form_page(
         form,
-        error: None,
-        form_error: &form_translations["form-error"],
-        form_domain: &form_translations["domains-field-domain"],
-        form_transport: &form_translations["domains-field-transport"],
-        form_active: &form_translations["domains-field-active"],
-        form_cancel: &form_translations["form-cancel"],
-        form_create_domain: &form_translations["form-create-domain"],
-        form_update_domain: &form_translations["form-update-domain"],
-        form_placeholder_domain: &form_translations["form-placeholder-domain"],
-        form_placeholder_transport: &form_translations["form-placeholder-transport"],
-        form_tooltip_domain: &form_translations["domains-field-domain-help"],
-        form_tooltip_transport: &form_translations["domains-field-transport-help"],
-        form_tooltip_enable: &form_translations["domains-field-active-help"],
-        form_enabled: &form_translations["form-enabled"],
-        form_disabled: &form_translations["form-disabled"],
-    };
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
+        None, // No existing domain for new form
+        "domains-add-title",
         &state,
         &locale,
         &headers,
-        form_translations["domains-add-title"].clone(),
     )
     .await
 }
@@ -550,7 +470,44 @@ pub async fn show(
         }
     };
 
-    render_domain_show_page(&state, &headers, domain).await
+    let locale = crate::handlers::utils::get_user_locale(&headers);
+
+    // Get alias report and existing aliases
+    let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
+    let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+
+    // Get analytics-driven common aliases
+    let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
+
+    // Filter out analytics aliases that are already in the domain or in config
+    let config_required = state.config.required_aliases.clone();
+    let config_common = state.config.common_aliases.clone();
+    let existing_alias_names: Vec<String> = existing_aliases
+        .iter()
+        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+        .collect();
+
+    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
+        .iter()
+        .filter(|alias| {
+            !config_required.contains(alias)
+                && !config_common.contains(alias)
+                && !existing_alias_names.contains(alias)
+        })
+        .cloned()
+        .collect();
+
+    // Use the new resource-specific helper function
+    crate::handlers::utils::render_domain_show_page(
+        domain,
+        alias_report,
+        existing_aliases,
+        filtered_analytics_aliases,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn edit(
@@ -588,99 +545,14 @@ pub async fn edit(
         enabled: domain.enabled,
     };
 
-    // Use helper functions to fetch translations in batches
-    let form_translations = crate::handlers::utils::get_translations_batch(
-        &state,
-        &locale,
-        &[
-            "domains-edit-domain",
-            "form-error",
-            "form-cancel",
-            "action-save",
-        ],
-    )
-    .await;
-    let field_translations = crate::handlers::utils::get_field_translations(
-        &state,
-        &locale,
-        "domains",
-        &["domain", "transport", "active"],
-    )
-    .await;
-
-    let content_template = DomainFormTemplate {
-        title: form_translations
-            .get("domains-edit-domain")
-            .map(|s| s.as_str())
-            .unwrap_or("Edit Domain"),
-        domain: Some(domain),
+    // Use the new resource-specific helper function
+    crate::handlers::utils::render_domain_form_page(
         form,
-        error: None,
-        form_error: form_translations
-            .get("form-error")
-            .map(|s| s.as_str())
-            .unwrap_or("Form Error"),
-        form_domain: field_translations
-            .get("domains-field-domain")
-            .map(|s| s.as_str())
-            .unwrap_or("Domain"),
-        form_transport: field_translations
-            .get("domains-field-transport")
-            .map(|s| s.as_str())
-            .unwrap_or("Transport"),
-        form_active: field_translations
-            .get("domains-field-active")
-            .map(|s| s.as_str())
-            .unwrap_or("Active"),
-        form_cancel: form_translations
-            .get("form-cancel")
-            .map(|s| s.as_str())
-            .unwrap_or("Cancel"),
-        form_create_domain: form_translations
-            .get("action-save")
-            .map(|s| s.as_str())
-            .unwrap_or("Save"),
-        form_update_domain: form_translations
-            .get("action-save")
-            .map(|s| s.as_str())
-            .unwrap_or("Save"),
-        form_placeholder_domain: field_translations
-            .get("domains-placeholder-domain")
-            .map(|s| s.as_str())
-            .unwrap_or("example.com"),
-        form_placeholder_transport: field_translations
-            .get("domains-placeholder-transport")
-            .map(|s| s.as_str())
-            .unwrap_or("virtual"),
-        form_tooltip_domain: field_translations
-            .get("domains-field-domain-help")
-            .map(|s| s.as_str())
-            .unwrap_or("Domain tooltip"),
-        form_tooltip_transport: field_translations
-            .get("domains-field-transport-help")
-            .map(|s| s.as_str())
-            .unwrap_or("Transport tooltip"),
-        form_tooltip_enable: field_translations
-            .get("domains-field-active-help")
-            .map(|s| s.as_str())
-            .unwrap_or("Active tooltip"),
-        form_enabled: form_translations
-            .get("form-enabled")
-            .map(|s| s.as_str())
-            .unwrap_or("Enabled"),
-        form_disabled: form_translations
-            .get("form-disabled")
-            .map(|s| s.as_str())
-            .unwrap_or("Disabled"),
-    };
-
-    // Use helper function for template rendering
-    crate::handlers::utils::render_form_template(
-        content_template,
+        Some(domain), // Pass the existing domain for edit form
+        "domains-edit-domain",
         &state,
         &locale,
         &headers,
-        form_translations["domains-edit-domain"].clone(),
     )
     .await
 }

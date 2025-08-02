@@ -1366,3 +1366,564 @@ where
         }
     }
 }
+
+/// Resource-specific helper functions for Aliases
+pub async fn render_alias_list_page(
+    aliases: Vec<crate::models::Alias>,
+    paginated: &crate::models::PaginatedResult<crate::models::Alias>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for alias list
+    let title = get_translation(state, locale, "aliases-title").await;
+    let description = get_translation(state, locale, "aliases-description").await;
+    let add_alias = get_translation(state, locale, "aliases-add").await;
+    let table_header_mail = get_translation(state, locale, "aliases-table-header-mail").await;
+    let table_header_destination = get_translation(state, locale, "aliases-table-header-destination").await;
+    let table_header_domain = get_translation(state, locale, "aliases-table-header-domain").await;
+    let table_header_enabled = get_translation(state, locale, "aliases-table-header-enabled").await;
+    let table_header_actions = get_translation(state, locale, "aliases-table-header-actions").await;
+    let status_active = get_translation(state, locale, "status-active").await;
+    let status_inactive = get_translation(state, locale, "status-inactive").await;
+    let action_view = get_translation(state, locale, "action-view").await;
+    let enable_alias = get_translation(state, locale, "aliases-enable-alias").await;
+    let disable_alias = get_translation(state, locale, "aliases-disable-alias").await;
+    let empty_title = get_translation(state, locale, "aliases-empty-title").await;
+    let empty_description = get_translation(state, locale, "aliases-empty-description").await;
+
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
+
+    let content_template = crate::templates::aliases::AliasesListTemplate {
+        title: &title,
+        aliases: &aliases,
+        pagination: paginated,
+        page_range: &page_range,
+        max_item,
+        description: &description,
+        add_alias: &add_alias,
+        table_header_mail: &table_header_mail,
+        table_header_domain: &table_header_domain,
+        table_header_destination: &table_header_destination,
+        table_header_enabled: &table_header_enabled,
+        table_header_actions: &table_header_actions,
+        status_active: &status_active,
+        status_inactive: &status_inactive,
+        action_view: &action_view,
+        enable_alias: &enable_alias,
+        disable_alias: &disable_alias,
+        empty_title: &empty_title,
+        empty_description: &empty_description,
+        current_sort_by: "mail",
+        current_sort_order: "asc",
+    };
+
+    render_list_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_alias_show_page(
+    alias: crate::models::Alias,
+    domain_info: Option<crate::models::Domain>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for alias show
+    let title = get_translation(state, locale, "aliases-show-title").await;
+    let view_edit_settings = get_translation(state, locale, "aliases-view-edit-settings").await;
+    let back_to_aliases = get_translation(state, locale, "aliases-back-to-aliases").await;
+    let alias_information = get_translation(state, locale, "aliases-alias-information").await;
+    let alias_details = get_translation(state, locale, "aliases-alias-details").await;
+    let mail = get_translation(state, locale, "aliases-mail").await;
+    let forward_to = get_translation(state, locale, "aliases-forward-to").await;
+    let domain = get_translation(state, locale, "aliases-domain").await;
+    let status = get_translation(state, locale, "aliases-status").await;
+    let status_active = get_translation(state, locale, "status-active").await;
+    let status_inactive = get_translation(state, locale, "status-inactive").await;
+    let created = get_translation(state, locale, "aliases-created").await;
+    let modified = get_translation(state, locale, "aliases-modified").await;
+    let edit_alias_button = get_translation(state, locale, "aliases-edit-alias-button").await;
+    let enable_alias_button = get_translation(state, locale, "aliases-enable-alias-button").await;
+    let disable_alias_button = get_translation(state, locale, "aliases-disable-alias-button").await;
+    let delete_alias = get_translation(state, locale, "aliases-delete-alias").await;
+    let delete_confirm = get_translation(state, locale, "aliases-delete-confirm").await;
+
+    let content_template = crate::templates::aliases::AliasShowTemplate {
+        title: &title,
+        view_edit_settings: &view_edit_settings,
+        back_to_aliases: &back_to_aliases,
+        alias_information: &alias_information,
+        alias_details: &alias_details,
+        mail: &mail,
+        forward_to: &forward_to,
+        domain: &domain,
+        domain_info,
+        status: &status,
+        status_active: &status_active,
+        status_inactive: &status_inactive,
+        created: &created,
+        modified: &modified,
+        edit_alias_button: &edit_alias_button,
+        enable_alias_button: &enable_alias_button,
+        disable_alias_button: &disable_alias_button,
+        delete_alias: &delete_alias,
+        delete_confirm: &delete_confirm,
+        alias,
+    };
+
+    render_show_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_alias_form_page(
+    form: crate::models::AliasForm,
+    alias: Option<crate::models::Alias>,
+    title_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for alias form
+    let title = get_translation(state, locale, title_key).await;
+    let edit_alias = get_translation(state, locale, "aliases-edit-alias").await;
+    let new_alias = get_translation(state, locale, "aliases-new-alias").await;
+    let form_error = get_translation(state, locale, "form-error").await;
+    let mail_address = get_translation(state, locale, "aliases-form-mail").await;
+    let destination = get_translation(state, locale, "aliases-form-destination").await;
+    let placeholder_mail = get_translation(state, locale, "aliases-placeholder-mail").await;
+    let placeholder_destination = get_translation(state, locale, "aliases-placeholder-destination").await;
+    let tooltip_mail = get_translation(state, locale, "aliases-tooltip-mail").await;
+    let tooltip_destination = get_translation(state, locale, "aliases-tooltip-destination").await;
+    let active = get_translation(state, locale, "form-enabled").await;
+    let tooltip_active = get_translation(state, locale, "aliases-tooltip-enabled").await;
+    let cancel = get_translation(state, locale, "form-cancel").await;
+    let update_alias = get_translation(state, locale, "aliases-update-alias").await;
+    let create_alias = get_translation(state, locale, "aliases-create-alias").await;
+
+    let content_template = crate::templates::aliases::AliasFormTemplate {
+        title: &title.clone(),
+        alias,
+        form,
+        error: None, // Will be set by validation functions if needed
+        return_url: None, // Will be set by calling function if needed
+        edit_alias: &edit_alias,
+        new_alias: &new_alias,
+        form_error: &form_error,
+        mail_address: &mail_address,
+        destination: &destination,
+        placeholder_mail: &placeholder_mail,
+        placeholder_destination: &placeholder_destination,
+        tooltip_mail: &tooltip_mail,
+        tooltip_destination: &tooltip_destination,
+        active: &active,
+        tooltip_active: &tooltip_active,
+        cancel: &cancel,
+        update_alias: &update_alias,
+        create_alias: &create_alias,
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}
+
+/// Resource-specific helper functions for Domains
+pub async fn render_domain_list_page(
+    domains: Vec<crate::models::Domain>,
+    backups: Vec<crate::models::Backup>,
+    paginated: &crate::models::PaginatedResult<crate::models::Domain>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for domain list
+    let title = get_translation(state, locale, "domains-title").await;
+    let description = get_translation(state, locale, "domains-description").await;
+    let add_domain = get_translation(state, locale, "domains-add").await;
+    let table_header_domain = get_translation(state, locale, "domains-table-header-domain").await;
+    let table_header_transport = get_translation(state, locale, "domains-table-header-transport").await;
+    let table_header_enabled = get_translation(state, locale, "domains-table-header-enabled").await;
+    let table_header_actions = get_translation(state, locale, "domains-table-header-actions").await;
+    let status_active = get_translation(state, locale, "status-active").await;
+    let status_inactive = get_translation(state, locale, "status-inactive").await;
+    let action_view = get_translation(state, locale, "action-view").await;
+    let action_enable = get_translation(state, locale, "action-enable").await;
+    let action_disable = get_translation(state, locale, "action-disable").await;
+    let empty_title = get_translation(state, locale, "domains-empty-title").await;
+    let empty_description = get_translation(state, locale, "domains-empty-description").await;
+    
+    // Backup translations
+    let backups_title = get_translation(state, locale, "backups-title").await;
+    let backups_description = get_translation(state, locale, "backups-description").await;
+    let add_backup = get_translation(state, locale, "backups-add").await;
+    let backups_table_header_domain = get_translation(state, locale, "backups-table-header-domain").await;
+    let backups_table_header_transport = get_translation(state, locale, "backups-table-header-transport").await;
+    let backups_table_header_enabled = get_translation(state, locale, "backups-table-header-enabled").await;
+    let backups_table_header_actions = get_translation(state, locale, "backups-table-header-actions").await;
+    let backups_view = get_translation(state, locale, "backups-view").await;
+    let backups_enable = get_translation(state, locale, "backups-enable").await;
+    let backups_disable = get_translation(state, locale, "backups-disable").await;
+    let backups_empty_no_backup_servers = get_translation(state, locale, "backups-empty-no-backup-servers").await;
+    let backups_empty_get_started = get_translation(state, locale, "backups-empty-get-started").await;
+
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
+
+    let content_template = crate::templates::domains::DomainsListTemplate {
+        title: &title,
+        description: &description,
+        add_domain: &add_domain,
+        table_header_domain: &table_header_domain,
+        table_header_transport: &table_header_transport,
+        table_header_enabled: &table_header_enabled,
+        table_header_actions: &table_header_actions,
+        status_active: &status_active,
+        status_inactive: &status_inactive,
+        action_view: &action_view,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
+        empty_title: &empty_title,
+        empty_description: &empty_description,
+        domains: &domains,
+        pagination: paginated,
+        page_range: &page_range,
+        max_item,
+        backups_title: &backups_title,
+        backups_description: &backups_description,
+        add_backup: &add_backup,
+        backups_table_header_domain: &backups_table_header_domain,
+        backups_table_header_transport: &backups_table_header_transport,
+        backups_table_header_enabled: &backups_table_header_enabled,
+        backups_table_header_actions: &backups_table_header_actions,
+        backups: &backups,
+        backups_view: &backups_view,
+        backups_enable: &backups_enable,
+        backups_disable: &backups_disable,
+        backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
+        backups_empty_get_started: &backups_empty_get_started,
+    };
+
+    render_list_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_domain_show_page(
+    domain: crate::models::Domain,
+    alias_report: Option<crate::models::DomainAliasReport>,
+    existing_aliases: Vec<crate::models::Alias>,
+    analytics_common_aliases: Vec<String>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for domain show
+    let title = get_translation(state, locale, "domains-title").await;
+    let view_edit_settings = get_translation(state, locale, "domains-view-edit-settings").await;
+    let back_to_domains = get_translation(state, locale, "domains-back-to-domains").await;
+    let domain_information = get_translation(state, locale, "domains-domain-information").await;
+    let domain_details = get_translation(state, locale, "domains-domain-details").await;
+    let domain_name = get_translation(state, locale, "domains-domain-name").await;
+    let transport = get_translation(state, locale, "domains-transport").await;
+    let status = get_translation(state, locale, "domains-status").await;
+    let status_active = get_translation(state, locale, "status-active").await;
+    let status_inactive = get_translation(state, locale, "status-inactive").await;
+    let created = get_translation(state, locale, "domains-created").await;
+    let modified = get_translation(state, locale, "domains-modified").await;
+    let edit_domain_button = get_translation(state, locale, "domains-edit-domain-button").await;
+    let enable_domain = get_translation(state, locale, "domains-enable-domain").await;
+    let disable_domain = get_translation(state, locale, "domains-disable-domain").await;
+    let delete_domain = get_translation(state, locale, "domains-delete-domain").await;
+    let delete_confirm = get_translation(state, locale, "domains-delete-confirm").await;
+    
+    // Alias report translations
+    let catch_all_header = get_translation(state, locale, "reports-catch-all-header").await;
+    let destination_header = get_translation(state, locale, "reports-destination-header").await;
+    let required_aliases_header = get_translation(state, locale, "reports-required-aliases-header").await;
+    let missing_aliases_header = get_translation(state, locale, "reports-missing-aliases-header").await;
+    let missing_required_alias_header = get_translation(state, locale, "reports-missing-required-aliases-header").await;
+    let missing_common_aliases_header = get_translation(state, locale, "reports-missing-common-aliases-header").await;
+    let mail_header = get_translation(state, locale, "reports-mail-header").await;
+    let status_header = get_translation(state, locale, "reports-status-header").await;
+    let enabled_header = get_translation(state, locale, "reports-enabled-header").await;
+    let actions_header = get_translation(state, locale, "reports-actions-header").await;
+    let no_required_aliases = get_translation(state, locale, "reports-no-required-aliases").await;
+    let no_missing_aliases = get_translation(state, locale, "reports-no-missing-aliases").await;
+    let alias_report_title = get_translation(state, locale, "domains-alias-report-title").await;
+    let alias_report_description = get_translation(state, locale, "domains-alias-report-description").await;
+    let existing_aliases_header = get_translation(state, locale, "domains-existing-aliases-header").await;
+    let add_missing_required_alias_button = get_translation(state, locale, "reports-add-missing-required-alias-button").await;
+    let add_common_alias_button = get_translation(state, locale, "reports-add-common-alias-button").await;
+    let add_catch_all_button = get_translation(state, locale, "reports-add-catch-all-button").await;
+    let add_alias_button = get_translation(state, locale, "domains-add-alias-button").await;
+    let no_catch_all_message = get_translation(state, locale, "domains-no-catch-all-message").await;
+    let action_view = get_translation(state, locale, "action-view").await;
+    let enable_alias = get_translation(state, locale, "aliases-enable-alias").await;
+    let disable_alias = get_translation(state, locale, "aliases-disable-alias").await;
+    let enable_missing_alias = get_translation(state, locale, "aliases-enable-missing-alias").await;
+    let domains_mail_header = get_translation(state, locale, "domains-mail-header").await;
+    let domains_destination_header = get_translation(state, locale, "domains-destination-header").await;
+    let domains_enabled_header = get_translation(state, locale, "domains-enabled-header").await;
+    let domains_actions_header = get_translation(state, locale, "domains-actions-header").await;
+    let domains_missing_aliases_header = get_translation(state, locale, "domains-missing-aliases-header").await;
+    let domains_catch_all_header = get_translation(state, locale, "domains-catch-all-header").await;
+    let analytics_common_aliases_header = get_translation(state, locale, "analytics-common-aliases-header").await;
+    let analytics_common_aliases_description = get_translation(state, locale, "analytics-common-aliases-description").await;
+
+    let content_template = crate::templates::domains::DomainShowTemplate {
+        title: &title,
+        domain,
+        view_edit_settings: &view_edit_settings,
+        back_to_domains: &back_to_domains,
+        domain_information: &domain_information,
+        domain_details: &domain_details,
+        domain_name: &domain_name,
+        transport: &transport,
+        status: &status,
+        status_active: &status_active,
+        status_inactive: &status_inactive,
+        created: &created,
+        modified: &modified,
+        edit_domain_button: &edit_domain_button,
+        enable_domain: &enable_domain,
+        disable_domain: &disable_domain,
+        delete_domain: &delete_domain,
+        delete_confirm: &delete_confirm,
+        alias_report,
+        catch_all_header: &catch_all_header,
+        destination_header: &destination_header,
+        required_aliases_header: &required_aliases_header,
+        missing_aliases_header: &missing_aliases_header,
+        missing_required_alias_header: &missing_required_alias_header,
+        missing_common_aliases_header: &missing_common_aliases_header,
+        mail_header: &mail_header,
+        status_header: &status_header,
+        enabled_header: &enabled_header,
+        actions_header: &actions_header,
+        no_required_aliases: &no_required_aliases,
+        no_missing_aliases: &no_missing_aliases,
+        alias_report_title: &alias_report_title,
+        alias_report_description: &alias_report_description,
+        existing_aliases_header: &existing_aliases_header,
+        add_missing_required_alias_button: &add_missing_required_alias_button,
+        add_common_alias_button: &add_common_alias_button,
+        add_catch_all_button: &add_catch_all_button,
+        add_alias_button: &add_alias_button,
+        no_catch_all_message: &no_catch_all_message,
+        existing_aliases: &existing_aliases,
+        analytics_common_aliases: &analytics_common_aliases,
+        analytics_common_aliases_header: &analytics_common_aliases_header,
+        analytics_common_aliases_description: &analytics_common_aliases_description,
+        action_view: &action_view,
+        enable_alias: &enable_alias,
+        disable_alias: &disable_alias,
+        enable_missing_alias: &enable_missing_alias,
+        domains_mail_header: &domains_mail_header,
+        domains_destination_header: &domains_destination_header,
+        domains_enabled_header: &domains_enabled_header,
+        domains_actions_header: &domains_actions_header,
+        domains_missing_aliases_header: &domains_missing_aliases_header,
+        domains_catch_all_header: &domains_catch_all_header,
+    };
+
+    render_show_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_domain_form_page(
+    form: crate::models::DomainForm,
+    domain: Option<crate::models::Domain>,
+    title_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for domain form
+    let title = get_translation(state, locale, title_key).await;
+    let form_error = get_translation(state, locale, "form-error").await;
+    let form_domain = get_translation(state, locale, "domains-form-domain").await;
+    let form_transport = get_translation(state, locale, "domains-form-transport").await;
+    let form_active = get_translation(state, locale, "domains-form-active").await;
+    let form_cancel = get_translation(state, locale, "form-cancel").await;
+    let form_create_domain = get_translation(state, locale, "domains-form-create-domain").await;
+    let form_update_domain = get_translation(state, locale, "domains-form-update-domain").await;
+    let form_placeholder_domain = get_translation(state, locale, "domains-form-placeholder-domain").await;
+    let form_placeholder_transport = get_translation(state, locale, "domains-form-placeholder-transport").await;
+    let form_tooltip_domain = get_translation(state, locale, "domains-form-tooltip-domain").await;
+    let form_tooltip_transport = get_translation(state, locale, "domains-form-tooltip-transport").await;
+    let form_tooltip_enable = get_translation(state, locale, "domains-form-tooltip-enable").await;
+    let form_enabled = get_translation(state, locale, "form-enabled").await;
+    let form_disabled = get_translation(state, locale, "form-disabled").await;
+
+    let content_template = crate::templates::domains::DomainFormTemplate {
+        title: &title.clone(),
+        domain,
+        form,
+        error: None, // Will be set by validation functions if needed
+        form_error: &form_error,
+        form_domain: &form_domain,
+        form_transport: &form_transport,
+        form_active: &form_active,
+        form_cancel: &form_cancel,
+        form_create_domain: &form_create_domain,
+        form_update_domain: &form_update_domain,
+        form_placeholder_domain: &form_placeholder_domain,
+        form_placeholder_transport: &form_placeholder_transport,
+        form_tooltip_domain: &form_tooltip_domain,
+        form_tooltip_transport: &form_tooltip_transport,
+        form_tooltip_enable: &form_tooltip_enable,
+        form_enabled: &form_enabled,
+        form_disabled: &form_disabled,
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}
+
+/// Resource-specific helper functions for Relays
+pub async fn render_relay_list_page(
+    relays: Vec<crate::models::Relay>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relay list
+    let title = get_translation(state, locale, "relays-title").await;
+    let relays_list_description = get_translation(state, locale, "relays-list-description").await;
+    let add_relay = get_translation(state, locale, "relays-add").await;
+    let table_header_recipient = get_translation(state, locale, "relays-table-header-recipient").await;
+    let table_header_status = get_translation(state, locale, "relays-table-header-status").await;
+    let table_header_enabled = get_translation(state, locale, "relays-table-header-enabled").await;
+    let table_header_actions = get_translation(state, locale, "relays-table-header-actions").await;
+    let status_enabled = get_translation(state, locale, "status-enabled").await;
+    let status_disabled = get_translation(state, locale, "status-disabled").await;
+    let status_ok = get_translation(state, locale, "status-ok").await;
+    let status_reject = get_translation(state, locale, "status-reject").await;
+    let action_view = get_translation(state, locale, "action-view").await;
+    let action_enable = get_translation(state, locale, "action-enable").await;
+    let action_disable = get_translation(state, locale, "action-disable").await;
+    let delete_confirm = get_translation(state, locale, "relays-delete-confirm").await;
+    let empty_title = get_translation(state, locale, "relays-empty-title").await;
+    let empty_description = get_translation(state, locale, "relays-empty-description").await;
+
+    let content_template = crate::templates::relays::RelayListTemplate {
+        title: &title,
+        relays_list_description: &relays_list_description,
+        add_relay: &add_relay,
+        table_header_recipient: &table_header_recipient,
+        table_header_status: &table_header_status,
+        table_header_enabled: &table_header_enabled,
+        table_header_actions: &table_header_actions,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        status_ok: &status_ok,
+        status_reject: &status_reject,
+        action_view: &action_view,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
+        delete_confirm: &delete_confirm,
+        empty_title: &empty_title,
+        empty_description: &empty_description,
+        relays,
+    };
+
+    render_list_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_relay_show_page(
+    relay: crate::models::Relay,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relay show
+    let title = get_translation(state, locale, "relays-title").await;
+    let action_edit = get_translation(state, locale, "action-edit").await;
+    let action_enable = get_translation(state, locale, "action-enable").await;
+    let action_disable = get_translation(state, locale, "action-disable").await;
+    let action_delete = get_translation(state, locale, "action-delete").await;
+    let delete_confirm = get_translation(state, locale, "relays-delete-confirm").await;
+    let back_to_list = get_translation(state, locale, "relays-back-to-list").await;
+    let field_id = get_translation(state, locale, "relays-field-id").await;
+    let field_recipient = get_translation(state, locale, "relays-field-recipient").await;
+    let field_status = get_translation(state, locale, "relays-field-status").await;
+    let field_enabled = get_translation(state, locale, "relays-field-enabled").await;
+    let field_created = get_translation(state, locale, "relays-field-created").await;
+    let field_modified = get_translation(state, locale, "relays-field-modified").await;
+    let status_enabled = get_translation(state, locale, "status-enabled").await;
+    let status_disabled = get_translation(state, locale, "status-disabled").await;
+    let status_ok = get_translation(state, locale, "status-ok").await;
+    let status_reject = get_translation(state, locale, "status-reject").await;
+    let view_edit_settings = get_translation(state, locale, "relays-view-edit-settings").await;
+    let relay_show_title = get_translation(state, locale, "relays-show-title").await;
+    let relay_info_title = get_translation(state, locale, "relays-info-title").await;
+    let relay_info_description = get_translation(state, locale, "relays-info-description").await;
+
+    let content_template = crate::templates::relays::RelayShowTemplate {
+        title: &title,
+        relay,
+        action_edit: &action_edit,
+        action_enable: &action_enable,
+        action_disable: &action_disable,
+        action_delete: &action_delete,
+        delete_confirm: &delete_confirm,
+        back_to_list: &back_to_list,
+        field_id: &field_id,
+        field_recipient: &field_recipient,
+        field_status: &field_status,
+        field_enabled: &field_enabled,
+        field_created: &field_created,
+        field_modified: &field_modified,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        status_ok: &status_ok,
+        status_reject: &status_reject,
+        view_edit_settings: &view_edit_settings,
+        relay_show_title: &relay_show_title,
+        relay_info_title: &relay_info_title,
+        relay_info_description: &relay_info_description,
+    };
+
+    render_show_template(content_template, state, locale, headers).await
+}
+
+pub async fn render_relay_form_page(
+    form: crate::models::RelayForm,
+    title_key: &str,
+    action_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for relay form
+    let title = get_translation(state, locale, title_key).await;
+    let action = get_translation(state, locale, action_key).await;
+    let field_recipient = get_translation(state, locale, "relays-field-recipient").await;
+    let field_status = get_translation(state, locale, "relays-field-status").await;
+    let field_enabled = get_translation(state, locale, "relays-field-enabled").await;
+    let field_recipient_help = get_translation(state, locale, "relays-field-recipient-help").await;
+    let field_status_help = get_translation(state, locale, "relays-field-status-help").await;
+    let action_save = get_translation(state, locale, "action-save").await;
+    let action_cancel = get_translation(state, locale, "action-cancel").await;
+    let back_to_list = get_translation(state, locale, "relays-back-to-list").await;
+    let placeholder_recipient = get_translation(state, locale, "relays-placeholder-recipient").await;
+    let placeholder_status = get_translation(state, locale, "relays-placeholder-status").await;
+
+    let content_template = crate::templates::relays::RelayFormTemplate {
+        title: &title.clone(),
+        action: &action,
+        form,
+        field_recipient: &field_recipient,
+        field_status: &field_status,
+        field_enabled: &field_enabled,
+        field_recipient_help: &field_recipient_help,
+        field_status_help: &field_status_help,
+        action_save: &action_save,
+        action_cancel: &action_cancel,
+        back_to_list: &back_to_list,
+        placeholder_recipient: &placeholder_recipient,
+        placeholder_status: &placeholder_status,
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}

@@ -26,3 +26,17 @@ Delete any unused variables and imports.
 Do not suppress unused variable warning by prefixing it with an underscore. Instead delete it unless the rare occasion it is needed.
 
 If any changes needed for testing, make sure the docker image is rebuilt first.
+
+Refactor often. 
+
+Test often. With targeted tests, not whole suite.
+
+Check formatting and linting often.
+
+Prefer small functions ala clean-code, using with shared helpers and libraries.
+
+Do not repeat yourself, use helper functions.
+ 
+Prefer more domain based logic.
+
+Delete unused code.
