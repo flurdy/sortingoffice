@@ -922,31 +922,43 @@ pub async fn delete(
                 paginated.total_count,
             );
 
-            // Use helper function for translations
-            let translations =
-                crate::handlers::utils::get_entity_list_translations(&state, &locale, "aliases")
-                    .await;
+            // Fetch all required translations
+            let title = get_translation(&state, &locale, "aliases-title").await;
+            let description = get_translation(&state, &locale, "aliases-description").await;
+            let add_alias = get_translation(&state, &locale, "aliases-add").await;
+            let table_header_mail = get_translation(&state, &locale, "aliases-table-header-mail").await;
+            let table_header_domain = get_translation(&state, &locale, "aliases-table-header-domain").await;
+            let table_header_destination = get_translation(&state, &locale, "aliases-table-header-destination").await;
+            let table_header_enabled = get_translation(&state, &locale, "aliases-table-header-enabled").await;
+            let table_header_actions = get_translation(&state, &locale, "aliases-table-header-actions").await;
+            let status_active = get_translation(&state, &locale, "status-active").await;
+            let status_inactive = get_translation(&state, &locale, "status-inactive").await;
+            let action_view = get_translation(&state, &locale, "action-view").await;
+            let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
+            let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
+            let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
+            let empty_description = get_translation(&state, &locale, "aliases-empty-description").await;
 
             let content_template = AliasesListTemplate {
-                title: &translations["aliases-title"],
+                title: &title,
                 aliases: &aliases,
                 pagination: &paginated,
                 page_range: &page_range,
                 max_item,
-                description: &translations["aliases-description"],
-                add_alias: &translations["aliases-add"],
-                table_header_mail: &translations["aliases-table-header-mail"],
-                table_header_domain: &translations["aliases-table-header-domain"],
-                table_header_destination: &translations["aliases-table-header-destination"],
-                table_header_enabled: &translations["aliases-table-header-enabled"],
-                table_header_actions: &translations["aliases-table-header-actions"],
-                status_active: &translations["status-active"],
-                status_inactive: &translations["status-inactive"],
-                action_view: &translations["action-view"],
-                enable_alias: &translations["aliases-enable-alias"],
-                disable_alias: &translations["aliases-disable-alias"],
-                empty_title: &translations["aliases-empty-title"],
-                empty_description: &translations["aliases-empty-description"],
+                description: &description,
+                add_alias: &add_alias,
+                table_header_mail: &table_header_mail,
+                table_header_domain: &table_header_domain,
+                table_header_destination: &table_header_destination,
+                table_header_enabled: &table_header_enabled,
+                table_header_actions: &table_header_actions,
+                status_active: &status_active,
+                status_inactive: &status_inactive,
+                action_view: &action_view,
+                enable_alias: &enable_alias,
+                disable_alias: &disable_alias,
+                empty_title: &empty_title,
+                empty_description: &empty_description,
                 current_sort_by: "mail",
                 current_sort_order: "asc",
             };
@@ -1003,33 +1015,47 @@ pub async fn toggle_enabled(
                     let domain_name = alias.mail.split('@').next_back().unwrap_or("");
                     let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
-                    // Use helper function for translations
-                    let translations = crate::handlers::utils::get_entity_show_translations(
-                        &state, &locale, "aliases",
-                    )
-                    .await;
+                    // Fetch all required translations
+                    let title = get_translation(&state, &locale, "aliases-show-title").await;
+                    let view_edit_settings = get_translation(&state, &locale, "aliases-view-edit-settings").await;
+                    let back_to_aliases = get_translation(&state, &locale, "aliases-back-to-aliases").await;
+                    let alias_information = get_translation(&state, &locale, "aliases-alias-information").await;
+                    let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
+                    let mail = get_translation(&state, &locale, "aliases-mail").await;
+                    let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
+                    let domain = get_translation(&state, &locale, "aliases-domain").await;
+                    let status = get_translation(&state, &locale, "aliases-status").await;
+                    let status_active = get_translation(&state, &locale, "status-active").await;
+                    let status_inactive = get_translation(&state, &locale, "status-inactive").await;
+                    let created = get_translation(&state, &locale, "aliases-created").await;
+                    let modified = get_translation(&state, &locale, "aliases-modified").await;
+                    let edit_alias_button = get_translation(&state, &locale, "aliases-edit-alias-button").await;
+                    let enable_alias_button = get_translation(&state, &locale, "aliases-enable-alias-button").await;
+                    let disable_alias_button = get_translation(&state, &locale, "aliases-disable-alias-button").await;
+                    let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
+                    let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
 
                     let content_template = AliasShowTemplate {
-                        title: &translations["aliases-show-title"],
+                        title: &title,
                         alias,
-                        view_edit_settings: &translations["aliases-view-edit-settings"],
-                        back_to_aliases: &translations["aliases-back-to-aliases"],
-                        alias_information: &translations["aliases-alias-information"],
-                        alias_details: &translations["aliases-alias-details"],
-                        mail: &translations["aliases-mail"],
-                        forward_to: &translations["aliases-forward-to"],
-                        domain: &translations["aliases-domain"],
+                        view_edit_settings: &view_edit_settings,
+                        back_to_aliases: &back_to_aliases,
+                        alias_information: &alias_information,
+                        alias_details: &alias_details,
+                        mail: &mail,
+                        forward_to: &forward_to,
+                        domain: &domain,
                         domain_info,
-                        status: &translations["aliases-status"],
-                        status_active: &translations["status-active"],
-                        status_inactive: &translations["status-inactive"],
-                        created: &translations["aliases-created"],
-                        modified: &translations["aliases-modified"],
-                        edit_alias_button: &translations["aliases-edit-alias-button"],
-                        enable_alias_button: &translations["aliases-enable-alias-button"],
-                        disable_alias_button: &translations["aliases-disable-alias-button"],
-                        delete_alias: &translations["aliases-delete-alias"],
-                        delete_confirm: &translations["aliases-delete-confirm"],
+                        status: &status,
+                        status_active: &status_active,
+                        status_inactive: &status_inactive,
+                        created: &created,
+                        modified: &modified,
+                        edit_alias_button: &edit_alias_button,
+                        enable_alias_button: &enable_alias_button,
+                        disable_alias_button: &disable_alias_button,
+                        delete_alias: &delete_alias,
+                        delete_confirm: &delete_confirm,
                     };
 
                     // Use helper function for template rendering

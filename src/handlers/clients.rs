@@ -1,6 +1,6 @@
 use crate::templates::clients::*;
 use crate::templates::layout::BaseTemplate;
-use crate::{db, i18n::get_translation, models::*, AppState};
+use crate::{db, models::*, AppState};
 use askama::Template;
 use axum::{
     extract::{Path, Query, State},

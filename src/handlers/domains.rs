@@ -536,8 +536,6 @@ pub async fn show(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
-
     // Get domain with proper error handling
     let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
