@@ -1121,6 +1121,23 @@ where
     }
 }
 
+/// Helper function to get database pool with consistent error handling for redirect handlers
+pub async fn get_db_pool_or_redirect_error(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::DbPool, (StatusCode, String)> {
+    match get_current_db_pool(state, headers).await {
+        Ok(pool) => Ok(pool),
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database connection error".to_string(),
+            ))
+        }
+    }
+}
+
 /// Helper function to handle entity operations with consistent error handling
 pub async fn handle_entity_operation<T, F, Fut>(
     operation: F,
@@ -1144,6 +1161,33 @@ where
             let error_message =
                 handle_database_error(state, locale, e, entity_name, identifier).await;
             Err(Html(error_message))
+        }
+    }
+}
+
+/// Helper function to handle entity operations with consistent error handling for redirect handlers
+pub async fn handle_entity_operation_redirect<T, F, Fut>(
+    operation: F,
+    state: &AppState,
+    entity_name: &str,
+    identifier: &str,
+    success_message: &str,
+) -> Result<T, (StatusCode, String)>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    match operation().await {
+        Ok(result) => {
+            info!("{}: {}", success_message, identifier);
+            Ok(result)
+        }
+        Err(e) => {
+            error!("Failed to {} {}: {:?}", entity_name, identifier, e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to {} {}", entity_name, identifier),
+            ))
         }
     }
 }

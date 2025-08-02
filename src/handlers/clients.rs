@@ -337,18 +337,25 @@ pub async fn create_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client creation request");
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    let client = db::create_client(&pool, client_data).map_err(|e| {
-        warn!("Failed to create client: {:?}", e);
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to create client".to_string(),
-        )
-    })?;
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return Err(error),
+    };
 
-    info!("Successfully created client: {}", client.client);
+    // Use helper function for entity operation
+    let client = match crate::handlers::utils::handle_entity_operation_redirect(
+        || async { db::create_client(&pool, client_data) },
+        &state,
+        "create client",
+        "new client",
+        "Successfully created client",
+    )
+    .await
+    {
+        Ok(client) => client,
+        Err(error) => return Err(error),
+    };
 
     Ok(Redirect::to(&format!("/clients/{}", client.id)))
 }
@@ -361,18 +368,25 @@ pub async fn update_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client update request for ID: {}", client_id);
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    let client = db::update_client(&pool, client_id, client_data).map_err(|e| {
-        warn!("Failed to update client {}: {:?}", client_id, e);
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to update client".to_string(),
-        )
-    })?;
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return Err(error),
+    };
 
-    info!("Successfully updated client: {}", client.client);
+    // Use helper function for entity operation
+    let client = match crate::handlers::utils::handle_entity_operation_redirect(
+        || async { db::update_client(&pool, client_id, client_data) },
+        &state,
+        "update client",
+        &client_id.to_string(),
+        "Successfully updated client",
+    )
+    .await
+    {
+        Ok(client) => client,
+        Err(error) => return Err(error),
+    };
 
     Ok(Redirect::to(&format!("/clients/{}", client.id)))
 }
@@ -384,20 +398,25 @@ pub async fn delete_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client deletion request for ID: {}", client_id);
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    db::delete_client(&pool, client_id).map_err(|e| {
-        warn!("Failed to delete client {}: {:?}", client_id, e);
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to delete client".to_string(),
-        )
-    })?;
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return Err(error),
+    };
 
-    info!("Successfully deleted client with ID: {}", client_id);
-
-    Ok(Redirect::to("/clients"))
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation_redirect(
+        || async { db::delete_client(&pool, client_id) },
+        &state,
+        "delete client",
+        &client_id.to_string(),
+        "Successfully deleted client",
+    )
+    .await
+    {
+        Ok(_) => Ok(Redirect::to("/clients")),
+        Err(error) => Err(error),
+    }
 }
 
 pub async fn toggle_client(
@@ -408,18 +427,25 @@ pub async fn toggle_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client toggle request for ID: {}", client_id);
 
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    let client = db::toggle_client_enabled(&pool, client_id).map_err(|e| {
-        warn!("Failed to toggle client {}: {:?}", client_id, e);
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to toggle client".to_string(),
-        )
-    })?;
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return Err(error),
+    };
 
-    info!("Successfully toggled client: {}", client.client);
+    // Use helper function for entity operation
+    let _client = match crate::handlers::utils::handle_entity_operation_redirect(
+        || async { db::toggle_client_enabled(&pool, client_id) },
+        &state,
+        "toggle client",
+        &client_id.to_string(),
+        "Successfully toggled client",
+    )
+    .await
+    {
+        Ok(client) => client,
+        Err(error) => return Err(error),
+    };
 
     let redirect_url = match redirect_query.redirect.as_deref() {
         Some("list") => "/clients".to_string(),

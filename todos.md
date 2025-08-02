@@ -57,9 +57,15 @@
        - `handle_entity_operation()` - Consistent entity operations with error handling
        - `validate_form_and_handle_error()` - Consistent form validation
        - `get_entity_list_with_pagination()` - Consistent pagination handling
+       - `get_db_pool_or_redirect_error()` - For redirect-based handlers
+       - `handle_entity_operation_redirect()` - For redirect-based handlers
      - ✅ Added `Clone` derive to `DomainForm` for helper function compatibility
      - ✅ Fixed import issues and type compatibility
-     - 🔄 **Next**: Apply helper functions to other handlers (users, clients, aliases, etc.)
+     - ✅ **Refactored handlers**:
+       - **Domains handler**: `update()`, `delete()` functions
+       - **Users handler**: `delete()`, `toggle_enabled()`, `toggle_enabled_list()`, `toggle_enabled_show()` functions
+       - **Clients handler**: `create_client()`, `update_client()`, `delete_client()`, `toggle_client()` functions
+     - 🔄 **Next**: Apply helper functions to remaining handlers (aliases, relays, relocated, etc.)
 
 ### **LOW PRIORITY**
 
@@ -74,7 +80,8 @@
 
 ## **Recent Achievements** 🏆
 
-- **Handler Code Consolidation**: Created comprehensive helper functions to reduce duplication in database operations, entity retrieval, and error handling
+- **Handler Code Consolidation**: Created comprehensive helper functions to reduce duplication in database operations, entity retrieval, and error handling across multiple handlers
+- **Multi-Pattern Support**: Added support for both `Html<String>` and `Result<Redirect, (StatusCode, String)>` handler patterns
 - **Wizard Test Enhancement**: Added comprehensive verification that all domains, aliases, and users are actually created
 - **Button ID Implementation**: Added reliable IDs to wizard buttons for better Selenium test stability
 - **Error Handling Improvements**: Made tests more robust with better error recovery and fallback mechanisms

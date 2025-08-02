@@ -835,13 +835,28 @@ pub async fn delete(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::delete_user(&pool, id) {
+    let user_id = id.clone();
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::delete_user(&pool, user_id) },
+        &state,
+        &locale,
+        "delete user",
+        &id,
+        "Successfully deleted user",
+    )
+    .await
+    {
         Ok(_) => {
+            // Get updated users list with error handling
             let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(e) => {
@@ -854,7 +869,7 @@ pub async fn delete(
                 build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
-        Err(_) => Html("Failed to delete user".to_string()),
+        Err(error) => error,
     }
 }
 
@@ -863,13 +878,28 @@ pub async fn toggle_enabled(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    match db::toggle_user_enabled(&pool, id.clone()) {
+    let user_id = id.clone();
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_user_enabled(&pool, user_id) },
+        &state,
+        &locale,
+        "toggle user",
+        &id,
+        "Successfully toggled user",
+    )
+    .await
+    {
         Ok(_) => {
+            // Get updated users list with error handling
             let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(e) => {
@@ -882,10 +912,7 @@ pub async fn toggle_enabled(
                 build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
-        Err(e) => {
-            error!("Failed to toggle user status: {:?}", e);
-            Html("Failed to toggle user status".to_string())
-        }
+        Err(error) => error,
     }
 }
 
@@ -894,13 +921,28 @@ pub async fn toggle_enabled_list(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
 
-    match db::toggle_user_enabled(&pool, id.clone()) {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+    let user_id = id.clone();
+
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_user_enabled(&pool, user_id) },
+        &state,
+        &locale,
+        "toggle user",
+        &id,
+        "Successfully toggled user",
+    )
+    .await
+    {
         Ok(_) => {
+            // Get updated users list with error handling
             let users = match db::get_users(&pool) {
                 Ok(users) => users,
                 Err(e) => {
@@ -913,10 +955,7 @@ pub async fn toggle_enabled_list(
                 build_user_list_template(&state, &locale, users, paginated).await;
             Html(content_template.render().unwrap())
         }
-        Err(e) => {
-            error!("Failed to toggle user status: {:?}", e);
-            Html("Failed to toggle user status".to_string())
-        }
+        Err(error) => error,
     }
 }
 
@@ -925,22 +964,44 @@ pub async fn toggle_enabled_show(
     Path(id): Path<String>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
+    let user_id = id.clone();
 
-    match db::toggle_user_enabled(&pool, id.clone()) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_user_enabled(&pool, user_id) },
+        &state,
+        &locale,
+        "toggle user",
+        &id,
+        "Successfully toggled user",
+    )
+    .await
+    {
         Ok(_) => {
-            let user = match db::get_user(&pool, id.clone()) {
-                Ok(user) => user,
-                Err(_) => return Html("User not found".to_string()),
-            };
-
-            let content_template = build_user_show_template(&state, &locale, user).await;
-            Html(content_template.render().unwrap())
+            // Get updated user using helper function
+            match crate::handlers::utils::get_entity_or_handle_error(
+                || async { db::get_user(&pool, id) },
+                &state,
+                &locale,
+                "users-not-found",
+            )
+            .await
+            {
+                Ok(user) => {
+                    let content_template = build_user_show_template(&state, &locale, user).await;
+                    Html(content_template.render().unwrap())
+                }
+                Err(error) => error,
+            }
         }
-        Err(_) => Html("Failed to toggle user status".to_string()),
+        Err(error) => error,
     }
 }
 
