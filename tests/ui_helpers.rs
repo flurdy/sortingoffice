@@ -181,24 +181,24 @@ pub async fn setup_selenium_container_and_driver(
     let selenium = AsyncRunner::start(selenium_image).await?;
     let selenium_port = selenium.get_host_port_ipv4(4444).await?;
 
-    println!("[UI HELPERS] Selenium container started");
+    // println!("[UI HELPERS] Selenium container started");
     println!(
         "[UI HELPERS] Selenium URL: http://localhost:{}",
         selenium_port
     );
-    println!(
-        "[UI HELPERS] Selenium VNC URL: vnc://localhost:{}",
-        selenium.get_host_port_ipv4(5900).await?
-    );
+    // println!(
+    //     "[UI HELPERS] Selenium VNC URL: vnc://localhost:{}",
+    //     selenium.get_host_port_ipv4(5900).await?
+    // );
 
-    println!("[UI HELPERS] Waiting for Selenium to be ready...");
+    // println!("[UI HELPERS] Waiting for Selenium to be ready...");
     timeout90s!(
         wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
         "Wait for selenium ready"
     )?;
     println!("[UI HELPERS] ✅ Selenium is ready and responding");
 
-    println!("[UI HELPERS] Setting up WebDriver capabilities...");
+    // println!("[UI HELPERS] Setting up WebDriver capabilities...");
     let mut caps = DesiredCapabilities::chrome();
     caps.add_arg("--headless=new")?;
     caps.add_arg("--no-sandbox")?;
@@ -211,12 +211,12 @@ pub async fn setup_selenium_container_and_driver(
     caps.add_arg("--whitelisted-ips=")?;
     caps.add_arg("--disable-features=VizDisplayCompositor")?;
 
-    println!("[UI HELPERS] Chrome configured with minimal settings to avoid conflicts");
+    // println!("[UI HELPERS] Chrome configured with minimal settings to avoid conflicts");
 
-    println!(
-        "[UI HELPERS] Connecting to WebDriver at http://localhost:{}",
-        selenium_port
-    );
+    // println!(
+    //     "[UI HELPERS] Connecting to WebDriver at http://localhost:{}",
+    //     selenium_port
+    // );
     let driver = timeout(
         Duration::from_secs(20),
         WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
@@ -325,7 +325,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     timeout30s!(add_domain_button.click(), "Click Add Domain button")?;
     
     // Wait for HTMX request to complete and form to be loaded
-    println!("[CREATE] Waiting for HTMX form to load...");
+    // println!("[CREATE] Waiting for HTMX form to load...");
     tokio::time::sleep(Duration::from_millis(2000)).await;
     
     // Wait for the form to appear in the main content
@@ -333,14 +333,14 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
-    println!("[CREATE] Form found and loaded");
+    // println!("[CREATE] Form found and loaded");
     
     // Wait a bit more for any animations or JavaScript to complete
     tokio::time::sleep(Duration::from_millis(1000)).await;
     
     // Debug: Check what page we're on
     let current_url = timeout60s!(driver.current_url(), "Get current URL after clicking add button")?;
-    println!("[CREATE] Current URL after clicking add domain button: {}", current_url);
+    // println!("[CREATE] Current URL after clicking add domain button: {}", current_url);
     
     // Debug: Get page title and h1 to understand what page we're on
     // let page_title = timeout60s!(driver.title(), "Get page title")?;
@@ -363,10 +363,10 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // println!("[CREATE] Main content text: {}", main_content_text);
 
     // Debug: Check if we can find the form elements
-    let domain_input = timeout60s!(
-        driver.find(By::Css("input[name='domain']")),
-        "Find domain input"
-    )?;
+    // let domain_input = timeout60s!(
+    //     driver.find(By::Css("input[name='domain']")),
+    //     "Find domain input"
+    // )?;
     
     // Debug: Get more details about the input element
     // let input_id = timeout60s!(domain_input.get_attribute("id"), "Get domain input id")?;
@@ -423,7 +423,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // tokio::time::sleep(Duration::from_millis(500)).await;
     
     // Now try send_keys after focusing
-    println!("[CREATE] Sending keys to focused domain input");
+    // println!("[CREATE] Sending keys to focused domain input");
     timeout30s!(domain_input.send_keys(domain_name), "Type domain name")?;
 
     let transport_input = timeout60s!(
@@ -443,7 +443,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     
     // Check if we're still on the form page (indicating validation errors)
     let current_url = timeout60s!(driver.current_url(), "Get current URL after domain creation")?;
-    println!("[CREATE] Current URL after domain creation: {}", current_url);
+    // println!("[CREATE] Current URL after domain creation: {}", current_url);
     
     let main_content = timeout60s!( 
         driver.find(By::Id("main-content")),
@@ -506,7 +506,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     ).await?;
     
     if domain_found {
-        println!("[CREATE] Domain {} successfully created and visible in list", domain_name);
+        // println!("[CREATE] Domain {} successfully created and visible in list", domain_name);
         Ok(())
     } else {
         println!("[CREATE] Domain {} not found in paginated list - creation may have failed", domain_name);
@@ -534,7 +534,7 @@ pub async fn create_alias(
     timeout30s!(add_alias_button.click(), "Click Add Alias button")?;
     
     // Wait for HTMX request to complete and form to be loaded
-    println!("[CREATE] Waiting for HTMX form to load...");
+    // println!("[CREATE] Waiting for HTMX form to load...");
     tokio::time::sleep(Duration::from_millis(2000)).await;
     
     // Wait for the form to appear in the main content
@@ -542,13 +542,13 @@ pub async fn create_alias(
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
-    println!("[CREATE] Form found and loaded");
+    // println!("[CREATE] Form found and loaded");
     
     // Wait a bit more for any animations or JavaScript to complete
     tokio::time::sleep(Duration::from_millis(1000)).await;
     
     let current_url = timeout60s!(driver.current_url(), "Get current URL before alias creation")?;
-    println!("[CREATE] 0. Current URL before alias creation: {}", current_url);
+    // println!("[CREATE] 0. Current URL before alias creation: {}", current_url);
 
     let alias_input = timeout30s!(
         driver.find(By::Css("input[name='mail']")),
@@ -573,7 +573,7 @@ pub async fn create_alias(
     
     // Check if we're still on the form page (indicating validation errors)
     let current_url = timeout60s!(driver.current_url(), "Get current URL after alias creation")?;
-    println!("[CREATE] 1. Current URL after alias creation: {}", current_url);
+    // println!("[CREATE] 1. Current URL after alias creation: {}", current_url);
     
     // Check for validation error messages on the page
     let page_source = timeout60s!(driver.source(), "Get page source")?;
@@ -629,7 +629,7 @@ pub async fn create_alias(
     ).await?;
     
     if alias_found {
-        println!("[CREATE] Alias {} successfully created and visible in aliases list", alias_email);
+        // println!("[CREATE] Alias {} successfully created and visible in aliases list", alias_email);
         Ok(())
     } else {
         println!("[CREATE] Alias {} not found in paginated list - checking domain show page", alias_email);
@@ -656,11 +656,11 @@ pub async fn create_alias(
         )?;
         let domain_main_content_text = timeout60s!(domain_main_content.text(), "Get domain main content text")?;
         
-        println!("[CREATE] 2. Current URL after alias creation: {}", current_url);
-        println!("[CREATE] Main content: {}", domain_main_content_text);
+        // println!("[CREATE] 2. Current URL after alias creation: {}", current_url);
+        // println!("[CREATE] Main content: {}", domain_main_content_text);
         
         if domain_main_content_text.contains(alias_email) {
-            println!("[CREATE] Alias {} successfully created and visible in domain show page", alias_email);
+            // println!("[CREATE] Alias {} successfully created and visible in domain show page", alias_email);
             Ok(())
         } else {
             Err(anyhow::anyhow!(
@@ -689,7 +689,7 @@ pub async fn create_user(
     timeout30s!(add_user_btn.click(), "Click Add User button")?;
 
     // Wait for HTMX request to complete and form to be loaded
-    println!("[CREATE] Waiting for HTMX form to load...");
+    // println!("[CREATE] Waiting for HTMX form to load...");
     tokio::time::sleep(Duration::from_millis(2000)).await;
 
     // Wait for the form to appear in the main content
@@ -697,7 +697,7 @@ pub async fn create_user(
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
-    println!("[CREATE] Form found and loaded");
+    // println!("[CREATE] Form found and loaded");
     
     // Wait a bit more for any animations or JavaScript to complete
     tokio::time::sleep(Duration::from_millis(1000)).await;
@@ -731,7 +731,7 @@ pub async fn create_user(
     timeout60s!(user_password_input.send_keys("testpassword123"), "Type user password")?;
 
     let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
-    println!("[CREATE] 1. Current URL after user creation: {}", current_url);
+    // println!("[CREATE] 1. Current URL after user creation: {}", current_url);
 
     let user_submit_btn = timeout60s!(
         driver.find(By::Id("user-submit-button")),
@@ -743,7 +743,7 @@ pub async fn create_user(
     // After form submission, we should be redirected to the users list page
     // Verify the user appears in the list
     let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
-    println!("[CREATE] 2. Current URL after user creation: {}", current_url);
+    // println!("[CREATE] 2. Current URL after user creation: {}", current_url);
 
     // If we're not on the users list page, navigate there
     if !current_url.as_str().ends_with("/users") {
@@ -753,7 +753,7 @@ pub async fn create_user(
 
 
     let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
-    println!("[CREATE] 3. Current URL after user creation: {}", current_url);
+    // println!("[CREATE] 3. Current URL after user creation: {}", current_url);
 
     // Verify the user appears in the list using pagination
     let user_found = check_item_in_paginated_list(
@@ -765,10 +765,10 @@ pub async fn create_user(
     ).await?;
 
     if user_found {
-        println!(
-            "[CREATE] User {} successfully created and visible in list",
-            user_email
-        );
+        // println!(
+        //     "[CREATE] User {} successfully created and visible in list",
+        //     user_email
+        // );
         Ok(())
     } else {
         println!("[CREATE] User {} not found in paginated list - creation may have failed", user_email);
@@ -845,8 +845,8 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
     let alert = driver.switch_to().alert();
-    let alert_text = alert.text().await?;
-    println!("[CLEANUP] Alert text: {}", alert_text);
+    // let alert_text = alert.text().await?;
+    // println!("[CLEANUP] Alert text: {}", alert_text);
     
     // Accept the alert to confirm deletion
     alert.accept().await?;
@@ -854,7 +854,7 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
     // Switch back to the main content
     driver.switch_to().default_content().await?;
 
-    println!("[CLEANUP] Successfully deleted user: {}", user_email);
+    // println!("[CLEANUP] Successfully deleted user: {}", user_email);
     Ok(())
 }
 
@@ -875,7 +875,7 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
 
     // Extract domain name from alias email
     let domain_name = alias_email.split('@').nth(1).unwrap_or("");
-    println!("[CLEANUP] Looking for domain '{}' to find alias '{}'", domain_name, alias_email);
+    // println!("[CLEANUP] Looking for domain '{}' to find alias '{}'", domain_name, alias_email);
 
     // Use pagination function to find the domain in the domains list
     let domain_found = check_item_in_paginated_list(
@@ -938,8 +938,8 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
     let alert = driver.switch_to().alert();
-    let alert_text = alert.text().await?;
-    println!("[CLEANUP] Alert text: {}", alert_text);
+    // let alert_text = alert.text().await?;
+    // println!("[CLEANUP] Alert text: {}", alert_text);
     
     // Accept the alert to confirm deletion
     alert.accept().await?;
@@ -947,7 +947,7 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
     // Switch back to the main content
     driver.switch_to().default_content().await?;
 
-    println!("[CLEANUP] Successfully deleted alias: {}", alias_email);
+    // println!("[CLEANUP] Successfully deleted alias: {}", alias_email);
     Ok(())
 }
 
@@ -1003,8 +1003,8 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
     let alert = driver.switch_to().alert();
-    let alert_text = alert.text().await?;
-    println!("[CLEANUP] Alert text: {}", alert_text);
+    // let alert_text = alert.text().await?;
+    // println!("[CLEANUP] Alert text: {}", alert_text);
     
     // Accept the alert to confirm deletion
     alert.accept().await?;
@@ -1012,7 +1012,7 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // Switch back to the main content
     driver.switch_to().default_content().await?;
 
-    println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
+    // println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
     Ok(())
 }
 
@@ -1030,21 +1030,21 @@ pub async fn cleanup_test_resources(
     // Cleanup in reverse order: users -> aliases -> domains
     let cleanup_result = async {
         // Delete user first
-        println!("[CLEANUP] Attempting to delete user: {}", user_email);
+        // println!("[CLEANUP] Attempting to delete user: {}", user_email);
         delete_user(driver, app_url, user_email).await?;
         println!("[CLEANUP] Successfully deleted user: {}", user_email);
 
         // Delete aliases
-        println!("[CLEANUP] Attempting to delete alias1: {}", alias1domain);
+        // println!("[CLEANUP] Attempting to delete alias1: {}", alias1domain);
         delete_alias(driver, app_url, alias1domain).await?;
         println!("[CLEANUP] Successfully deleted alias1: {}", alias1domain);
 
-        println!("[CLEANUP] Attempting to delete alias2: {}", alias2domain);
+        // println!("[CLEANUP] Attempting to delete alias2: {}", alias2domain);
         delete_alias(driver, app_url, alias2domain).await?;
         println!("[CLEANUP] Successfully deleted alias2: {}", alias2domain);
 
         // Delete domain last
-        println!("[CLEANUP] Attempting to delete domain: {}", domain_name);
+        // println!("[CLEANUP] Attempting to delete domain: {}", domain_name);
         delete_domain(driver, app_url, domain_name).await?;
         println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
 
@@ -1070,7 +1070,7 @@ pub async fn check_item_in_paginated_list(
     item_name: &str,
     max_pages: usize,
 ) -> Result<bool> {
-    println!("[CHECK] Searching for '{}' in paginated list at {}", item_name, list_path);
+    // println!("[CHECK] Searching for '{}' in paginated list at {}", item_name, list_path);
     
     for page_num in 1..=max_pages {
         let page_url = if page_num == 1 {
@@ -1079,7 +1079,7 @@ pub async fn check_item_in_paginated_list(
             format!("{app_url}{}?page={}&per_page=25", list_path, page_num)
         };
         
-        println!("[CHECK] Checking page {} at URL: {}", page_num, page_url);
+        // println!("[CHECK] Checking page {} at URL: {}", page_num, page_url);
         timeout60s!(driver.get(&page_url), "Navigate to paginated list page")?;
         
         // Wait a moment for the page to load

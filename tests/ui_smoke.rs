@@ -253,10 +253,10 @@ pub async fn run_smoke_test_with_config(config: SmokeTestConfig) -> Result<()> {
 
 /// Run the smoke test workflow
 async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()> {
-    println!("[SMOKE TEST] Starting workflow...");
+    // println!("[SMOKE TEST] Starting workflow...");
 
     // Step 1: Authenticate
-    println!("[SMOKE TEST] Step 1: Authenticating...");
+    // println!("[SMOKE TEST] Step 1: Authenticating...");
     authenticate_driver(driver, app_url).await?;
     println!("[SMOKE TEST] ✅ Authentication successful");
 
