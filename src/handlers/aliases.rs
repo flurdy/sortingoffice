@@ -964,93 +964,74 @@ pub async fn delete(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
 
-    match db::delete_alias(&pool, id) {
+    let locale = get_user_locale(&headers);
+
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::delete_alias(&pool, id) },
+        &state,
+        &locale,
+        "delete alias",
+        &id.to_string(),
+        "Successfully deleted alias",
+    )
+    .await
+    {
         Ok(_) => {
+            // Get updated aliases list with error handling
             let aliases = db::get_aliases(&pool).unwrap_or_default();
-            let locale = get_user_locale(&headers);
-            let title = get_translation(&state, &locale, "aliases-title").await;
-            let description = get_translation(&state, &locale, "aliases-description").await;
-            let add_alias = get_translation(&state, &locale, "aliases-add").await;
-            let table_header_mail =
-                get_translation(&state, &locale, "aliases-table-header-mail").await;
-            let table_header_destination =
-                get_translation(&state, &locale, "aliases-table-header-destination").await;
-            let table_header_domain =
-                get_translation(&state, &locale, "aliases-table-header-domain").await;
-            let table_header_enabled =
-                get_translation(&state, &locale, "aliases-table-header-enabled").await;
-            let table_header_actions =
-                get_translation(&state, &locale, "aliases-table-header-actions").await;
-            let status_active = get_translation(&state, &locale, "status-active").await;
-            let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-            let action_view = get_translation(&state, &locale, "action-view").await;
-            let enable_alias = get_translation(&state, &locale, "aliases-enable-alias").await;
-            let disable_alias = get_translation(&state, &locale, "aliases-disable-alias").await;
-            let empty_title = get_translation(&state, &locale, "aliases-empty-title").await;
-            let empty_description =
-                get_translation(&state, &locale, "aliases-empty-description").await;
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
             let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
             let max_item = std::cmp::min(
                 paginated.current_page * paginated.per_page,
                 paginated.total_count,
             );
+
+            // Use helper function for translations
+            let translations =
+                crate::handlers::utils::get_entity_list_translations(&state, &locale, "aliases")
+                    .await;
+
             let content_template = AliasesListTemplate {
-                title: &title,
+                title: &translations["aliases-title"],
                 aliases: &aliases,
                 pagination: &paginated,
-                page_range: &page_range, // Pass as reference
+                page_range: &page_range,
                 max_item,
-                description: &description,
-                add_alias: &add_alias,
-                table_header_mail: &table_header_mail,
-                table_header_domain: &table_header_domain,
-                table_header_destination: &table_header_destination,
-                table_header_enabled: &table_header_enabled,
-                table_header_actions: &table_header_actions,
-                status_active: &status_active,
-                status_inactive: &status_inactive,
-                action_view: &action_view,
-                enable_alias: &enable_alias,
-                disable_alias: &disable_alias,
-                empty_title: &empty_title,
-                empty_description: &empty_description,
+                description: &translations["aliases-description"],
+                add_alias: &translations["aliases-add"],
+                table_header_mail: &translations["aliases-table-header-mail"],
+                table_header_domain: &translations["aliases-table-header-domain"],
+                table_header_destination: &translations["aliases-table-header-destination"],
+                table_header_enabled: &translations["aliases-table-header-enabled"],
+                table_header_actions: &translations["aliases-table-header-actions"],
+                status_active: &translations["status-active"],
+                status_inactive: &translations["status-inactive"],
+                action_view: &translations["action-view"],
+                enable_alias: &translations["aliases-enable-alias"],
+                disable_alias: &translations["aliases-disable-alias"],
+                empty_title: &translations["aliases-empty-title"],
+                empty_description: &translations["aliases-empty-description"],
                 current_sort_by: "mail",
                 current_sort_order: "asc",
             };
-            let content = content_template.render().unwrap();
 
-            if is_htmx_request(&headers) {
-                Html(content)
-            } else {
-                let locale = get_user_locale(&headers);
-                let current_db_id = get_selected_database(&headers)
-                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state
-                    .db_manager
-                    .get_configs()
-                    .iter()
-                    .find(|db| db.id == current_db_id)
-                    .map(|db| db.label.clone())
-                    .unwrap_or_else(|| current_db_id.clone());
-                let template = BaseTemplate::with_i18n(
-                    get_translation(&state, &locale, "aliases-title").await,
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                Html(template.render().unwrap())
-            }
+            // Use helper function for template rendering
+            crate::handlers::utils::render_list_template(
+                content_template,
+                &state,
+                &locale,
+                &headers,
+            )
+            .await
         }
-        Err(_) => Html("Error deleting alias".to_string()),
+        Err(error) => error,
     }
 }
 
@@ -1059,96 +1040,82 @@ pub async fn toggle_enabled(
     Path(id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
 
-    match db::toggle_alias_enabled(&pool, id) {
+    let locale = get_user_locale(&headers);
+
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_alias_enabled(&pool, id) },
+        &state,
+        &locale,
+        "toggle alias",
+        &id.to_string(),
+        "Successfully toggled alias",
+    )
+    .await
+    {
         Ok(_) => {
-            let alias = match db::get_alias(&pool, id) {
-                Ok(alias) => alias,
-                Err(_) => return Html("Alias not found".to_string()),
-            };
+            // Get updated alias using helper function
+            match crate::handlers::utils::get_entity_or_handle_error(
+                || async { db::get_alias(&pool, id) },
+                &state,
+                &locale,
+                "aliases-not-found",
+            )
+            .await
+            {
+                Ok(alias) => {
+                    // Extract domain from alias mail and look it up
+                    let domain_name = alias.mail.split('@').next_back().unwrap_or("");
+                    let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
-            let locale = get_user_locale(&headers);
-            let title = get_translation(&state, &locale, "aliases-show-title").await;
-            let view_edit_settings =
-                get_translation(&state, &locale, "aliases-view-edit-settings").await;
-            let back_to_aliases = get_translation(&state, &locale, "aliases-back-to-aliases").await;
-            let alias_information =
-                get_translation(&state, &locale, "aliases-alias-information").await;
-            let alias_details = get_translation(&state, &locale, "aliases-alias-details").await;
-            let mail = get_translation(&state, &locale, "aliases-mail").await;
-            let forward_to = get_translation(&state, &locale, "aliases-forward-to").await;
-            let status = get_translation(&state, &locale, "aliases-status").await;
-            let status_active = get_translation(&state, &locale, "status-active").await;
-            let status_inactive = get_translation(&state, &locale, "status-inactive").await;
-            let created = get_translation(&state, &locale, "aliases-created").await;
-            let modified = get_translation(&state, &locale, "aliases-modified").await;
-            let edit_alias_button =
-                get_translation(&state, &locale, "aliases-edit-alias-button").await;
-            let enable_alias_button =
-                get_translation(&state, &locale, "aliases-enable-alias-button").await;
-            let disable_alias_button =
-                get_translation(&state, &locale, "aliases-disable-alias-button").await;
-            let delete_alias = get_translation(&state, &locale, "aliases-delete-alias").await;
-            let delete_confirm = get_translation(&state, &locale, "aliases-delete-confirm").await;
-            let domain = get_translation(&state, &locale, "aliases-domain").await;
+                    // Use helper function for translations
+                    let translations = crate::handlers::utils::get_entity_show_translations(
+                        &state, &locale, "aliases",
+                    )
+                    .await;
 
-            // Extract domain from alias mail and look it up
-            let domain_name = alias.mail.split('@').next_back().unwrap_or("");
-            let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
+                    let content_template = AliasShowTemplate {
+                        title: &translations["aliases-show-title"],
+                        alias,
+                        view_edit_settings: &translations["aliases-view-edit-settings"],
+                        back_to_aliases: &translations["aliases-back-to-aliases"],
+                        alias_information: &translations["aliases-alias-information"],
+                        alias_details: &translations["aliases-alias-details"],
+                        mail: &translations["aliases-mail"],
+                        forward_to: &translations["aliases-forward-to"],
+                        domain: &translations["aliases-domain"],
+                        domain_info,
+                        status: &translations["aliases-status"],
+                        status_active: &translations["status-active"],
+                        status_inactive: &translations["status-inactive"],
+                        created: &translations["aliases-created"],
+                        modified: &translations["aliases-modified"],
+                        edit_alias_button: &translations["aliases-edit-alias-button"],
+                        enable_alias_button: &translations["aliases-enable-alias-button"],
+                        disable_alias_button: &translations["aliases-disable-alias-button"],
+                        delete_alias: &translations["aliases-delete-alias"],
+                        delete_confirm: &translations["aliases-delete-confirm"],
+                    };
 
-            let content_template = AliasShowTemplate {
-                title: &title,
-                alias,
-                view_edit_settings: &view_edit_settings,
-                back_to_aliases: &back_to_aliases,
-                alias_information: &alias_information,
-                alias_details: &alias_details,
-                mail: &mail,
-                forward_to: &forward_to,
-                domain: &domain,
-                domain_info,
-                status: &status,
-                status_active: &status_active,
-                status_inactive: &status_inactive,
-                created: &created,
-                modified: &modified,
-                edit_alias_button: &edit_alias_button,
-                enable_alias_button: &enable_alias_button,
-                disable_alias_button: &disable_alias_button,
-                delete_alias: &delete_alias,
-                delete_confirm: &delete_confirm,
-            };
-            let content = content_template.render().unwrap();
-            if is_htmx_request(&headers) {
-                Html(content)
-            } else {
-                let locale = get_user_locale(&headers);
-                let current_db_id = get_selected_database(&headers)
-                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                let current_db_label = state
-                    .db_manager
-                    .get_configs()
-                    .iter()
-                    .find(|db| db.id == current_db_id)
-                    .map(|db| db.label.clone())
-                    .unwrap_or_else(|| current_db_id.clone());
-                let template = BaseTemplate::with_i18n(
-                    get_translation(&state, &locale, "aliases-show-title").await,
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                Html(template.render().unwrap())
+                    // Use helper function for template rendering
+                    crate::handlers::utils::render_show_template(
+                        content_template,
+                        &state,
+                        &locale,
+                        &headers,
+                    )
+                    .await
+                }
+                Err(error) => error,
             }
         }
-        Err(_) => Html("Error toggling alias status".to_string()),
+        Err(error) => error,
     }
 }
 

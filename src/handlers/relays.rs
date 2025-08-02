@@ -386,27 +386,32 @@ pub async fn delete_relay(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay delete request for ID: {}", relay_id);
 
-    match db::delete_relay(&pool, relay_id) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::delete_relay(&pool, relay_id) },
+        &state,
+        &locale,
+        "delete relay",
+        &relay_id.to_string(),
+        "Successfully deleted relay",
+    )
+    .await
+    {
         Ok(_) => {
             info!("Successfully deleted relay ID: {}", relay_id);
             Html("<script>window.location.href='/relays';</script>".to_string())
         }
-        Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            Html(not_found_msg)
-        }
-        Err(e) => {
-            error!("Failed to delete relay {}: {:?}", relay_id, e);
-            let error_msg = get_translation(&state, &locale, "relays-delete-error").await;
-            Html(error_msg)
-        }
+        Err(error) => error,
     }
 }
 
@@ -416,14 +421,27 @@ pub async fn toggle_enabled(
     Path(relay_id): Path<i32>,
     headers: HeaderMap,
 ) -> Html<String> {
-    let pool = crate::handlers::utils::get_current_db_pool(&state, &headers)
-        .await
-        .expect("Failed to get database pool");
+    // Get database pool using helper function
+    let pool = match crate::handlers::utils::get_db_pool_or_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error) => return error,
+    };
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay toggle enabled request for ID: {}", relay_id);
 
-    match db::toggle_relay_enabled(&pool, relay_id) {
+    // Use helper function for entity operation
+    match crate::handlers::utils::handle_entity_operation(
+        || async { db::toggle_relay_enabled(&pool, relay_id) },
+        &state,
+        &locale,
+        "toggle relay",
+        &relay_id.to_string(),
+        "Successfully toggled relay",
+    )
+    .await
+    {
         Ok(relay) => {
             let enabled_text = if relay.enabled {
                 get_translation(&state, &locale, "status-enabled").await
@@ -474,19 +492,6 @@ pub async fn toggle_enabled(
                 }
             }
         }
-        Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            Html(format!(
-                "<span class=\"text-danger\">{not_found_msg}</span>"
-            ))
-        }
-        Err(e) => {
-            error!(
-                "Failed to toggle relay {} enabled status: {:?}",
-                relay_id, e
-            );
-            let error_msg = get_translation(&state, &locale, "relays-toggle-error").await;
-            Html(format!("<span class=\"text-danger\">{error_msg}</span>"))
-        }
+        Err(error) => error,
     }
 }
