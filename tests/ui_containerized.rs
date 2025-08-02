@@ -48,8 +48,6 @@ fn find_free_port() -> u16 {
         .port()
 }
 
-/// Wait for selenium to be ready
-
 /// Setup app container for containerized tests (uses port 4000)
 async fn setup_app_container_containerized(
     db_url: &str,
@@ -1300,7 +1298,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             // Add second domain field safely
             println!("[WIZARD TEST] About to click add domain button");
-            let add_button_result = timeout30s!(
+            let _add_button_result = timeout30s!(
                 env.driver.find(By::Css("#add-domain-btn")),
                 "Find add domain button for debugging"
             );

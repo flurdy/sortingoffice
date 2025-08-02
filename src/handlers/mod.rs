@@ -21,10 +21,7 @@ pub mod users;
 pub mod utils;
 pub mod wizard;
 
-use axum::{
-    http::StatusCode,
-    response::Response,
-};
+use axum::{http::StatusCode, response::Response};
 
 // Re-export specific functions and types
 pub use about::index as about_index;
@@ -90,24 +87,30 @@ async fn security_headers(
     next: axum::middleware::Next,
 ) -> Result<Response, StatusCode> {
     let mut response = next.run(request).await;
-    
+
     let headers = response.headers_mut();
-    
+
     // Security headers
     headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
     headers.insert("X-Frame-Options", "DENY".parse().unwrap());
     headers.insert("X-XSS-Protection", "1; mode=block".parse().unwrap());
-    headers.insert("Referrer-Policy", "strict-origin-when-cross-origin".parse().unwrap());
-    
+    headers.insert(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin".parse().unwrap(),
+    );
+
     // Content Security Policy
     let csp = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';";
     headers.insert("Content-Security-Policy", csp.parse().unwrap());
-    
+
     // HSTS (only in production)
     if std::env::var("RUST_ENV").unwrap_or_default() == "production" {
-        headers.insert("Strict-Transport-Security", "max-age=31536000; includeSubDomains".parse().unwrap());
+        headers.insert(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains".parse().unwrap(),
+        );
     }
-    
+
     Ok(response)
 }
 

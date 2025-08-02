@@ -23,7 +23,7 @@ make sure there are no compilation warnings before finishing a task
 
 Delete any unused variables and imports.
 
-Do not suppress unused variable warning by prefixing it with an underscore. Instead delete it unless the rare occasion it is needed.
+Do not suppress unused variable warning by prefixing it with an underscore. Delete unused code.
 
 If any changes needed for testing, make sure the docker image is rebuilt first.
 
@@ -38,5 +38,3 @@ Prefer small functions ala clean-code, using with shared helpers and libraries.
 Do not repeat yourself, use helper functions.
  
 Prefer more domain based logic.
-
-Delete unused code.

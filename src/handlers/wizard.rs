@@ -11,7 +11,7 @@ use crate::{
         WizardAliasConfigTemplate, WizardCompleteTemplate, WizardDomainConfigTemplate,
         WizardReviewTemplate,
     },
-    AppState,
+    AppState, DbPool,
 };
 use askama::Template;
 use axum::{
@@ -874,6 +874,74 @@ pub async fn execute(
     complete(State(state), headers).await
 }
 
+// Helper function to calculate total aliases from session
+fn calculate_total_aliases(session: &DomainWizardSession) -> i32 {
+    let mut total_aliases = 0;
+    for _domain_data in &session.domains {
+        // Count ALL selected aliases from session (including analytics-driven ones)
+        total_aliases += session.common_aliases.len() as i32;
+
+        // Count custom aliases
+        for alias in &session.custom_aliases {
+            if !alias.is_empty() {
+                total_aliases += 1;
+            }
+        }
+        // Count catchall if enabled
+        if session.catchall_enabled {
+            total_aliases += 1;
+        }
+    }
+    total_aliases
+}
+
+// Helper function to get domain IDs from domain names
+async fn get_domain_ids_from_names(
+    pool: &DbPool,
+    domain_names: &[String],
+) -> Vec<i32> {
+    let mut domain_ids = Vec::new();
+    for domain_name in domain_names {
+        match db::get_domain_by_name(pool, domain_name) {
+            Ok(domain) => domain_ids.push(domain.pkid),
+            Err(e) => {
+                error!("Failed to get domain ID for {}: {:?}", domain_name, e);
+                // If we can't find the domain, skip it
+                continue;
+            }
+        }
+    }
+    domain_ids
+}
+
+// Helper function to create wizard complete template
+fn create_wizard_complete_template<'a>(
+    session: &DomainWizardSession,
+    translations: &'a HashMap<String, String>,
+    total_aliases: i32,
+    created_domains: &'a Vec<String>,
+    created_domain_ids: &'a Vec<i32>,
+) -> WizardCompleteTemplate<'a> {
+    WizardCompleteTemplate {
+        title: &translations["wizard-step-5-title"],
+        description: &translations["wizard-step-5-description"],
+        domains_created: session.domains.len() as i32,
+        aliases_created: total_aliases,
+        has_errors: false,
+        created_domains,
+        created_domain_ids,
+        setup_results_title: &translations["wizard-setup-results"],
+        domains_created_label: &translations["wizard-domains-created"],
+        aliases_created_label: &translations["wizard-aliases-created"],
+        domains_plural: &translations["wizard-domains-plural"],
+        created_domains_title: &translations["wizard-created-domains-title"],
+        errors_title: &translations["wizard-errors-title"],
+        errors_description: &translations["wizard-errors-description"],
+        view_domains_button: &translations["wizard-view-domains"],
+        new_wizard_button: &translations["wizard-new-wizard"],
+    }
+}
+
 // Step 5: Complete
 pub async fn complete(
     State(state): State<AppState>,
@@ -893,22 +961,7 @@ pub async fn complete(
     };
 
     // Calculate total aliases that should have been created
-    let mut total_aliases = 0;
-    for _domain_data in &session.domains {
-        // Count ALL selected aliases from session (including analytics-driven ones)
-        total_aliases += session.common_aliases.len() as i32;
-
-        // Count custom aliases
-        for alias in &session.custom_aliases {
-            if !alias.is_empty() {
-                total_aliases += 1;
-            }
-        }
-        // Count catchall if enabled
-        if session.catchall_enabled {
-            total_aliases += 1;
-        }
-    }
+    let total_aliases = calculate_total_aliases(&session);
 
     // Extract domain names from session
     let created_domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
@@ -922,36 +975,15 @@ pub async fn complete(
         }
     };
 
-    let mut created_domain_ids = Vec::new();
-    for domain_name in &created_domains {
-        match db::get_domain_by_name(&pool, domain_name) {
-            Ok(domain) => created_domain_ids.push(domain.pkid),
-            Err(e) => {
-                error!("Failed to get domain ID for {}: {:?}", domain_name, e);
-                // If we can't find the domain, skip it
-                continue;
-            }
-        }
-    }
+    let created_domain_ids = get_domain_ids_from_names(&pool, &created_domains).await;
 
-    let content_template = WizardCompleteTemplate {
-        title: &translations["wizard-step-5-title"],
-        description: &translations["wizard-step-5-description"],
-        domains_created: session.domains.len() as i32,
-        aliases_created: total_aliases,
-        has_errors: false,
-        created_domains: &created_domains,
-        created_domain_ids: &created_domain_ids,
-        setup_results_title: &translations["wizard-setup-results"],
-        domains_created_label: &translations["wizard-domains-created"],
-        aliases_created_label: &translations["wizard-aliases-created"],
-        domains_plural: &translations["wizard-domains-plural"],
-        created_domains_title: &translations["wizard-created-domains-title"],
-        errors_title: &translations["wizard-errors-title"],
-        errors_description: &translations["wizard-errors-description"],
-        view_domains_button: &translations["wizard-view-domains"],
-        new_wizard_button: &translations["wizard-new-wizard"],
-    };
+    let content_template = create_wizard_complete_template(
+        &session,
+        &translations,
+        total_aliases,
+        &created_domains,
+        &created_domain_ids,
+    );
 
     // Clear session after completion
     clear_session();

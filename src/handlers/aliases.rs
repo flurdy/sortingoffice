@@ -10,9 +10,7 @@ use crate::{
     db,
     handlers::{
         language::get_user_locale,
-        utils::{
-            get_current_db_pool, get_translations_batch, handle_database_error,
-        },
+        utils::{get_current_db_pool, get_translations_batch, handle_database_error},
     },
     i18n::get_translation,
     models::{PaginatedResult, PaginationParams},
@@ -229,13 +227,9 @@ pub async fn create(
                             let aliases = db::get_aliases(&pool).unwrap_or_default();
                             let locale = get_user_locale(&headers);
                             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
-                            
+
                             crate::handlers::utils::render_alias_list_page(
-                                aliases,
-                                &paginated,
-                                &state,
-                                &locale,
-                                &headers,
+                                aliases, &paginated, &state, &locale, &headers,
                             )
                             .await
                         }
@@ -244,7 +238,7 @@ pub async fn create(
                             let locale = get_user_locale(&headers);
                             crate::handlers::utils::render_domain_show_page(
                                 domain,
-                                None, // No alias report
+                                None,   // No alias report
                                 vec![], // No existing aliases
                                 vec![], // No analytics common aliases
                                 &state,
@@ -258,7 +252,7 @@ pub async fn create(
                             let locale = get_user_locale(&headers);
                             crate::handlers::utils::render_domain_show_page(
                                 domain,
-                                None, // No alias report
+                                None,   // No alias report
                                 vec![], // No existing aliases
                                 vec![], // No analytics common aliases
                                 &state,
@@ -274,13 +268,9 @@ pub async fn create(
                     let aliases = db::get_aliases(&pool).unwrap_or_default();
                     let locale = get_user_locale(&headers);
                     let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
-                    
+
                     crate::handlers::utils::render_alias_list_page(
-                        aliases,
-                        &paginated,
-                        &state,
-                        &locale,
-                        &headers,
+                        aliases, &paginated, &state, &locale, &headers,
                     )
                     .await
                 }
@@ -319,7 +309,8 @@ pub async fn update(
         Ok(_) => {}
         Err(_e) => {
             let locale = get_user_locale(&headers);
-            let _error_msg = get_translation(&state, &locale, "validation-alias-mail-invalid").await;
+            let _error_msg =
+                get_translation(&state, &locale, "validation-alias-mail-invalid").await;
 
             // Use resource-specific helper for form with error
             return crate::handlers::utils::render_alias_form_page(
@@ -376,8 +367,14 @@ pub async fn update(
 
             // Use resource-specific helper for alias show page
             let locale = get_user_locale(&headers);
-            crate::handlers::utils::render_alias_show_page(alias, domain_info, &state, &locale, &headers)
-                .await
+            crate::handlers::utils::render_alias_show_page(
+                alias,
+                domain_info,
+                &state,
+                &locale,
+                &headers,
+            )
+            .await
         }
         Err(e) => {
             let locale = get_user_locale(&headers);
@@ -425,13 +422,9 @@ pub async fn delete(
             // Get updated aliases list and use resource-specific helper
             let aliases = db::get_aliases(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
-            
+
             crate::handlers::utils::render_alias_list_page(
-                aliases,
-                &paginated,
-                &state,
-                &locale,
-                &headers,
+                aliases, &paginated, &state, &locale, &headers,
             )
             .await
         }
@@ -581,7 +574,7 @@ pub async fn toggle_enabled_domain_show(
             // Use resource-specific helper for domain show page
             crate::handlers::utils::render_domain_show_page(
                 domain,
-                None, // No alias report
+                None,   // No alias report
                 vec![], // No existing aliases
                 vec![], // No analytics common aliases
                 &state,

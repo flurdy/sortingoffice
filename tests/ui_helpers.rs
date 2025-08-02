@@ -303,7 +303,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     tokio::time::sleep(Duration::from_millis(2000)).await;
 
     // Wait for the form to appear in the main content
-    let form = timeout60s!(
+    let _form = timeout60s!(
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
@@ -313,7 +313,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     tokio::time::sleep(Duration::from_millis(1000)).await;
 
     // Debug: Check what page we're on
-    let current_url = timeout60s!(
+    let _current_url = timeout60s!(
         driver.current_url(),
         "Get current URL after clicking add button"
     )?;
@@ -525,7 +525,7 @@ pub async fn create_alias(
     tokio::time::sleep(Duration::from_millis(2000)).await;
 
     // Wait for the form to appear in the main content
-    let form = timeout60s!(
+    let _form = timeout60s!(
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
@@ -534,7 +534,7 @@ pub async fn create_alias(
     // Wait a bit more for any animations or JavaScript to complete
     tokio::time::sleep(Duration::from_millis(1000)).await;
 
-    let current_url = timeout60s!(
+    let _current_url = timeout60s!(
         driver.current_url(),
         "Get current URL before alias creation"
     )?;
@@ -690,7 +690,7 @@ pub async fn create_user(
     tokio::time::sleep(Duration::from_millis(2000)).await;
 
     // Wait for the form to appear in the main content
-    let form = timeout60s!(
+    let _form = timeout60s!(
         driver.find(By::Css("form")),
         "Wait for form to be loaded by HTMX"
     )?;
@@ -730,7 +730,7 @@ pub async fn create_user(
         "Type user password"
     )?;
 
-    let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
+    let _current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
     // println!("[CREATE] 1. Current URL after user creation: {}", current_url);
 
     let user_submit_btn = timeout60s!(
@@ -742,16 +742,16 @@ pub async fn create_user(
 
     // After form submission, we should be redirected to the users list page
     // Verify the user appears in the list
-    let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
+    let _current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
     // println!("[CREATE] 2. Current URL after user creation: {}", current_url);
 
     // If we're not on the users list page, navigate there
-    if !current_url.as_str().ends_with("/users") {
+    if !_current_url.as_str().ends_with("/users") {
         timeout60s!(driver.get(&users_url), "Navigate back to users list page")?;
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }
 
-    let current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
+    let _current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
     // println!("[CREATE] 3. Current URL after user creation: {}", current_url);
 
     // Verify the user appears in the list using pagination
@@ -1096,7 +1096,7 @@ pub async fn check_item_in_paginated_list(
         let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
 
         // Debug: Show a snippet of the content
-        let content_preview = if main_content_text.len() > 200 {
+        let _content_preview = if main_content_text.len() > 200 {
             format!("{}...", &main_content_text[..200])
         } else {
             main_content_text.clone()

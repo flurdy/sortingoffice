@@ -403,7 +403,7 @@ pub async fn toggle_enabled(
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
         Ok(pool) => pool,
         Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
+            error!("Failed to get database pool: {e:?}");
             return Html("Database connection error".to_string());
         }
     };

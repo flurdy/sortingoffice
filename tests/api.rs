@@ -307,7 +307,7 @@ async fn test_api_security_headers() {
             header_value.is_some(),
             "Security header {header_name} should be present"
         );
-        
+
         if let Some(value) = header_value {
             let value_str = value.to_str().unwrap_or("");
             assert!(

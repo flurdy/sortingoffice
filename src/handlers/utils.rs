@@ -10,6 +10,32 @@ use tracing::debug;
 use tracing::error;
 use tracing::info;
 
+/// Helper function to render template safely with error handling
+pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
+    template.render().map_err(|e| {
+        error!("Template rendering failed: {:?}", e);
+        format!("Template rendering error: {}", e)
+    })
+}
+
+/// Helper function to get current database info without unnecessary cloning
+pub fn get_current_db_info_optimized(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> (String, String) {
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    (current_db_label, current_db_id)
+}
+
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
 ///     "key1", "key2", "key3"
