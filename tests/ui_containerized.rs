@@ -1904,10 +1904,13 @@ async fn test_theme_consistency_across_error_pages(
             || page_source.contains("text-red-")
             || page_source.contains("bg-red-")
             || page_source.contains("border-red-");
-        
+
         // Debug: Log what styling is actually present
         if !has_theme_styling {
-            println!("[ERROR TEST] Page source for {}: {}", description, page_source);
+            println!(
+                "[ERROR TEST] Page source for {}: {}",
+                description, page_source
+            );
         }
 
         assert!(

@@ -19,12 +19,15 @@ pub async fn render_error_page(
 ) -> Html<String> {
     let locale = get_user_locale(headers);
     let (current_db_label, current_db_id) = get_current_db_info_optimized(state, headers);
-    
+
     let title = get_translation(state, &locale, title_key).await;
     let message = get_translation(state, &locale, message_key).await;
-    
-    println!("[DEBUG] Rendering error page with title: {}, message: {}", title, message);
-    
+
+    println!(
+        "[DEBUG] Rendering error page with title: {}, message: {}",
+        title, message
+    );
+
     match crate::templates::error::ErrorTemplate::new(
         &title,
         &message,
@@ -32,19 +35,22 @@ pub async fn render_error_page(
         &locale,
         &current_db_label,
         &current_db_id,
-    ).await {
-        Ok(template) => {
-            match render_template_safely(template) {
-                Ok(html) => {
-                    println!("[DEBUG] Error template rendered successfully, length: {}", html.len());
-                    Html(html)
-                },
-                Err(e) => {
-                    println!("[DEBUG] Error rendering template: {}", e);
-                    Html("Error rendering error page".to_string())
-                },
+    )
+    .await
+    {
+        Ok(template) => match render_template_safely(template) {
+            Ok(html) => {
+                println!(
+                    "[DEBUG] Error template rendered successfully, length: {}",
+                    html.len()
+                );
+                Html(html)
             }
-        }
+            Err(e) => {
+                println!("[DEBUG] Error rendering template: {}", e);
+                Html("Error rendering error page".to_string())
+            }
+        },
         Err(e) => {
             println!("[DEBUG] Error creating template: {:?}", e);
             Html("Error creating error page".to_string())
@@ -53,146 +59,124 @@ pub async fn render_error_page(
 }
 
 /// Render a 404 Not Found error page
-pub async fn render_404_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_404_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-not-found-title",
         "error-page-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a 500 Internal Server Error page
-pub async fn render_500_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_500_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-operation-failed-title",
         "error-page-operation-failed-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a 403 Forbidden error page
-pub async fn render_403_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_403_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-validation-error-title",
         "error-page-validation-error-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a 401 Unauthorized error page
-pub async fn render_401_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_401_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-validation-error-title",
         "error-page-validation-error-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a database error page
-pub async fn render_database_error_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_database_error_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-database-error-title",
         "error-page-database-error-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a domain not found error page
-pub async fn render_domain_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_domain_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a user not found error page
-pub async fn render_user_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_user_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render an alias not found error page
-pub async fn render_alias_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_alias_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a client not found error page
-pub async fn render_client_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_client_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a relay not found error page
-pub async fn render_relay_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_relay_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a backup not found error page
-pub async fn render_backup_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
+pub async fn render_backup_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
     render_error_page(
         "error-page-entity-not-found-title",
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Render a relocated not found error page
@@ -205,7 +189,8 @@ pub async fn render_relocated_not_found_page(
         "error-page-entity-not-found-message",
         state,
         headers,
-    ).await
+    )
+    .await
 }
 
 /// Helper function to render template safely with error handling

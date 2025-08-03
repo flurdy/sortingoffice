@@ -616,7 +616,9 @@ pub async fn update(
         };
         let existing_user = match db::get_user(&pool, id.clone()) {
             Ok(user) => user,
-            Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+            Err(_) => {
+                return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+            }
         };
 
         let form_template = build_user_form_template(
@@ -656,7 +658,9 @@ pub async fn update(
     // First get the existing user
     let existing_user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
-        Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+        Err(_) => {
+            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+        }
     };
 
     // Validate required fields
@@ -687,7 +691,10 @@ pub async fn update(
             Ok(_) => {
                 let user = match db::get_user(&pool, id.clone()) {
                     Ok(user) => user,
-                    Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+                    Err(_) => {
+                        return crate::handlers::utils::render_user_not_found_page(&state, &headers)
+                            .await
+                    }
                 };
 
                 let content_template = build_user_show_template(&state, &locale, user).await;
@@ -939,7 +946,9 @@ pub async fn change_password_form(
     };
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
-        Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+        Err(_) => {
+            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+        }
     };
     let locale = crate::handlers::language::get_user_locale(&headers);
     let content = render_change_password_form(&user, None, &state, &locale).await;
@@ -960,7 +969,9 @@ pub async fn change_password_post(
     let locale = crate::handlers::language::get_user_locale(&headers);
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
-        Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+        Err(_) => {
+            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+        }
     };
     if form.new_password != form.confirm_password {
         let error_msg = get_translation(&state, &locale, "error-passwords-do-not-match").await;
@@ -1032,7 +1043,9 @@ pub async fn toggle_change_password(
 
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
-        Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+        Err(_) => {
+            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+        }
     };
 
     // Toggle the change_password field
@@ -1052,7 +1065,10 @@ pub async fn toggle_change_password(
             // Get the updated user
             let updated_user = match db::get_user(&pool, id.clone()) {
                 Ok(user) => user,
-                Err(_) => return crate::handlers::utils::render_user_not_found_page(&state, &headers).await,
+                Err(_) => {
+                    return crate::handlers::utils::render_user_not_found_page(&state, &headers)
+                        .await
+                }
             };
 
             let content_template = build_user_show_template(&state, &locale, updated_user).await;

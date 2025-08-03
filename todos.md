@@ -15,19 +15,17 @@
   - ⚠️ Remaining: Locale detection and switching (lower priority)
 
 ### Medium Priority
-- ✅ Refactor long functions and complex logic
+- Refactor long functions and complex logic
   - Consolidate similar validation logic across handlers
   - Simplify complex conditional logic in handlers
 
-- ✅ Improve error handling and logging
-  - ✅ Add safe template rendering helper function
+- Improve error handling and logging
   - Replace unwrap()/expect() with proper error handling
   - Add structured logging with context
   - Implement consistent error response patterns
   - Add error recovery mechanisms
 
-- ✅ Performance optimizations
-  - ✅ Add optimized database info helper function to reduce cloning
+- Performance optimizations
   - Reduce unnecessary cloning in database operations
   - Optimize database queries with proper indexing
   - Implement connection pooling improvements
@@ -64,25 +62,30 @@
   - Implement environment-specific configs
   - Add configuration validation
   - Improve configuration documentation
-  
-✅ Sometimes refactoring has been done as an example but not applied to the rest of the codebase.
-  - ✅ Applied database error handling refactoring to aliases.rs (all functions)
-  - ✅ Applied database error handling refactoring to users.rs (all functions)  
-  - ✅ Applied database error handling refactoring to domain_backup.rs (all functions)
-  - ✅ Applied database error handling refactoring to stats.rs (all functions)
-  - ✅ Applied database error handling refactoring to dashboard.rs (all functions)
-  - ✅ Applied database error handling refactoring to clients.rs (all functions)
-  - ✅ Applied database error handling refactoring to relays.rs (all functions)
-  - ✅ Applied database error handling refactoring to relocated.rs (all functions)
-  - ✅ Applied database error handling refactoring to reports.rs (all functions)
-  - ✅ **COMPLETED: All handlers now use consistent database error handling patterns**
 
-- ✅ We need to test if errors are shown in the UI with the shared theme.
- - ✅ These tests exist and are running but one is failing on theme consistency
- - ✅ Fixed error page rendering to use proper themed templates instead of plain text
- - ✅ Added missing translation key for users-not-found
- - ✅ Test now passing - error pages properly themed with consistent CSS classes
+- ✅ Are there any other obvious localisation issues? Are there some other key language for mail servers that we should add?
+  - ✅ **Analysis completed**: Found 88+ missing translation keys and 27+ orphaned keys
+  - ✅ **Current languages**: en-US, de-DE, fr-FR, es-ES, nb-NO (5 languages)
+  - ✅ **Recommendations for additional languages**:
+    - **High priority**: Dutch (nl-NL) - Very common in European hosting
+    - **Medium priority**: Italian (it-IT), Portuguese (pt-BR/pt-PT), Russian (ru-RU)
+    - **Lower priority**: Japanese (ja-JP), Chinese (zh-CN)
+  - ✅ **Immediate issues to fix**: Add missing translation keys to all language files
+  - ✅ **All missing translation keys added**: 81 keys added to en-US/messages.ftl
+  - ✅ **All missing keys added to other languages**: 
+    - ✅ German (de-DE): All keys added
+    - ✅ French (fr-FR): All keys added  
+    - ✅ Spanish (es-ES): All keys added
+    - ✅ Norwegian (nb-NO): All keys added
+  - ⚠️ **Cleanup needed**: Remove orphaned translation keys
+  - Any duplicate keys in the message bundles?
 
-- Are there any other obvious localisation issues? Are there some other key language for mail servers that we should add?
+- Sometimes refactoring has been done as an example but not applied to the rest of the codebase. This is not about the error handling 
+ - Investigate if any helpers has been introduced but not used throughout.
+ - Any other smaller pure code changes patterns.
 
-- Sometimes refactoring has been done as an example but not applied to the rest of the codebase. THis is not about the error handling refactor but older ones.
+- Add a Dutch translations
+
+- Add a Italian translations
+
+- Add a Portuguese translations

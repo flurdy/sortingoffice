@@ -83,8 +83,21 @@ validation-user-path-invalid = Invalid user path. Must be a valid file system pa
 error-unexpected = An unexpected error occurred. Please try again.
 error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
 error-duplicate-user = A user with this username already exists.
+error-duplicate-alias = An alias with this name already exists
+error-duplicate-relay = A relay with this name already exists
+error-duplicate-relocated = A relocated address with this name already exists
+error-constraint-domain = Domain constraint violation
+error-constraint-user = User constraint violation
+error-constraint-backup = Backup constraint violation
+error-constraint-alias = Alias constraint violation
+error-constraint-relay = Relay constraint violation
+error-constraint-relocated = Relocated constraint violation
 error-constraint-violation = The data does not meet the required constraints. Please check your input.
 error-operation-not-allowed = This operation is not allowed on the current database due to restrictions.
+error-database-restriction = Database restriction error
+error-failed-to-update-password = Failed to update password
+error-passwords-do-not-match = Passwords do not match
+error-password-too-short = Password is too short
 
 # Error page
 error-page-title = Error
@@ -191,6 +204,8 @@ wizard-required-aliases = Required Aliases
 wizard-common-aliases = Common Aliases
 wizard-analytics-common-aliases = Common Aliases from database
 wizard-config-common-aliases = Common Aliases
+analytics-common-aliases-description = Common aliases found in the database
+analytics-common-aliases-header = Common Aliases
 wizard-custom-aliases = Custom Aliases
 wizard-custom-aliases-placeholder = john, anne, support
 wizard-destination-label = Destination
@@ -383,6 +398,19 @@ domains-placeholder-domain = example.com
 domains-placeholder-transport = virtual
 domains-field-active = Active
 domains-field-active-help = Enable this domain for mail handling
+domains-error-creating-aliases = Error creating aliases
+domains-error-loading-report = Error loading report
+domains-form-active = Active
+domains-form-create-domain = Create Domain
+domains-form-domain = Domain
+domains-form-placeholder-domain = example.com
+domains-form-placeholder-transport = virtual
+domains-form-tooltip-domain = The domain name for this mail server (e.g., example.com)
+domains-form-tooltip-enable = Enable this domain for mail handling
+domains-form-tooltip-transport = Transport configuration for this domain (e.g., virtual for virtual domains)
+domains-form-transport = Transport
+domains-form-update-domain = Update Domain
+domains-table-header-transport = Transport
 
 # Backups
 backups-title = Backups
@@ -468,6 +496,16 @@ aliases-empty-description = Get started by creating a new alias.
 aliases-search-no-results = No matching aliases found
 aliases-search-select = Click to select
 aliases-add-title = Add Alias
+aliases-create-alias = Create Alias
+aliases-enable-missing-alias = Enable Missing Alias
+aliases-form-destination = Destination
+aliases-form-mail = Mail
+aliases-show-title = Alias
+aliases-table-header-actions = Actions
+aliases-tooltip-destination = The destination email address where mail will be forwarded
+aliases-tooltip-enabled = Enable this alias for mail forwarding
+aliases-tooltip-mail = The email address for the alias
+aliases-update-alias = Update Alias
 
 # Users
 users-title = Users
@@ -543,6 +581,18 @@ users-field-name-help = The username for the user account
 users-field-active-help = Enable this user account
 users-field-maildir-help = The name of the user's mailbox folder
 users-field-home-help = The root folder containing mailboxes
+users-create-user = Create User
+users-form-active = Active
+users-form-password = Password
+users-form-user-id = User ID
+users-toggle-change-password-button = Toggle Change Password Button
+users-tooltip-active = Enable this user account
+users-tooltip-home = The root folder containing mailboxes
+users-tooltip-maildir = The name of the user's mailbox folder
+users-tooltip-name = The username for the user account
+users-tooltip-password = The password for the user account
+users-tooltip-user-id = The email address for the user account
+users-update-user = Update User
 
 # Relays
 relays-title = Relays
@@ -573,6 +623,9 @@ relays-field-recipient-help = The recipient address for this relay (e.g., user@e
 relays-field-status-help = The status code for this relay (e.g., active, disabled, etc.)
 relays-not-available = Relays table is not available for this database
 relays-back-to-list = Back to Relays
+relays-create-error = Failed to create relay
+relays-not-found = Relay not found
+relays-update-error = Failed to update relay
 status-ok = OK
 status-reject = REJECT
 
@@ -609,6 +662,7 @@ relocated-edit-relocated = Edit Relocated Address
 relocated-not-found = Relocated address not found
 relocated-create-error = Failed to create relocated address
 relocated-not-available = Relocated table is not available for this database
+relocated-update-error = Failed to update relocated address
 
 # Clients
 clients-title = Clients
@@ -650,6 +704,24 @@ clients-action-disable = Disable
 clients-status-enabled = Enabled
 clients-status-disabled = Disabled
 clients-not-available = Clients table is not available for this database
+clients-client-details = Client Details
+clients-client-information = Client Information
+clients-client-name = Client Name
+clients-created = Created
+clients-delete-client = Delete Client
+clients-edit-client = Edit Client
+clients-enabled-label = Enabled
+clients-form-client = Client
+clients-form-create-client = Create Client
+clients-form-enabled = Enabled
+clients-form-placeholder-client = Enter client name or IP
+clients-form-status = Status
+clients-form-tooltip-client = The client name, IP address, or identifier for access control
+clients-form-tooltip-enabled = Whether this client is allowed or blocked
+clients-form-tooltip-status = The status of this client
+clients-form-update-client = Update Client
+clients-status = Status
+clients-updated = Updated
 
 # Domain Search
 domains-search-no-results = No domains found
@@ -855,3 +927,11 @@ error-duplicate-domain = A domain with this name already exists
 error-duplicate-backup = A backup server for domain "{domain}" already exists
 error-constraint-violation = Constraint violation
 error-unexpected = An unexpected error occurred
+
+# Miscellaneous
+a = a
+en-US = English
+hello = Hello
+nonexistent = Nonexistent
+user = User
+welcome = Welcome

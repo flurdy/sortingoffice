@@ -291,7 +291,10 @@ pub async fn update(
         Ok(_) => {
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return crate::handlers::utils::render_backup_not_found_page(&state, &headers).await,
+                Err(_) => {
+                    return crate::handlers::utils::render_backup_not_found_page(&state, &headers)
+                        .await
+                }
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
@@ -504,7 +507,10 @@ pub async fn toggle_enabled_show(
         Ok(_) => {
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
-                Err(_) => return crate::handlers::utils::render_backup_not_found_page(&state, &headers).await,
+                Err(_) => {
+                    return crate::handlers::utils::render_backup_not_found_page(&state, &headers)
+                        .await
+                }
             };
             let content_template = BackupShowTemplate {
                 title: get_translation(&state, &locale, "backups-show-title").await,
