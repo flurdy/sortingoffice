@@ -3,7 +3,7 @@ use crate::handlers::language::get_user_locale;
 
 use crate::templates::layout::BaseTemplate;
 use crate::AppState;
-use askama::Template;
+
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},

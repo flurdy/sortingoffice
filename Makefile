@@ -225,7 +225,7 @@ test-all: test-unit test-integration test-security test-api test-ui
 	@echo "All tests completed!"
 
 run-watch:
-	cargo watch -d 5 -w src -w static -w templates -w Cargo.toml --why -x run
+	cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
 
 run:
 	cargo run

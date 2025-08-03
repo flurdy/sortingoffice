@@ -33,6 +33,7 @@ language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
 language-dutch = Nederlands
+language-italian = Italiano
 # Common actions
 action-edit = Bewerken
 action-delete = Verwijderen
@@ -96,6 +97,10 @@ error-page-operation-failed-title = Bewerking Mislukt
 error-page-operation-failed-message = De gevraagde bewerking kon niet worden voltooid.
 error-page-validation-error-title = Validatie Fout
 error-page-validation-error-message = Controleer uw invoer en probeer het opnieuw.
+
+# Error Page Actions
+error-go-to-dashboard = Ga naar Dashboard
+error-go-back = Ga Terug
 # Login
 login-title = Inloggen bij Sorting Office
 login-user-id = Gebruikers-ID
@@ -823,8 +828,8 @@ database-backup-table-header-actions = Actions
 database-backup-action-download = Download
 database-backup-action-delete = Delete
 # Database Selection
-database-selection-title = Database Selection
-database-selection-description = Select the database you want to manage. Each database represents a different mail server.
+database-selection-title = Database Selectie
+database-selection-description = Selecteer de database die je wilt beheren. Elke database vertegenwoordigt een andere mailserver.
 database-switch-button = Switch Database
 # Error Messages
 error-duplicate-domain = A domain with this name already exists

@@ -33,6 +33,7 @@ language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
 language-dutch = Nederlands
+language-italian = Italiano
 # Common actions
 action-edit = Edit
 action-delete = Delete

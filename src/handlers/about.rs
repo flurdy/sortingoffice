@@ -1,7 +1,7 @@
 use crate::templates::about::AboutTemplate;
 use crate::templates::layout::BaseTemplate;
 use crate::AppState;
-use askama::Template;
+
 use axum::{extract::State, http::HeaderMap, response::Html};
 
 pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {

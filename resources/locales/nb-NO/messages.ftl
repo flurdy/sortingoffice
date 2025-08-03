@@ -32,6 +32,7 @@ language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
 language-dutch = Nederlands
+language-italian = Italiano
 # About Page
 about-title = Om Sorting Office
 about-subtitle = Et omfattende e-postserver administrasjonsverktøy for å administrere domener, brukere, aliaser og sikkerhetskopier.

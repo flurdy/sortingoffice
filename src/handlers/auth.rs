@@ -1,7 +1,7 @@
 use crate::config::AdminRole;
 use crate::templates::auth::LoginTemplate;
 use crate::AppState;
-use askama::Template;
+
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
@@ -34,6 +34,7 @@ pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Ht
         language_norwegian: &translations["language-norwegian"],
         language_german: &translations["language-german"],
         language_dutch: &translations["language-dutch"],
+        language_italian: &translations["language-italian"],
         current_locale: &locale,
     };
 
@@ -108,6 +109,7 @@ pub async fn login(
                 language_norwegian: &translations["language-norwegian"],
                 language_german: &translations["language-german"],
                 language_dutch: &translations["language-dutch"],
+                language_italian: &translations["language-italian"],
                 current_locale: &locale,
             };
             return Err(
@@ -212,8 +214,9 @@ pub async fn login(
             crate::i18n::get_translation(&state, &locale, "language-norwegian").await;
         let language_german =
             crate::i18n::get_translation(&state, &locale, "language-german").await;
-        let language_dutch =
-            crate::i18n::get_translation(&state, &locale, "language-dutch").await;
+        let language_dutch = crate::i18n::get_translation(&state, &locale, "language-dutch").await;
+        let language_italian =
+            crate::i18n::get_translation(&state, &locale, "language-italian").await;
 
         let template = LoginTemplate {
             title: &title,
@@ -232,6 +235,7 @@ pub async fn login(
             language_norwegian: &language_norwegian,
             language_german: &language_german,
             language_dutch: &language_dutch,
+            language_italian: &language_italian,
             current_locale: &locale,
         };
         Err(

@@ -1,4 +1,3 @@
-use askama::Template;
 use axum::{
     extract::{Form, Path, Query, State},
     http::HeaderMap,

@@ -34,6 +34,7 @@ pub struct ErrorTemplate {
     pub language_norwegian: String,
     pub language_german: String,
     pub language_dutch: String,
+    pub language_italian: String,
     pub current_locale: String,
     pub current_db_label: String,
     pub current_db_id: String,
@@ -45,6 +46,8 @@ pub struct ErrorTemplate {
     pub sidebar_tools: String,
     pub sidebar_admin: String,
     pub sidebar_project: String,
+    pub error_go_to_dashboard: String,
+    pub error_go_back: String,
 }
 
 impl ErrorTemplate {
@@ -90,12 +93,15 @@ impl ErrorTemplate {
                 .await,
             language_german: crate::i18n::get_translation(state, locale, "language-german").await,
             language_dutch: crate::i18n::get_translation(state, locale, "language-dutch").await,
+            language_italian: crate::i18n::get_translation(state, locale, "language-italian").await,
             current_locale: locale.to_string(),
             current_db_label: current_db_label.to_string(),
             current_db_id: current_db_id.to_string(),
             relays_available: state.config.is_relays_available(current_db_id),
             relocated_available: state.config.is_relocated_available(current_db_id),
             clients_available: state.config.is_clients_available(current_db_id),
+            error_go_to_dashboard: crate::i18n::get_translation(state, locale, "error-go-to-dashboard").await,
+            error_go_back: crate::i18n::get_translation(state, locale, "error-go-back").await,
             sidebar_main: crate::i18n::get_translation(state, locale, "sidebar-main").await,
             sidebar_tables: crate::i18n::get_translation(state, locale, "sidebar-tables").await,
             sidebar_tools: crate::i18n::get_translation(state, locale, "sidebar-tools").await,

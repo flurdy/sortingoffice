@@ -1279,6 +1279,8 @@ pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<S
         "language-french",
         "language-norwegian",
         "language-german",
+        "language-dutch",
+        "language-italian",
     ];
 
     let mut translations = HashMap::new();
