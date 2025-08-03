@@ -33,6 +33,7 @@ pub struct ErrorTemplate {
     pub language_french: String,
     pub language_norwegian: String,
     pub language_german: String,
+    pub language_dutch: String,
     pub current_locale: String,
     pub current_db_label: String,
     pub current_db_id: String,
@@ -88,6 +89,7 @@ impl ErrorTemplate {
             language_norwegian: crate::i18n::get_translation(state, locale, "language-norwegian")
                 .await,
             language_german: crate::i18n::get_translation(state, locale, "language-german").await,
+            language_dutch: crate::i18n::get_translation(state, locale, "language-dutch").await,
             current_locale: locale.to_string(),
             current_db_label: current_db_label.to_string(),
             current_db_id: current_db_id.to_string(),

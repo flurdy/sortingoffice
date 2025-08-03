@@ -32,6 +32,7 @@ language-spanish = Español
 language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
+language-dutch = Nederlands
 # About Page
 about-title = Über Sorting Office
 about-subtitle = Ein umfassendes Mail-Server-Verwaltungstool zur Verwaltung von Domains, Benutzern, Aliasen und Backups.

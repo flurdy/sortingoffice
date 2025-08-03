@@ -31,6 +31,7 @@ language-spanish = Español
 language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
+language-dutch = Nederlands
 # About Page
 about-title = Acerca de Sorting Office
 about-subtitle = Una herramienta completa de administración de servidor de correo para gestionar dominios, usuarios, alias y copias de seguridad.

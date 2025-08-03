@@ -18,5 +18,6 @@ pub struct LoginTemplate<'a> {
     pub language_french: &'a str,
     pub language_norwegian: &'a str,
     pub language_german: &'a str,
+    pub language_dutch: &'a str,
     pub current_locale: &'a str,
 }
