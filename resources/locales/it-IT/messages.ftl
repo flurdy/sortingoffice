@@ -31,11 +31,11 @@ sidebar-project = Progetto
 # UI Controls
 theme-toggle = Cambia tema
 language-selector = Lingua
-language-english = Inglese
-language-spanish = Spagnolo
-language-french = Francese
-language-norwegian = Norvegese
-language-german = Tedesco
+language-english = English
+language-spanish = Español
+language-french = Français
+language-norwegian = Norsk
+language-german = Deutsch
 language-dutch = Nederlands
 language-italian = Italiano
 # Common actions

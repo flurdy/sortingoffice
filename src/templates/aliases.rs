@@ -25,6 +25,13 @@ pub struct AliasesListTemplate<'a> {
     pub empty_description: &'a str,
     pub current_sort_by: &'a str,
     pub current_sort_order: &'a str,
+    // Pagination translations
+    pub pagination_showing: &'a str,
+    pub pagination_to: &'a str,
+    pub pagination_of: &'a str,
+    pub pagination_results: &'a str,
+    pub pagination_previous: &'a str,
+    pub pagination_next: &'a str,
 }
 
 #[derive(Template)]

@@ -35,6 +35,13 @@ pub struct DomainsListTemplate<'a> {
     pub backups_disable: &'a str,
     pub backups_empty_no_backup_servers: &'a str,
     pub backups_empty_get_started: &'a str,
+    // Pagination translations
+    pub pagination_showing: &'a str,
+    pub pagination_to: &'a str,
+    pub pagination_of: &'a str,
+    pub pagination_results: &'a str,
+    pub pagination_previous: &'a str,
+    pub pagination_next: &'a str,
 }
 
 #[derive(Template)]

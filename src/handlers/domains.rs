@@ -52,6 +52,13 @@ async fn get_domain_list_translations(state: &AppState, locale: &str) -> HashMap
             "backups-disable",
             "backups-empty-no-backup-servers",
             "backups-empty-get-started",
+            // Pagination
+            "pagination-showing",
+            "pagination-to",
+            "pagination-of",
+            "pagination-results",
+            "pagination-previous",
+            "pagination-next",
         ],
     )
     .await
@@ -672,6 +679,12 @@ pub async fn create(
                 backups_disable: &translations["backups-disable"],
                 backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
                 backups_empty_get_started: &translations["backups-empty-get-started"],
+                pagination_showing: &translations["pagination-showing"],
+                pagination_to: &translations["pagination-to"],
+                pagination_of: &translations["pagination-of"],
+                pagination_results: &translations["pagination-results"],
+                pagination_previous: &translations["pagination-previous"],
+                pagination_next: &translations["pagination-next"],
             };
 
             render_template_with_title!(

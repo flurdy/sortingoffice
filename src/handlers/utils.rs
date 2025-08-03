@@ -1702,6 +1702,14 @@ pub async fn render_alias_list_page(
     let empty_title = get_translation(state, locale, "aliases-empty-title").await;
     let empty_description = get_translation(state, locale, "aliases-empty-description").await;
 
+    // Pagination translations
+    let pagination_showing = get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = get_translation(state, locale, "pagination-to").await;
+    let pagination_of = get_translation(state, locale, "pagination-of").await;
+    let pagination_results = get_translation(state, locale, "pagination-results").await;
+    let pagination_previous = get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = get_translation(state, locale, "pagination-next").await;
+
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
         paginated.current_page * paginated.per_page,
@@ -1730,6 +1738,12 @@ pub async fn render_alias_list_page(
         empty_description: &empty_description,
         current_sort_by: "mail",
         current_sort_order: "asc",
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1885,6 +1899,14 @@ pub async fn render_domain_list_page(
     let backups_empty_get_started =
         get_translation(state, locale, "backups-empty-get-started").await;
 
+    // Pagination translations
+    let pagination_showing = get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = get_translation(state, locale, "pagination-to").await;
+    let pagination_of = get_translation(state, locale, "pagination-of").await;
+    let pagination_results = get_translation(state, locale, "pagination-results").await;
+    let pagination_previous = get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = get_translation(state, locale, "pagination-next").await;
+
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
         paginated.current_page * paginated.per_page,
@@ -1923,6 +1945,12 @@ pub async fn render_domain_list_page(
         backups_disable: &backups_disable,
         backups_empty_no_backup_servers: &backups_empty_no_backup_servers,
         backups_empty_get_started: &backups_empty_get_started,
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -2510,6 +2538,14 @@ pub async fn render_client_list_page(
     let empty_title = get_translation(state, locale, "clients-empty-title").await;
     let empty_description = get_translation(state, locale, "clients-empty-description").await;
 
+    // Pagination translations
+    let pagination_showing = get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = get_translation(state, locale, "pagination-to").await;
+    let pagination_of = get_translation(state, locale, "pagination-of").await;
+    let pagination_results = get_translation(state, locale, "pagination-results").await;
+    let pagination_previous = get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = get_translation(state, locale, "pagination-next").await;
+
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
         paginated.current_page * paginated.per_page,
@@ -2539,6 +2575,12 @@ pub async fn render_client_list_page(
         pagination: paginated,
         page_range: &page_range,
         max_item,
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
     };
 
     render_list_template(content_template, state, locale, headers).await

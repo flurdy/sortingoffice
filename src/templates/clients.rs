@@ -26,6 +26,13 @@ pub struct ClientsListTemplate<'a> {
     pub pagination: &'a PaginatedResult<Client>,
     pub page_range: &'a [i64],
     pub max_item: i64,
+    // Pagination translations
+    pub pagination_showing: &'a str,
+    pub pagination_to: &'a str,
+    pub pagination_of: &'a str,
+    pub pagination_results: &'a str,
+    pub pagination_previous: &'a str,
+    pub pagination_next: &'a str,
 }
 
 #[derive(Template)]
