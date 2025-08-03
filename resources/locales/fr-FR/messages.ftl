@@ -1,7 +1,6 @@
 # Application title and branding
 app-title = Sorting Office
 app-subtitle = Outil d'Administration du Serveur de Courrier
-
 # Navigation
 nav-dashboard = Tableau de Bord
 nav-domains = Domaines
@@ -18,14 +17,12 @@ nav-database = Sélection de Base de Données
 nav-about = À Propos
 nav-contact = Contact
 nav-logout = Déconnexion
-
 # Sidebar Sections
 sidebar-main = Principal
 sidebar-tables = Tableaux
 sidebar-tools = Outils
 sidebar-admin = Administration
 sidebar-project = Projet
-
 # UI Controls
 theme-toggle = Basculer le thème
 language-selector = Langue
@@ -34,7 +31,6 @@ language-spanish = Español
 language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
-
 # About Page
 about-title = À Propos de Sorting Office
 about-subtitle = Un outil complet d'administration de serveur de courrier pour gérer les domaines, utilisateurs, alias et sauvegardes.
@@ -86,7 +82,6 @@ about-project-details = Détails du Projet
 about-version = Version
 about-license = Licence
 about-maintainer = Mainteneur
-
 # Contact
 contact-title = Informations de Contact
 contact-subtitle = Contactez le mainteneur de l'application ou du projet pour le support, les questions et les commentaires.
@@ -109,7 +104,6 @@ contact-documentation = Documentation
 contact-documentation-desc = Informations de contact et directives
 contact-sponsorship = Parrainage
 contact-sponsorship-desc = Soutenir le projet financièrement
-
 # Common actions
 action-edit = Modifier
 action-delete = Supprimer
@@ -118,13 +112,11 @@ action-save = Enregistrer
 action-cancel = Annuler
 action-enable = Activer
 action-disable = Désactiver
-
 # Status indicators
 status-active = Activé
 status-inactive = Désactivé
 status-enabled = Activé
 status-disabled = Désactivé
-
 # Dashboard
 dashboard-title = Tableau de Bord
 dashboard-description = Aperçu des statistiques de votre serveur de messagerie et actions rapides.
@@ -143,7 +135,6 @@ dashboard-primary-actions = Actions Principales
 dashboard-advanced-management = Gestion Avancée
 dashboard-analytics-reports = Analyses et Rapports
 dashboard-help-resources = Aide et Ressources
-
 # Quick action cards
 quick-action-manage-domains = Gérer les Domaines
 quick-action-manage-domains-desc = Ajouter, modifier ou supprimer des domaines
@@ -167,7 +158,6 @@ quick-action-view-statistics = Voir les Statistiques
 quick-action-view-statistics-desc = Métriques et analyses système
 quick-action-view-reports = Voir les Rapports
 quick-action-view-reports-desc = Rapports détaillés et analyses
-
 # Resource labels
 resource-domains = domaines
 resource-backups = sauvegardes
@@ -176,12 +166,10 @@ resource-users = utilisateurs
 resource-relays = relais
 resource-relocated = relocalisés
 resource-clients = clients
-
 # Help section
 help-title = Besoin d'aide pour configurer votre serveur de courrier ?
 help-description = Cet outil d'administration est basé sur le guide complet de flurdy pour configurer un serveur de courrier complet avec Postfix, Dovecot et plus.
 help-read-guide = Lire le guide complet de configuration →
-
 # Domains
 domains-title = Domaines
 domains-description = Gérer les domaines de votre serveur de courrier et leurs paramètres.
@@ -223,7 +211,6 @@ domains-add-alias-button = Ajouter un nouvel alias
 domains-no-catch-all-message = Aucun alias de capture totale configuré pour ce domaine
 domains-analytics-common-aliases-header = Alias Communs Basés sur l'Analyse
 domains-analytics-common-aliases-description = Basé sur les modèles d'utilisation de votre base de données
-
 # Backups
 backups-title = Sauvegardes
 backups-description = Gérer vos serveurs de courrier de sauvegarde et leurs paramètres.
@@ -252,7 +239,6 @@ backups-disable-backup = Désactiver la Sauvegarde
 backups-delete-backup = Supprimer la Sauvegarde
 backups-delete-confirm = Êtes-vous sûr de vouloir supprimer cette sauvegarde ?
 backups-add-title = Ajouter une Sauvegarde
-backups-edit-title = Modifier la Sauvegarde
 backups-form-error = Erreur
 backups-form-domain = Domaine
 backups-form-transport = Transport
@@ -264,7 +250,6 @@ backups-tooltip-transport = Configuration de transport pour le serveur de sauveg
 backups-tooltip-active = Activer ce serveur de sauvegarde
 backups-cancel = Annuler
 backups-create-backup = Créer la Sauvegarde
-
 # Aliases
 aliases-title = Alias
 aliases-description = Gérer les alias de courrier électronique et leurs paramètres.
@@ -301,7 +286,6 @@ aliases-delete-confirm = Êtes-vous sûr de vouloir supprimer cet alias ?
 aliases-not-found = Alias non trouvé
 aliases-placeholder-mail = user@exemple.com
 aliases-placeholder-destination = destination@exemple.com
-
 # Users
 users-title = Utilisateurs
 users-description = Gérer les utilisateurs de courrier électronique et leurs paramètres.
@@ -361,7 +345,6 @@ users-placeholder-maildir = ex. utilisateur
 users-home = Répertoire d'accueil
 users-placeholder-home = ex. /var/spool/mail/maildir
 users-placeholder-password = Entrer un nouveau mot de passe (laisser vide pour conserver l'existant)
-
 # Relays
 relays-title = Relais
 relays-add = Ajouter un Relais
@@ -371,7 +354,6 @@ relays-table-header-status = Statut
 relays-table-header-actions = Actions
 relays-empty-title = Aucun relais
 relays-empty-description = Commencez par créer un nouveau relais.
-relays-add-title = Ajouter un Relais
 relays-show-title = Relais
 relays-new-relay = Nouveau Relais
 relays-edit-relay = Modifier le Relais
@@ -391,8 +373,6 @@ relays-delete-relay = Supprimer le Relais
 relays-delete-confirm = Êtes-vous sûr de vouloir supprimer ce relais ?
 relays-not-found = Relais non trouvé
 relays-form-error = Erreur
-relays-domain = Domaine
-relays-transport = Transport
 relays-active = Actif
 relays-placeholder-domain = relais.exemple.com
 relays-placeholder-transport = smtp:[]
@@ -403,7 +383,6 @@ relays-cancel = Annuler
 relays-update-relay = Mettre à Jour le Relais
 relays-create-relay = Créer le Relais
 relays-back-to-list = Retour aux Relais
-
 # Relocated
 relocated-title = Réacheminés
 relocated-add = Ajouter un Réacheminé
@@ -416,8 +395,6 @@ relocated-empty-description = Commencez par créer un nouveau réacheminé.
 relocated-add-title = Ajouter un Réacheminé
 relocated-edit-title = Modifier le Réacheminé
 relocated-show-title = Réacheminé
-relocated-new-relocated = Nouveau Réacheminé
-relocated-edit-relocated = Modifier le Réacheminé
 relocated-view-edit-settings = Voir et modifier les paramètres du réacheminé.
 relocated-back-to-list = Retour aux Réacheminés
 relocated-relocated-information = Informations du Réacheminé
@@ -441,7 +418,6 @@ relocated-field-old-address-help = L'adresse de courrier électronique d'origine
 relocated-field-new-address-help = La nouvelle adresse de courrier électronique
 relocated-placeholder-old-address = ancien@exemple.com
 relocated-placeholder-new-address = nouveau@exemple.com
-
 # Clients
 clients-title = Clients
 clients-description = Gérer les clients et leurs paramètres.
@@ -452,36 +428,18 @@ clients-table-header-enabled = Activé
 clients-table-header-actions = Actions
 clients-empty-title = Aucun client
 clients-empty-description = Commencez par créer un nouveau client.
-clients-add-title = Ajouter un Client
-clients-edit-title = Modifier le Client
-clients-show-title = Client
 clients-view-edit-settings = Voir et modifier les paramètres du client.
 clients-back-to-clients = Retour aux Clients
-clients-info-title = Informations du Client
-clients-info-description = Détails et configuration du client.
-clients-field-client = Client
-clients-field-status = Statut
-clients-field-created = Créé
-clients-field-updated = Modifié
 clients-status-ok = OK
 clients-status-reject = REJECT
 clients-status-enabled = Activé
 clients-status-disabled = Désactivé
 clients-action-view = Voir
-clients-action-edit = Modifier
 clients-action-delete = Supprimer
 clients-delete-confirm = Êtes-vous sûr de vouloir supprimer ce client ?
 clients-not-found = Client non trouvé
-clients-placeholder-client = nom_du_client
-clients-field-client-help = Le nom du client
-clients-field-status-help = Le statut du client (autorisé ou bloqué)
-clients-field-enabled = Activé
-clients-field-enabled-help = Ce client est-il activé ?
-clients-enabled-yes = Oui
-clients-enabled-no = Non
 clients-action-enable = Activer
 clients-action-disable = Désactiver
-
 # Statistics
 stats-title = Statistiques
 stats-description = Aperçu des statistiques de votre serveur de courrier.
@@ -514,13 +472,12 @@ stats-recent-backups = Sauvegardes Récentes
 stats-recent-relays = Relais Récents
 stats-recent-relocated = Réacheminés Récents
 stats-recent-clients = Clients Récents
-
 # Reports
 reports-title = Rapports
 reports-description = Générer et consulter des rapports sur votre serveur de courrier.
 reports-catch-all = Rapports Catch-All
 reports-matrix = Matrice des Rapports
-reports-catch-all-header = Alias de Capture Totale
+reports-catch-all-header = "Alias de Capture Totale"
 reports-enabled-header = "Activé"
 reports-actions-header = "Actions"
 reports-domain-header = "Domaine"
@@ -532,22 +489,14 @@ reports-missing-common-aliases-header = "Alias Communs Manquants"
 reports-add-missing-required-alias-button = "Ajouter un alias"
 reports-add-common-alias-button = "Ajouter un alias"
 reports-add-catch-all-button = "Ajouter un alias"
-reports-alias-report-title = "Rapport d'Alias"
-reports-alias-report-description = "Aperçu des alias de capture totale, requis et communs pour ce domaine"
-reports-missing-required-alias-header = "Alias Requis Manquants"
-reports-existing-aliases-header = "Alias Existants"
-reports-no-catch-all-message = "Aucun alias de capture totale configuré pour ce domaine"
 reports-mail-header = "Email"
-reports-status-header = "Statut"
+reports-status-header = Status
 reports-no-required-aliases = "Aucun alias requis trouvé pour ce domaine"
 reports-no-missing-aliases = "Aucun alias requis manquant pour ce domaine"
-reports-catch-all-header = "Alias de Capture Totale"
-
 # Configuration
 config-title = Configuration
 config-description = Gérer la configuration du système.
 config-required-aliases = Alias Requis
-
 # Global Feature Toggles
 config-global-features-header = "Interrupteurs de Fonctionnalités Globales"
 config-global-features-description = "Ces paramètres s'appliquent à toutes les bases de données sauf s'ils sont remplacés par des paramètres spécifiques à la base de données."
@@ -558,12 +507,10 @@ config-feature-no-password-updates = "Pas de Mises à Jour de Mot de Passe"
 config-feature-database-disabled = "Base de Données Désactivée"
 config-status-enabled = "Activé"
 config-status-disabled = "Désactivé"
-
 # Database Feature Toggles
 config-database-features-header = "Interrupteurs de Fonctionnalités de Base de Données"
 config-database-features-description = "Restrictions de fonctionnalités spécifiques à la base de données. Celles-ci remplacent les paramètres globaux lorsqu'elles sont activées."
 config-database-disabled-badge = "Désactivé"
-
 # Forms
 form-error = Erreur
 form-cancel = Annuler
@@ -582,7 +529,6 @@ form-tooltip-username = Le nom d'utilisateur pour le compte
 form-tooltip-password = Le mot de passe pour le compte
 form-tooltip-quota = La limite de stockage pour le compte (ex. 1000M)
 form-tooltip-active = Activer cet élément
-
 # Messages
 message-success = Succès
 message-error = Erreur
@@ -602,7 +548,6 @@ message-invalid-username = Nom d'utilisateur invalide
 message-invalid-password = Mot de passe invalide
 message-invalid-quota = Quota invalide
 message-invalid-transport = Configuration de transport invalide
-
 # Errors
 error-404-title = Page Non Trouvée
 error-404-description = La page que vous recherchez n'existe pas.
@@ -612,7 +557,6 @@ error-database-title = Erreur de Base de Données
 error-database-description = Une erreur s'est produite lors de l'accès à la base de données.
 error-validation-title = Erreur de Validation
 error-validation-description = Les données fournies ne sont pas valides.
-
 # Form validation
 validation-domain-required = Le nom de domaine est requis. Veuillez entrer un nom de domaine valide.
 validation-username-required = Le nom d'utilisateur est requis.
@@ -622,11 +566,9 @@ validation-alias-mail-invalid = Adresse e-mail d'alias invalide. Veuillez vérif
 validation-alias-destination-invalid = Destination d'alias invalide. Veuillez vérifier le format.
 validation-user-id-invalid = ID utilisateur invalide. Doit être une adresse e-mail valide.
 validation-user-path-invalid = Chemin utilisateur invalide. Doit être un chemin de système de fichiers valide.
-
 error-permission-title = Erreur de Permission
 error-permission-description = Vous n'avez pas les permissions nécessaires pour effectuer cette action.
 error-operation-not-allowed = Cette opération n'est pas autorisée sur la base de données actuelle en raison de restrictions.
-
 # Common
 common-yes = Oui
 common-no = Non
@@ -926,7 +868,6 @@ common-redoc-api = API ReDoc
 common-swagger-ui-api = API Swagger UI
 common-rapidoc-api = API RapiDoc
 common-stoplight-api = API Stoplight
-common-api-gateway = Passerelle API
 common-api-management = Gestion d'API
 common-api-monitoring = Surveillance d'API
 common-api-analytics = Analytique d'API
@@ -973,14 +914,12 @@ common-api-coordination = Coordination d'API
 common-api-collaboration = Collaboration d'API
 common-api-integration = Intégration d'API
 common-api-federation = Fédération d'API
-
 # Login
 login-title = Se connecter à Sorting Office
 login-user-id = Identifiant utilisateur
 login-password = Mot de passe
 login-sign-in = Se connecter
 login-error = Nom d'utilisateur ou mot de passe invalide
-
 # Pagination
 pagination-previous = Précédent
 pagination-next = Suivant
@@ -988,12 +927,9 @@ pagination-showing = Affichage
 pagination-to = à
 pagination-of = sur
 pagination-results = résultats
-
 # Roles and Permissions
-
 not-found-title = Page non trouvée
 not-found-message = Désolé, la page demandée n'existe pas ou a peut-être été déplacée.
-
 # Gestion des Sauvegardes
 database-backup-title = Sauvegarde de Base de Données
 database-backup-description = Créer et gérer les sauvegardes de base de données. Les sauvegardes sont stockées localement et peuvent être téléchargées.
@@ -1020,23 +956,19 @@ database-backup-confirm-delete = Êtes-vous sûr de vouloir supprimer cette sauv
 database-backup-session-expired-delete = Session expirée. Veuillez actualiser la page.
 database-backup-failed-delete = Échec de la suppression de la sauvegarde : Format de réponse inattendu.
 database-backup-failed-delete-error = Échec de la suppression de la sauvegarde :
-
 # Database Backup Table Headers
 database-backup-table-header-database = Base de Données
 database-backup-table-header-created = Créé
 database-backup-table-header-size = Taille
 database-backup-table-header-filename = Nom de Fichier
 database-backup-table-header-actions = Actions
-
 # Database Backup Actions
 database-backup-action-download = Télécharger
 database-backup-action-delete = Supprimer
-
 # Database Selection
 database-selection-title = Sélection de Base de Données
 database-selection-description = Sélectionnez la base de données que vous souhaitez gérer. Chaque base de données représente un serveur de messagerie différent.
 database-switch-button = Changer de Base de Données
-
 # Étiquettes des champs du formulaire utilisateur (ajoutées pour la complétude de la traduction)
 users-field-id = ID utilisateur
 users-field-password = Mot de passe
@@ -1044,7 +976,6 @@ users-field-name = Nom d'utilisateur
 users-field-active = Actif
 users-field-maildir = Dossier mail
 users-field-home = Répertoire personnel
-
 # Info-bulles des champs utilisateur (ajoutées pour la complétude de la traduction)
 users-field-id-help = L'adresse e-mail du compte utilisateur (ex. utilisateur@exemple.com)
 users-field-password-help = Le mot de passe du compte utilisateur (laisser vide pour conserver l'existant lors de la modification)
@@ -1052,7 +983,6 @@ users-field-name-help = Le nom d'utilisateur du compte
 users-field-active-help = Activer ce compte utilisateur
 users-field-maildir-help = Le nom du dossier mail de l'utilisateur
 users-field-home-help = Le dossier racine contenant les boîtes aux lettres
-
 # Assistant
 wizard-title = Assistant de Configuration de Domaines
 wizard-description = Configuration guidée pour plusieurs domaines et alias
@@ -1062,7 +992,6 @@ wizard-back = Retour
 wizard-cancel = Annuler
 wizard-confirm = Confirmer la Configuration
 wizard-complete = Terminer
-
 # Assistant Étape 1
 wizard-step-1-title = Configurer les Domaines
 wizard-step-1-description = Saisissez les domaines que vous souhaitez configurer
@@ -1070,8 +999,7 @@ wizard-domains-label = Domaines
 wizard-domains-placeholder = Saisir les domaines (un par ligne ou séparés par des virgules)
 wizard-transport-label = Transport
 wizard-transport-placeholder = virtual: ou un autre transport smtp
-wizard-enabled-label = Activer les domaines
-
+wizard-enabled-label = Activé
 # Assistant Étape 2
 wizard-step-2-title = Configurer les Alias
 wizard-step-2-description = Configurer les alias pour tous les domaines
@@ -1083,7 +1011,6 @@ wizard-custom-aliases = Alias Personnalisés
 wizard-custom-aliases-placeholder = jean, anne, support
 wizard-destination-label = Destination
 wizard-destination-placeholder = @exemple.com, utilisateur@exemple.com ou destination similaire
-
 # Assistant Étape 3
 wizard-step-3-title = Vérifier la Configuration
 wizard-step-3-description = Vérifiez votre configuration avant de créer
@@ -1091,14 +1018,12 @@ wizard-summary-domains = Domaines à créer
 wizard-summary-aliases = Alias à créer
 wizard-summary-total = Total d'éléments
 wizard-summary-destination = Destination
-
 # Assistant Étape 4
 wizard-step-4-title = Création des Domaines et Alias
 wizard-step-4-description = Veuillez patienter pendant que nous configurons votre configuration
 wizard-progress-domains = Création des domaines
 wizard-progress-aliases = Création des alias
 wizard-progress-complete = Configuration terminée
-
 # Assistant Étape 5
 wizard-step-5-title = Configuration Terminée
 wizard-step-5-description = Vos domaines et alias ont été créés
@@ -1106,7 +1031,6 @@ wizard-results-success = Créé avec succès
 wizard-results-failed = Échec de la création
 wizard-view-domains = Voir les Domaines
 wizard-new-wizard = Démarrer un Nouvel Assistant
-
 # Additional wizard translation keys
 wizard-step-1-box-title = Configurer les Domaines
 wizard-step-1-box-description = Saisissez les domaines que vous souhaitez configurer
@@ -1126,35 +1050,26 @@ wizard-aliases-created = Alias Créés
 wizard-errors-title = Erreurs
 wizard-errors-description = Quelques erreurs se sont produites pendant la configuration. Veuillez vérifier les journaux pour plus de détails.
 wizard-new-badge = Nouveau
-
 # Additional domain config translations
-wizard-domains-label = Domaines
 wizard-domains-description = Saisissez les domaines que vous souhaitez configurer
-wizard-transport-label = Transport
 wizard-transport-description = Configuration du transport (ex. virtual pour les domaines virtuels)
 wizard-enabled-description = Choisissez si les domaines doivent être activés ou désactivés
 wizard-domain-status-label = Statut du Domaine
-wizard-enabled-label = Activé
 wizard-disabled-label = Désactivé
-
 # Additional review translations
 wizard-configuration-summary-title = Résumé de Configuration
 wizard-domains-plural = domaines
 wizard-aliases-plural = alias
 wizard-created-domains-title = Domaines Créés
-
 # Additional executing translations
 wizard-creating-domains-text = Création des domaines...
 wizard-creating-aliases-text = Création des alias...
-
 # Error Messages
 error-duplicate-domain = Un domaine avec ce nom existe déjà
-error-duplicate-backup = Un serveur de sauvegarde pour le domaine "{domain}" existe déjà
-error-constraint-violation = Violation de contrainte
-error-unexpected = Une erreur inattendue s'est produite
-
+error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
+error-constraint-violation = The data does not meet the required constraints. Please check your input.
+error-unexpected = An unexpected error occurred. Please try again.
 # Error page
-error-page-title = Erreur
 error-page-not-found-title = Non Trouvé
 error-page-not-found-message = La ressource demandée n'a pas pu être trouvée.
 error-page-database-error-title = Erreur de Base de Données
@@ -1235,22 +1150,13 @@ domains-search-no-results = No domains found
 domains-search-select = Select a domain
 domains-table-header-transport = Transport
 en-US = English
-error-constraint-alias = Alias constraint violation
-error-constraint-backup = Backup constraint violation
-error-constraint-domain = Domain constraint violation
-error-constraint-relay = Relay constraint violation
-error-constraint-relocated = Relocated constraint violation
-error-constraint-user = User constraint violation
-error-constraint-violation = The data does not meet the required constraints. Please check your input.
 Constraint violation
 error-database-restriction = Database restriction error
 error-duplicate-alias = An alias with this name already exists
-error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
 A backup server for domain "{domain}" already exists
 error-duplicate-relay = A relay with this name already exists
 error-duplicate-relocated = A relocated address with this name already exists
 error-duplicate-user = A user with this username already exists.
-error-unexpected = An unexpected error occurred. Please try again.
 An unexpected error occurred
 form-create-domain = Create Domain
 form-disabled = Disabled
@@ -1278,7 +1184,6 @@ relays-list-description = Manage relay recipients and their status for Postfix c
 relays-not-available = Relays table is not available for this database
 relays-placeholder-recipient = Enter recipient address
 relays-placeholder-status = Enter status code
-relays-show-title-label = Relay
 relays-table-header-enabled = Enabled
 relays-table-header-recipient = Recipient
 relays-update-error = Failed to update relay
@@ -1328,7 +1233,6 @@ reports-present = Present
 reports-primary-domain = Domain
 reports-read-only = Read Only
 reports-status-disabled = Present but disabled
-reports-status-header = Status
 Status
 reports-status-missing = Missing
 reports-status-present = Present and enabled

@@ -1,7 +1,6 @@
 # Application title and branding
 app-title = Sorting Office
 app-subtitle = E-postserver administrasjonsverktøy
-
 # Navigation
 nav-dashboard = Dashbord
 nav-domains = Domener
@@ -18,14 +17,12 @@ nav-database = Databasevalg
 nav-about = Om
 nav-contact = Kontakt
 nav-logout = Logg ut
-
 # Sidebar Sections
 sidebar-main = Hoved
 sidebar-tables = Tabeller
 sidebar-tools = Verktøy
 sidebar-admin = Admin
 sidebar-project = Prosjekt
-
 # UI Controls
 theme-toggle = Bytt tema
 language-selector = Språk
@@ -34,7 +31,6 @@ language-spanish = Español
 language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
-
 # About Page
 about-title = Om Sorting Office
 about-subtitle = Et omfattende e-postserver administrasjonsverktøy for å administrere domener, brukere, aliaser og sikkerhetskopier.
@@ -86,7 +82,6 @@ about-project-details = Prosjektdetaljer
 about-version = Versjon
 about-license = Lisens
 about-maintainer = Vedlikeholder
-
 # Contact
 contact-title = Kontaktinformasjon
 contact-subtitle = Kontakt applikasjons- eller prosjektvedlikeholder for støtte, spørsmål og tilbakemeldinger.
@@ -109,7 +104,6 @@ contact-documentation = Dokumentasjon
 contact-documentation-desc = Kontaktinformasjon og retningslinjer
 contact-sponsorship = Sponsing
 contact-sponsorship-desc = Støtt prosjektet økonomisk
-
 # Common actions
 action-edit = Rediger
 action-delete = Slett
@@ -118,13 +112,11 @@ action-save = Lagre
 action-cancel = Avbryt
 action-enable = Aktiver
 action-disable = Deaktiver
-
 # Status indicators
 status-active = Aktivert
 status-inactive = Deaktivert
 status-enabled = Aktivert
 status-disabled = Deaktivert
-
 # Dashboard
 dashboard-title = Dashbord
 dashboard-description = Oversikt over e-postserverstatistikker og raske handlinger.
@@ -143,7 +135,6 @@ dashboard-primary-actions = Hovedhandlinger
 dashboard-advanced-management = Avansert Administrasjon
 dashboard-analytics-reports = Analyse og Rapporter
 dashboard-help-resources = Hjelp og Ressurser
-
 # Quick action cards
 quick-action-manage-domains = Administrer Domener
 quick-action-manage-domains-desc = Legg til, rediger eller slett domener
@@ -167,7 +158,6 @@ quick-action-view-statistics = Se Statistikk
 quick-action-view-statistics-desc = Systemmetrikker og analyse
 quick-action-view-reports = Se Rapporter
 quick-action-view-reports-desc = Detaljerte rapporter og analyse
-
 # Resource labels
 resource-domains = domener
 resource-backups = backups
@@ -176,12 +166,10 @@ resource-users = brukere
 resource-relays = relayer
 resource-relocated = flyttet
 resource-clients = klienter
-
 # Help section
 help-title = Trenger du hjelp med å sette opp e-postserveren din?
 help-description = Dette admin-verktøyet er basert på flurdys omfattende guide for å sette opp en komplett e-postserver med Postfix, Dovecot og mer.
 help-read-guide = Les den komplette oppsettguiden →
-
 # Domains
 domains-title = Domener
 domains-description = Administrer e-postserverdomener og deres innstillinger.
@@ -223,7 +211,6 @@ domains-add-alias-button = Legg til nytt alias
 domains-no-catch-all-message = Ingen catch-all alias konfigurert for denne domenen
 domains-analytics-common-aliases-header = Analysebaserte Vanlige Aliaser
 domains-analytics-common-aliases-description = Basert på databasens bruksmønstre
-
 # Backups
 backups-title = Sikkerhetskopier
 backups-description = Administrer sikkerhetskopi e-postservere og deres innstillinger.
@@ -252,12 +239,10 @@ backups-disable-backup = Deaktiver sikkerhetskopi
 backups-delete-backup = Slett sikkerhetskopi
 backups-delete-confirm = Er du sikker på at du vil slette denne sikkerhetskopien?
 backups-add-title = Legg til sikkerhetskopi
-backups-edit-title = Rediger sikkerhetskopi
 backups-form-error = Feil
 backups-form-domain = Domene
 backups-form-transport = Transport
 backups-form-active = Aktiv
-
 # Aliases
 aliases-title = Aliaser
 aliases-description = Administrer e-postaliaser og videresendingsregler.
@@ -295,7 +280,6 @@ aliases-not-found = Alias ikke funnet
 aliases-form-mail = E-post
 aliases-form-destination = Destinasjon
 aliases-form-enabled = Aktivert
-
 # Users
 users-title = Brukere
 users-description = Administrer e-postbrukere og kontoer.
@@ -354,8 +338,6 @@ users-maildir = Postboksnavn
 users-placeholder-maildir = f.eks. bruker
 users-home = Hjemmekatalog
 users-placeholder-home = f.eks. /var/spool/mail/maildir
-users-placeholder-password = Skriv inn nytt passord (la stå tomt for å beholde eksisterende)
-
 # Feltetiketter for bruker (lagt til for fullstendig oversettelse)
 users-field-id = Bruker-ID
 users-field-password = Passord
@@ -363,7 +345,6 @@ users-field-name = Brukernavn
 users-field-active = Aktiv
 users-field-maildir = Maildir
 users-field-home = Hjemmemappe
-
 # Verktøytips for brukerfelt (lagt til for fullstendig oversettelse)
 users-field-id-help = E-postadressen for brukerkontoen (f.eks. bruker@eksempel.no)
 users-field-password-help = Passordet for brukerkontoen (la stå tomt for å beholde eksisterende passord ved redigering)
@@ -371,7 +352,6 @@ users-field-name-help = Brukernavnet for brukerkontoen
 users-field-active-help = Aktiver denne brukerkontoen
 users-field-maildir-help = Navnet på brukerens postboksmappe
 users-field-home-help = Rotmappen som inneholder postbokser
-
 # Relays
 relays-title = Videresendinger
 relays-add = Legg til videresending
@@ -382,9 +362,7 @@ relays-table-header-enabled = Aktivert
 relays-table-header-actions = Handlinger
 relays-empty-title = Ingen videresendinger
 relays-empty-description = Kom i gang ved å opprette en ny videresending.
-relays-add-title = Legg til videresending
 relays-show-title = Videresending
-relays-show-title-label = Videresending
 relays-view-edit-settings = Vis og rediger videresendingsinnstillinger.
 relays-info-title = Videresendingsinformasjon
 relays-info-description = Detaljer om denne videresendingskonfigurasjonen.
@@ -404,7 +382,6 @@ relays-edit-relocated = Rediger flyttet adresse
 relays-not-found = Videresending ikke funnet
 relays-create-error = Kunne ikke opprette videresending
 relays-back-to-list = Tilbake til videresendinger
-
 # Relocated
 relocated-title = Flyttet
 relocated-add = Legg til flyttet
@@ -433,11 +410,8 @@ relocated-placeholder-old-address = Skriv inn gammel e-postadresse
 relocated-placeholder-new-address = Skriv inn ny e-postadresse
 relocated-field-old-address-help = Den gamle e-postadressen som skal flyttes (f.eks. gammel@eksempel.no)
 relocated-field-new-address-help = Den nye e-postadressen hvor e-post skal sendes (f.eks. ny@eksempel.no)
-relocated-new-relocated = Ny flyttet adresse
-relocated-edit-relocated = Rediger flyttet adresse
 relocated-not-found = Flyttet adresse ikke funnet
 relocated-create-error = Kunne ikke opprette flyttet adresse
-
 # Clients
 clients-title = Klienter
 clients-description = Administrer klienttilgangskontroller.
@@ -449,9 +423,6 @@ clients-table-header-status = Status
 clients-table-header-actions = Handlinger
 clients-empty-title = Ingen klienter
 clients-empty-description = Kom i gang ved å opprette en ny klient.
-clients-add-title = Legg til klient
-clients-edit-title = Rediger klient
-clients-show-title = Klient
 clients-view-edit-settings = Vis og rediger klientinnstillinger.
 clients-back-to-clients = Tilbake til klienter
 clients-client-information = Klientinformasjon
@@ -475,7 +446,6 @@ clients-tooltip-name = Navnet på brukerens postboksmappe
 clients-placeholder-name = postboksnavn
 clients-form-ip = IP-adresse
 clients-form-enabled = Aktivert
-
 # Statistics
 stats-title = Statistikk
 stats-description = Oversikt over e-postserverstatistikk og bruk.
@@ -508,7 +478,6 @@ stats-recent-backups = Nylig Sikkerhetskopier
 stats-recent-relays = Nylig Videresendinger
 stats-recent-relocated = Nylig Flyttet
 stats-recent-clients = Nylig Klienter
-
 # Reports
 reports-title = Rapporter
 reports-description = Generer og vis rapporter om e-postserveren.
@@ -521,13 +490,8 @@ reports-missing-common-aliases-header = "Manglende vanlige aliaser"
 reports-add-missing-required-alias-button = "Legg til alias"
 reports-add-common-alias-button = "Legg til alias"
 reports-add-catch-all-button = "Legg til alias"
-reports-alias-report-title = "Aliasrapport"
-reports-alias-report-description = "Oversikt over catch-all, påkrevde og vanlige aliaser for denne domenen"
-reports-missing-required-alias-header = "Manglende påkrevde aliaser"
-reports-existing-aliases-header = "Eksisterende aliaser"
-reports-no-catch-all-message = "Ingen catch-all alias konfigurert for denne domenen"
 reports-mail-header = "E-post"
-reports-status-header = "Status"
+reports-status-header = Status
 reports-enabled-header = "Aktivert"
 reports-actions-header = "Handlinger"
 reports-no-required-aliases = "Ingen påkrevde aliaser funnet for denne domenen"
@@ -542,28 +506,22 @@ reports-legend-title = "Statusforklaring"
 reports-list-title = "Rapporter"
 reports-list-description = "Vis og analyser e-postserverdata med omfattende rapporter"
 reports-view-report = "Vis rapport"
-
 # Orphaned Aliases & Users Report
 reports-orphaned-aliases-title = "Foreldreløse aliaser og brukere rapport"
 reports-orphaned-aliases-description = "Finn aliaser som refererer til ikke-eksisterende brukere eller domener, og brukere som eksisterer men ikke har tilknyttede aliaser"
-
 # External Forwarders Report
 reports-external-forwarders-title = "Eksterne videresendinger rapport"
 reports-external-forwarders-description = "Finn aliaser som videresender til eksterne domener"
-
 # Alias Cross-Domain Report
 reports-alias-cross-domain-title = "Alias på tvers av domener rapport"
 reports-alias-cross-domain-description = "Søk etter et spesifikt alias på tvers av alle domener"
-
 # Domain Alias Report
 domains-alias-report-title = "Aliasrapport"
 domains-alias-report-description = "Oversikt over alle aliaser for dette domenet, inkludert catch-all, påkrevde og vanlige aliaser"
 domains-existing-aliases-header = "Eksisterende aliaser"
-
 # Configuration
 config-title = "Konfigurasjon"
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
-
 # Global Feature Toggles
 config-global-features-header = "Globale Funksjonsbrytere"
 config-global-features-description = "Disse innstillingene gjelder for alle databaser med mindre de overstyres av databasespesifikke innstillinger."
@@ -574,12 +532,10 @@ config-feature-no-password-updates = "Ingen Passordoppdateringer"
 config-feature-database-disabled = "Database Deaktivert"
 config-status-enabled = "Aktivert"
 config-status-disabled = "Deaktivert"
-
 # Database Feature Toggles
 config-database-features-header = "Database Funksjonsbrytere"
 config-database-features-description = "Databasespesifikke funksjonsrestriksjoner. Disse overstyrer globale innstillinger når de er aktivert."
 config-database-disabled-badge = "Deaktivert"
-
 # Error messages
 error-internal-server = Intern serverfeil
 error-bad-request = Ugyldig forespørsel
@@ -591,9 +547,7 @@ error-operation-not-allowed = Denne operasjonen er ikke tillatt på den nåvære
 error-passwords-do-not-match = Passordene samsvarer ikke
 error-password-too-short = Passordet må være minst 8 tegn
 error-failed-to-update-password = Kunne ikke oppdatere passordet
-
 # Success messages
-
 # Form validation
 validation-required = Dette feltet er påkrevd
 validation-invalid-email = Ugyldig e-postadresse
@@ -609,14 +563,12 @@ validation-alias-mail-invalid = Ugyldig alias e-postadresse. Vennligst sjekk for
 validation-alias-destination-invalid = Ugyldig alias destinasjon. Vennligst sjekk formatet.
 validation-user-id-invalid = Ugyldig bruker-ID. Må være en gyldig e-postadresse.
 validation-user-path-invalid = Ugyldig brukersti. Må være en gyldig filsystemsti.
-
 # Login
 login-title = Logg inn på Sorting Office
 login-user-id = Bruker-ID
 login-password = Passord
 login-sign-in = Logg inn
 login-error = Ugyldig brukernavn eller passord
-
 # Pagination
 pagination-previous = Forrige
 pagination-next = Neste
@@ -626,12 +578,9 @@ pagination-of = av
 pagination-results = resultater
 login-error-invalid-credentials = Ugyldig brukernavn eller passord. Vennligst prøv igjen.
 login-error-empty-fields = Vennligst skriv inn både brukernavn og passord.
-
 # Roles and Permissions
-
 not-found-title = Siden finnes ikke
 not-found-message = Beklager, siden du ba om finnes ikke eller kan ha blitt flyttet.
-
 # Backup-administrasjon
 database-backup-title = Database Backup
 database-backup-description = Opprett og administrer databasebackup. Backup lagres lokalt og kan lastes ned.
@@ -658,23 +607,19 @@ database-backup-confirm-delete = Er du sikker på at du vil slette denne backup?
 database-backup-session-expired-delete = Sesjon utløpt. Vennligst oppdater siden.
 database-backup-failed-delete = Kunne ikke slette backup: Uventet svarsformat.
 database-backup-failed-delete-error = Kunne ikke slette backup:
-
 # Database Backup Table Headers
 database-backup-table-header-database = Database
 database-backup-table-header-created = Opprettet
 database-backup-table-header-size = Størrelse
 database-backup-table-header-filename = Filnavn
 database-backup-table-header-actions = Handlinger
-
 # Database Backup Actions
 database-backup-action-download = Last Ned
 database-backup-action-delete = Slett
-
 # Database Selection
 database-selection-title = Databasevalg
 database-selection-description = Velg databasen du vil administrere. Hver database representerer en annen e-postserver.
 database-switch-button = Bytt Database
-
 # Veiviser
 wizard-title = Domeneoppsett Veiviser
 wizard-description = Guidet oppsett for flere domener og aliaser
@@ -684,7 +629,6 @@ wizard-back = Tilbake
 wizard-cancel = Avbryt
 wizard-confirm = Bekreft Oppsett
 wizard-complete = Fullfør
-
 # Veiviser Steg 1
 wizard-step-1-title = Konfigurer Domener
 wizard-step-1-description = Skriv inn domener du vil sette opp
@@ -692,8 +636,7 @@ wizard-domains-label = Domener
 wizard-domains-placeholder = Skriv inn domener (én per linje eller komma-separert)
 wizard-transport-label = Transport
 wizard-transport-placeholder = virtual: eller annen smtp-transport
-wizard-enabled-label = Aktiver domener
-
+wizard-enabled-label = Aktivert
 # Veiviser Steg 2
 wizard-step-2-title = Konfigurer Aliaser
 wizard-step-2-description = Sett opp aliaser for alle domener
@@ -705,7 +648,6 @@ wizard-custom-aliases = Egendefinerte Aliaser
 wizard-custom-aliases-placeholder = johan, anne, støtte
 wizard-destination-label = Destinasjon
 wizard-destination-placeholder = @eksempel.no, bruker@eksempel.no eller lignende destinasjon
-
 # Veiviser Steg 3
 wizard-step-3-title = Gjennomgå Konfigurasjon
 wizard-step-3-description = Gjennomgå konfigurasjonen før du oppretter
@@ -713,14 +655,12 @@ wizard-summary-domains = Domener som skal opprettes
 wizard-summary-aliases = Aliaser som skal opprettes
 wizard-summary-total = Totalt antall
 wizard-summary-destination = Destinasjon
-
 # Veiviser Steg 4
 wizard-step-4-title = Oppretter Domener og Aliaser
 wizard-step-4-description = Vennligst vent mens vi setter opp konfigurasjonen din
 wizard-progress-domains = Oppretter domener
 wizard-progress-aliases = Oppretter aliaser
 wizard-progress-complete = Oppsett fullført
-
 # Veiviser Steg 5
 wizard-step-5-title = Oppsett Fullført
 wizard-step-5-description = Dine domener og aliaser har blitt opprettet
@@ -728,7 +668,6 @@ wizard-results-success = Opprettet
 wizard-results-failed = Kunne ikke opprette
 wizard-view-domains = Vis Domener
 wizard-new-wizard = Start Ny Veiviser
-
 # Additional wizard translation keys
 wizard-step-1-box-title = Konfigurer Domener
 wizard-step-1-box-description = Skriv inn domener du vil sette opp
@@ -748,35 +687,26 @@ wizard-aliases-created = Opprettede Aliaser
 wizard-errors-title = Feil
 wizard-errors-description = Noen feil oppstod under oppsettet. Vennligst sjekk loggene for detaljer.
 wizard-new-badge = Ny
-
 # Additional domain config translations
-wizard-domains-label = Domener
 wizard-domains-description = Skriv inn domener du vil konfigurere
-wizard-transport-label = Transport
 wizard-transport-description = Transport-konfigurasjon (f.eks. virtual for virtuelle domener)
 wizard-enabled-description = Velg om domener skal være aktiverte eller deaktiverte
 wizard-domain-status-label = Domenestatus
-wizard-enabled-label = Aktivert
 wizard-disabled-label = Deaktivert
-
 # Additional review translations
 wizard-configuration-summary-title = Konfigurasjonsoversikt
 wizard-domains-plural = domener
 wizard-aliases-plural = aliaser
 wizard-created-domains-title = Opprettede Domener
-
 # Additional executing translations
 wizard-creating-domains-text = Oppretter domener...
 wizard-creating-aliases-text = Oppretter aliaser...
-
 # Error Messages
 error-duplicate-domain = Et domene med dette navnet eksisterer allerede
-error-duplicate-backup = En backup-server for domene "{domain}" eksisterer allerede
-error-constraint-violation = Begrensningsbrudd
-error-unexpected = En uventet feil oppstod
-
+error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
+error-constraint-violation = The data does not meet the required constraints. Please check your input.
+error-unexpected = An unexpected error occurred. Please try again.
 # Error page
-error-page-title = Feil
 error-page-not-found-title = Ikke Funnet
 error-page-not-found-message = Den forespurte ressursen kunne ikke finnes.
 error-page-database-error-title = Databasefeil
@@ -820,22 +750,11 @@ backups-tooltip-transport = Transport configuration for the backup server (e.g.,
 backups-update-backup = Update Backup
 clients-action-delete = Delete
 clients-action-disable = Disable
-clients-action-edit = Edit
 clients-action-enable = Enable
 clients-action-view = View
 clients-client-name = Client Name
 clients-edit-client = Edit Client
 clients-enabled-label = Enabled
-clients-enabled-no = No
-clients-enabled-yes = Yes
-clients-field-client = Client
-clients-field-client-help = The client name, IP address, or identifier for access control
-clients-field-created = Created
-clients-field-enabled = Enabled
-clients-field-enabled-help = Is this client enabled?
-clients-field-status = Status
-clients-field-status-help = Whether this client is allowed or blocked
-clients-field-updated = Last Updated
 clients-form-client = Client
 clients-form-create-client = Create Client
 clients-form-placeholder-client = Enter client name or IP
@@ -844,10 +763,7 @@ clients-form-tooltip-client = The client name, IP address, or identifier for acc
 clients-form-tooltip-enabled = Whether this client is allowed or blocked
 clients-form-tooltip-status = The status of this client
 clients-form-update-client = Update Client
-clients-info-description = Details about this client access control configuration.
-clients-info-title = Client Information
 clients-not-available = Clients table is not available for this database
-clients-placeholder-client = Enter client name or IP
 clients-status-disabled = Disabled
 clients-status-enabled = Enabled
 clients-table-header-client = Client
@@ -876,22 +792,13 @@ domains-search-no-results = No domains found
 domains-search-select = Select a domain
 domains-table-header-transport = Transport
 en-US = English
-error-constraint-alias = Alias constraint violation
-error-constraint-backup = Backup constraint violation
-error-constraint-domain = Domain constraint violation
-error-constraint-relay = Relay constraint violation
-error-constraint-relocated = Relocated constraint violation
-error-constraint-user = User constraint violation
-error-constraint-violation = The data does not meet the required constraints. Please check your input.
 Constraint violation
 error-database-restriction = Database restriction error
 error-duplicate-alias = An alias with this name already exists
-error-duplicate-backup = A backup server for domain '{ $domain }' already exists.
 A backup server for domain "{domain}" already exists
 error-duplicate-relay = A relay with this name already exists
 error-duplicate-relocated = A relocated address with this name already exists
 error-duplicate-user = A user with this username already exists.
-error-unexpected = An unexpected error occurred. Please try again.
 An unexpected error occurred
 form-active = Active
 form-cancel = Cancel
@@ -940,7 +847,6 @@ reports-no-users-description = No users are configured in the system
 reports-present = Present
 reports-primary-domain = Domain
 reports-read-only = Read Only
-reports-status-header = Status
 Status
 reports-user-header = User
 status-ok = OK

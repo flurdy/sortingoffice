@@ -1,7 +1,6 @@
 # Application title and branding
 app-title = Sorting Office
 app-subtitle = Herramienta de Administración del Servidor de Correo
-
 # Navigation
 nav-dashboard = "Panel"
 nav-domains = "Dominios"
@@ -18,23 +17,20 @@ nav-database = "Selección de Base de Datos"
 nav-about = "Acerca de"
 nav-contact = "Contacto"
 nav-logout = "Cerrar Sesión"
-
 # Sidebar Sections
 sidebar-main = Principal
 sidebar-tables = Tablas
 sidebar-tools = Herramientas
 sidebar-admin = Administración
 sidebar-project = Proyecto
-
 # UI Controls
-theme-toggle = Cambiar tema
+theme-toggle = Alternar tema
 language-selector = Idioma
 language-english = English
 language-spanish = Español
 language-french = Français
 language-norwegian = Norsk
 language-german = Deutsch
-
 # About Page
 about-title = Acerca de Sorting Office
 about-subtitle = Una herramienta completa de administración de servidor de correo para gestionar dominios, usuarios, alias y copias de seguridad.
@@ -45,13 +41,13 @@ about-features-title = Características Principales
 about-feature-domain-management = Gestión de Dominios
 about-feature-domain-management-desc = Agregar, editar y gestionar dominios de correo con facilidad
 about-feature-user-management = Gestión de Usuarios
-about-feature-user-management-desc = Crear y gestionar usuarios de correo electrónico y cuentas
+about-feature-user-management-desc = Crear y gestionar usuarios y cuentas de correo electrónico
 about-feature-alias-management = Gestión de Alias
 about-feature-alias-management-desc = Configurar alias de correo electrónico y reglas de reenvío
-about-feature-backup-configuration = Configuración de Respaldo
+about-feature-backup-configuration = Configuración de Copias de Seguridad
 about-feature-backup-configuration-desc = Configurar y gestionar servidores MX de respaldo
 about-feature-statistics-dashboard = Panel de Estadísticas
-about-feature-statistics-dashboard-desc = Monitorear el uso y estadísticas de su servidor de correo
+about-feature-statistics-dashboard-desc = Monitorear el uso y las estadísticas de tu servidor de correo
 about-feature-dark-mode-support = Soporte para Modo Oscuro
 about-feature-dark-mode-support-desc = Interfaz moderna con modo oscuro para un uso cómodo
 about-technology-stack-title = Stack Tecnológico
@@ -74,19 +70,18 @@ about-github-project-title = Proyecto GitHub
 about-open-source = Código Abierto
 about-open-source-desc = Sorting Office es un proyecto de código abierto alojado en GitHub bajo la licencia MIT.
 about-view-repository = Ver Repositorio
-about-view-repository-desc = Explorar código fuente y documentación
+about-view-repository-desc = Navegar código fuente y documentación
 about-report-issues = Reportar Problemas
 about-report-issues-desc = Reportes de errores y solicitudes de características
 about-pull-requests = Pull Requests
 about-pull-requests-desc = Contribuir al proyecto
 about-readme = README
-about-readme-desc = Documentación del proyecto y configuración
+about-readme-desc = Documentación y configuración del proyecto
 about-version-information = Información de Versión
 about-project-details = Detalles del Proyecto
 about-version = Versión
 about-license = Licencia
 about-maintainer = Mantenedor
-
 # Common actions
 action-edit = Editar
 action-delete = Eliminar
@@ -95,13 +90,11 @@ action-save = Guardar
 action-cancel = Cancelar
 action-enable = Habilitar
 action-disable = Deshabilitar
-
 # Status indicators
 status-active = Habilitado
 status-inactive = Deshabilitado
 status-enabled = Habilitado
 status-disabled = Deshabilitado
-
 # Dashboard
 dashboard-title = Panel de Control
 dashboard-description = Resumen de las estadísticas de su servidor de correo y acciones rápidas.
@@ -120,7 +113,6 @@ dashboard-primary-actions = Acciones Principales
 dashboard-advanced-management = Gestión Avanzada
 dashboard-analytics-reports = Análisis y Reportes
 dashboard-help-resources = Ayuda y Recursos
-
 # Quick action cards
 quick-action-manage-domains = Gestionar Dominios
 quick-action-manage-domains-desc = Agregar, editar o eliminar dominios
@@ -144,7 +136,6 @@ quick-action-view-statistics = Ver Estadísticas
 quick-action-view-statistics-desc = Métricas y análisis del sistema
 quick-action-view-reports = Ver Reportes
 quick-action-view-reports-desc = Reportes detallados y análisis
-
 # Resource labels
 resource-domains = dominios
 resource-backups = copias de seguridad
@@ -153,12 +144,10 @@ resource-users = usuarios
 resource-relays = relés
 resource-relocated = reubicados
 resource-clients = clientes
-
 # Help section
 help-title = ¿Necesita ayuda para configurar su servidor de correo?
 help-description = Esta herramienta de administración se basa en la guía completa de flurdy para configurar un servidor de correo completo con Postfix, Dovecot y más.
 help-read-guide = Lea la guía completa de configuración →
-
 # Domains
 domains-title = Dominios
 domains-description = Gestionar los dominios de su servidor de correo y sus configuraciones.
@@ -200,7 +189,6 @@ domains-add-alias-button = Agregar nuevo alias
 domains-no-catch-all-message = No hay alias de captura total configurado para este dominio
 domains-analytics-common-aliases-header = Alias Comunes Basados en Análisis
 domains-analytics-common-aliases-description = Basado en patrones de uso de su base de datos
-
 # Backups
 backups-title = Copias de Seguridad
 backups-description = Gestiona tus servidores de correo de respaldo y su configuración.
@@ -242,7 +230,6 @@ backups-create-backup = Crear Copia de Seguridad
 backups-update-backup = Actualizar Copia de Seguridad
 backups-new-backup = Nueva Copia de Seguridad
 backups-edit-backup-title = Editar Copia de Seguridad
-
 # Aliases
 aliases-title = Alias
 aliases-description = Gestionar sus alias de correo y reglas de reenvío.
@@ -258,7 +245,6 @@ aliases-add-title = Agregar Alias
 aliases-edit-title = Editar Alias
 aliases-show-title = Alias
 aliases-table-header-mail = Correo
-aliases-table-header-domain = Dominio
 aliases-table-header-enabled = Habilitado
 aliases-domain = Dominio
 aliases-enable-alias = Habilitar
@@ -282,7 +268,6 @@ aliases-new-alias = Nuevo Alias
 aliases-placeholder-mail = alias@ejemplo.com
 aliases-placeholder-destination = destino@ejemplo.com
 aliases-placeholder-domain = ejemplo.com
-
 # Users
 users-title = Usuarios
 users-description = Gestiona los usuarios de tu servidor de correo y sus cuentas.
@@ -338,7 +323,6 @@ users-new-password-placeholder = Ingrese nueva contraseña
 users-confirm-password-label = Confirmar contraseña
 users-confirm-password-placeholder = Confirme la nueva contraseña
 users-cancel-button = Cancelar
-
 # Statistics
 stats-title = Estadísticas
 stats-description = Ver estadísticas detalladas sobre su servidor de correo.
@@ -371,12 +355,10 @@ stats-recent-backups = Copias de Seguridad Recientes
 stats-recent-relays = Relés Recientes
 stats-recent-relocated = Reubicados Recientes
 stats-recent-clients = Clientes Recientes
-
 # Forms
 form-domain = Dominio
 form-transport = Transporte
 form-enabled = Habilitado
-
 # Form validation
 validation-domain-required = El nombre del dominio es requerido. Por favor ingrese un nombre de dominio válido.
 validation-username-required = El nombre de usuario es requerido.
@@ -386,16 +368,13 @@ validation-alias-mail-invalid = Dirección de correo de alias inválida. Por fav
 validation-alias-destination-invalid = Destino de alias inválido. Por favor verifique el formato.
 validation-user-id-invalid = ID de usuario inválido. Debe ser una dirección de correo válida.
 validation-user-path-invalid = Ruta de usuario inválida. Debe ser una ruta de sistema de archivos válida.
-
 # Error messages
-error-unexpected = Ocurrió un error inesperado. Por favor intente nuevamente.
-error-duplicate-backup = Ya existe un servidor de respaldo para el dominio '{ $domain }'.
+error-unexpected = Ocurrió un error inesperado
+error-duplicate-backup = Ya existe un servidor de respaldo para el dominio "{domain}"
 error-duplicate-user = Ya existe un usuario con este nombre de usuario.
-error-constraint-violation = Los datos no cumplen con las restricciones requeridas. Por favor verifique su entrada.
+error-constraint-violation = Violación de restricción
 error-operation-not-allowed = Esta operación no está permitida en la base de datos actual debido a restricciones.
-
 # Error page
-error-page-title = Error
 error-page-not-found-title = No Encontrado
 error-page-not-found-message = El recurso solicitado no se pudo encontrar.
 error-page-database-error-title = Error de Base de Datos
@@ -409,19 +388,14 @@ error-page-validation-error-message = Por favor, verifica tu entrada e inténtal
 error-passwords-do-not-match = Las contraseñas no coinciden
 error-password-too-short = La contraseña debe tener al menos 8 caracteres
 error-failed-to-update-password = No se pudo actualizar la contraseña
-
 # Success messages
-
 # Theme
-theme-toggle = Alternar tema
-
 # Login
 login-title = Iniciar sesión en Sorting Office
 login-user-id = ID de Usuario
 login-password = Contraseña
 login-sign-in = Iniciar sesión
 login-error = Error
-
 # Pagination
 pagination-previous = Anterior
 pagination-next = Siguiente
@@ -429,56 +403,11 @@ pagination-showing = Mostrando
 pagination-to = a
 pagination-of = de
 pagination-results = resultados
-
 # Roles and Permissions
-
 # About
-about-title = Acerca de Sorting Office
 about-description = Una herramienta integral de administración de servidores de correo para gestionar dominios, usuarios, alias y copias de seguridad.
-about-what-is-title = ¿Qué es Sorting Office?
 about-what-is-description-1 = Sorting Office es una interfaz de administración basada en web para gestionar una configuración completa de servidor de correo. Proporciona una forma intuitiva de gestionar dominios, usuarios, alias de correo electrónico y configuraciones de copia de seguridad para un entorno de servidor de correo Postfix y Dovecot.
 about-what-is-description-2 = Construido con Rust y tecnologías web modernas, Sorting Office ofrece una forma segura, rápida y confiable de administrar tu servidor de correo sin necesidad de editar manualmente archivos de configuración.
-about-features-title = Características Principales
-about-feature-domain-management = Gestión de Dominios
-about-feature-domain-management-desc = Agregar, editar y gestionar dominios de correo con facilidad
-about-feature-user-management = Gestión de Usuarios
-about-feature-user-management-desc = Crear y gestionar usuarios y cuentas de correo electrónico
-about-feature-alias-management = Gestión de Alias
-about-feature-alias-management-desc = Configurar alias de correo electrónico y reglas de reenvío
-about-feature-backup-configuration = Configuración de Copias de Seguridad
-about-feature-backup-configuration-desc = Configurar y gestionar servidores MX de respaldo
-about-feature-statistics-dashboard = Panel de Estadísticas
-about-feature-statistics-dashboard-desc = Monitorear el uso y las estadísticas de tu servidor de correo
-about-technology-stack-title = Stack Tecnológico
-about-backend = Backend
-about-backend-desc = Rust con framework web Axum
-about-database = Base de Datos
-about-database-desc = MySQL con ORM Diesel
-about-frontend = Frontend
-about-frontend-desc = Plantillas HTML con Tailwind CSS
-about-templating = Plantillas
-about-templating-desc = Motor de plantillas Askama
-about-mail-server = Servidor de Correo
-about-mail-server-desc = Postfix & Dovecot
-about-deployment = Despliegue
-about-deployment-desc = Contenedorización Docker
-about-github-project-title = Proyecto GitHub
-about-open-source = Código Abierto
-about-open-source-desc = Sorting Office es un proyecto de código abierto alojado en GitHub bajo la licencia MIT.
-about-view-repository = Ver Repositorio
-about-view-repository-desc = Navegar código fuente y documentación
-about-report-issues = Reportar Problemas
-about-report-issues-desc = Reportes de errores y solicitudes de características
-about-pull-requests = Pull Requests
-about-pull-requests-desc = Contribuir al proyecto
-about-readme = README
-about-readme-desc = Documentación y configuración del proyecto
-about-version-information = Información de Versión
-about-project-details = Detalles del Proyecto
-about-version = Versión
-about-license = Licencia
-about-maintainer = Mantenedor
-
 # Contact
 contact-title = Información de Contacto
 contact-subtitle = Ponte en contacto con el mantenedor de la aplicación o del proyecto para soporte, preguntas y comentarios.
@@ -501,8 +430,6 @@ contact-documentation = Documentación
 contact-documentation-desc = Información de contacto y pautas
 contact-sponsorship = Patrocinio
 contact-sponsorship-desc = Apoyar el proyecto financieramente
-
-# Forms
 form-error = Error
 form-cancel = Cancelar
 form-create = Crear
@@ -515,7 +442,6 @@ form-tooltip-transport = Configuración de transporte (ej., virtual para dominio
 form-tooltip-enable = Habilitar este dominio
 form-create-domain = Crear Dominio
 form-update-domain = Actualizar Dominio
-
 # Reports
 reports-domain-header = "Dominio"
 reports-destination-header = "Destino"
@@ -526,23 +452,16 @@ reports-missing-common-aliases-header = "Alias Comunes Faltantes"
 reports-add-missing-required-alias-button = "Agregar alias"
 reports-add-common-alias-button = "Agregar alias"
 reports-add-catch-all-button = "Agregar alias"
-reports-alias-report-title = "Reporte de Alias"
-reports-alias-report-description = "Vista general de alias de captura total, requeridos y comunes para este dominio"
-reports-missing-required-alias-header = "Alias Requeridos Faltantes"
-reports-existing-aliases-header = "Alias Existentes"
-reports-no-catch-all-message = "No hay alias de captura total configurado para este dominio"
 reports-mail-header = "Correo"
-reports-status-header = "Estado"
+reports-status-header = Status
 reports-enabled-header = "Habilitado"
 reports-actions-header = "Acciones"
 reports-no-required-aliases = "No se encontraron alias requeridos para este dominio"
 reports-no-missing-aliases = "No hay alias requeridos faltantes para este dominio"
 reports-catch-all-header = Alias de Captura Total
-
 # Configuration
 config-title = "Configuración"
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
-
 # Global Feature Toggles
 config-global-features-header = "Interruptores de Características Globales"
 config-global-features-description = "Estos ajustes se aplican a todas las bases de datos a menos que sean anulados por ajustes específicos de la base de datos."
@@ -553,12 +472,10 @@ config-feature-no-password-updates = "Sin Actualizaciones de Contraseña"
 config-feature-database-disabled = "Base de Datos Deshabilitada"
 config-status-enabled = "Habilitado"
 config-status-disabled = "Deshabilitado"
-
 # Database Feature Toggles
 config-database-features-header = "Interruptores de Características de Base de Datos"
 config-database-features-description = "Restricciones de características específicas de la base de datos. Estos anulan los ajustes globales cuando están habilitados."
 config-database-disabled-badge = "Deshabilitado"
-
 # Matrix Report
 reports-matrix-title = "Reporte de Matriz de Alias de Dominios"
 reports-matrix-description = "Vista general completa de todos los dominios y su estado de alias con indicadores visuales"
@@ -566,17 +483,14 @@ reports-status-present = "Presente y habilitado"
 reports-status-missing = "Faltante"
 reports-status-disabled = "Presente pero deshabilitado"
 reports-legend-title = "Leyenda de Estado"
-
 # Reports List
 reports-list-title = "Informes"
 reports-list-description = "Ver y analizar datos del servidor de correo con informes completos"
 reports-view-report = "Ver Informe"
-
 # Domain Alias Report
 domains-alias-report-title = "Informe de Alias"
 domains-alias-report-description = "Resumen de todos los alias para este dominio, incluyendo alias de captura total, requeridos y comunes"
 domains-existing-aliases-header = "Alias Existentes"
-
 # Relays
 relays-title = Relés
 relays-add = Agregar Relé
@@ -587,9 +501,7 @@ relays-table-header-enabled = Habilitado
 relays-table-header-actions = Acciones
 relays-empty-title = No hay relés
 relays-empty-description = Comienza creando un nuevo destinatario de relé.
-relays-add-title = Agregar Relé
 relays-show-title = Relé
-relays-show-title-label = Relé
 relays-view-edit-settings = Ver y editar configuración de relé.
 relays-info-title = Información de Relé
 relays-info-description = Detalles sobre esta configuración de relé.
@@ -605,7 +517,6 @@ relays-placeholder-status = Ingrese código de estado
 relays-field-recipient-help = La dirección de destinatario para este relé (ej., usuario@ejemplo.com)
 relays-field-status-help = El código de estado para este relé (ej., activo, deshabilitado, etc.)
 relays-back-to-list = Volver a Relés
-
 # Relocated
 relocated-title = Reubicados
 relocated-add = Agregar Reubicado
@@ -634,11 +545,8 @@ relocated-placeholder-old-address = Ingrese dirección de correo anterior
 relocated-placeholder-new-address = Ingrese nueva dirección de correo
 relocated-field-old-address-help = La dirección de correo anterior que debe ser reubicada (ej., usuarioantiguo@ejemplo.com)
 relocated-field-new-address-help = La nueva dirección de correo donde se debe enviar el correo (ej., usuarionuevo@ejemplo.com)
-relocated-new-relocated = Nueva Dirección Reubicada
-relocated-edit-relocated = Editar Dirección Reubicada
 relocated-not-found = Dirección reubicada no encontrada
 relocated-create-error = Error al crear dirección reubicada
-
 # Clients
 clients-title = Clientes
 clients-description = Gestionar controles de acceso de clientes para autenticación SMTP.
@@ -648,40 +556,21 @@ clients-table-header-status = Estado
 clients-table-header-actions = Acciones
 clients-empty-title = No hay clientes
 clients-empty-description = Comienza creando un nuevo control de acceso de cliente.
-clients-add-title = Agregar Cliente
-clients-edit-title = Editar Cliente
-clients-show-title = Cliente
 clients-view-edit-settings = Ver y editar configuración de control de acceso de cliente.
 clients-back-to-clients = Volver a Clientes
-clients-info-title = Información de Cliente
-clients-info-description = Detalles sobre esta configuración de control de acceso de cliente.
-clients-field-client = Cliente
-clients-field-status = Estado
-clients-field-created = Creado
-clients-field-updated = Última Actualización
-clients-action-edit = Editar
 clients-action-delete = Eliminar
 clients-action-view = Ver
 clients-delete-confirm = ¿Está seguro de que desea eliminar este cliente?
-clients-placeholder-client = Ingrese nombre de cliente o IP
-clients-field-client-help = El nombre del cliente, dirección IP o identificador para control de acceso
-clients-field-status-help = Si este cliente está permitido o bloqueado
 clients-not-found = Cliente no encontrado
 clients-status-ok = OK
 clients-status-reject = REJECT
-clients-field-enabled = Habilitado
-clients-field-enabled-help = ¿Está habilitado este cliente?
 clients-table-header-enabled = Habilitado
-clients-enabled-yes = Sí
-clients-enabled-no = No
 clients-action-enable = Habilitar
 clients-action-disable = Deshabilitar
 clients-status-enabled = Habilitado
 clients-status-disabled = Deshabilitado
-
 not-found-title = Página no encontrada
 not-found-message = Lo sentimos, la página que solicitó no existe o puede haber sido movida.
-
 # Gestión de Respaldo
 database-backup-title = Respaldo de Base de Datos
 database-backup-description = Crear y gestionar respaldos de bases de datos. Los respaldos se almacenan localmente y se pueden descargar.
@@ -708,23 +597,19 @@ database-backup-confirm-delete = ¿Está seguro de que desea eliminar este respa
 database-backup-session-expired-delete = Sesión expirada. Por favor actualice la página.
 database-backup-failed-delete = Error al eliminar respaldo: Formato de respuesta inesperado.
 database-backup-failed-delete-error = Error al eliminar respaldo:
-
 # Database Backup Table Headers
 database-backup-table-header-database = Base de Datos
 database-backup-table-header-created = Creado
 database-backup-table-header-size = Tamaño
 database-backup-table-header-filename = Nombre del Archivo
 database-backup-table-header-actions = Acciones
-
 # Database Backup Actions
 database-backup-action-download = Descargar
 database-backup-action-delete = Eliminar
-
 # Database Selection
 database-selection-title = Selección de Base de Datos
 database-selection-description = Selecciona la base de datos que quieres gestionar. Cada base de datos representa un servidor de correo diferente.
 database-switch-button = Cambiar Base de Datos
-
 # Etiquetas de campos del formulario de usuario (añadidas para traducción completa)
 users-field-id = ID de usuario
 users-field-password = Contraseña
@@ -732,7 +617,6 @@ users-field-name = Nombre de usuario
 users-field-active = Activo
 users-field-maildir = Directorio de correo
 users-field-home = Directorio principal
-
 # Ayudas de campos de usuario (añadidas para traducción completa)
 users-field-id-help = La dirección de correo electrónico de la cuenta de usuario (p.ej. usuario@ejemplo.com)
 users-field-password-help = La contraseña de la cuenta de usuario (dejar vacío para mantener la existente al editar)
@@ -740,7 +624,6 @@ users-field-name-help = El nombre de usuario de la cuenta
 users-field-active-help = Activar esta cuenta de usuario
 users-field-maildir-help = El nombre del directorio de correo del usuario
 users-field-home-help = El directorio raíz que contiene los buzones
-
 # Asistente
 wizard-title = Asistente de Configuración de Dominios
 wizard-description = Configuración guiada para múltiples dominios y alias
@@ -750,7 +633,6 @@ wizard-back = Atrás
 wizard-cancel = Cancelar
 wizard-confirm = Confirmar Configuración
 wizard-complete = Completar
-
 # Asistente Paso 1
 wizard-step-1-title = Configurar Dominios
 wizard-step-1-description = Ingrese los dominios que desea configurar
@@ -758,8 +640,7 @@ wizard-domains-label = Dominios
 wizard-domains-placeholder = Ingrese dominios (uno por línea o separados por comas)
 wizard-transport-label = Transporte
 wizard-transport-placeholder = virtual: u otro transporte smtp
-wizard-enabled-label = Habilitar dominios
-
+wizard-enabled-label = Habilitado
 # Asistente Paso 2
 wizard-step-2-title = Configurar Alias
 wizard-step-2-description = Configurar alias para todos los dominios
@@ -771,7 +652,6 @@ wizard-custom-aliases = Alias Personalizados
 wizard-custom-aliases-placeholder = juan, ana, soporte
 wizard-destination-label = Destino
 wizard-destination-placeholder = @ejemplo.com, usuario@ejemplo.com o destino similar
-
 # Asistente Paso 3
 wizard-step-3-title = Revisar Configuración
 wizard-step-3-description = Revise su configuración antes de crear
@@ -779,14 +659,12 @@ wizard-summary-domains = Dominios a crear
 wizard-summary-aliases = Alias a crear
 wizard-summary-total = Total de elementos
 wizard-summary-destination = Destino
-
 # Asistente Paso 4
 wizard-step-4-title = Creando Dominios y Alias
 wizard-step-4-description = Por favor espere mientras configuramos su configuración
 wizard-progress-domains = Creando dominios
 wizard-progress-aliases = Creando alias
 wizard-progress-complete = Configuración completada
-
 # Asistente Paso 5
 wizard-step-5-title = Configuración Completada
 wizard-step-5-description = Sus dominios y alias han sido creados
@@ -794,7 +672,6 @@ wizard-results-success = Creado exitosamente
 wizard-results-failed = Error al crear
 wizard-view-domains = Ver Dominios
 wizard-new-wizard = Iniciar Nuevo Asistente
-
 # Additional wizard translation keys
 wizard-step-1-box-title = Configurar Dominios
 wizard-step-1-box-description = Ingrese los dominios que desea configurar
@@ -814,32 +691,22 @@ wizard-aliases-created = Alias Creados
 wizard-errors-title = Errores
 wizard-errors-description = Ocurrieron algunos errores durante la configuración. Por favor revise los registros para más detalles.
 wizard-new-badge = Nuevo
-
 # Additional domain config translations
-wizard-domains-label = Dominios
 wizard-domains-description = Ingrese los dominios que desea configurar
-wizard-transport-label = Transporte
 wizard-transport-description = Configuración de transporte (ej. virtual para dominios virtuales)
 wizard-enabled-description = Elija si los dominios deben estar habilitados o deshabilitados
 wizard-domain-status-label = Estado del Dominio
-wizard-enabled-label = Habilitado
 wizard-disabled-label = Deshabilitado
-
 # Additional review translations
 wizard-configuration-summary-title = Resumen de Configuración
 wizard-domains-plural = dominios
 wizard-aliases-plural = alias
 wizard-created-domains-title = Dominios Creados
-
 # Additional executing translations
 wizard-creating-domains-text = Creando dominios...
 wizard-creating-aliases-text = Creando alias...
-
 # Error Messages
 error-duplicate-domain = Ya existe un dominio con este nombre
-error-duplicate-backup = Ya existe un servidor de respaldo para el dominio "{domain}"
-error-constraint-violation = Violación de restricción
-error-unexpected = Ocurrió un error inesperado
 a = a
 aliases-create-alias = Create Alias
 aliases-enable-missing-alias = Enable Missing Alias
@@ -860,7 +727,6 @@ aliases-update-alias = Update Alias
 analytics-common-aliases-description = Common aliases found in the database
 analytics-common-aliases-header = Common Aliases
 backups-add-title = Add Backup
-backups-edit-title = Edit Backup
 clients-client-details = Client Details
 clients-client-information = Client Information
 clients-client-name = Client Name
@@ -904,12 +770,6 @@ domains-search-no-results = No domains found
 domains-search-select = Select a domain
 domains-table-header-transport = Transport
 en-US = English
-error-constraint-alias = Alias constraint violation
-error-constraint-backup = Backup constraint violation
-error-constraint-domain = Domain constraint violation
-error-constraint-relay = Relay constraint violation
-error-constraint-relocated = Relocated constraint violation
-error-constraint-user = User constraint violation
 error-database-restriction = Database restriction error
 error-duplicate-alias = An alias with this name already exists
 error-duplicate-relay = A relay with this name already exists
@@ -956,7 +816,6 @@ reports-orphaned-aliases-title = Orphaned Aliases & Users Report
 reports-present = Present
 reports-primary-domain = Domain
 reports-read-only = Read Only
-reports-status-header = Status
 Status
 reports-user-header = User
 status-ok = OK

@@ -172,6 +172,21 @@ Remove orphaned translation keys from .ftl files.
 - Creates backup before removal
 - Supports multiple language files
 
+### `remove_duplicate_ftl_keys.sh` - Translation Key Deduplication
+
+Remove duplicate translation keys from all language files.
+
+**Usage:**
+```bash
+./scripts/remove_duplicate_ftl_keys.sh
+```
+
+**Features:**
+- Removes duplicate keys while preserving first occurrence
+- Maintains original key order
+- Creates backup before removal
+- Supports all language files (en-US, de-DE, fr-FR, es-ES, nb-NO)
+
 ## Common Use Cases
 
 ### Testing API Endpoints

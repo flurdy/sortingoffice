@@ -77,8 +77,8 @@
     - ✅ French (fr-FR): All keys added  
     - ✅ Spanish (es-ES): All keys added
     - ✅ Norwegian (nb-NO): All keys added
-  - ⚠️ **Cleanup needed**: Remove orphaned translation keys
-  - Any duplicate keys in the message bundles?
+  - ✅ **Orphaned keys removed**: 33 orphaned keys removed from all language files
+  - ✅ **Duplicate keys removed**: All duplicate keys removed from all language files
 
 - Sometimes refactoring has been done as an example but not applied to the rest of the codebase. This is not about the error handling 
  - Investigate if any helpers has been introduced but not used throughout.
