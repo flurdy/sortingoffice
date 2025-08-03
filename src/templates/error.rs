@@ -100,7 +100,12 @@ impl ErrorTemplate {
             relays_available: state.config.is_relays_available(current_db_id),
             relocated_available: state.config.is_relocated_available(current_db_id),
             clients_available: state.config.is_clients_available(current_db_id),
-            error_go_to_dashboard: crate::i18n::get_translation(state, locale, "error-go-to-dashboard").await,
+            error_go_to_dashboard: crate::i18n::get_translation(
+                state,
+                locale,
+                "error-go-to-dashboard",
+            )
+            .await,
             error_go_back: crate::i18n::get_translation(state, locale, "error-go-back").await,
             sidebar_main: crate::i18n::get_translation(state, locale, "sidebar-main").await,
             sidebar_tables: crate::i18n::get_translation(state, locale, "sidebar-tables").await,

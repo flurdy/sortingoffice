@@ -15,7 +15,9 @@ impl I18n {
         let mut messages = HashMap::new();
 
         // Load all locales
-        let locales = ["en-US", "es-ES", "fr-FR", "nb-NO", "de-DE", "it-IT", "nl-NL"];
+        let locales = [
+            "en-US", "es-ES", "fr-FR", "nb-NO", "de-DE", "it-IT", "nl-NL",
+        ];
         for locale in locales {
             debug!("Loading locale: {}", locale);
             match Self::load_messages(locale) {
