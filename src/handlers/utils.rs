@@ -201,6 +201,17 @@ pub fn render_template_safely<T: Template>(template: T) -> Result<String, String
     })
 }
 
+/// Helper function to render template safely and return Html or error
+/// Note: This function should be used carefully as it doesn't have access to state and headers
+/// for proper error page rendering. Consider using render_template_safely directly with
+/// proper error page handling in the calling function.
+pub fn render_template_to_html<T: Template>(template: T) -> Html<String> {
+    match render_template_safely(template) {
+        Ok(content) => Html(content),
+        Err(_) => Html("Template rendering error".to_string()),
+    }
+}
+
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -1030,7 +1041,10 @@ pub async fn render_list_template<T>(
 where
     T: Template,
 {
-    let content = template.render().unwrap();
+    let content = match render_template_safely(template) {
+        Ok(content) => content,
+        Err(_) => return render_500_page(state, headers).await,
+    };
 
     if is_htmx_request(headers) {
         Html(content)
@@ -1054,7 +1068,10 @@ where
         )
         .await
         .unwrap();
-        Html(template.render().unwrap())
+        match render_template_safely(template) {
+            Ok(content) => Html(content),
+            Err(_) => render_500_page(state, headers).await,
+        }
     }
 }
 
@@ -1067,7 +1084,10 @@ pub async fn render_show_template<T>(
 where
     T: Template,
 {
-    let content = template.render().unwrap();
+    let content = match render_template_safely(template) {
+        Ok(content) => content,
+        Err(_) => return render_500_page(state, headers).await,
+    };
 
     if is_htmx_request(headers) {
         Html(content)
@@ -1091,7 +1111,10 @@ where
         )
         .await
         .unwrap();
-        Html(template.render().unwrap())
+        match render_template_safely(template) {
+            Ok(content) => Html(content),
+            Err(_) => render_500_page(state, headers).await,
+        }
     }
 }
 
@@ -1623,7 +1646,10 @@ where
                 Some(error_msg),
             )
             .await;
-            let content = form_template.render().unwrap();
+            let content = match render_template_safely(form_template) {
+                Ok(content) => content,
+                Err(_) => return Err(render_500_page(state, headers).await),
+            };
 
             if is_htmx_request(headers) {
                 Err(Html(content))
@@ -1639,7 +1665,10 @@ where
                 )
                 .await
                 .unwrap();
-                Err(Html(template.render().unwrap()))
+                Err(match render_template_safely(template) {
+                    Ok(content) => Html(content),
+                    Err(_) => render_500_page(state, headers).await,
+                })
             }
         }
     }

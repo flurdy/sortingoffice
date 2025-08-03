@@ -61,7 +61,10 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         sponsorship_desc: &form_translations["contact-sponsorship-desc"],
         app_contact: state.config.contact.clone(),
     };
-    let content = content_template.render().unwrap();
+    let content = match crate::handlers::utils::render_template_safely(content_template) {
+        Ok(content) => content,
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+    };
 
     // Get current database id from session/cookie or default
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
@@ -86,5 +89,8 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     .await
     .unwrap();
 
-    Html(template.render().unwrap())
+    match crate::handlers::utils::render_template_safely(template) {
+        Ok(content) => Html(content),
+        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+    }
 }

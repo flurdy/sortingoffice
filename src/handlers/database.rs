@@ -129,5 +129,8 @@ pub async fn dropdown(
         current_db: &current_db,
         current_url,
     };
-    Html(content_template.render().unwrap())
+    match crate::handlers::utils::render_template_safely(content_template) {
+        Ok(content) => Html(content),
+        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+    }
 }

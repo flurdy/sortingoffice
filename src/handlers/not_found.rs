@@ -7,7 +7,7 @@ use askama::Template;
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
-    response::Response,
+    response::{IntoResponse, Response},
 };
 
 pub async fn not_found(headers: HeaderMap, State(state): State<AppState>) -> Response {
@@ -41,7 +41,14 @@ pub async fn not_found(headers: HeaderMap, State(state): State<AppState>) -> Res
     )
     .await
     .unwrap();
-    let html = template.render().unwrap();
+    let html = match crate::handlers::utils::render_template_safely(template) {
+        Ok(html) => html,
+        Err(_) => {
+            return crate::handlers::utils::render_404_page(&state, &headers)
+                .await
+                .into_response()
+        }
+    };
     Response::builder()
         .status(StatusCode::NOT_FOUND)
         .header("Content-Type", "text/html; charset=utf-8")

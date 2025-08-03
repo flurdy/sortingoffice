@@ -3,18 +3,10 @@
 - ✅ All Github actions apart from smoke test still fail
   - https://github.com/flurdy/sortingoffice/actions/  
 
-- ✅ Create scrips/makefile or docker compose settings for launching ssh tunnels to databases for prod use.
 
-## Code Quality & Refactoring Tasks
+- ⚠️ Remaining: Deprecated Selenium methods (lower priority)
 
-### High Priority
-- ✅ Fix clippy warnings and formatting issues
-  - ⚠️ Remaining: Deprecated Selenium methods (lower priority)
 
-- ✅ Complete I18N implementation
-  - ⚠️ Remaining: Locale detection and switching (lower priority)
-
-### Medium Priority
 - Refactor long functions and complex logic
   - Consolidate similar validation logic across handlers
   - Simplify complex conditional logic in handlers
@@ -80,9 +72,13 @@
   - ✅ **Orphaned keys removed**: 33 orphaned keys removed from all language files
   - ✅ **Duplicate keys removed**: All duplicate keys removed from all language files
 
-- Sometimes refactoring has been done as an example but not applied to the rest of the codebase. This is not about the error handling 
- - Investigate if any helpers has been introduced but not used throughout.
- - Any other smaller pure code changes patterns.
+- ✅ Sometimes refactoring has been done as an example but not applied to the rest of the codebase. This is not about the error handling 
+  - ✅ **Investigation completed**: Found several helper functions that are not consistently used
+  - ✅ **Template rendering safety**: Added `render_template_to_html` helper and started replacing `unwrap()` calls
+  - ✅ **Template rendering refactoring completed**: Replaced all `unwrap()` calls in template rendering across all handlers with proper error handling
+  - ⚠️ **Database operation helpers**: Apply `handle_entity_operation` and `handle_db_operation` consistently
+  - ⚠️ **Form validation helpers**: Use `validate_form_and_handle_error` where applicable
+  - ⚠️ **Pagination helpers**: Apply `get_entity_list_with_pagination` consistently
 
 - Add a Dutch translations
 

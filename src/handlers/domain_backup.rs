@@ -121,7 +121,10 @@ pub async fn create(
             form,
             error: Some(get_translation(&state, &locale, "validation-domain-required").await),
         };
-        return Html(content_template.render().unwrap());
+        return match crate::handlers::utils::render_template_safely(content_template) {
+            Ok(content) => Html(content),
+            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        };
     }
 
     // Validate domain format
@@ -156,7 +159,10 @@ pub async fn create(
                 form,
                 error: Some(get_translation(&state, &locale, "validation-domain-invalid").await),
             };
-            return Html(content_template.render().unwrap());
+            return match crate::handlers::utils::render_template_safely(content_template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            };
         }
     }
 
@@ -214,7 +220,10 @@ pub async fn create(
                 form,
                 error: Some(error_message),
             };
-            let content = content_template.render().unwrap();
+            let content = match crate::handlers::utils::render_template_safely(content_template) {
+                Ok(content) => content,
+                Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+            };
 
             // Get current database id from session/cookie or default
             let current_db_id = crate::handlers::auth::get_selected_database(&headers)
@@ -239,7 +248,10 @@ pub async fn create(
             .await
             .unwrap();
 
-            Html(template.render().unwrap())
+            match crate::handlers::utils::render_template_safely(template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            }
         }
     }
 }
@@ -284,7 +296,10 @@ pub async fn update(
             form,
             error: Some(get_translation(&state, &locale, "validation-domain-required").await),
         };
-        return Html(content_template.render().unwrap());
+        return match crate::handlers::utils::render_template_safely(content_template) {
+            Ok(content) => Html(content),
+            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        };
     }
 
     match db::update_backup(&pool, id, form.clone()) {
@@ -318,7 +333,10 @@ pub async fn update(
                 delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
                 backup,
             };
-            Html(content_template.render().unwrap())
+            match crate::handlers::utils::render_template_safely(content_template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            }
         }
         Err(e) => {
             let error_message = match e {
@@ -534,7 +552,10 @@ pub async fn toggle_enabled_show(
                 delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
                 backup,
             };
-            Html(content_template.render().unwrap())
+            match crate::handlers::utils::render_template_safely(content_template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            }
         }
         Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }

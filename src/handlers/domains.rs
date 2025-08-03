@@ -348,7 +348,10 @@ pub async fn render_domain_show_page(
         domains_missing_aliases_header: &translations["domains-missing-aliases-header"],
         domains_catch_all_header: &translations["domains-catch-all-header"],
     };
-    let content = content_template.render().unwrap();
+    let content = match crate::handlers::utils::render_template_safely(content_template) {
+        Ok(content) => content,
+        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+    };
 
     if crate::handlers::utils::is_htmx_request(headers) {
         Html(content)
@@ -372,7 +375,10 @@ pub async fn render_domain_show_page(
         )
         .await
         .unwrap();
-        Html(template.render().unwrap())
+        match crate::handlers::utils::render_template_safely(template) {
+            Ok(content) => Html(content),
+            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        }
     }
 }
 

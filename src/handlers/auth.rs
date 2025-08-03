@@ -36,7 +36,10 @@ pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Ht
         current_locale: &locale,
     };
 
-    Html(template.render().unwrap())
+    match crate::handlers::utils::render_template_safely(template) {
+        Ok(content) => Html(content),
+        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+    }
 }
 
 #[derive(Deserialize)]
@@ -105,7 +108,12 @@ pub async fn login(
                 language_german: &translations["language-german"],
                 current_locale: &locale,
             };
-            return Err(Html(template.render().unwrap()));
+            return Err(
+                match crate::handlers::utils::render_template_safely(template) {
+                    Ok(content) => Html(content),
+                    Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+                },
+            );
         }
     }
 
@@ -221,7 +229,12 @@ pub async fn login(
             language_german: &language_german,
             current_locale: &locale,
         };
-        Err(Html(template.render().unwrap()))
+        Err(
+            match crate::handlers::utils::render_template_safely(template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            },
+        )
     }
 }
 

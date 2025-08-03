@@ -644,7 +644,10 @@ pub async fn search(
             no_results: &translations["aliases-search-no-results"],
             select_text: &translations["aliases-search-select"],
         };
-        return Html(content_template.render().unwrap());
+        return match crate::handlers::utils::render_template_safely(content_template) {
+            Ok(content) => Html(content),
+            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        };
     }
 
     let limit = query.limit.unwrap_or(10);
@@ -741,7 +744,10 @@ pub async fn domain_search(
             status_active: &translations["status-active"],
             status_inactive: &translations["status-inactive"],
         };
-        return Html(content_template.render().unwrap());
+        return match crate::handlers::utils::render_template_safely(content_template) {
+            Ok(content) => Html(content),
+            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        };
     }
 
     let limit = query.limit.unwrap_or(10);
@@ -768,5 +774,8 @@ pub async fn domain_search(
         status_active: &translations["status-active"],
         status_inactive: &translations["status-inactive"],
     };
-    Html(content_template.render().unwrap())
+    match crate::handlers::utils::render_template_safely(content_template) {
+        Ok(content) => Html(content),
+        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+    }
 }

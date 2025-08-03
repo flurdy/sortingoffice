@@ -410,7 +410,10 @@ pub async fn create(
         let form_template =
             build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
                 .await;
-        let content = form_template.render().unwrap();
+        let content = match crate::handlers::utils::render_template_safely(form_template) {
+            Ok(content) => content,
+            Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        };
 
         if crate::handlers::utils::is_htmx_request(&headers) {
             return Html(content);
@@ -426,7 +429,10 @@ pub async fn create(
             )
             .await
             .unwrap();
-            return Html(template.render().unwrap());
+            return match crate::handlers::utils::render_template_safely(template) {
+                Ok(content) => Html(content),
+                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            };
         }
     }
 
