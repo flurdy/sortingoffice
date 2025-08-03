@@ -76,11 +76,14 @@
   - ✅ **Investigation completed**: Found several helper functions that are not consistently used
   - ✅ **Template rendering safety**: Added `render_template_to_html` helper and started replacing `unwrap()` calls
   - ✅ **Template rendering refactoring completed**: Replaced all `unwrap()` calls in template rendering across all handlers with proper error handling
-  - ⚠️ **Database operation helpers**: Apply `handle_entity_operation` and `handle_db_operation` consistently
-  - ⚠️ **Form validation helpers**: Use `validate_form_and_handle_error` where applicable
-  - ⚠️ **Pagination helpers**: Apply `get_entity_list_with_pagination` consistently
+  - ✅ **Database operation helpers**: Applied `handle_entity_operation` and `handle_db_operation` consistently across handlers (reverted over-complicated changes in domains.rs)
+  - ✅ **Template rendering helpers**: Extracted `render_backup_form_page_with_error` helper and refactored `domain_backup.rs` to use existing `render_backup_show_page` and `render_backup_form_page` helpers
+  - ⚠️ **Form validation helpers**: Use `validate_form_and_handle_error` where applicable (complex due to lifetime issues)
+  - ⚠️ **Pagination helpers**: Apply `get_entity_list_with_pagination` consistently (requires adapting for `PaginatedResult<T>` vs `Vec<T>`)
 
 - Add a Dutch translations
+
+- The utils.rs file is huge. Can it be split?
 
 - Add a Italian translations
 

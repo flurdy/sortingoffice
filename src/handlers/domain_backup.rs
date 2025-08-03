@@ -1,7 +1,4 @@
-use crate::templates::domain_backup::*;
-use crate::templates::layout::BaseTemplate;
 use crate::{db, get_entity_or_not_found, i18n::get_translation, models::*, AppState};
-use askama::Template;
 use axum::{
     extract::{Path, State},
     http::HeaderMap,
@@ -95,74 +92,32 @@ pub async fn create(
 
     // Validate form data
     if form.domain.trim().is_empty() {
-        let content_template = BackupFormTemplate {
-            title: get_translation(&state, &locale, "backups-new-backup").await,
-            form_error: get_translation(&state, &locale, "backups-form-error").await,
-            form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-            form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-            form_active: get_translation(&state, &locale, "backups-form-active").await,
-            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
-                .await,
-            placeholder_transport: get_translation(
-                &state,
-                &locale,
-                "backups-placeholder-transport",
-            )
-            .await,
-            tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-            tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
-            tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-            cancel: get_translation(&state, &locale, "backups-cancel").await,
-            create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-            update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-            new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-            edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
-            backup: None,
+        return crate::handlers::utils::render_backup_form_page_with_error(
             form,
-            error: Some(get_translation(&state, &locale, "validation-domain-required").await),
-        };
-        return match crate::handlers::utils::render_template_safely(content_template) {
-            Ok(content) => Html(content),
-            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-        };
+            None,
+            "backups-new-backup",
+            "validation-domain-required",
+            &state,
+            &locale,
+            &headers,
+        )
+        .await;
     }
 
     // Validate domain format
     match crate::validation::validate_domain(form.domain.trim()) {
         Ok(_) => {}
         Err(_e) => {
-            let content_template = BackupFormTemplate {
-                title: get_translation(&state, &locale, "backups-new-backup").await,
-                form_error: get_translation(&state, &locale, "backups-form-error").await,
-                form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-                form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-                form_active: get_translation(&state, &locale, "backups-form-active").await,
-                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
-                    .await,
-                placeholder_transport: get_translation(
-                    &state,
-                    &locale,
-                    "backups-placeholder-transport",
-                )
-                .await,
-                tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
-                    .await,
-                tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-                cancel: get_translation(&state, &locale, "backups-cancel").await,
-                create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-                update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-                new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
-                    .await,
-                backup: None,
+            return crate::handlers::utils::render_backup_form_page_with_error(
                 form,
-                error: Some(get_translation(&state, &locale, "validation-domain-invalid").await),
-            };
-            return match crate::handlers::utils::render_template_safely(content_template) {
-                Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-            };
+                None,
+                "backups-new-backup",
+                "validation-domain-invalid",
+                &state,
+                &locale,
+                &headers,
+            )
+            .await;
         }
     }
 
@@ -192,66 +147,16 @@ pub async fn create(
                 _ => get_translation(&state, &locale, "error-unexpected").await,
             };
 
-            let content_template = BackupFormTemplate {
-                title: get_translation(&state, &locale, "backups-new-backup").await,
-                form_error: get_translation(&state, &locale, "backups-form-error").await,
-                form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-                form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-                form_active: get_translation(&state, &locale, "backups-form-active").await,
-                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
-                    .await,
-                placeholder_transport: get_translation(
-                    &state,
-                    &locale,
-                    "backups-placeholder-transport",
-                )
-                .await,
-                tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
-                    .await,
-                tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-                cancel: get_translation(&state, &locale, "backups-cancel").await,
-                create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-                update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-                new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
-                    .await,
-                backup: None,
+            return crate::handlers::utils::render_backup_form_page_with_error(
                 form,
-                error: Some(error_message),
-            };
-            let content = match crate::handlers::utils::render_template_safely(content_template) {
-                Ok(content) => content,
-                Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
-            };
-
-            // Get current database id from session/cookie or default
-            let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-                .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-            // Get current database label from db_manager
-            let current_db_label = state
-                .db_manager
-                .get_configs()
-                .iter()
-                .find(|db| db.id == current_db_id)
-                .map(|db| db.label.clone())
-                .unwrap_or_else(|| current_db_id.clone());
-
-            let template = BaseTemplate::with_i18n(
-                get_translation(&state, &locale, "backups-title").await,
-                content,
+                None,
+                "backups-new-backup",
+                &error_message,
                 &state,
                 &locale,
-                current_db_label,
-                current_db_id,
+                &headers,
             )
-            .await
-            .unwrap();
-
-            match crate::handlers::utils::render_template_safely(template) {
-                Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-            }
+            .await;
         }
     }
 }
@@ -270,36 +175,16 @@ pub async fn update(
 
     // Validate form data
     if form.domain.trim().is_empty() {
-        let content_template = BackupFormTemplate {
-            title: get_translation(&state, &locale, "backups-edit-backup-title").await,
-            form_error: get_translation(&state, &locale, "backups-form-error").await,
-            form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-            form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-            form_active: get_translation(&state, &locale, "backups-form-active").await,
-            placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
-                .await,
-            placeholder_transport: get_translation(
-                &state,
-                &locale,
-                "backups-placeholder-transport",
-            )
-            .await,
-            tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-            tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport").await,
-            tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-            cancel: get_translation(&state, &locale, "backups-cancel").await,
-            create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-            update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-            new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-            edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title").await,
-            backup: None,
+        return crate::handlers::utils::render_backup_form_page_with_error(
             form,
-            error: Some(get_translation(&state, &locale, "validation-domain-required").await),
-        };
-        return match crate::handlers::utils::render_template_safely(content_template) {
-            Ok(content) => Html(content),
-            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-        };
+            None,
+            "backups-edit-backup-title",
+            "validation-domain-required",
+            &state,
+            &locale,
+            &headers,
+        )
+        .await;
     }
 
     match db::update_backup(&pool, id, form.clone()) {
@@ -311,32 +196,8 @@ pub async fn update(
                         .await
                 }
             };
-            let content_template = BackupShowTemplate {
-                title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
-                    .await,
-                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information")
-                    .await,
-                backup_details: get_translation(&state, &locale, "backups-backup-details").await,
-                domain: get_translation(&state, &locale, "backups-domain").await,
-                transport: get_translation(&state, &locale, "backups-transport").await,
-                status: get_translation(&state, &locale, "backups-status").await,
-                created: get_translation(&state, &locale, "backups-created").await,
-                modified: get_translation(&state, &locale, "backups-modified").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                edit_backup: get_translation(&state, &locale, "backups-edit-backup").await,
-                enable_backup: get_translation(&state, &locale, "backups-enable-backup").await,
-                disable_backup: get_translation(&state, &locale, "backups-disable-backup").await,
-                delete_backup: get_translation(&state, &locale, "backups-delete-backup").await,
-                delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
-                backup,
-            };
-            match crate::handlers::utils::render_template_safely(content_template) {
-                Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-            }
+            // Use the helper function for rendering
+            crate::handlers::utils::render_backup_show_page(backup, &state, &locale, &headers).await
         }
         Err(e) => {
             let error_message = match e {
@@ -353,35 +214,16 @@ pub async fn update(
                 _ => get_translation(&state, &locale, "error-unexpected").await,
             };
 
-            let content_template = BackupFormTemplate {
-                title: get_translation(&state, &locale, "backups-edit-backup-title").await,
-                form_error: get_translation(&state, &locale, "backups-form-error").await,
-                form_domain: get_translation(&state, &locale, "backups-form-domain").await,
-                form_transport: get_translation(&state, &locale, "backups-form-transport").await,
-                form_active: get_translation(&state, &locale, "backups-form-active").await,
-                placeholder_domain: get_translation(&state, &locale, "backups-placeholder-domain")
-                    .await,
-                placeholder_transport: get_translation(
-                    &state,
-                    &locale,
-                    "backups-placeholder-transport",
-                )
-                .await,
-                tooltip_domain: get_translation(&state, &locale, "backups-tooltip-domain").await,
-                tooltip_transport: get_translation(&state, &locale, "backups-tooltip-transport")
-                    .await,
-                tooltip_active: get_translation(&state, &locale, "backups-tooltip-active").await,
-                cancel: get_translation(&state, &locale, "backups-cancel").await,
-                create_backup: get_translation(&state, &locale, "backups-create-backup").await,
-                update_backup: get_translation(&state, &locale, "backups-update-backup").await,
-                new_backup: get_translation(&state, &locale, "backups-new-backup").await,
-                edit_backup_title: get_translation(&state, &locale, "backups-edit-backup-title")
-                    .await,
-                backup: None,
+            return crate::handlers::utils::render_backup_form_page_with_error(
                 form,
-                error: Some(error_message),
-            };
-            Html(content_template.render().unwrap())
+                None,
+                "backups-edit-backup-title",
+                &error_message,
+                &state,
+                &locale,
+                &headers,
+            )
+            .await;
         }
     }
 }
@@ -454,53 +296,9 @@ pub async fn toggle_enabled(
             .await
             {
                 Ok(backup) => {
-                    let content_template = BackupShowTemplate {
-                        title: get_translation(&state, &locale, "backups-show-title").await,
-                        view_edit_settings: get_translation(
-                            &state,
-                            &locale,
-                            "backups-view-edit-settings",
-                        )
-                        .await,
-                        back_to_domains: get_translation(
-                            &state,
-                            &locale,
-                            "domains-back-to-domains",
-                        )
-                        .await,
-                        backup_information: get_translation(
-                            &state,
-                            &locale,
-                            "backups-backup-information",
-                        )
-                        .await,
-                        backup_details: get_translation(&state, &locale, "backups-backup-details")
-                            .await,
-                        domain: get_translation(&state, &locale, "backups-domain").await,
-                        transport: get_translation(&state, &locale, "backups-transport").await,
-                        status: get_translation(&state, &locale, "backups-status").await,
-                        created: get_translation(&state, &locale, "backups-created").await,
-                        modified: get_translation(&state, &locale, "backups-modified").await,
-                        status_active: get_translation(&state, &locale, "status-active").await,
-                        status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                        edit_backup: get_translation(&state, &locale, "backups-edit-backup").await,
-                        enable_backup: get_translation(&state, &locale, "backups-enable-backup")
-                            .await,
-                        disable_backup: get_translation(&state, &locale, "backups-disable-backup")
-                            .await,
-                        delete_backup: get_translation(&state, &locale, "backups-delete-backup")
-                            .await,
-                        delete_confirm: get_translation(&state, &locale, "backups-delete-confirm")
-                            .await,
-                        backup,
-                    };
-
-                    // Use helper function for template rendering
-                    crate::handlers::utils::render_show_template(
-                        content_template,
-                        &state,
-                        &locale,
-                        &headers,
+                    // Use the helper function for rendering
+                    crate::handlers::utils::render_backup_show_page(
+                        backup, &state, &locale, &headers,
                     )
                     .await
                 }
@@ -530,32 +328,8 @@ pub async fn toggle_enabled_show(
                         .await
                 }
             };
-            let content_template = BackupShowTemplate {
-                title: get_translation(&state, &locale, "backups-show-title").await,
-                view_edit_settings: get_translation(&state, &locale, "backups-view-edit-settings")
-                    .await,
-                back_to_domains: get_translation(&state, &locale, "domains-back-to-domains").await,
-                backup_information: get_translation(&state, &locale, "backups-backup-information")
-                    .await,
-                backup_details: get_translation(&state, &locale, "backups-backup-details").await,
-                domain: get_translation(&state, &locale, "backups-domain").await,
-                transport: get_translation(&state, &locale, "backups-transport").await,
-                status: get_translation(&state, &locale, "backups-status").await,
-                created: get_translation(&state, &locale, "backups-created").await,
-                modified: get_translation(&state, &locale, "backups-modified").await,
-                status_active: get_translation(&state, &locale, "status-active").await,
-                status_inactive: get_translation(&state, &locale, "status-inactive").await,
-                edit_backup: get_translation(&state, &locale, "backups-edit-backup").await,
-                enable_backup: get_translation(&state, &locale, "backups-enable-backup").await,
-                disable_backup: get_translation(&state, &locale, "backups-disable-backup").await,
-                delete_backup: get_translation(&state, &locale, "backups-delete-backup").await,
-                delete_confirm: get_translation(&state, &locale, "backups-delete-confirm").await,
-                backup,
-            };
-            match crate::handlers::utils::render_template_safely(content_template) {
-                Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
-            }
+            // Use the helper function for rendering
+            crate::handlers::utils::render_backup_show_page(backup, &state, &locale, &headers).await
         }
         Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
     }

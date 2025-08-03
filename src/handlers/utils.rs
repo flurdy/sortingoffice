@@ -2745,6 +2745,58 @@ pub async fn render_backup_form_page(
     render_form_template(content_template, state, locale, headers, title).await
 }
 
+pub async fn render_backup_form_page_with_error(
+    form: crate::models::BackupForm,
+    backup: Option<crate::models::Backup>,
+    title_key: &str,
+    error_key: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for backup form
+    let title = get_translation(state, locale, title_key).await;
+    let form_error = get_translation(state, locale, "backups-form-error").await;
+    let form_domain = get_translation(state, locale, "backups-form-domain").await;
+    let form_transport = get_translation(state, locale, "backups-form-transport").await;
+    let form_active = get_translation(state, locale, "backups-form-active").await;
+    let placeholder_domain = get_translation(state, locale, "backups-placeholder-domain").await;
+    let placeholder_transport =
+        get_translation(state, locale, "backups-placeholder-transport").await;
+    let tooltip_domain = get_translation(state, locale, "backups-tooltip-domain").await;
+    let tooltip_transport = get_translation(state, locale, "backups-tooltip-transport").await;
+    let tooltip_active = get_translation(state, locale, "backups-tooltip-active").await;
+    let cancel = get_translation(state, locale, "backups-cancel").await;
+    let create_backup = get_translation(state, locale, "backups-create-backup").await;
+    let update_backup = get_translation(state, locale, "backups-update-backup").await;
+    let new_backup = get_translation(state, locale, "backups-new-backup").await;
+    let edit_backup_title = get_translation(state, locale, "backups-edit-backup-title").await;
+    let error_message = get_translation(state, locale, error_key).await;
+
+    let content_template = crate::templates::domain_backup::BackupFormTemplate {
+        title: title.clone(),
+        form_error,
+        form_domain,
+        form_transport,
+        form_active,
+        placeholder_domain,
+        placeholder_transport,
+        tooltip_domain,
+        tooltip_transport,
+        tooltip_active,
+        cancel,
+        create_backup,
+        update_backup,
+        new_backup,
+        edit_backup_title,
+        backup,
+        form,
+        error: Some(error_message),
+    };
+
+    render_form_template(content_template, state, locale, headers, title).await
+}
+
 /// Resource-specific helper functions for Relocated
 pub async fn render_relocated_list_page(
     relocated: Vec<crate::models::Relocated>,

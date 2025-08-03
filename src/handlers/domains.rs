@@ -823,55 +823,16 @@ pub async fn delete(
             let paginated_domains =
                 PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
 
-            let translations = get_domain_list_translations(&state, &locale).await;
-
-            let page_range: Vec<i64> = (1..=paginated_domains.total_pages).collect();
-            let max_item = std::cmp::min(
-                paginated_domains.current_page * paginated_domains.per_page,
-                paginated_domains.total_count,
-            );
-
-            let content_template = DomainsListTemplate {
-                title: &translations["domains-title"],
-                description: &translations["domains-description"],
-                add_domain: &translations["domains-add"],
-                table_header_domain: &translations["domains-table-header-domain"],
-                table_header_enabled: &translations["domains-table-header-enabled"],
-                table_header_actions: &translations["domains-table-header-actions"],
-                table_header_transport: &translations["domains-transport"],
-                status_active: &translations["status-active"],
-                status_inactive: &translations["status-inactive"],
-                action_view: &translations["action-view"],
-                action_enable: &translations["action-enable"],
-                action_disable: &translations["action-disable"],
-                empty_title: &translations["domains-empty-title"],
-                empty_description: &translations["domains-empty-description"],
-                domains: &paginated_domains.items,
-                pagination: &paginated_domains,
-                page_range: &page_range,
-                max_item,
-                backups_title: &translations["backups-title"],
-                backups_description: &translations["backups-description"],
-                add_backup: &translations["backups-add"],
-                backups_table_header_domain: &translations["backups-table-header-domain"],
-                backups_table_header_transport: &translations["backups-table-header-transport"],
-                backups_table_header_enabled: &translations["backups-table-header-enabled"],
-                backups_table_header_actions: &translations["backups-table-header-actions"],
-                backups: &backups,
-                backups_view: &translations["backups-view"],
-                backups_enable: &translations["backups-enable"],
-                backups_disable: &translations["backups-disable"],
-                backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
-                backups_empty_get_started: &translations["backups-empty-get-started"],
-            };
-
-            render_template_with_title!(
-                content_template,
-                content_template.title,
+            // Use the helper function for rendering
+            crate::handlers::utils::render_domain_list_page(
+                domains,
+                backups,
+                &paginated_domains,
                 &state,
                 &locale,
-                &headers
+                &headers,
             )
+            .await
         }
         Err(e) => {
             error!("Failed to delete domain: {:?}", e);
@@ -960,55 +921,16 @@ pub async fn toggle_enabled_list(
             let paginated_domains =
                 PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
 
-            let translations = get_domain_list_translations(&state, &locale).await;
-
-            let page_range: Vec<i64> = (1..=paginated_domains.total_pages).collect();
-            let max_item = std::cmp::min(
-                paginated_domains.current_page * paginated_domains.per_page,
-                paginated_domains.total_count,
-            );
-
-            let content_template = DomainsListTemplate {
-                title: &translations["domains-title"],
-                description: &translations["domains-description"],
-                add_domain: &translations["domains-add"],
-                table_header_domain: &translations["domains-table-header-domain"],
-                table_header_enabled: &translations["domains-table-header-enabled"],
-                table_header_actions: &translations["domains-table-header-actions"],
-                table_header_transport: &translations["domains-transport"],
-                status_active: &translations["status-active"],
-                status_inactive: &translations["status-inactive"],
-                action_view: &translations["action-view"],
-                action_enable: &translations["action-enable"],
-                action_disable: &translations["action-disable"],
-                empty_title: &translations["domains-empty-title"],
-                empty_description: &translations["domains-empty-description"],
-                domains: &paginated_domains.items,
-                pagination: &paginated_domains,
-                page_range: &page_range,
-                max_item,
-                backups_title: &translations["backups-title"],
-                backups_description: &translations["backups-description"],
-                add_backup: &translations["backups-add"],
-                backups_table_header_domain: &translations["backups-table-header-domain"],
-                backups_table_header_transport: &translations["backups-table-header-transport"],
-                backups_table_header_enabled: &translations["backups-table-header-enabled"],
-                backups_table_header_actions: &translations["backups-table-header-actions"],
-                backups: &backups,
-                backups_view: &translations["backups-view"],
-                backups_enable: &translations["backups-enable"],
-                backups_disable: &translations["backups-disable"],
-                backups_empty_no_backup_servers: &translations["backups-empty-no-backup-servers"],
-                backups_empty_get_started: &translations["backups-empty-get-started"],
-            };
-
-            render_template_with_title!(
-                content_template,
-                content_template.title,
+            // Use the helper function for rendering
+            crate::handlers::utils::render_domain_list_page(
+                domains,
+                backups,
+                &paginated_domains,
                 &state,
                 &locale,
-                &headers
+                &headers,
             )
+            .await
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
