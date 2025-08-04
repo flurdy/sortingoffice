@@ -5,9 +5,9 @@
 
   - ✅ **Dutch link in dropdown**: Added Dutch language option to both base.html and login.html templates, updated all template structs to include language_dutch field, and ensured language-dutch key is translated in all language files
 
-- I am unable to choose Dutch as language, it does not persist.
+- ✅ **Fixed Dutch language persistence**: Added Dutch (nl-NL) to the validation lists in both set_language and get_user_locale functions, and added a test to verify Dutch language support works correctly
 
-- Deprecated Selenium methods (lower priority)
+- ✅ **Updated deprecated Selenium methods**: Replaced deprecated `driver.switch_to().alert()`, `alert.accept()`, and `driver.switch_to().default_content()` with modern `driver.accept_alert()` and `driver.enter_default_frame()` methods in tests/ui_helpers.rs
 
 - Refactor long functions and complex logic
   - Consolidate similar validation logic across handlers
@@ -95,7 +95,7 @@
 
 - ✅ **Dashboard translation complete**: The dashboard is now 100% translated in Italian, showing "Domini e Backup" in quick action cards and "Domini e Backup Abilitati" in the domains count box.
 
-- Add a Portuguese translations and link
+- IGNORE: Add a Portuguese translations and link
 
 - Github actions apart from smoke test still fail
   - https://github.com/flurdy/sortingoffice/actions/  

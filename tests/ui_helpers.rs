@@ -15,6 +15,7 @@ use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
 /// Find a free port for the application
+#[allow(dead_code)]
 pub fn find_free_port() -> u16 {
     TcpListener::bind("127.0.0.1:0")
         .expect("Failed to bind to random port")
@@ -70,6 +71,7 @@ pub async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()
 }
 
 /// Setup selenium container and driver
+#[allow(dead_code)]
 pub async fn setup_selenium_container_and_driver(
 ) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
     let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
@@ -135,6 +137,7 @@ pub async fn setup_selenium_container_and_driver(
 }
 
 /// Authenticate driver with admin credentials
+#[allow(dead_code)]
 pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
     let logout_url = format!("{}/logout", base_url.trim_end_matches('/'));
     let login_url = format!("{}/login", base_url.trim_end_matches('/'));
@@ -198,6 +201,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
 }
 
 /// Setup app container
+#[allow(dead_code)]
 pub async fn setup_app_container(
     db_url: &str,
     host_port: u16,
@@ -276,6 +280,7 @@ pub async fn get_container_bridge_ip(container_id: &str) -> anyhow::Result<Strin
 }
 
 /// Generate a domain-safe random string (lowercase letters and numbers only)
+#[allow(dead_code)]
 pub fn rand_domain_str() -> String {
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut rng = rand::rngs::ThreadRng::default();
@@ -288,6 +293,7 @@ pub fn rand_domain_str() -> String {
 }
 
 /// Create a new domain
+#[allow(dead_code)]
 pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str) -> Result<()> {
     let domain_url = format!("{app_url}/domains");
     timeout60s!(driver.get(&domain_url), "Navigate to domains list page")?;
@@ -505,6 +511,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
 }
 
 /// Create an alias
+#[allow(dead_code)]
 pub async fn create_alias(
     driver: &WebDriver,
     app_url: &str,
@@ -669,6 +676,7 @@ pub async fn create_alias(
 }
 
 /// Create a user
+#[allow(dead_code)]
 pub async fn create_user(
     driver: &WebDriver,
     app_url: &str,
@@ -778,6 +786,7 @@ pub async fn create_user(
 }
 
 /// Check reports page
+#[allow(dead_code)]
 pub async fn check_reports_page(driver: &WebDriver, app_url: &str) -> Result<()> {
     let reports_url = format!("{app_url}/reports");
     timeout60s!(driver.get(&reports_url), "Navigate to reports page")?;
@@ -792,6 +801,7 @@ pub async fn check_reports_page(driver: &WebDriver, app_url: &str) -> Result<()>
 }
 
 /// Delete a user
+#[allow(dead_code)]
 pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) -> Result<()> {
     // First navigate to users list page
     let users_url = format!("{app_url}/users");
@@ -841,21 +851,18 @@ pub async fn delete_user(driver: &WebDriver, app_url: &str, user_email: &str) ->
 
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
-    let alert = driver.switch_to().alert();
-    // let alert_text = alert.text().await?;
-    // println!("[CLEANUP] Alert text: {}", alert_text);
-
     // Accept the alert to confirm deletion
-    alert.accept().await?;
+    driver.accept_alert().await?;
 
     // Switch back to the main content
-    driver.switch_to().default_content().await?;
+    driver.enter_default_frame().await?;
 
     // println!("[CLEANUP] Successfully deleted user: {}", user_email);
     Ok(())
 }
 
 /// Delete an alias
+#[allow(dead_code)]
 pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) -> Result<()> {
     // First navigate to domains list page
     let domains_url = format!("{app_url}/domains");
@@ -937,21 +944,18 @@ pub async fn delete_alias(driver: &WebDriver, app_url: &str, alias_email: &str) 
 
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
-    let alert = driver.switch_to().alert();
-    // let alert_text = alert.text().await?;
-    // println!("[CLEANUP] Alert text: {}", alert_text);
-
     // Accept the alert to confirm deletion
-    alert.accept().await?;
+    driver.accept_alert().await?;
 
     // Switch back to the main content
-    driver.switch_to().default_content().await?;
+    driver.enter_default_frame().await?;
 
     // println!("[CLEANUP] Successfully deleted alias: {}", alias_email);
     Ok(())
 }
 
 /// Delete a domain
+#[allow(dead_code)]
 pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str) -> Result<()> {
     // First navigate to domains list page
     let domains_url = format!("{app_url}/domains");
@@ -1005,21 +1009,18 @@ pub async fn delete_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
 
     // Handle the JavaScript alert dialog that appears
     tokio::time::sleep(Duration::from_millis(500)).await;
-    let alert = driver.switch_to().alert();
-    // let alert_text = alert.text().await?;
-    // println!("[CLEANUP] Alert text: {}", alert_text);
-
     // Accept the alert to confirm deletion
-    alert.accept().await?;
+    driver.accept_alert().await?;
 
     // Switch back to the main content
-    driver.switch_to().default_content().await?;
+    driver.enter_default_frame().await?;
 
     // println!("[CLEANUP] Successfully deleted domain: {}", domain_name);
     Ok(())
 }
 
 /// Cleanup test resources
+#[allow(dead_code)]
 pub async fn cleanup_test_resources(
     driver: &WebDriver,
     app_url: &str,
@@ -1066,6 +1067,7 @@ pub async fn cleanup_test_resources(
 }
 
 /// Check if an item exists in a paginated list by iterating through pages
+#[allow(dead_code)]
 pub async fn check_item_in_paginated_list(
     driver: &WebDriver,
     app_url: &str,

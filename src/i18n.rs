@@ -148,7 +148,9 @@ pub fn get_locale_from_headers(headers: &axum::http::HeaderMap) -> String {
                 if lang.len() >= 2 {
                     // Validate against supported locales
                     match lang {
-                        "en-US" | "es-ES" | "fr-FR" | "de-DE" | "nb-NO" => return lang.to_string(),
+                        "en-US" | "es-ES" | "fr-FR" | "de-DE" | "nb-NO" | "nl-NL" => {
+                            return lang.to_string()
+                        }
                         "en" => return "en-US".to_string(), // Map short codes to full locales
                         _ => return "en-US".to_string(),    // Default for unsupported locales
                     }
@@ -420,6 +422,18 @@ mod tests {
 
         let result = get_locale_from_headers(&headers);
         assert_eq!(result, "nb-NO");
+    }
+
+    #[test]
+    fn test_get_locale_from_headers_dutch() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "accept-language",
+            "nl-NL,nl;q=0.9,en;q=0.8".parse().unwrap(),
+        );
+
+        let result = get_locale_from_headers(&headers);
+        assert_eq!(result, "nl-NL");
     }
 
     #[test]
