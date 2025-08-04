@@ -4,9 +4,11 @@ use axum::response::Html;
 
 // Import functions from utils for now
 use crate::handlers::utils::get_entity_error_translations;
-use crate::handlers::utils::get_user_locale;
 use crate::handlers::utils::render_template_safely;
 use crate::i18n::get_translation;
+
+// Import HTTP helper functions directly
+use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 
 /// Generic form validation with error handling
 pub async fn validate_form_and_handle_error<F, V, E>(
@@ -181,7 +183,7 @@ where
                 }
             };
 
-            if crate::handlers::utils::is_htmx_request(headers) {
+            if is_htmx_request(headers) {
                 Err(Html(content))
             } else {
                 let (current_db_label, current_db_id) =

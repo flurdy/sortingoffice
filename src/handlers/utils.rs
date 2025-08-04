@@ -10,6 +10,9 @@ use tracing::debug;
 use tracing::error;
 use tracing::info;
 
+// Import HTTP helper functions
+use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
+
 /// Helper function to render template safely with error handling
 pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
     template.render().map_err(|e| {
@@ -326,10 +329,7 @@ macro_rules! get_system_stats_or_default {
 }
 
 
-/// Get user locale from headers
-pub fn get_user_locale(headers: &HeaderMap) -> String {
-    crate::handlers::language::get_user_locale(headers)
-}
+
 
 /// Get the current database pool from the state
 /// This gets the database pool based on the user's session selection
