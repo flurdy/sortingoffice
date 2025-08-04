@@ -23,10 +23,10 @@ pub mod restrictions;
 pub mod stats;
 pub mod templates;
 
+pub mod rendering;
 pub mod theme;
 pub mod translations;
 pub mod users;
-pub mod rendering;
 pub mod utils;
 pub mod validation;
 pub mod wizard;

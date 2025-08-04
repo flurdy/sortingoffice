@@ -123,8 +123,8 @@ async fn render_domain_list_after_creation(
 
     let paginated_domains = PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
 
-    // Use the utils.rs helper function
-    crate::handlers::utils::render_domain_list_page(
+    // Use the rendering.rs helper function
+    crate::handlers::rendering::render_domain_list_page(
         domains,
         backups,
         &paginated_domains,
@@ -318,7 +318,7 @@ pub async fn list(
     let backups = crate::handlers::database_ops::get_backups_with_fallback(&pool).await;
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_domain_list_page(
+    crate::handlers::rendering::render_domain_list_page(
         paginated_domains.items.clone(),
         backups,
         &paginated_domains,
@@ -685,7 +685,7 @@ pub async fn toggle_enabled_list(
                 PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
 
             // Use the helper function for rendering
-            crate::handlers::utils::render_domain_list_page(
+            crate::handlers::rendering::render_domain_list_page(
                 domains,
                 backups,
                 &paginated_domains,
