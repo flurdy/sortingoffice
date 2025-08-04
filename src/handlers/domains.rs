@@ -310,9 +310,10 @@ pub async fn list(
 
     // Use focused database operations with built-in error handling
     let paginated_domains =
-        crate::handlers::utils::get_paginated_domains_with_fallback(&pool, page, per_page).await;
+        crate::handlers::database_ops::get_paginated_domains_with_fallback(&pool, page, per_page)
+            .await;
 
-    let backups = crate::handlers::utils::get_backups_with_fallback(&pool).await;
+    let backups = crate::handlers::database_ops::get_backups_with_fallback(&pool).await;
 
     // Use the new resource-specific helper function
     crate::handlers::utils::render_domain_list_page(
@@ -360,7 +361,7 @@ pub async fn show(
     };
 
     // Use focused database operations with built-in error handling
-    let domain = match crate::handlers::utils::get_domain_with_not_found_handling(
+    let domain = match crate::handlers::database_ops::get_domain_with_not_found_handling(
         &pool, id, &state, &headers,
     )
     .await
@@ -373,14 +374,15 @@ pub async fn show(
 
     // Use focused database operation for alias data
     let (alias_report, existing_aliases) =
-        crate::handlers::utils::get_domain_aliases_with_fallback(&pool, &domain.domain).await;
+        crate::handlers::database_ops::get_domain_aliases_with_fallback(&pool, &domain.domain)
+            .await;
 
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
 
     // Use optimized helper to get config aliases without cloning
     let (config_required, config_common) =
-        crate::handlers::utils::get_config_aliases_references(&state);
+        crate::handlers::performance::get_config_aliases_references(&state);
 
     // Optimize alias name extraction to avoid unnecessary cloning
     let existing_alias_names: std::collections::HashSet<&str> = existing_aliases
@@ -441,7 +443,7 @@ pub async fn edit(
     };
 
     // Use optimized helper to create form without cloning
-    let form = crate::handlers::utils::create_domain_form_from_domain(&domain);
+    let form = crate::handlers::performance::create_domain_form_from_domain(&domain);
 
     // Use the new resource-specific helper function
     crate::handlers::utils::render_domain_form_page(
@@ -476,7 +478,7 @@ pub async fn create(
     };
 
     // Use optimized helper to create new domain without cloning
-    let new_domain = crate::handlers::utils::create_new_domain_from_form(&form);
+    let new_domain = crate::handlers::performance::create_new_domain_from_form(&form);
 
     // Use functional error handling pattern - prepare success response first
     let success_response =
@@ -630,7 +632,7 @@ pub async fn toggle_enabled(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            return crate::handlers::utils::render_500_page(&state, &headers).await;
+            return crate::handlers::errors::render_500_page(&state, &headers).await;
         }
     }
 }
@@ -691,7 +693,7 @@ pub async fn toggle_enabled_list(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            return crate::handlers::utils::render_500_page(&state, &headers).await;
+            return crate::handlers::errors::render_500_page(&state, &headers).await;
         }
     }
 }
@@ -731,7 +733,7 @@ pub async fn toggle_enabled_show(
         }
         Err(e) => {
             error!("Failed to toggle domain enabled status: {:?}", e);
-            return crate::handlers::utils::render_500_page(&state, &headers).await;
+            return crate::handlers::errors::render_500_page(&state, &headers).await;
         }
     }
 }

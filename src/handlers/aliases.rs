@@ -160,7 +160,7 @@ pub async fn edit(
     let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
         Err(_) => {
-            return crate::handlers::utils::render_alias_not_found_page(&state, &headers).await
+            return crate::handlers::errors::render_alias_not_found_page(&state, &headers).await
         }
     };
 
@@ -520,7 +520,7 @@ pub async fn toggle_enabled_list(
             )
             .await
         }
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }
 
@@ -538,7 +538,7 @@ pub async fn toggle_enabled_show(
             let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => {
-                    return crate::handlers::utils::render_alias_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_alias_not_found_page(&state, &headers)
                         .await
                 }
             };
@@ -559,7 +559,7 @@ pub async fn toggle_enabled_show(
             )
             .await
         }
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }
 
@@ -577,7 +577,7 @@ pub async fn toggle_enabled_domain_show(
             let alias = match db::get_alias(&pool, id) {
                 Ok(alias) => alias,
                 Err(_) => {
-                    return crate::handlers::utils::render_alias_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_alias_not_found_page(&state, &headers)
                         .await
                 }
             };
@@ -587,7 +587,7 @@ pub async fn toggle_enabled_domain_show(
             let domain = match db::get_domain_by_name(&pool, domain_name) {
                 Ok(domain) => domain,
                 Err(_) => {
-                    return crate::handlers::utils::render_domain_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_domain_not_found_page(&state, &headers)
                         .await
                 }
             };
@@ -606,7 +606,7 @@ pub async fn toggle_enabled_domain_show(
             )
             .await
         }
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }
 
@@ -645,7 +645,7 @@ pub async fn search(
         };
         return match crate::handlers::utils::render_template_safely(content_template) {
             Ok(content) => Html(content),
-            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
         };
     }
 
@@ -745,7 +745,7 @@ pub async fn domain_search(
         };
         return match crate::handlers::utils::render_template_safely(content_template) {
             Ok(content) => Html(content),
-            Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+            Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
         };
     }
 
@@ -775,6 +775,6 @@ pub async fn domain_search(
     };
     match crate::handlers::utils::render_template_safely(content_template) {
         Ok(content) => Html(content),
-        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }

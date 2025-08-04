@@ -131,6 +131,6 @@ pub async fn dropdown(
     };
     match crate::handlers::utils::render_template_safely(content_template) {
         Ok(content) => Html(content),
-        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }

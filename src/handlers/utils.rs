@@ -10,256 +10,6 @@ use tracing::debug;
 use tracing::error;
 use tracing::info;
 
-/// Custom error type for database operations
-/// Based on structured error handling patterns from Rust error handling guide
-#[derive(Debug, thiserror::Error)]
-pub enum DatabaseOperationError {
-    #[error("Database connection failed: {0}")]
-    ConnectionFailed(String),
-
-    #[error("Database query failed: {0}")]
-    QueryFailed(String),
-
-    #[error("Entity not found: {entity_type} with id {identifier}")]
-    NotFound {
-        entity_type: String,
-        identifier: String,
-    },
-
-    #[error("Database constraint violation: {0}")]
-    ConstraintViolation(String),
-
-    #[error("Database operation not allowed: {operation} on {entity}")]
-    OperationNotAllowed { operation: String, entity: String },
-}
-
-/// Custom error type for form validation operations
-#[derive(Debug, thiserror::Error)]
-pub enum ValidationError {
-    #[error("Required field missing: {field}")]
-    RequiredFieldMissing { field: String },
-
-    #[error("Invalid format: {field} - {reason}")]
-    InvalidFormat { field: String, reason: String },
-
-    #[error("Validation failed: {message}")]
-    Custom { message: String },
-}
-
-/// Helper function to safely get database connection with proper error handling
-/// Replaces unwrap() calls with structured error handling
-pub fn get_db_connection_safely(
-    pool: &crate::DbPool,
-    operation: &str,
-) -> Result<
-    diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<diesel::mysql::MysqlConnection>>,
-    DatabaseOperationError,
-> {
-    pool.get().map_err(|e| {
-        DatabaseOperationError::ConnectionFailed(format!(
-            "Failed to get database connection for {}: {:?}",
-            operation, e
-        ))
-    })
-}
-
-/// Helper function to safely parse header values with proper error handling
-/// Replaces unwrap() calls in header parsing operations
-pub fn parse_header_value_safely(
-    value: &str,
-    header_name: &str,
-) -> Result<axum::http::HeaderValue, DatabaseOperationError> {
-    value.parse().map_err(|_| {
-        DatabaseOperationError::QueryFailed(format!(
-            "Failed to parse header value for {}: {}",
-            header_name, value
-        ))
-    })
-}
-
-/// Helper function to render error pages consistently with proper theming and translations
-pub async fn render_error_page(
-    title_key: &str,
-    message_key: &str,
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
-    let locale = get_user_locale(headers);
-    let (current_db_label, current_db_id) = get_current_db_info_optimized(state, headers);
-
-    let title = get_translation(state, &locale, title_key).await;
-    let message = get_translation(state, &locale, message_key).await;
-
-    println!(
-        "[DEBUG] Rendering error page with title: {}, message: {}",
-        title, message
-    );
-
-    match crate::templates::error::ErrorTemplate::new(
-        &title,
-        &message,
-        state,
-        &locale,
-        &current_db_label,
-        &current_db_id,
-    )
-    .await
-    {
-        Ok(template) => match render_template_safely(template) {
-            Ok(html) => {
-                println!(
-                    "[DEBUG] Error template rendered successfully, length: {}",
-                    html.len()
-                );
-                Html(html)
-            }
-            Err(e) => {
-                println!("[DEBUG] Error rendering template: {}", e);
-                Html("Error rendering error page".to_string())
-            }
-        },
-        Err(e) => {
-            println!("[DEBUG] Error creating template: {:?}", e);
-            Html("Error creating error page".to_string())
-        }
-    }
-}
-
-/// Render a 404 Not Found error page
-pub async fn render_404_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-not-found-title",
-        "error-page-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a 500 Internal Server Error page
-pub async fn render_500_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-operation-failed-title",
-        "error-page-operation-failed-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a 403 Forbidden error page
-pub async fn render_403_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-validation-error-title",
-        "error-page-validation-error-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a 401 Unauthorized error page
-pub async fn render_401_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-validation-error-title",
-        "error-page-validation-error-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a database error page
-pub async fn render_database_error_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-database-error-title",
-        "error-page-database-error-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a domain not found error page
-pub async fn render_domain_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a user not found error page
-pub async fn render_user_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render an alias not found error page
-pub async fn render_alias_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a client not found error page
-pub async fn render_client_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a relay not found error page
-pub async fn render_relay_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a backup not found error page
-pub async fn render_backup_not_found_page(state: &AppState, headers: &HeaderMap) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
-/// Render a relocated not found error page
-pub async fn render_relocated_not_found_page(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Html<String> {
-    render_error_page(
-        "error-page-entity-not-found-title",
-        "error-page-entity-not-found-message",
-        state,
-        headers,
-    )
-    .await
-}
-
 /// Helper function to render template safely with error handling
 pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
     template.render().map_err(|e| {
@@ -497,7 +247,7 @@ macro_rules! get_entity_or_not_found {
         match $db_call {
             Ok(entity) => entity,
             Err(_) => {
-                return $crate::handlers::utils::render_404_page($state, $headers).await;
+                return $crate::handlers::errors::render_404_page($state, $headers).await;
             }
         }
     }};
@@ -1110,7 +860,7 @@ where
 {
     let content = match render_template_safely(template) {
         Ok(content) => content,
-        Err(_) => return render_500_page(state, headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(state, headers).await,
     };
 
     if is_htmx_request(headers) {
@@ -1137,7 +887,7 @@ where
         .unwrap();
         match render_template_safely(template) {
             Ok(content) => Html(content),
-            Err(_) => render_500_page(state, headers).await,
+            Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
         }
     }
 }
@@ -1153,7 +903,7 @@ where
 {
     let content = match render_template_safely(template) {
         Ok(content) => content,
-        Err(_) => return render_500_page(state, headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(state, headers).await,
     };
 
     if is_htmx_request(headers) {
@@ -1180,7 +930,7 @@ where
         .unwrap();
         match render_template_safely(template) {
             Ok(content) => Html(content),
-            Err(_) => render_500_page(state, headers).await,
+            Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
         }
     }
 }
@@ -1630,32 +1380,6 @@ pub async fn get_domain_aliases_with_fallback(
     (alias_report, existing_aliases)
 }
 
-/// Optimized helper to get config aliases without cloning
-/// Performance optimization: Avoid unnecessary cloning of config data
-pub fn get_config_aliases_references<'a>(state: &'a AppState) -> (&'a [String], &'a [String]) {
-    (&state.config.required_aliases, &state.config.common_aliases)
-}
-
-/// Optimized helper to create domain form from domain without cloning
-/// Performance optimization: Use references where possible
-pub fn create_domain_form_from_domain(domain: &crate::models::Domain) -> crate::models::DomainForm {
-    crate::models::DomainForm {
-        domain: domain.domain.as_str().to_string(),
-        transport: domain.transport.as_deref().unwrap_or("virtual").to_string(),
-        enabled: domain.enabled,
-    }
-}
-
-/// Optimized helper to create new domain without cloning
-/// Performance optimization: Use references for form data
-pub fn create_new_domain_from_form(form: &crate::models::DomainForm) -> crate::models::NewDomain {
-    crate::models::NewDomain {
-        domain: form.domain.as_str().to_string(),
-        transport: Some(form.transport.as_str().to_string()),
-        enabled: form.enabled,
-    }
-}
-
 /// Helper function to handle entity operations with consistent error handling for redirect handlers
 pub async fn handle_entity_operation_redirect<T, F, Fut>(
     operation: F,
@@ -1744,14 +1468,16 @@ pub async fn handle_entity_not_found(
     _error_key: &str,
 ) -> Html<String> {
     match entity_type {
-        "domain" => render_domain_not_found_page(state, headers).await,
-        "user" => render_user_not_found_page(state, headers).await,
-        "alias" => render_alias_not_found_page(state, headers).await,
-        "client" => render_client_not_found_page(state, headers).await,
-        "relay" => render_relay_not_found_page(state, headers).await,
-        "backup" => render_backup_not_found_page(state, headers).await,
-        "relocated" => render_relocated_not_found_page(state, headers).await,
-        _ => render_404_page(state, headers).await,
+        "domain" => crate::handlers::errors::render_domain_not_found_page(state, headers).await,
+        "user" => crate::handlers::errors::render_user_not_found_page(state, headers).await,
+        "alias" => crate::handlers::errors::render_alias_not_found_page(state, headers).await,
+        "client" => crate::handlers::errors::render_client_not_found_page(state, headers).await,
+        "relay" => crate::handlers::errors::render_relay_not_found_page(state, headers).await,
+        "backup" => crate::handlers::errors::render_backup_not_found_page(state, headers).await,
+        "relocated" => {
+            crate::handlers::errors::render_relocated_not_found_page(state, headers).await
+        }
+        _ => crate::handlers::errors::render_404_page(state, headers).await,
     }
 }
 
@@ -1845,7 +1571,9 @@ where
             .await;
             let content = match render_template_safely(form_template) {
                 Ok(content) => content,
-                Err(_) => return Err(render_500_page(state, headers).await),
+                Err(_) => {
+                    return Err(crate::handlers::errors::render_500_page(state, headers).await)
+                }
             };
 
             if is_htmx_request(headers) {
@@ -1864,7 +1592,7 @@ where
                 .unwrap();
                 Err(match render_template_safely(template) {
                     Ok(content) => Html(content),
-                    Err(_) => render_500_page(state, headers).await,
+                    Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
                 })
             }
         }

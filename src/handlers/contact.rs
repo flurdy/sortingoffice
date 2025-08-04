@@ -63,7 +63,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     };
     let content = match crate::handlers::utils::render_template_safely(content_template) {
         Ok(content) => content,
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     };
 
     // Get current database id from session/cookie or default
@@ -91,6 +91,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
 
     match crate::handlers::utils::render_template_safely(template) {
         Ok(content) => Html(content),
-        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }

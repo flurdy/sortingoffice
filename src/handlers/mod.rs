@@ -7,11 +7,14 @@ pub mod contact;
 pub mod dashboard;
 pub mod database;
 pub mod database_backup;
+pub mod database_ops;
 pub mod domain_backup;
 pub mod domains;
+pub mod errors;
 pub mod health; // Add health module
 pub mod language;
 pub mod not_found;
+pub mod performance;
 pub mod relays;
 pub mod relocated;
 pub mod reports;

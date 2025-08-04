@@ -192,7 +192,7 @@ pub async fn update(
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
                 Err(_) => {
-                    return crate::handlers::utils::render_backup_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_backup_not_found_page(&state, &headers)
                         .await
                 }
             };
@@ -324,13 +324,13 @@ pub async fn toggle_enabled_show(
             let backup = match db::get_backup(&pool, id) {
                 Ok(backup) => backup,
                 Err(_) => {
-                    return crate::handlers::utils::render_backup_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_backup_not_found_page(&state, &headers)
                         .await
                 }
             };
             // Use the helper function for rendering
             crate::handlers::utils::render_backup_show_page(backup, &state, &locale, &headers).await
         }
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }

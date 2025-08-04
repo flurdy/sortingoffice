@@ -412,7 +412,7 @@ pub async fn create(
                 .await;
         let content = match crate::handlers::utils::render_template_safely(form_template) {
             Ok(content) => content,
-            Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+            Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
         };
 
         if crate::handlers::utils::is_htmx_request(&headers) {
@@ -431,7 +431,7 @@ pub async fn create(
             .unwrap();
             return match crate::handlers::utils::render_template_safely(template) {
                 Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+                Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
             };
         }
     }
@@ -623,7 +623,7 @@ pub async fn update(
         let existing_user = match db::get_user(&pool, id.clone()) {
             Ok(user) => user,
             Err(_) => {
-                return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+                return crate::handlers::errors::render_user_not_found_page(&state, &headers).await
             }
         };
 
@@ -665,7 +665,7 @@ pub async fn update(
     let existing_user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => {
-            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+            return crate::handlers::errors::render_user_not_found_page(&state, &headers).await
         }
     };
 
@@ -698,8 +698,10 @@ pub async fn update(
                 let user = match db::get_user(&pool, id.clone()) {
                     Ok(user) => user,
                     Err(_) => {
-                        return crate::handlers::utils::render_user_not_found_page(&state, &headers)
-                            .await
+                        return crate::handlers::errors::render_user_not_found_page(
+                            &state, &headers,
+                        )
+                        .await
                     }
                 };
 
@@ -953,7 +955,7 @@ pub async fn change_password_form(
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => {
-            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+            return crate::handlers::errors::render_user_not_found_page(&state, &headers).await
         }
     };
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -976,7 +978,7 @@ pub async fn change_password_post(
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => {
-            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+            return crate::handlers::errors::render_user_not_found_page(&state, &headers).await
         }
     };
     if form.new_password != form.confirm_password {
@@ -1050,7 +1052,7 @@ pub async fn toggle_change_password(
     let user = match db::get_user(&pool, id.clone()) {
         Ok(user) => user,
         Err(_) => {
-            return crate::handlers::utils::render_user_not_found_page(&state, &headers).await
+            return crate::handlers::errors::render_user_not_found_page(&state, &headers).await
         }
     };
 
@@ -1072,7 +1074,7 @@ pub async fn toggle_change_password(
             let updated_user = match db::get_user(&pool, id.clone()) {
                 Ok(user) => user,
                 Err(_) => {
-                    return crate::handlers::utils::render_user_not_found_page(&state, &headers)
+                    return crate::handlers::errors::render_user_not_found_page(&state, &headers)
                         .await
                 }
             };
@@ -1097,6 +1099,6 @@ pub async fn toggle_change_password(
                 Html(template.render().unwrap())
             }
         }
-        Err(_) => return crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }

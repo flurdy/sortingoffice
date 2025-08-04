@@ -40,7 +40,7 @@ pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Ht
 
     match crate::handlers::utils::render_template_safely(template) {
         Ok(content) => Html(content),
-        Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+        Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }
 
@@ -115,7 +115,7 @@ pub async fn login(
             return Err(
                 match crate::handlers::utils::render_template_safely(template) {
                     Ok(content) => Html(content),
-                    Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+                    Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
                 },
             );
         }
@@ -241,7 +241,7 @@ pub async fn login(
         Err(
             match crate::handlers::utils::render_template_safely(template) {
                 Ok(content) => Html(content),
-                Err(_) => crate::handlers::utils::render_500_page(&state, &headers).await,
+                Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
             },
         )
     }
