@@ -91,7 +91,13 @@
   - ✅ **COMPLETED** - Moved render_alias_list_page, render_alias_show_page, render_alias_form_page from utils.rs to rendering.rs
   - ✅ **COMPLETED** - Updated 15+ call sites in aliases.rs to use the new rendering module
   - ✅ **COMPLETED** - Removed alias rendering functions from utils.rs
-  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs (relays, users, clients, backups, relocated)
+  - ✅ **COMPLETED** - Moved render_relay_list_page, render_relay_show_page, render_relay_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated 4 call sites in relays.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed relay rendering functions from utils.rs
+  - ✅ **COMPLETED** - Moved render_backup_show_page, render_backup_form_page, render_backup_form_page_with_error from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated 8 call sites in domain_backup.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed backup rendering functions from utils.rs
+  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs (users, clients, relocated, domains)
   - **IN PROGRESS** - Update remaining call sites to use the new rendering module
   - **IN PROGRESS** - Ensure template compatibility with the current codebase
 

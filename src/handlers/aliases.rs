@@ -254,7 +254,7 @@ pub async fn create(
                         Some("domains") => {
                             // Redirect to domain show page
                             let locale = get_user_locale(&headers);
-                            crate::handlers::utils::render_domain_show_page(
+                            crate::handlers::rendering::render_domain_show_page(
                                 domain,
                                 None,   // No alias report
                                 vec![], // No existing aliases
@@ -268,7 +268,7 @@ pub async fn create(
                         _ => {
                             // Default: redirect to domain show page
                             let locale = get_user_locale(&headers);
-                            crate::handlers::utils::render_domain_show_page(
+                            crate::handlers::rendering::render_domain_show_page(
                                 domain,
                                 None,   // No alias report
                                 vec![], // No existing aliases
@@ -603,7 +603,7 @@ pub async fn toggle_enabled_domain_show(
             let locale = get_user_locale(&headers);
 
             // Use resource-specific helper for domain show page
-            crate::handlers::utils::render_domain_show_page(
+            crate::handlers::rendering::render_domain_show_page(
                 domain,
                 None,   // No alias report
                 vec![], // No existing aliases

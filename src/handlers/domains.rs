@@ -281,7 +281,7 @@ pub async fn render_domain_show_page(
     );
 
     // Use the utils.rs helper function
-    crate::handlers::utils::render_domain_show_page(
+    crate::handlers::rendering::render_domain_show_page(
         domain,
         alias_report,
         existing_aliases,
@@ -338,7 +338,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     };
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_domain_form_page(
+    crate::handlers::rendering::render_domain_form_page(
         form,
         None, // No existing domain for new form
         "domains-add-title",
@@ -403,7 +403,7 @@ pub async fn show(
         .collect();
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_domain_show_page(
+    crate::handlers::rendering::render_domain_show_page(
         domain,
         alias_report,
         existing_aliases,
@@ -448,7 +448,7 @@ pub async fn edit(
     let form = crate::handlers::performance::create_domain_form_from_domain(&domain);
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_domain_form_page(
+    crate::handlers::rendering::render_domain_form_page(
         form,
         Some(domain), // Pass the existing domain for edit form
         "domains-edit-domain",

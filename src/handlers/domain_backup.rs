@@ -198,7 +198,8 @@ pub async fn update(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers).await
+            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers)
+                .await
         }
         Err(e) => {
             let error_message = match e {
@@ -330,7 +331,8 @@ pub async fn toggle_enabled_show(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers).await
+            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers)
+                .await
         }
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
