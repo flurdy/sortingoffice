@@ -88,7 +88,10 @@
   - ✅ **COMPLETED** - Maintained compilation and functionality
   - ✅ **COMPLETED** - Moved render_domain_list_page from utils.rs to rendering.rs
   - ✅ **COMPLETED** - Updated 3 call sites in domains.rs to use the new rendering module
-  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Moved render_alias_list_page, render_alias_show_page, render_alias_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated 15+ call sites in aliases.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed alias rendering functions from utils.rs
+  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs (relays, users, clients, backups, relocated)
   - **IN PROGRESS** - Update remaining call sites to use the new rendering module
   - **IN PROGRESS** - Ensure template compatibility with the current codebase
 
@@ -98,3 +101,5 @@
 
 - Github actions apart from smoke test still fail
   - https://github.com/flurdy/sortingoffice/actions/  
+  
+- When in show domain page, and you add a new alias, you are shown the domain page again. But the alias report is then missing.

@@ -145,8 +145,14 @@ pub async fn show(
     let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
     // Use the new resource-specific helper function
-    crate::handlers::rendering::render_alias_show_page(alias, domain_info, &state, &locale, &headers)
-        .await
+    crate::handlers::rendering::render_alias_show_page(
+        alias,
+        domain_info,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 pub async fn edit(

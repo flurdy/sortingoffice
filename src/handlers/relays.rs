@@ -44,7 +44,7 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
     };
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_relay_list_page(relays, &state, &locale, &headers).await
+    crate::handlers::rendering::render_relay_list_page(relays, &state, &locale, &headers).await
 }
 
 // Show a specific relay
@@ -83,7 +83,7 @@ pub async fn show_relay(
     };
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_relay_show_page(relay, &state, &locale, &headers).await
+    crate::handlers::rendering::render_relay_show_page(relay, &state, &locale, &headers).await
 }
 
 // Show form for creating a new relay
@@ -99,7 +99,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     };
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_relay_form_page(
+    crate::handlers::rendering::render_relay_form_page(
         form,
         "relays-add-relay",
         "relays-add-relay",
@@ -174,7 +174,7 @@ pub async fn edit_form(
     };
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_relay_form_page(
+    crate::handlers::rendering::render_relay_form_page(
         form,
         "relays-edit-relay",
         "relays-edit-relay",

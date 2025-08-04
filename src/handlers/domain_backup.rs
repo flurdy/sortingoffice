@@ -8,7 +8,7 @@ use axum::{
 use log::error;
 
 use crate::handlers::database_ops::{get_entity_or_handle_error, handle_entity_operation};
-use crate::handlers::utils::{render_backup_form_page, render_backup_show_page};
+use crate::handlers::rendering::{render_backup_form_page, render_backup_show_page};
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);
@@ -93,7 +93,7 @@ pub async fn create(
 
     // Validate form data
     if form.domain.trim().is_empty() {
-        return crate::handlers::utils::render_backup_form_page_with_error(
+        return crate::handlers::rendering::render_backup_form_page_with_error(
             form,
             None,
             "backups-new-backup",
@@ -109,7 +109,7 @@ pub async fn create(
     match crate::validation::validate_domain(form.domain.trim()) {
         Ok(_) => {}
         Err(_e) => {
-            return crate::handlers::utils::render_backup_form_page_with_error(
+            return crate::handlers::rendering::render_backup_form_page_with_error(
                 form,
                 None,
                 "backups-new-backup",
@@ -148,7 +148,7 @@ pub async fn create(
                 _ => get_translation(&state, &locale, "error-unexpected").await,
             };
 
-            return crate::handlers::utils::render_backup_form_page_with_error(
+            return crate::handlers::rendering::render_backup_form_page_with_error(
                 form,
                 None,
                 "backups-new-backup",
@@ -176,7 +176,7 @@ pub async fn update(
 
     // Validate form data
     if form.domain.trim().is_empty() {
-        return crate::handlers::utils::render_backup_form_page_with_error(
+        return crate::handlers::rendering::render_backup_form_page_with_error(
             form,
             None,
             "backups-edit-backup-title",
@@ -198,7 +198,7 @@ pub async fn update(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::utils::render_backup_show_page(backup, &state, &locale, &headers).await
+            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers).await
         }
         Err(e) => {
             let error_message = match e {
@@ -215,7 +215,7 @@ pub async fn update(
                 _ => get_translation(&state, &locale, "error-unexpected").await,
             };
 
-            return crate::handlers::utils::render_backup_form_page_with_error(
+            return crate::handlers::rendering::render_backup_form_page_with_error(
                 form,
                 None,
                 "backups-edit-backup-title",
@@ -298,7 +298,7 @@ pub async fn toggle_enabled(
             {
                 Ok(backup) => {
                     // Use the helper function for rendering
-                    crate::handlers::utils::render_backup_show_page(
+                    crate::handlers::rendering::render_backup_show_page(
                         backup, &state, &locale, &headers,
                     )
                     .await
@@ -330,7 +330,7 @@ pub async fn toggle_enabled_show(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::utils::render_backup_show_page(backup, &state, &locale, &headers).await
+            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers).await
         }
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
