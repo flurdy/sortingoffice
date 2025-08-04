@@ -197,7 +197,7 @@ pub async fn create(
     };
 
     // Validate alias mail using helper function
-    if let Err(error_html) = crate::handlers::utils::validate_alias_form_field(
+    if let Err(error_html) = crate::handlers::validation::validate_alias_form_field(
         &state,
         &headers,
         &form,
@@ -210,7 +210,7 @@ pub async fn create(
     }
 
     // Validate alias destination using helper function
-    if let Err(error_html) = crate::handlers::utils::validate_alias_form_field(
+    if let Err(error_html) = crate::handlers::validation::validate_alias_form_field(
         &state,
         &headers,
         &form,

@@ -439,7 +439,7 @@ pub async fn create(
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
     // Validate user ID using helper function
-    if let Err(error_html) = crate::handlers::utils::validate_user_form_field(
+    if let Err(error_html) = crate::handlers::validation::validate_user_form_field(
         &state,
         &headers,
         &form,
@@ -453,7 +453,7 @@ pub async fn create(
 
     // Validate password is not empty using helper function
     if form.password.trim().is_empty() {
-        if let Err(error_html) = crate::handlers::utils::validate_user_form_field(
+        if let Err(error_html) = crate::handlers::validation::validate_user_form_field(
             &state,
             &headers,
             &form,

@@ -23,6 +23,7 @@ pub mod theme;
 pub mod users;
 pub mod utils;
 pub mod wizard;
+pub mod validation;
 
 use axum::{http::StatusCode, response::Response};
 

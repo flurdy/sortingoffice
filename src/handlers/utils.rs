@@ -1407,34 +1407,7 @@ where
     }
 }
 
-/// Helper function to validate form and handle errors consistently
-pub async fn validate_form_and_handle_error<F, V, E>(
-    _state: &AppState,
-    form: &F,
-    validator: V,
-    state: &AppState,
-    locale: &str,
-    headers: &HeaderMap,
-    error_handler: E,
-) -> Result<(), Html<String>>
-where
-    F: Clone,
-    V: FnOnce(&F) -> Result<(), String>,
-    E: FnOnce(
-        &AppState,
-        &str,
-        &HeaderMap,
-        F,
-        &str,
-        bool,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Html<String>> + Send>>,
-{
-    if let Err(error_key) = validator(form) {
-        let form_clone = form.clone();
-        return Err(error_handler(state, locale, headers, form_clone, &error_key, true).await);
-    }
-    Ok(())
-}
+
 
 /// Helper function to get entity list with pagination
 pub async fn get_entity_list_with_pagination<T, F, Fut>(
@@ -1481,123 +1454,9 @@ pub async fn handle_entity_not_found(
     }
 }
 
-/// Helper function to validate alias form field and return error template if validation fails
-pub async fn validate_alias_form_field<F>(
-    state: &AppState,
-    headers: &HeaderMap,
-    form: &crate::models::AliasForm,
-    validator: F,
-    error_key: &str,
-) -> Result<(), Html<String>>
-where
-    F: FnOnce(&crate::models::AliasForm) -> Result<(), crate::validation::ValidationError>,
-{
-    match validator(form) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            let locale = get_user_locale(headers);
-            let error_msg = get_translation(state, &locale, error_key).await;
 
-            // Get form translations
-            let form_translations = get_entity_form_translations(state, &locale, "aliases").await;
-            let field_translations = get_field_translations(
-                state,
-                &locale,
-                "aliases",
-                &["mail", "destination", "active"],
-            )
-            .await;
 
-            let content_template = crate::templates::aliases::AliasFormTemplate {
-                title: &form_translations["aliases-add-title"],
-                alias: None,
-                form: form.clone(),
-                error: Some(error_msg),
-                return_url: form.return_url.clone(),
-                edit_alias: &form_translations["aliases-edit-alias"],
-                new_alias: &form_translations["aliases-new-alias"],
-                form_error: &form_translations["form-error"],
-                mail_address: &field_translations["aliases-field-mail"],
-                destination: &field_translations["aliases-field-destination"],
-                placeholder_mail: &field_translations["aliases-placeholder-mail"],
-                placeholder_destination: &field_translations["aliases-placeholder-destination"],
-                tooltip_mail: &field_translations["aliases-field-mail-help"],
-                tooltip_destination: &field_translations["aliases-field-destination-help"],
-                active: &field_translations["aliases-field-active"],
-                tooltip_active: &field_translations["aliases-field-active-help"],
-                cancel: &form_translations["form-cancel"],
-                update_alias: &form_translations["action-save"],
-                create_alias: &form_translations["action-save"],
-            };
 
-            let error_html = render_form_template(
-                content_template,
-                state,
-                &locale,
-                headers,
-                form_translations["aliases-add-title"].clone(),
-            )
-            .await;
-            Err(error_html)
-        }
-    }
-}
-
-/// Helper function to validate user form field and return error template if validation fails
-pub async fn validate_user_form_field<F>(
-    state: &AppState,
-    headers: &HeaderMap,
-    form: &crate::models::UserForm,
-    validator: F,
-    error_key: &str,
-) -> Result<(), Html<String>>
-where
-    F: FnOnce(&crate::models::UserForm) -> Result<(), crate::validation::ValidationError>,
-{
-    match validator(form) {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            let locale = get_user_locale(headers);
-            let error_msg = get_translation(state, &locale, error_key).await;
-
-            // Build user form template with error
-            let form_template = crate::handlers::users::build_user_form_template(
-                state,
-                &locale,
-                None,
-                form.clone(),
-                Some(error_msg),
-            )
-            .await;
-            let content = match render_template_safely(form_template) {
-                Ok(content) => content,
-                Err(_) => {
-                    return Err(crate::handlers::errors::render_500_page(state, headers).await)
-                }
-            };
-
-            if is_htmx_request(headers) {
-                Err(Html(content))
-            } else {
-                let (current_db_label, current_db_id) = get_current_db_info(state, headers).await;
-                let template = crate::templates::layout::BaseTemplate::with_i18n(
-                    get_translation(state, &locale, "users-new-user").await,
-                    content,
-                    state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                .unwrap();
-                Err(match render_template_safely(template) {
-                    Ok(content) => Html(content),
-                    Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
-                })
-            }
-        }
-    }
-}
 
 /// Resource-specific helper functions for Aliases
 pub async fn render_alias_list_page(
