@@ -30,6 +30,109 @@ fn validate_domain_form(form: &DomainForm) -> Result<(), String> {
     }
 }
 
+// Helper function to validate domain creation with early returns (guard clauses)
+async fn validate_domain_creation(
+    state: &AppState,
+    headers: &HeaderMap,
+    form: &DomainForm,
+    locale: &str,
+) -> Result<(), Html<String>> {
+    // Get current database ID for restriction checks
+    let current_db_id = get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check database restrictions first (guard clause)
+    if let Err(_status_code) =
+        crate::handlers::utils::check_database_restrictions(state, &current_db_id, "create_domain")
+    {
+        return Err(handle_domain_form_error(
+            state,
+            locale,
+            headers,
+            form.clone(),
+            "error-operation-not-allowed",
+            false,
+        )
+        .await);
+    }
+
+    // Validate form data (guard clause)
+    if let Err(error_key) = validate_domain_form(form) {
+        return Err(handle_domain_form_error(
+            state,
+            locale,
+            headers,
+            form.clone(),
+            &error_key,
+            false,
+        )
+        .await);
+    }
+
+    Ok(())
+}
+
+// Helper function to filter analytics aliases (extraction pattern)
+pub fn filter_analytics_aliases(
+    analytics_common_aliases: &[String],
+    existing_aliases: &[crate::models::Alias],
+    config_required: &[String],
+    config_common: &[String],
+) -> Vec<String> {
+    let existing_alias_names: Vec<String> = existing_aliases
+        .iter()
+        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+        .collect();
+
+    analytics_common_aliases
+        .iter()
+        .filter(|alias| {
+            !config_required.contains(alias)
+                && !config_common.contains(alias)
+                && !existing_alias_names.contains(alias)
+        })
+        .cloned()
+        .collect()
+}
+
+// Helper function to render domain list after successful creation
+async fn render_domain_list_after_creation(
+    pool: &crate::DbPool,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Get domains and backups for the list page
+    let domains = match db::get_domains(pool) {
+        Ok(domains) => domains,
+        Err(e) => {
+            error!("Failed to retrieve domains after creation: {:?}", e);
+            vec![]
+        }
+    };
+
+    let backups = match db::get_backups(pool) {
+        Ok(backups) => backups,
+        Err(e) => {
+            error!("Failed to retrieve backups: {:?}", e);
+            vec![]
+        }
+    };
+
+    let paginated_domains = PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
+
+    // Use the utils.rs helper function
+    crate::handlers::utils::render_domain_list_page(
+        domains,
+        backups,
+        &paginated_domains,
+        state,
+        locale,
+        headers,
+    )
+    .await
+}
+
 // Helper function to handle domain form errors
 async fn handle_domain_form_error(
     state: &AppState,
@@ -167,23 +270,13 @@ pub async fn render_domain_show_page(
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(state, headers, 10, 3).await;
 
-    // Filter out analytics aliases that are already in the domain or in config
-    let config_required = state.config.required_aliases.clone();
-    let config_common = state.config.common_aliases.clone();
-    let existing_alias_names: Vec<String> = existing_aliases
-        .iter()
-        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
-        .collect();
-
-    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
-        .iter()
-        .filter(|alias| {
-            !config_required.contains(alias)
-                && !config_common.contains(alias)
-                && !existing_alias_names.contains(alias)
-        })
-        .cloned()
-        .collect();
+    // Filter analytics aliases using extracted helper function
+    let filtered_analytics_aliases = filter_analytics_aliases(
+        &analytics_common_aliases,
+        &existing_aliases,
+        &state.config.required_aliases,
+        &state.config.common_aliases,
+    );
 
     // Use the utils.rs helper function
     crate::handlers::utils::render_domain_show_page(
@@ -215,23 +308,11 @@ pub async fn list(
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
 
-    // Get domains with error handling
-    let paginated_domains = match db::get_domains_paginated(&pool, page, per_page) {
-        Ok(domains) => domains,
-        Err(e) => {
-            error!("Failed to retrieve domains: {:?}", e);
-            PaginatedResult::new(vec![], 0, 1, per_page)
-        }
-    };
+    // Use focused database operations with built-in error handling
+    let paginated_domains =
+        crate::handlers::utils::get_paginated_domains_with_fallback(&pool, page, per_page).await;
 
-    // Get backups with error handling
-    let backups = match db::get_backups(&pool) {
-        Ok(backups) => backups,
-        Err(e) => {
-            error!("Failed to retrieve backups: {:?}", e);
-            vec![]
-        }
-    };
+    let backups = crate::handlers::utils::get_backups_with_fallback(&pool).await;
 
     // Use the new resource-specific helper function
     crate::handlers::utils::render_domain_list_page(
@@ -278,25 +359,21 @@ pub async fn show(
         }
     };
 
-    // Get domain with proper error handling
-    let domain = match db::get_domain(&pool, id) {
+    // Use focused database operations with built-in error handling
+    let domain = match crate::handlers::utils::get_domain_with_not_found_handling(
+        &pool, id, &state, &headers,
+    )
+    .await
+    {
         Ok(domain) => domain,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "domains",
-                "domains-not-found",
-            )
-            .await;
-        }
+        Err(error_response) => return error_response,
     };
 
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
-    // Get alias report and existing aliases
-    let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
-    let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+    // Use focused database operation for alias data
+    let (alias_report, existing_aliases) =
+        crate::handlers::utils::get_domain_aliases_with_fallback(&pool, &domain.domain).await;
 
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
@@ -386,28 +463,9 @@ pub async fn create(
 ) -> Html<String> {
     let locale = crate::handlers::utils::get_user_locale(&headers);
 
-    // Get current database ID for restriction checks
-    let current_db_id = get_selected_database(&headers)
-        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-
-    // Check database restrictions
-    if let Err(_status_code) =
-        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "create_domain")
-    {
-        return handle_domain_form_error(
-            &state,
-            &locale,
-            &headers,
-            form,
-            "error-operation-not-allowed",
-            false,
-        )
-        .await;
-    }
-
-    // Validate form data
-    if let Err(error_key) = validate_domain_form(&form) {
-        return handle_domain_form_error(&state, &locale, &headers, form, &error_key, false).await;
+    // Early return for validation errors using guard clauses
+    if let Err(error_response) = validate_domain_creation(&state, &headers, &form, &locale).await {
+        return error_response;
     }
 
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
@@ -424,63 +482,18 @@ pub async fn create(
         enabled: form.enabled,
     };
 
-    match db::create_domain(&pool, new_domain) {
-        Ok(_) => {
-            info!("Successfully created domain: {}", form.domain);
+    // Use functional error handling pattern - prepare success response first
+    let success_response =
+        render_domain_list_after_creation(&pool, &state, &locale, &headers).await;
 
-            // Redirect to domains list
-            let domains = match db::get_domains(&pool) {
-                Ok(domains) => domains,
-                Err(e) => {
-                    error!("Failed to retrieve domains after creation: {:?}", e);
-                    vec![]
-                }
-            };
-
-            let backups = match db::get_backups(&pool) {
-                Ok(backups) => backups,
-                Err(e) => {
-                    error!("Failed to retrieve backups: {:?}", e);
-                    vec![]
-                }
-            };
-
-            let paginated_domains =
-                PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
-
-            // Use the utils.rs helper function
-            crate::handlers::utils::render_domain_list_page(
-                domains,
-                backups,
-                &paginated_domains,
-                &state,
-                &locale,
-                &headers,
-            )
-            .await
-        }
-        Err(e) => {
-            error!("Failed to create domain: {:?}", e);
-            let error_message = crate::handlers::utils::handle_database_error(
-                &state,
-                &locale,
-                e,
-                "domain",
-                &form.domain,
-            )
-            .await;
-
-            return handle_domain_form_error(
-                &state,
-                &locale,
-                &headers,
-                form,
-                &error_message,
-                false,
-            )
-            .await;
-        }
-    }
+    crate::handlers::utils::execute_db_operation_with_standard_error_handling(
+        &pool,
+        |pool| db::create_domain(pool, new_domain),
+        success_response,
+        "create domain",
+        &form.domain,
+    )
+    .await
 }
 
 pub async fn update(
@@ -573,49 +586,19 @@ pub async fn delete(
         Err(error) => return error,
     };
 
-    match db::delete_domain(&pool, id) {
-        Ok(_) => {
-            info!("Successfully deleted domain with ID: {}", id);
+    // Use functional error handling pattern - prepare success response first
+    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let success_response =
+        render_domain_list_after_creation(&pool, &state, &locale, &headers).await;
 
-            let locale = crate::handlers::utils::get_user_locale(&headers);
-
-            // Get updated domains list
-            let domains = match db::get_domains(&pool) {
-                Ok(domains) => domains,
-                Err(e) => {
-                    error!("Failed to retrieve domains after deletion: {:?}", e);
-                    vec![]
-                }
-            };
-
-            // Get backups data
-            let backups = match db::get_backups(&pool) {
-                Ok(backups) => backups,
-                Err(e) => {
-                    error!("Failed to retrieve backups: {:?}", e);
-                    vec![]
-                }
-            };
-
-            let paginated_domains =
-                PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
-
-            // Use the helper function for rendering
-            crate::handlers::utils::render_domain_list_page(
-                domains,
-                backups,
-                &paginated_domains,
-                &state,
-                &locale,
-                &headers,
-            )
-            .await
-        }
-        Err(e) => {
-            error!("Failed to delete domain: {:?}", e);
-            return crate::handlers::utils::render_500_page(&state, &headers).await;
-        }
-    }
+    crate::handlers::utils::execute_db_operation_with_standard_error_handling(
+        &pool,
+        |pool| db::delete_domain(pool, id),
+        success_response,
+        "delete domain",
+        &id.to_string(),
+    )
+    .await
 }
 
 pub async fn toggle_enabled(

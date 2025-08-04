@@ -1461,6 +1461,108 @@ where
     }
 }
 
+/// Functional helper for database CRUD operations with consistent error handling pattern
+/// Based on functional programming "Process List before Looping" pattern adapted for database operations
+pub async fn handle_db_crud_operation<T, S, E>(
+    pool: &crate::DbPool,
+    operation: impl FnOnce(&crate::DbPool) -> Result<T, diesel::result::Error>,
+    success_handler: S,
+    error_handler: E,
+) -> Html<String>
+where
+    S: FnOnce(T) -> Html<String>,
+    E: FnOnce(diesel::result::Error) -> Html<String>,
+{
+    match operation(pool) {
+        Ok(result) => success_handler(result),
+        Err(e) => error_handler(e),
+    }
+}
+
+/// Functional helper for simple database operations with standard error handling
+/// Separates concerns using functional pattern: operation execution vs error handling
+pub async fn execute_db_operation_with_standard_error_handling<T>(
+    pool: &crate::DbPool,
+    operation: impl FnOnce(&crate::DbPool) -> Result<T, diesel::result::Error>,
+    success_response: Html<String>,
+    error_context: &str,
+    identifier: &str,
+) -> Html<String> {
+    match operation(pool) {
+        Ok(_result) => {
+            info!("Successfully completed {}: {}", error_context, identifier);
+            success_response
+        }
+        Err(e) => {
+            error!(
+                "Database operation failed for {} {}: {:?}",
+                error_context, identifier, e
+            );
+            Html(format!("Failed to {}", error_context))
+        }
+    }
+}
+
+/// Focused database operation: Get paginated domains with fallback
+/// Extracted from repetitive domain list operations
+pub async fn get_paginated_domains_with_fallback(
+    pool: &crate::DbPool,
+    page: i64,
+    per_page: i64,
+) -> crate::models::PaginatedResult<crate::models::Domain> {
+    match crate::db::get_domains_paginated(pool, page, per_page) {
+        Ok(domains) => domains,
+        Err(e) => {
+            error!("Failed to retrieve domains: {:?}", e);
+            crate::models::PaginatedResult::new(vec![], 0, 1, per_page)
+        }
+    }
+}
+
+/// Focused database operation: Get backups with fallback
+/// Extracted from repetitive backup retrieval operations
+pub async fn get_backups_with_fallback(pool: &crate::DbPool) -> Vec<crate::models::Backup> {
+    match crate::db::get_backups(pool) {
+        Ok(backups) => backups,
+        Err(e) => {
+            error!("Failed to retrieve backups: {:?}", e);
+            vec![]
+        }
+    }
+}
+
+/// Focused database operation: Get domain with not found handling
+/// Extracted from repetitive domain retrieval operations
+pub async fn get_domain_with_not_found_handling(
+    pool: &crate::DbPool,
+    id: i32,
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::models::Domain, Html<String>> {
+    match crate::db::get_domain(pool, id) {
+        Ok(domain) => Ok(domain),
+        Err(_) => {
+            let error_response =
+                handle_entity_not_found(state, headers, "domains", "domains-not-found").await;
+            Err(error_response)
+        }
+    }
+}
+
+/// Focused database operation: Get domain aliases with fallback
+/// Extracted from repetitive alias retrieval operations
+pub async fn get_domain_aliases_with_fallback(
+    pool: &crate::DbPool,
+    domain_name: &str,
+) -> (
+    Option<crate::models::DomainAliasReport>,
+    Vec<crate::models::Alias>,
+) {
+    let alias_report = crate::db::get_domain_alias_report(pool, domain_name).ok();
+    let existing_aliases = crate::db::get_aliases_for_domain(pool, domain_name).unwrap_or_default();
+    (alias_report, existing_aliases)
+}
+
 /// Helper function to handle entity operations with consistent error handling for redirect handlers
 pub async fn handle_entity_operation_redirect<T, F, Fut>(
     operation: F,

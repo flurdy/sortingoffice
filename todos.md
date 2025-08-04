@@ -9,9 +9,17 @@
 
 - ✅ **Updated deprecated Selenium methods**: Replaced deprecated `driver.switch_to().alert()`, `alert.accept()`, and `driver.switch_to().default_content()` with modern `driver.accept_alert()` and `driver.enter_default_frame()` methods in tests/ui_helpers.rs
 
-- Refactor long functions and complex logic
-  - Consolidate similar validation logic across handlers
-  - Simplify complex conditional logic in handlers
+- ✅ **Refactor long functions and complex logic**: Applied extraction and guard clause patterns to domains.rs
+  - ✅ Extracted validation logic from domain create function using guard clauses  
+  - ✅ Extracted alias filtering logic into separate helper function
+  - ✅ Simplified complex conditional logic using early returns
+  - ✅ **Consolidated error handling patterns**: Applied functional programming approach to database operations
+  - ✅ Created reusable database operation helpers with consistent error handling
+  - ✅ Refactored domain create and delete functions to use functional error handling patterns
+  - ✅ **Extracted database operations**: Created focused database operation functions with structured error handling
+  - ✅ Extracted repetitive database operations into reusable helper functions
+  - ✅ Applied structured error handling patterns from Rust error handling guide
+  - ✅ Refactored domain list and show functions to use focused database operations
 
 - Improve error handling and logging
   - Replace unwrap()/expect() with proper error handling
