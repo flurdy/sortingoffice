@@ -15,7 +15,7 @@ use crate::handlers::templates::render_template_safely;
 use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 
 // Import specific translation functions that are still used in utils.rs
-use crate::handlers::translations::{get_entity_form_translations, get_field_translations};
+
 
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
