@@ -299,7 +299,8 @@ where
         }
         Err(e) => {
             error!("Failed to {} {}: {:?}", entity_name, identifier, e);
-            let error_message = handle_database_error(state, locale, e, entity_name, identifier).await;
+            let error_message =
+                handle_database_error(state, locale, e, entity_name, identifier).await;
             Err(Html(error_message))
         }
     }

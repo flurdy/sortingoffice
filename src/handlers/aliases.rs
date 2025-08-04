@@ -8,8 +8,9 @@ use serde::Deserialize;
 use crate::{
     db,
     handlers::{
-        database_ops::{handle_entity_operation, get_entity_or_handle_error},
-        language::get_user_locale, translations::get_translations_batch,
+        database_ops::{get_entity_or_handle_error, handle_entity_operation},
+        language::get_user_locale,
+        translations::get_translations_batch,
         utils::handle_database_error,
     },
     i18n::get_translation,

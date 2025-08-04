@@ -1,10 +1,8 @@
-use crate::models::PaginatedResult;
 use crate::{i18n::get_translation, AppState};
 use askama::Template;
 use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::Html;
-use diesel::result::Error;
 use tracing::error;
 use tracing::info;
 
@@ -12,7 +10,7 @@ use tracing::info;
 use crate::handlers::templates::render_template_safely;
 
 // Import HTTP helper functions from the new http_helpers module
-use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
+use crate::handlers::http_helpers::is_htmx_request;
 
 // Import specific translation functions that are still used in utils.rs
 
@@ -31,72 +29,7 @@ pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (
     (current_db_label, current_db_id)
 }
 
-/// Helper function to get database pool with consistent error handling
-pub async fn get_db_pool_or_handle_error(
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Result<crate::DbPool, Html<String>> {
-    match get_current_db_pool(state, headers).await {
-        Ok(pool) => Ok(pool),
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            Err(Html("Database connection error".to_string()))
-        }
-    }
-}
 
-/// Helper function to handle database operations with consistent error handling
-pub async fn handle_db_operation<T, F, Fut>(
-    operation: F,
-    state: &AppState,
-    headers: &HeaderMap,
-    error_message: &str,
-) -> Result<T, Html<String>>
-where
-    F: FnOnce(&crate::DbPool) -> Fut,
-    Fut: std::future::Future<Output = Result<T, Error>>,
-{
-    let pool = get_db_pool_or_handle_error(state, headers).await?;
-
-    match operation(&pool).await {
-        Ok(result) => Ok(result),
-        Err(e) => {
-            error!("Database operation failed: {} - {:?}", error_message, e);
-            Err(Html(format!(
-                "Database operation failed: {}",
-                error_message
-            )))
-        }
-    }
-}
-
-/// Helper function to handle entity retrieval with not found handling
-pub async fn get_entity_or_not_found<T, F, Fut>(
-    entity_fetch: F,
-    state: &AppState,
-    headers: &HeaderMap,
-    entity_name: &str,
-    not_found_key: &str,
-) -> Result<T, Html<String>>
-where
-    F: FnOnce(&crate::DbPool) -> Fut,
-    Fut: std::future::Future<Output = Result<T, Error>>,
-{
-    let pool = get_db_pool_or_handle_error(state, headers).await?;
-
-    match entity_fetch(&pool).await {
-        Ok(entity) => Ok(entity),
-        Err(Error::NotFound) => {
-            let locale = get_user_locale(headers);
-            let error_message = get_translation(state, &locale, not_found_key).await;
-            Err(Html(error_message))
-        }
-        Err(e) => {
-            error!("Failed to get {}: {:?}", entity_name, e);
-            Err(Html(format!("Failed to retrieve {}", entity_name)))
-        }
-    }
-}
 
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
@@ -576,7 +509,19 @@ where
 
 /// Helper function to fetch not-found related translations
 
-/// Helper function to fetch pagination-related translations
+/// Helper function to get database pool with consistent error handling
+pub async fn get_db_pool_or_handle_error(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<crate::DbPool, Html<String>> {
+    match get_current_db_pool(state, headers).await {
+        Ok(pool) => Ok(pool),
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            Err(Html("Database connection error".to_string()))
+        }
+    }
+}
 
 /// Helper function to get database pool with consistent error handling
 pub async fn get_db_pool_or_error(
@@ -591,8 +536,6 @@ pub async fn get_db_pool_or_error(
         }
     }
 }
-
-
 
 /// Helper function to get database pool with consistent error handling for redirect handlers
 pub async fn get_db_pool_or_redirect_error(
@@ -610,10 +553,6 @@ pub async fn get_db_pool_or_redirect_error(
         }
     }
 }
-
-
-
-
 
 /// Functional helper for simple database operations with standard error handling
 /// Separates concerns using functional pattern: operation execution vs error handling
@@ -639,91 +578,10 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
     }
 }
 
-/// Focused database operation: Get paginated domains with fallback
-/// Extracted from repetitive domain list operations
-pub async fn get_paginated_domains_with_fallback(
-    pool: &crate::DbPool,
-    page: i64,
-    per_page: i64,
-) -> crate::models::PaginatedResult<crate::models::Domain> {
-    match crate::db::get_domains_paginated(pool, page, per_page) {
-        Ok(domains) => domains,
-        Err(e) => {
-            error!("Failed to retrieve domains: {:?}", e);
-            crate::models::PaginatedResult::new(vec![], 0, 1, per_page)
-        }
-    }
-}
-
-/// Focused database operation: Get backups with fallback
-/// Extracted from repetitive backup retrieval operations
-pub async fn get_backups_with_fallback(pool: &crate::DbPool) -> Vec<crate::models::Backup> {
-    match crate::db::get_backups(pool) {
-        Ok(backups) => backups,
-        Err(e) => {
-            error!("Failed to retrieve backups: {:?}", e);
-            vec![]
-        }
-    }
-}
-
-/// Focused database operation: Get domain with not found handling
-/// Extracted from repetitive domain retrieval operations
-pub async fn get_domain_with_not_found_handling(
-    pool: &crate::DbPool,
-    id: i32,
-    state: &AppState,
-    headers: &HeaderMap,
-) -> Result<crate::models::Domain, Html<String>> {
-    match crate::db::get_domain(pool, id) {
-        Ok(domain) => Ok(domain),
-        Err(_) => {
-            let error_response =
-                handle_entity_not_found(state, headers, "domains", "domains-not-found").await;
-            Err(error_response)
-        }
-    }
-}
-
-/// Focused database operation: Get domain aliases with fallback
-/// Extracted from repetitive alias retrieval operations
-pub async fn get_domain_aliases_with_fallback(
-    pool: &crate::DbPool,
-    domain_name: &str,
-) -> (
-    Option<crate::models::DomainAliasReport>,
-    Vec<crate::models::Alias>,
-) {
-    let alias_report = crate::db::get_domain_alias_report(pool, domain_name).ok();
-    let existing_aliases = crate::db::get_aliases_for_domain(pool, domain_name).unwrap_or_default();
-    (alias_report, existing_aliases)
-}
+/// Helper function to fetch pagination-related translations
 
 
 
-/// Helper function to get entity list with pagination
-pub async fn get_entity_list_with_pagination<T, F, Fut>(
-    entity_fetch: F,
-    pool: &crate::DbPool,
-    page: i64,
-    per_page: i64,
-) -> Result<PaginatedResult<T>, Html<String>>
-where
-    F: FnOnce(&crate::DbPool) -> Fut,
-    Fut: std::future::Future<Output = Result<Vec<T>, Error>>,
-    T: Clone,
-{
-    match entity_fetch(pool).await {
-        Ok(entities) => {
-            let total = entities.len() as i64;
-            Ok(PaginatedResult::new(entities, total, page, per_page))
-        }
-        Err(e) => {
-            error!("Failed to retrieve entity list: {:?}", e);
-            Err(Html("Failed to retrieve data".to_string()))
-        }
-    }
-}
 
 /// Helper function to handle entity not found errors consistently
 pub async fn handle_entity_not_found(

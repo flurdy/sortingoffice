@@ -16,8 +16,8 @@ use axum::{
 use serde::Deserialize;
 use tracing::error;
 
+use crate::handlers::database_ops::{get_entity_or_handle_error, handle_entity_operation};
 use crate::handlers::utils::{render_user_form_page, render_user_list_page, render_user_show_page};
-use crate::handlers::database_ops::{handle_entity_operation, get_entity_or_handle_error};
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {

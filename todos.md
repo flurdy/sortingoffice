@@ -79,10 +79,11 @@
 ## Recovery Branch Commits to Implement
 
 - **94281b8** - Refactors database utilities into dedicated module
-  - Extract database helper functions from utils.rs to a dedicated module
-  - Update all call sites to use the new module
-  - Ensure consistent error handling patterns
-  - Consider if functions belong in database_ops.rs or a new database_helpers.rs
+  - ✅ **COMPLETED** - Moved get_entity_or_handle_error, handle_entity_operation, handle_entity_operation_redirect, and handle_db_crud_operation from utils.rs to database_ops.rs
+  - ✅ **COMPLETED** - Updated all call sites in aliases.rs, clients.rs, domain_backup.rs, relays.rs, relocated.rs, and users.rs to use the new database_ops module
+  - ✅ **COMPLETED** - Added proper imports for database_ops functions in all affected files
+  - ✅ **COMPLETED** - Maintained compilation and functionality while improving code organization
+  - Consider moving additional database functions from utils.rs to database_ops.rs in future iterations
 
 - **475de2c** - Rendering refactor  
   - Create rendering.rs module for all rendering functions
@@ -93,39 +94,6 @@
 - **474eb69** - Adds a refactoring tool for Rust codebase
   - ✅ **COMPLETED** - Added refactor.sh and refactor_generic.sh scripts
   - ✅ **COMPLETED** - Added comprehensive README.md for refactoring tools
-
-- ✅ **Italian translations**: Added comprehensive Italian (it-IT) translations including navigation, forms, validation messages, error pages, domains, backups, aliases, and core UI elements
-
-- ✅ **Italian link in dropdown**: Added Italian language option to both base.html and login.html templates, updated all template structs to include language_italian field, and ensured language-italian key is translated in all language files
-
-- ✅ **Fixed Italian language persistence**: Fixed language handler to properly recognize and persist Italian (it-IT) language selection by adding it to the validation list in both set_language and get_user_locale functions
-
-- ✅ **Fixed compilation warnings**: Removed unused askama::Template imports from handlers/about.rs, handlers/aliases.rs, handlers/auth.rs, handlers/contact.rs, and handlers/not_found.rs
-
-- ✅ **Fixed HTML select warnings**: Updated clients/form.html to use value attribute on select element instead of selected attribute on option elements to prevent browser warnings
-
-- ✅ **Restored Italian translations**: Recreated the comprehensive Italian (it-IT) translations file with all essential UI elements, navigation, forms, validation messages, and error pages
-
-- ✅ **Fixed login page crash**: Resolved missing translation keys in get_login_translations function that was causing the login page to fail. Added missing Italian and Dutch language keys and restored proper login translation keys.
-
-- ✅ **Complete Italian translation success**: Successfully expanded the Italian translation file from 394 to 916 lines (522 new lines) by adding all missing sections and specific keys:
-  - Users section (complete) + password management
-  - Domains section (complete) + missing aliases, catch-all
-  - Reports section (complete)
-  - About section (complete)
-  - Aliases section (complete)
-  - Statistics section (complete)
-  - Clients section (complete)
-  - Relays section (complete)
-  - Relocated section (complete)
-  - Backups section (complete)
-  - Contact section (expanded)
-  - Config section (expanded)
-  - Wizard section (complete) + all steps and descriptions
-  - Database backup section (complete)
-  - Pagination section (complete)
-  - Action buttons (edit, delete, enable, disable)
-  - **Italian file now has 916 lines - ahead of most other languages!** (vs 400+ line gap before)
 
 - ✅ **Dashboard title clarification**: The dashboard title shows "Dashboard" because the Italian translation file has `dashboard-title = Dashboard` (keeping it in English, which is common practice for technical terms)
 

@@ -9,10 +9,10 @@ use axum::{
 use serde::Deserialize;
 use tracing::{info, warn};
 
+use crate::handlers::database_ops::handle_entity_operation_redirect;
 use crate::handlers::utils::{
     render_client_form_page, render_client_list_page, render_client_show_page,
 };
-use crate::handlers::database_ops::handle_entity_operation_redirect;
 
 #[derive(Deserialize)]
 pub struct ToggleClientRedirectQuery {
