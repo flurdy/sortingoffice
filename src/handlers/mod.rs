@@ -22,8 +22,8 @@ pub mod stats;
 pub mod theme;
 pub mod users;
 pub mod utils;
-pub mod wizard;
 pub mod validation;
+pub mod wizard;
 
 use axum::{http::StatusCode, response::Response};
 

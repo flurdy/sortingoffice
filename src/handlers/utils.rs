@@ -1407,8 +1407,6 @@ where
     }
 }
 
-
-
 /// Helper function to get entity list with pagination
 pub async fn get_entity_list_with_pagination<T, F, Fut>(
     entity_fetch: F,
@@ -1453,10 +1451,6 @@ pub async fn handle_entity_not_found(
         _ => crate::handlers::errors::render_404_page(state, headers).await,
     }
 }
-
-
-
-
 
 /// Resource-specific helper functions for Aliases
 pub async fn render_alias_list_page(

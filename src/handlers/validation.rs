@@ -3,8 +3,8 @@ use axum::http::HeaderMap;
 use axum::response::Html;
 
 // Import functions from utils for now
-use crate::handlers::utils::get_user_locale;
 use crate::handlers::utils::get_entity_error_translations;
+use crate::handlers::utils::get_user_locale;
 use crate::handlers::utils::render_template_safely;
 use crate::i18n::get_translation;
 
@@ -49,10 +49,13 @@ pub async fn handle_entity_not_found(
 ) -> Html<String> {
     let locale = get_user_locale(headers);
     let translations = get_entity_error_translations(state, &locale, entity_type).await;
-    let title = translations.get("not_found_title").unwrap_or(&"Not Found".to_string()).clone();
-    
+    let title = translations
+        .get("not_found_title")
+        .unwrap_or(&"Not Found".to_string())
+        .clone();
+
     let content = format!("{} not found", entity_type);
-    
+
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     let current_db_label = state
@@ -62,7 +65,7 @@ pub async fn handle_entity_not_found(
         .find(|db| db.id == current_db_id)
         .map(|db| db.label.clone())
         .unwrap_or_else(|| current_db_id.clone());
-    
+
     match crate::templates::error::ErrorTemplate::new(
         &title,
         &content,
@@ -70,7 +73,9 @@ pub async fn handle_entity_not_found(
         &locale,
         &current_db_label,
         &current_db_id,
-    ).await {
+    )
+    .await
+    {
         Ok(error_template) => match render_template_safely(&error_template) {
             Ok(content) => Html(content),
             Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
@@ -97,7 +102,9 @@ where
             let error_msg = get_translation(state, &locale, error_key).await;
 
             // Get form translations
-            let form_translations = crate::handlers::utils::get_entity_form_translations(state, &locale, "aliases").await;
+            let form_translations =
+                crate::handlers::utils::get_entity_form_translations(state, &locale, "aliases")
+                    .await;
             let field_translations = crate::handlers::utils::get_field_translations(
                 state,
                 &locale,
@@ -177,7 +184,8 @@ where
             if crate::handlers::utils::is_htmx_request(headers) {
                 Err(Html(content))
             } else {
-                let (current_db_label, current_db_id) = crate::handlers::utils::get_current_db_info(state, headers).await;
+                let (current_db_label, current_db_id) =
+                    crate::handlers::utils::get_current_db_info(state, headers).await;
                 let template = crate::templates::layout::BaseTemplate::with_i18n(
                     get_translation(state, &locale, "users-new-user").await,
                     content,
@@ -195,4 +203,4 @@ where
             }
         }
     }
-} 
+}
