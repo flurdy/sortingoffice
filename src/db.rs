@@ -202,7 +202,12 @@ pub fn get_domains(pool: &DbPool) -> Result<Vec<Domain>, Error> {
 }
 
 pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {:?}", e)),
+        )
+    })?;
     domains::table
         .find(domain_id)
         .select(Domain::as_select())
@@ -210,7 +215,12 @@ pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
 }
 
 pub fn get_domain_by_name(pool: &DbPool, domain_name: &str) -> Result<Domain, Error> {
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {:?}", e)),
+        )
+    })?;
     domains::table
         .filter(domains::domain.eq(domain_name))
         .select(Domain::as_select())
@@ -218,7 +228,12 @@ pub fn get_domain_by_name(pool: &DbPool, domain_name: &str) -> Result<Domain, Er
 }
 
 pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Error> {
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {:?}", e)),
+        )
+    })?;
     let now = Utc::now().naive_utc();
 
     diesel::insert_into(domains::table)

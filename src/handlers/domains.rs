@@ -3,7 +3,7 @@ use crate::{
     db,
     handlers::auth::get_selected_database,
     i18n::get_translation,
-    models::{Domain, DomainForm, NewDomain, PaginatedResult, PaginationParams},
+    models::{Domain, DomainForm, PaginatedResult, PaginationParams},
     templates::domains::DomainFormTemplate,
     AppState,
 };
@@ -378,12 +378,14 @@ pub async fn show(
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
 
-    // Filter out analytics aliases that are already in the domain or in config
-    let config_required = state.config.required_aliases.clone();
-    let config_common = state.config.common_aliases.clone();
-    let existing_alias_names: Vec<String> = existing_aliases
+    // Use optimized helper to get config aliases without cloning
+    let (config_required, config_common) =
+        crate::handlers::utils::get_config_aliases_references(&state);
+
+    // Optimize alias name extraction to avoid unnecessary cloning
+    let existing_alias_names: std::collections::HashSet<&str> = existing_aliases
         .iter()
-        .map(|alias| alias.mail.split('@').next().unwrap_or("").to_string())
+        .filter_map(|alias| alias.mail.split('@').next())
         .collect();
 
     let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
@@ -391,7 +393,7 @@ pub async fn show(
         .filter(|alias| {
             !config_required.contains(alias)
                 && !config_common.contains(alias)
-                && !existing_alias_names.contains(alias)
+                && !existing_alias_names.contains(alias.as_str())
         })
         .cloned()
         .collect();
@@ -438,11 +440,8 @@ pub async fn edit(
         }
     };
 
-    let form = DomainForm {
-        domain: domain.domain.clone(),
-        transport: domain.transport.clone().unwrap_or_default(),
-        enabled: domain.enabled,
-    };
+    // Use optimized helper to create form without cloning
+    let form = crate::handlers::utils::create_domain_form_from_domain(&domain);
 
     // Use the new resource-specific helper function
     crate::handlers::utils::render_domain_form_page(
@@ -476,11 +475,8 @@ pub async fn create(
         }
     };
 
-    let new_domain = NewDomain {
-        domain: form.domain.trim().to_string(),
-        transport: Some(form.transport.clone()),
-        enabled: form.enabled,
-    };
+    // Use optimized helper to create new domain without cloning
+    let new_domain = crate::handlers::utils::create_new_domain_from_form(&form);
 
     // Use functional error handling pattern - prepare success response first
     let success_response =
@@ -534,6 +530,7 @@ pub async fn update(
         Err(error) => return error,
     };
 
+    // Extract domain name before moving form
     let domain_name = form.domain.clone();
 
     match db::update_domain(&pool, id, form) {
