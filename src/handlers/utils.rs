@@ -17,7 +17,6 @@ use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 // Import specific translation functions that are still used in utils.rs
 use crate::handlers::translations::{get_entity_form_translations, get_field_translations};
 
-
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -314,7 +313,6 @@ macro_rules! get_system_stats_or_default {
     }};
 }
 
-
 /// Get the current database pool from the state
 /// This gets the database pool based on the user's session selection
 pub async fn get_current_db_pool(
@@ -332,8 +330,6 @@ pub async fn get_current_db_pool(
         .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
 }
 
-
-
 /// Helper function to fetch field-related translations
 
 /// Helper function to fetch status-related translations
@@ -341,8 +337,6 @@ pub async fn get_current_db_pool(
 /// Helper function to fetch action-related translations
 
 /// Common translation keys for table headers
-
-
 
 /// Helper function to handle "not found" errors consistently
 pub async fn handle_not_found<T>(

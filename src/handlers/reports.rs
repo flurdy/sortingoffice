@@ -122,7 +122,8 @@ pub async fn cross_database_domain_matrix_report(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Get all reports translations using consolidated helper function
-    let translations = crate::handlers::translations::get_reports_translations(&state, &locale).await;
+    let translations =
+        crate::handlers::translations::get_reports_translations(&state, &locale).await;
 
     // Get cross-database domain matrix report data
     let report = match db::get_cross_database_domain_matrix_report(&state.db_manager).await {

@@ -8,9 +8,8 @@ use serde::Deserialize;
 use crate::{
     db,
     handlers::{
-        language::get_user_locale,
-        utils::{handle_database_error},
-        translations::{get_translations_batch},
+        language::get_user_locale, translations::get_translations_batch,
+        utils::handle_database_error,
     },
     i18n::get_translation,
     models::{PaginatedResult, PaginationParams},

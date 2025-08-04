@@ -1,5 +1,5 @@
-use crate::AppState;
 use crate::i18n::get_translation;
+use crate::AppState;
 use std::collections::HashMap;
 use tracing::debug;
 
@@ -283,7 +283,10 @@ pub async fn get_entity_error_translations(
         translations.insert(key, value);
     }
 
-    debug!("Entity error translations for {}: {translations:#?}", entity);
+    debug!(
+        "Entity error translations for {}: {translations:#?}",
+        entity
+    );
     translations
 }
 
@@ -300,7 +303,15 @@ pub async fn get_entity_all_translations(
     let list_translations = get_entity_list_translations(state, locale, entity).await;
     let show_translations = get_entity_show_translations(state, locale, entity).await;
     let error_translations = get_entity_error_translations(state, locale, entity).await;
-    let field_translations = get_field_translations(state, locale, entity, &["id", "name", "email", "domain", "status", "created", "updated"]).await;
+    let field_translations = get_field_translations(
+        state,
+        locale,
+        entity,
+        &[
+            "id", "name", "email", "domain", "status", "created", "updated",
+        ],
+    )
+    .await;
     let status_translations = get_status_translations(state, locale, entity).await;
     let action_translations = get_action_translations(state, locale, entity).await;
 
@@ -460,4 +471,4 @@ pub async fn get_pagination_translations(
 
     debug!("Pagination translations: {translations:#?}");
     translations
-} 
+}

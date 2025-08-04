@@ -676,7 +676,8 @@ pub async fn update(
     // Validate required fields
     if form.id.trim().is_empty() {
         let form_translations =
-            crate::handlers::translations::get_entity_form_translations(&state, &locale, "users").await;
+            crate::handlers::translations::get_entity_form_translations(&state, &locale, "users")
+                .await;
         let error_msg = form_translations["validation-username-required"].clone();
         let form_template = build_user_form_template(
             &state,

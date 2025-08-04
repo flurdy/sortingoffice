@@ -3,12 +3,16 @@ use axum::http::HeaderMap;
 use axum::response::Html;
 
 // Import functions from utils for now
-use crate::handlers::utils::get_entity_error_translations;
-use crate::handlers::utils::render_template_safely;
 use crate::i18n::get_translation;
 
 // Import HTTP helper functions directly
 use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
+
+// Import translation functions directly
+use crate::handlers::templates::render_template_safely;
+use crate::handlers::translations::{
+    get_entity_error_translations, get_entity_form_translations, get_field_translations,
+};
 
 /// Generic form validation with error handling
 pub async fn validate_form_and_handle_error<F, V, E>(
@@ -104,10 +108,8 @@ where
             let error_msg = get_translation(state, &locale, error_key).await;
 
             // Get form translations
-            let form_translations =
-                crate::handlers::utils::get_entity_form_translations(state, &locale, "aliases")
-                    .await;
-            let field_translations = crate::handlers::utils::get_field_translations(
+            let form_translations = get_entity_form_translations(state, &locale, "aliases").await;
+            let field_translations = get_field_translations(
                 state,
                 &locale,
                 "aliases",

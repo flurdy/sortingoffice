@@ -13,7 +13,8 @@ use axum::{
 pub async fn not_found(headers: HeaderMap, State(state): State<AppState>) -> Response {
     // Get locale and translations
     let locale = get_user_locale(&headers);
-    let translations = crate::handlers::translations::get_not_found_translations(&state, &locale).await;
+    let translations =
+        crate::handlers::translations::get_not_found_translations(&state, &locale).await;
     let current_db_id = get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     let current_db_label = state
