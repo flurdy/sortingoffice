@@ -22,6 +22,7 @@ pub mod reports;
 pub mod restrictions;
 pub mod stats;
 pub mod templates;
+
 pub mod theme;
 pub mod translations;
 pub mod users;

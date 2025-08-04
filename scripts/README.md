@@ -88,6 +88,55 @@ source ./scripts/set-env.sh
 - Sets up test environment variables
 - Manages Docker Compose configurations
 
+### `refactor.sh` - Code Refactoring Tool
+
+A simple wrapper for common refactoring tasks in the Rust codebase.
+
+**Usage:**
+```bash
+# Move functions between modules
+./scripts/refactor.sh move utils database_helpers get_current_db_pool
+
+# Rename a function
+./scripts/refactor.sh rename function old_name new_name
+
+# Fix compilation errors
+./scripts/refactor.sh fix
+
+# Clean up unused imports
+./scripts/refactor.sh cleanup
+
+# Get help
+./scripts/refactor.sh help
+```
+
+**Features:**
+- Move functions between modules
+- Rename functions and modules
+- Fix common compilation errors
+- Clean up unused imports
+- Safe function reference handling
+
+### `refactor_generic.sh` - Generic Refactoring Engine
+
+The underlying engine that handles all refactoring operations.
+
+**Operations:**
+- `move-functions` - Move functions between modules
+- `move-module` - Move entire modules
+- `rename-function` - Rename functions
+- `rename-module` - Rename modules
+- `update-imports` - Update import paths
+- `fix-compilation` - Fix common compilation errors
+- `cleanup-imports` - Remove unused imports
+
+**Usage:**
+```bash
+./scripts/refactor_generic.sh move-functions utils database_helpers get_current_db_pool
+./scripts/refactor_generic.sh rename-function old_name new_name
+./scripts/refactor_generic.sh fix-compilation
+```
+
 ### `health-check.sh` - Comprehensive Health Check
 
 A detailed health check script with verbose output and configuration options.

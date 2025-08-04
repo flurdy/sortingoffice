@@ -16,7 +16,6 @@ use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 
 // Import specific translation functions that are still used in utils.rs
 
-
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
