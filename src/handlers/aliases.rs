@@ -62,7 +62,7 @@ pub async fn list(
     let locale = get_user_locale(&headers);
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_alias_list_page(
+    crate::handlers::rendering::render_alias_list_page(
         paginated_aliases.items.clone(),
         &paginated_aliases,
         &state,
@@ -104,7 +104,7 @@ pub async fn new(
     let locale = get_user_locale(&headers);
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_alias_form_page(
+    crate::handlers::rendering::render_alias_form_page(
         form,
         None, // No existing alias for new form
         "aliases-add-title",
@@ -145,7 +145,7 @@ pub async fn show(
     let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_alias_show_page(alias, domain_info, &state, &locale, &headers)
+    crate::handlers::rendering::render_alias_show_page(alias, domain_info, &state, &locale, &headers)
         .await
 }
 
@@ -177,7 +177,7 @@ pub async fn edit(
     let locale = get_user_locale(&headers);
 
     // Use the new resource-specific helper function
-    crate::handlers::utils::render_alias_form_page(
+    crate::handlers::rendering::render_alias_form_page(
         form,
         Some(alias), // Pass the existing alias for edit form
         "aliases-edit-title",
@@ -240,7 +240,7 @@ pub async fn create(
                             let locale = get_user_locale(&headers);
                             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
-                            crate::handlers::utils::render_alias_list_page(
+                            crate::handlers::rendering::render_alias_list_page(
                                 aliases, &paginated, &state, &locale, &headers,
                             )
                             .await
@@ -281,7 +281,7 @@ pub async fn create(
                     let locale = get_user_locale(&headers);
                     let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
-                    crate::handlers::utils::render_alias_list_page(
+                    crate::handlers::rendering::render_alias_list_page(
                         aliases, &paginated, &state, &locale, &headers,
                     )
                     .await
@@ -293,7 +293,7 @@ pub async fn create(
             let _error_msg = handle_database_error(&state, &locale, e, "aliases", &form.mail).await;
 
             // Use resource-specific helper for form with error
-            crate::handlers::utils::render_alias_form_page(
+            crate::handlers::rendering::render_alias_form_page(
                 form,
                 None,
                 "aliases-add-title",
@@ -326,7 +326,7 @@ pub async fn update(
                 get_translation(&state, &locale, "validation-alias-mail-invalid").await;
 
             // Use resource-specific helper for form with error
-            return crate::handlers::utils::render_alias_form_page(
+            return crate::handlers::rendering::render_alias_form_page(
                 form,
                 None,
                 "aliases-edit-title",
@@ -347,7 +347,7 @@ pub async fn update(
                 get_translation(&state, &locale, "validation-alias-destination-invalid").await;
 
             // Use resource-specific helper for form with error
-            return crate::handlers::utils::render_alias_form_page(
+            return crate::handlers::rendering::render_alias_form_page(
                 form,
                 None,
                 "aliases-edit-title",
@@ -380,7 +380,7 @@ pub async fn update(
 
             // Use resource-specific helper for alias show page
             let locale = get_user_locale(&headers);
-            crate::handlers::utils::render_alias_show_page(
+            crate::handlers::rendering::render_alias_show_page(
                 alias,
                 domain_info,
                 &state,
@@ -394,7 +394,7 @@ pub async fn update(
             let _error_msg = handle_database_error(&state, &locale, e, "aliases", &form.mail).await;
 
             // Use resource-specific helper for form with error
-            crate::handlers::utils::render_alias_form_page(
+            crate::handlers::rendering::render_alias_form_page(
                 form,
                 None,
                 "aliases-edit-title",
@@ -436,7 +436,7 @@ pub async fn delete(
             let aliases = db::get_aliases(&pool).unwrap_or_default();
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
-            crate::handlers::utils::render_alias_list_page(
+            crate::handlers::rendering::render_alias_list_page(
                 aliases, &paginated, &state, &locale, &headers,
             )
             .await
@@ -485,7 +485,7 @@ pub async fn toggle_enabled(
                     let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
                     // Use resource-specific helper for alias show page
-                    crate::handlers::utils::render_alias_show_page(
+                    crate::handlers::rendering::render_alias_show_page(
                         alias,
                         domain_info,
                         &state,
@@ -517,7 +517,7 @@ pub async fn toggle_enabled_list(
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
             // Use the new resource-specific helper function
-            crate::handlers::utils::render_alias_list_page(
+            crate::handlers::rendering::render_alias_list_page(
                 aliases, &paginated, &state, &locale, &headers,
             )
             .await
@@ -552,7 +552,7 @@ pub async fn toggle_enabled_show(
             let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
 
             // Use the new resource-specific helper function
-            crate::handlers::utils::render_alias_show_page(
+            crate::handlers::rendering::render_alias_show_page(
                 alias,
                 domain_info,
                 &state,

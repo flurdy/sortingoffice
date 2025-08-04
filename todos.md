@@ -86,8 +86,10 @@
   - ✅ **COMPLETED** - Added render_form_template, render_list_template, render_show_template to rendering.rs
   - ✅ **COMPLETED** - Added rendering module to handlers/mod.rs
   - ✅ **COMPLETED** - Maintained compilation and functionality
-  - **IN PROGRESS** - Extract specific render_*_page functions from utils.rs to rendering.rs
-  - **IN PROGRESS** - Update call sites to use the new rendering module
+  - ✅ **COMPLETED** - Moved render_domain_list_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated 3 call sites in domains.rs to use the new rendering module
+  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs
+  - **IN PROGRESS** - Update remaining call sites to use the new rendering module
   - **IN PROGRESS** - Ensure template compatibility with the current codebase
 
 - **474eb69** - Adds a refactoring tool for Rust codebase
