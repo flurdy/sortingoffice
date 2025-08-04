@@ -29,8 +29,6 @@ pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (
     (current_db_label, current_db_id)
 }
 
-
-
 /// Macro to fetch multiple translations at once
 /// Usage: let translations = get_translations!(&state, &locale, [
 ///     "key1", "key2", "key3"
@@ -579,9 +577,6 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
 }
 
 /// Helper function to fetch pagination-related translations
-
-
-
 
 /// Helper function to handle entity not found errors consistently
 pub async fn handle_entity_not_found(

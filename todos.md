@@ -1,12 +1,5 @@
 # TODO List
 
-
-  - ✅ **Dutch translations**: Added comprehensive Dutch (nl-NL) translations including navigation, forms, validation messages, error pages, domains, backups, aliases, and core UI elements
-
-  - ✅ **Dutch link in dropdown**: Added Dutch language option to both base.html and login.html templates, updated all template structs to include language_dutch field, and ensured language-dutch key is translated in all language files
-
-- ✅ **Fixed Dutch language persistence**: Added Dutch (nl-NL) to the validation lists in both set_language and get_user_locale functions, and added a test to verify Dutch language support works correctly
-
 - ✅ **Updated deprecated Selenium methods**: Replaced deprecated `driver.switch_to().alert()`, `alert.accept()`, and `driver.switch_to().default_content()` with modern `driver.accept_alert()` and `driver.enter_default_frame()` methods in tests/ui_helpers.rs
 
 - ✅ **Refactor long functions and complex logic**: Applied extraction and guard clause patterns to domains.rs
@@ -83,7 +76,10 @@
   - ✅ **COMPLETED** - Updated all call sites in aliases.rs, clients.rs, domain_backup.rs, relays.rs, relocated.rs, and users.rs to use the new database_ops module
   - ✅ **COMPLETED** - Added proper imports for database_ops functions in all affected files
   - ✅ **COMPLETED** - Maintained compilation and functionality while improving code organization
-  - Consider moving additional database functions from utils.rs to database_ops.rs in future iterations
+  - ✅ **COMPLETED** - Removed duplicate database functions from utils.rs (get_entity_or_not_found, handle_db_operation, get_entity_list_with_pagination, get_paginated_domains_with_fallback, get_backups_with_fallback, get_domain_with_not_found_handling, get_domain_aliases_with_fallback)
+  - ✅ **COMPLETED** - Kept essential database functions in utils.rs to maintain backward compatibility
+  - ✅ **COMPLETED** - Cleaned up unused imports and reduced code duplication
+  - **DATABASE REFACTORING COMPLETE** - Successfully implemented a smaller, more manageable version of the original database_helpers refactor
 
 - **475de2c** - Rendering refactor  
   - Create rendering.rs module for all rendering functions
@@ -94,12 +90,6 @@
 - **474eb69** - Adds a refactoring tool for Rust codebase
   - ✅ **COMPLETED** - Added refactor.sh and refactor_generic.sh scripts
   - ✅ **COMPLETED** - Added comprehensive README.md for refactoring tools
-
-- ✅ **Dashboard title clarification**: The dashboard title shows "Dashboard" because the Italian translation file has `dashboard-title = Dashboard` (keeping it in English, which is common practice for technical terms)
-
-- ✅ **Dashboard translation complete**: The dashboard is now 100% translated in Italian, showing "Domini e Backup" in quick action cards and "Domini e Backup Abilitati" in the domains count box.
-
-- IGNORE: Add a Portuguese translations and link
 
 - Github actions apart from smoke test still fail
   - https://github.com/flurdy/sortingoffice/actions/  
