@@ -8,6 +8,7 @@ use serde::Deserialize;
 use crate::{
     db,
     handlers::{
+        database_ops::{handle_entity_operation, get_entity_or_handle_error},
         language::get_user_locale, translations::get_translations_batch,
         utils::handle_database_error,
     },
@@ -419,7 +420,7 @@ pub async fn delete(
     let locale = get_user_locale(&headers);
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::delete_alias(&pool, id) },
         &state,
         &locale,
@@ -457,7 +458,7 @@ pub async fn toggle_enabled(
     let locale = get_user_locale(&headers);
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_alias_enabled(&pool, id) },
         &state,
         &locale,
@@ -469,7 +470,7 @@ pub async fn toggle_enabled(
     {
         Ok(_) => {
             // Get updated alias using helper function
-            match crate::handlers::utils::get_entity_or_handle_error(
+            match get_entity_or_handle_error(
                 || async { db::get_alias(&pool, id) },
                 &state,
                 &locale,

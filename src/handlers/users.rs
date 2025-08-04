@@ -17,6 +17,7 @@ use serde::Deserialize;
 use tracing::error;
 
 use crate::handlers::utils::{render_user_form_page, render_user_list_page, render_user_show_page};
+use crate::handlers::database_ops::{handle_entity_operation, get_entity_or_handle_error};
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {
@@ -785,7 +786,7 @@ pub async fn delete(
 
     let user_id = id.clone();
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::delete_user(&pool, user_id) },
         &state,
         &locale,
@@ -828,7 +829,7 @@ pub async fn toggle_enabled(
 
     let user_id = id.clone();
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_user_enabled(&pool, user_id) },
         &state,
         &locale,
@@ -871,7 +872,7 @@ pub async fn toggle_enabled_list(
     let user_id = id.clone();
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_user_enabled(&pool, user_id) },
         &state,
         &locale,
@@ -914,7 +915,7 @@ pub async fn toggle_enabled_show(
     let user_id = id.clone();
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_user_enabled(&pool, user_id) },
         &state,
         &locale,
@@ -926,7 +927,7 @@ pub async fn toggle_enabled_show(
     {
         Ok(_) => {
             // Get updated user using helper function
-            match crate::handlers::utils::get_entity_or_handle_error(
+            match get_entity_or_handle_error(
                 || async { db::get_user(&pool, id) },
                 &state,
                 &locale,

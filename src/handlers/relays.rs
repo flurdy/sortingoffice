@@ -8,6 +8,8 @@ use axum::{
 use diesel::result::Error;
 use tracing::{debug, error, info};
 
+use crate::handlers::database_ops::handle_entity_operation;
+
 fn is_htmx_request(headers: &HeaderMap) -> bool {
     headers.get("HX-Request").is_some_and(|v| v == "true")
 }
@@ -235,7 +237,7 @@ pub async fn delete_relay(
     debug!("Handling relay delete request for ID: {}", relay_id);
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::delete_relay(&pool, relay_id) },
         &state,
         &locale,
@@ -270,7 +272,7 @@ pub async fn toggle_enabled(
     debug!("Handling relay toggle enabled request for ID: {}", relay_id);
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_relay_enabled(&pool, relay_id) },
         &state,
         &locale,

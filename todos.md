@@ -76,6 +76,24 @@
 
 - The utils.rs file is huge. Can it be split?
 
+## Recovery Branch Commits to Implement
+
+- **94281b8** - Refactors database utilities into dedicated module
+  - Extract database helper functions from utils.rs to a dedicated module
+  - Update all call sites to use the new module
+  - Ensure consistent error handling patterns
+  - Consider if functions belong in database_ops.rs or a new database_helpers.rs
+
+- **475de2c** - Rendering refactor  
+  - Create rendering.rs module for all rendering functions
+  - Move rendering functions from utils.rs to rendering.rs
+  - Update all call sites to use the new module
+  - Ensure template compatibility with current codebase
+
+- **474eb69** - Adds a refactoring tool for Rust codebase
+  - ✅ **COMPLETED** - Added refactor.sh and refactor_generic.sh scripts
+  - ✅ **COMPLETED** - Added comprehensive README.md for refactoring tools
+
 - ✅ **Italian translations**: Added comprehensive Italian (it-IT) translations including navigation, forms, validation messages, error pages, domains, backups, aliases, and core UI elements
 
 - ✅ **Italian link in dropdown**: Added Italian language option to both base.html and login.html templates, updated all template structs to include language_italian field, and ensured language-italian key is translated in all language files

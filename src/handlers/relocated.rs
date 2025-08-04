@@ -8,6 +8,8 @@ use axum::{
 use diesel::result::Error;
 use tracing::{debug, error, info};
 
+use crate::handlers::database_ops::handle_entity_operation;
+
 use crate::handlers::utils::{
     render_relocated_form_page, render_relocated_list_page, render_relocated_show_page,
 };
@@ -217,7 +219,7 @@ pub async fn delete_relocated(
     debug!("Handling relocated delete request for ID: {}", relocated_id);
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::delete_relocated(&pool, relocated_id) },
         &state,
         &locale,
@@ -255,7 +257,7 @@ pub async fn toggle_enabled(
     );
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation(
+    match handle_entity_operation(
         || async { db::toggle_relocated_enabled(&pool, relocated_id) },
         &state,
         &locale,

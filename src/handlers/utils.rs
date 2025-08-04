@@ -592,25 +592,7 @@ pub async fn get_db_pool_or_error(
     }
 }
 
-/// Helper function to get entity with consistent not-found handling
-pub async fn get_entity_or_handle_error<T, F, Fut>(
-    entity_fetch: F,
-    state: &AppState,
-    locale: &str,
-    not_found_key: &str,
-) -> Result<T, Html<String>>
-where
-    F: FnOnce() -> Fut,
-    Fut: std::future::Future<Output = Result<T, Error>>,
-{
-    match entity_fetch().await {
-        Ok(entity) => Ok(entity),
-        Err(_) => {
-            let not_found_msg = get_translation(state, locale, not_found_key).await;
-            Err(Html(not_found_msg))
-        }
-    }
-}
+
 
 /// Helper function to get database pool with consistent error handling for redirect handlers
 pub async fn get_db_pool_or_redirect_error(
@@ -629,50 +611,9 @@ pub async fn get_db_pool_or_redirect_error(
     }
 }
 
-/// Helper function to handle entity operations with consistent error handling
-pub async fn handle_entity_operation<T, F, Fut>(
-    operation: F,
-    state: &AppState,
-    locale: &str,
-    entity_name: &str,
-    identifier: &str,
-    success_message: &str,
-) -> Result<T, Html<String>>
-where
-    F: FnOnce() -> Fut,
-    Fut: std::future::Future<Output = Result<T, Error>>,
-{
-    match operation().await {
-        Ok(result) => {
-            info!("{}: {}", success_message, identifier);
-            Ok(result)
-        }
-        Err(e) => {
-            error!("Failed to {} {}: {:?}", entity_name, identifier, e);
-            let error_message =
-                handle_database_error(state, locale, e, entity_name, identifier).await;
-            Err(Html(error_message))
-        }
-    }
-}
 
-/// Functional helper for database CRUD operations with consistent error handling pattern
-/// Based on functional programming "Process List before Looping" pattern adapted for database operations
-pub async fn handle_db_crud_operation<T, S, E>(
-    pool: &crate::DbPool,
-    operation: impl FnOnce(&crate::DbPool) -> Result<T, diesel::result::Error>,
-    success_handler: S,
-    error_handler: E,
-) -> Html<String>
-where
-    S: FnOnce(T) -> Html<String>,
-    E: FnOnce(diesel::result::Error) -> Html<String>,
-{
-    match operation(pool) {
-        Ok(result) => success_handler(result),
-        Err(e) => error_handler(e),
-    }
-}
+
+
 
 /// Functional helper for simple database operations with standard error handling
 /// Separates concerns using functional pattern: operation execution vs error handling
@@ -758,32 +699,7 @@ pub async fn get_domain_aliases_with_fallback(
     (alias_report, existing_aliases)
 }
 
-/// Helper function to handle entity operations with consistent error handling for redirect handlers
-pub async fn handle_entity_operation_redirect<T, F, Fut>(
-    operation: F,
-    _state: &AppState,
-    entity_name: &str,
-    identifier: &str,
-    success_message: &str,
-) -> Result<T, (StatusCode, String)>
-where
-    F: FnOnce() -> Fut,
-    Fut: std::future::Future<Output = Result<T, Error>>,
-{
-    match operation().await {
-        Ok(result) => {
-            info!("{}: {}", success_message, identifier);
-            Ok(result)
-        }
-        Err(e) => {
-            error!("Failed to {} {}: {:?}", entity_name, identifier, e);
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to {entity_name} {identifier}"),
-            ))
-        }
-    }
-}
+
 
 /// Helper function to get entity list with pagination
 pub async fn get_entity_list_with_pagination<T, F, Fut>(

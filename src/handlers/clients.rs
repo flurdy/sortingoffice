@@ -12,6 +12,7 @@ use tracing::{info, warn};
 use crate::handlers::utils::{
     render_client_form_page, render_client_list_page, render_client_show_page,
 };
+use crate::handlers::database_ops::handle_entity_operation_redirect;
 
 #[derive(Deserialize)]
 pub struct ToggleClientRedirectQuery {
@@ -174,7 +175,7 @@ pub async fn create_client(
     };
 
     // Use helper function for entity operation
-    let client = match crate::handlers::utils::handle_entity_operation_redirect(
+    let client = match handle_entity_operation_redirect(
         || async { db::create_client(&pool, client_data) },
         &state,
         "create client",
@@ -205,7 +206,7 @@ pub async fn update_client(
     };
 
     // Use helper function for entity operation
-    let client = match crate::handlers::utils::handle_entity_operation_redirect(
+    let client = match handle_entity_operation_redirect(
         || async { db::update_client(&pool, client_id, client_data) },
         &state,
         "update client",
@@ -235,7 +236,7 @@ pub async fn delete_client(
     };
 
     // Use helper function for entity operation
-    match crate::handlers::utils::handle_entity_operation_redirect(
+    match handle_entity_operation_redirect(
         || async { db::delete_client(&pool, client_id) },
         &state,
         "delete client",
@@ -264,7 +265,7 @@ pub async fn toggle_client(
     };
 
     // Use helper function for entity operation
-    let _client = match crate::handlers::utils::handle_entity_operation_redirect(
+    let _client = match handle_entity_operation_redirect(
         || async { db::toggle_client_enabled(&pool, client_id) },
         &state,
         "toggle client",
