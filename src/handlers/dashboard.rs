@@ -19,7 +19,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Use the batch translation fetcher for common translations
-    let common_translations = crate::handlers::utils::get_translations_batch(
+    let common_translations = crate::handlers::translations::get_translations_batch(
         &state,
         &locale,
         &[

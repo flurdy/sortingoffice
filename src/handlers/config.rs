@@ -15,7 +15,7 @@ pub async fn view_config(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Use helper functions to fetch translations in batches
-    let form_translations = crate::handlers::utils::get_translations_batch(
+    let form_translations = crate::handlers::translations::get_translations_batch(
         &state,
         &locale,
         &[

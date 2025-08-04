@@ -149,7 +149,7 @@ pub async fn build_user_form_template(
     error: Option<String>,
 ) -> UserFormTemplate {
     // Use helper functions to fetch translations in batches
-    let form_translations = crate::handlers::utils::get_translations_batch(
+    let form_translations = crate::handlers::translations::get_translations_batch(
         state,
         locale,
         &[
@@ -165,7 +165,7 @@ pub async fn build_user_form_template(
         ],
     )
     .await;
-    let field_translations = crate::handlers::utils::get_field_translations(
+    let field_translations = crate::handlers::translations::get_field_translations(
         state,
         locale,
         "users",
@@ -676,7 +676,7 @@ pub async fn update(
     // Validate required fields
     if form.id.trim().is_empty() {
         let form_translations =
-            crate::handlers::utils::get_entity_form_translations(&state, &locale, "users").await;
+            crate::handlers::translations::get_entity_form_translations(&state, &locale, "users").await;
         let error_msg = form_translations["validation-username-required"].clone();
         let form_template = build_user_form_template(
             &state,

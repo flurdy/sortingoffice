@@ -21,7 +21,7 @@ pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Get translations for the database selection page
-    let translations = crate::handlers::utils::get_translations_batch(
+    let translations = crate::handlers::translations::get_translations_batch(
         &state,
         &locale,
         &[

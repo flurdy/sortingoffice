@@ -147,8 +147,8 @@ async fn handle_domain_form_error(
     let error_msg = get_translation(state, locale, error_key).await;
 
     let form_translations =
-        crate::handlers::utils::get_entity_form_translations(state, locale, "domains").await;
-    let field_translations = crate::handlers::utils::get_field_translations(
+        crate::handlers::translations::get_entity_form_translations(state, locale, "domains").await;
+    let field_translations = crate::handlers::translations::get_field_translations(
         state,
         locale,
         "domains",

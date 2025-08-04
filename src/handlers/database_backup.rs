@@ -36,7 +36,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Get translations
-    let translations = crate::handlers::utils::get_translations_batch(
+    let translations = crate::handlers::translations::get_translations_batch(
         &state,
         &locale,
         &[
@@ -331,7 +331,7 @@ pub async fn create_backup_htmx(
 
         // Get locale for translations
         let locale = crate::handlers::language::get_user_locale(&headers);
-        let translations = crate::handlers::utils::get_translations_batch(
+        let translations = crate::handlers::translations::get_translations_batch(
             &state,
             &locale,
             &[
@@ -375,7 +375,7 @@ pub async fn create_backup_htmx(
 
         // Get locale for translations
         let locale = crate::handlers::language::get_user_locale(&headers);
-        let translations = crate::handlers::utils::get_translations_batch(
+        let translations = crate::handlers::translations::get_translations_batch(
             &state,
             &locale,
             &["database-backup-status-error"],

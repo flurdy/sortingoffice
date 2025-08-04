@@ -16,7 +16,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let domain_stats = db::get_domain_stats(&pool).unwrap_or_default();
 
     // Use the batch translation fetcher for all statistics translations
-    let translations = crate::handlers::utils::get_translations_batch(
+    let translations = crate::handlers::translations::get_translations_batch(
         &state,
         &locale,
         &[

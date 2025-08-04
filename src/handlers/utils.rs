@@ -5,32 +5,18 @@ use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::Html;
 use diesel::result::Error;
-use std::collections::HashMap;
-use tracing::debug;
 use tracing::error;
 use tracing::info;
 
-// Import HTTP helper functions
+// Import template functions from the new templates module
+use crate::handlers::templates::render_template_safely;
+
+// Import HTTP helper functions from the new http_helpers module
 use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 
-/// Helper function to render template safely with error handling
-pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
-    template.render().map_err(|e| {
-        error!("Template rendering failed: {:?}", e);
-        format!("Template rendering error: {}", e)
-    })
-}
+// Import specific translation functions that are still used in utils.rs
+use crate::handlers::translations::{get_entity_form_translations, get_field_translations};
 
-/// Helper function to render template safely and return Html or error
-/// Note: This function should be used carefully as it doesn't have access to state and headers
-/// for proper error page rendering. Consider using render_template_safely directly with
-/// proper error page handling in the calling function.
-pub fn render_template_to_html<T: Template>(template: T) -> Html<String> {
-    match render_template_safely(template) {
-        Ok(content) => Html(content),
-        Err(_) => Html("Template rendering error".to_string()),
-    }
-}
 
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
@@ -328,6 +314,7 @@ macro_rules! get_system_stats_or_default {
     }};
 }
 
+
 /// Get the current database pool from the state
 /// This gets the database pool based on the user's session selection
 pub async fn get_current_db_pool(
@@ -345,279 +332,17 @@ pub async fn get_current_db_pool(
         .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
 }
 
-/// Batch translation fetcher
-pub async fn get_translations_batch(
-    state: &AppState,
-    locale: &str,
-    keys: &[&str],
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-    for key in keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-    translations
-}
 
-/// Helper function to fetch multiple form-related translations at once
-pub async fn get_entity_form_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    // Load common form translations
-    let common_keys = vec![
-        "form-error",
-        "form-cancel",
-        "action-save",
-        "action-cancel",
-        "form-enabled",
-        "form-disabled",
-        "form-create-domain",
-        "form-update-domain",
-        "form-placeholder-domain",
-        "form-placeholder-transport",
-        "form-tooltip-domain",
-        "form-tooltip-transport",
-        "form-tooltip-enable",
-    ];
-
-    for key in common_keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-
-    // Generate entity-specific keys
-    let singular = if entity == "aliases" {
-        "alias"
-    } else {
-        entity.trim_end_matches('s')
-    };
-
-    let entity_keys = vec![
-        format!("{entity}-add-title"),
-        format!("{entity}-edit-title"),
-        format!("{entity}-new-{singular}"),
-        format!("{entity}-edit-{singular}"),
-    ];
-
-    for key in entity_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    debug!("Final translations map: {translations:#?}");
-    translations
-}
 
 /// Helper function to fetch field-related translations
-pub async fn get_field_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-    fields: &[&str],
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    for field in fields {
-        let field_keys = [
-            format!("{entity}-field-{field}"),
-            format!("{entity}-field-{field}-help"),
-            format!("{entity}-placeholder-{field}"),
-        ];
-
-        for key in field_keys {
-            let value = get_translation(state, locale, &key).await;
-            translations.insert(key, value);
-        }
-    }
-
-    translations
-}
 
 /// Helper function to fetch status-related translations
-pub async fn get_status_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    // Entity-specific status keys
-    let entity_status_keys = if entity == "clients" {
-        vec![
-            format!("{entity}-status-ok"),
-            format!("{entity}-status-reject"),
-            format!("{entity}-status-enabled"),
-            format!("{entity}-status-disabled"),
-            format!("{entity}-enabled-yes"),
-            format!("{entity}-enabled-no"),
-        ]
-    } else {
-        vec![
-            format!("{entity}-status-allowed"),
-            format!("{entity}-status-blocked"),
-            format!("{entity}-status-enabled"),
-            format!("{entity}-status-disabled"),
-            format!("{entity}-enabled-yes"),
-            format!("{entity}-enabled-no"),
-        ]
-    };
-
-    // Common status keys
-    let common_status_keys = [
-        "status-enabled",
-        "status-disabled",
-        "status-active",
-        "status-inactive",
-        "status-ok",
-        "status-reject",
-    ];
-
-    // Combine entity-specific and common status keys
-    let all_keys = [
-        entity_status_keys,
-        common_status_keys.iter().map(|s| s.to_string()).collect(),
-    ]
-    .concat();
-
-    for key in all_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch action-related translations
-pub async fn get_action_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    // Entity-specific action keys
-    let entity_action_keys = [
-        format!("{entity}-action-view"),
-        format!("{entity}-action-edit"),
-        format!("{entity}-action-enable"),
-        format!("{entity}-action-disable"),
-        format!("{entity}-action-delete"),
-        format!("{entity}-action-cancel"),
-        format!("{entity}-delete-confirm"),
-    ];
-
-    // Common action keys
-    let common_action_keys = [
-        "action-view",
-        "action-edit",
-        "action-enable",
-        "action-disable",
-        "action-delete",
-        "action-save",
-        "action-cancel",
-    ];
-
-    // Combine entity-specific and common action keys
-    let all_keys = [
-        entity_action_keys
-            .iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>(),
-        common_action_keys.iter().map(|s| s.to_string()).collect(),
-    ]
-    .concat();
-
-    for key in all_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    translations
-}
 
 /// Common translation keys for table headers
-pub async fn get_table_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    get_translations_batch(
-        state,
-        locale,
-        &[
-            "action-view",
-            "action-edit",
-            "action-enable",
-            "action-disable",
-            "action-delete",
-            "status-enabled",
-            "status-disabled",
-            "status-active",
-            "status-inactive",
-        ],
-    )
-    .await
-}
 
-/// Helper function to render a template with proper error handling
-pub async fn render_template_with_layout<T>(
-    template: T,
-    state: &AppState,
-    locale: &str,
-    headers: &HeaderMap,
-) -> Html<String>
-where
-    T: Template,
-{
-    let content = match template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
 
-    if is_htmx_request(headers) {
-        Html(content)
-    } else {
-        // Get current database id from session/cookie or default
-        let current_db_id = crate::handlers::auth::get_selected_database(headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        // Get current database label from db_manager
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-
-        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-            "".to_string(), // Title will be set by the template
-            content,
-            state,
-            locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        {
-            Ok(template) => template,
-            Err(e) => {
-                error!("Failed to create base template: {:?}", e);
-                return Html("Error creating template".to_string());
-            }
-        };
-
-        match base_template.render() {
-            Ok(content) => Html(content),
-            Err(e) => {
-                error!("Failed to render base template: {:?}", e);
-                Html("Error rendering template".to_string())
-            }
-        }
-    }
-}
 
 /// Helper function to handle "not found" errors consistently
 pub async fn handle_not_found<T>(
@@ -845,269 +570,20 @@ where
 }
 
 /// Helper function to fetch entity-specific translations for list pages
-pub async fn get_entity_list_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    // Common entity list translations
-    let entity_keys = vec![
-        format!("{entity}-title"),
-        format!("{entity}-add"),
-        format!("{entity}-list-description"),
-        format!("{entity}-empty-title"),
-        format!("{entity}-empty-description"),
-        format!("{entity}-not-found"),
-        format!("{entity}-not-available"),
-    ];
-
-    // Table header translations
-    let table_header_keys = vec![
-        format!("{entity}-table-header-id"),
-        format!("{entity}-table-header-name"),
-        format!("{entity}-table-header-domain"),
-        format!("{entity}-table-header-email"),
-        format!("{entity}-table-header-enabled"),
-        format!("{entity}-table-header-status"),
-        format!("{entity}-table-header-actions"),
-        format!("{entity}-table-header-created"),
-        format!("{entity}-table-header-modified"),
-    ];
-
-    // Combine all keys
-    let all_keys = [entity_keys, table_header_keys].concat();
-
-    for key in all_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch entity-specific translations for show pages
-pub async fn get_entity_show_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    // Common show page translations
-    let show_keys = vec![
-        format!("{entity}-show-title"),
-        format!("{entity}-show-title-label"),
-        format!("{entity}-info-title"),
-        format!("{entity}-info-description"),
-        format!("{entity}-view-edit-settings"),
-        format!("{entity}-back-to-list"),
-        format!("{entity}-back-to-{entity}"),
-        format!("{entity}-delete-confirm"),
-    ];
-
-    // Field translations
-    let field_keys = vec![
-        format!("{entity}-field-id"),
-        format!("{entity}-field-name"),
-        format!("{entity}-field-domain"),
-        format!("{entity}-field-email"),
-        format!("{entity}-field-enabled"),
-        format!("{entity}-field-status"),
-        format!("{entity}-field-created"),
-        format!("{entity}-field-modified"),
-        format!("{entity}-field-recipient"),
-        format!("{entity}-field-old-address"),
-        format!("{entity}-field-new-address"),
-    ];
-
-    // Combine all keys
-    let all_keys = [show_keys, field_keys].concat();
-
-    for key in all_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch entity-specific error translations
-pub async fn get_entity_error_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut translations = HashMap::new();
-
-    let error_keys = vec![
-        format!("{entity}-create-error"),
-        format!("{entity}-update-error"),
-        format!("{entity}-delete-error"),
-        format!("{entity}-toggle-error"),
-        format!("{entity}-not-found"),
-        format!("{entity}-not-available"),
-    ];
-
-    for key in error_keys {
-        let value = get_translation(state, locale, &key).await;
-        translations.insert(key, value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch all common translations for an entity
-pub async fn get_entity_all_translations(
-    state: &AppState,
-    locale: &str,
-    entity: &str,
-) -> HashMap<String, String> {
-    let mut all_translations = HashMap::new();
-
-    // Get all entity-specific translations
-    let list_translations = get_entity_list_translations(state, locale, entity).await;
-    let show_translations = get_entity_show_translations(state, locale, entity).await;
-    let error_translations = get_entity_error_translations(state, locale, entity).await;
-    let form_translations = get_entity_form_translations(state, locale, entity).await;
-
-    // Get common translations
-    let status_translations = get_status_translations(state, locale, entity).await;
-    let action_translations = get_action_translations(state, locale, entity).await;
-
-    // Merge all translations
-    all_translations.extend(list_translations);
-    all_translations.extend(show_translations);
-    all_translations.extend(error_translations);
-    all_translations.extend(form_translations);
-    all_translations.extend(status_translations);
-    all_translations.extend(action_translations);
-
-    all_translations
-}
 
 /// Helper function to fetch login-related translations
-pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    let login_keys = vec![
-        "login-title",
-        "login-user-id",
-        "login-password",
-        "login-sign-in",
-        "login-error-empty-fields",
-        "login-error-invalid-credentials",
-        "app-title",
-        "app-subtitle",
-        "language-selector",
-        "theme-toggle",
-        "language-english",
-        "language-spanish",
-        "language-french",
-        "language-norwegian",
-        "language-german",
-        "language-dutch",
-        "language-italian",
-    ];
-
-    let mut translations = HashMap::new();
-    for key in login_keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch reports-related translations
-pub async fn get_reports_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    let reports_keys = vec![
-        "reports-cross-db-matrix-title",
-        "reports-cross-db-matrix-description",
-        "reports-domain-header",
-        "reports-database-header",
-        "reports-primary-domain",
-        "reports-backup-domain",
-        "reports-not-present",
-        "reports-legend-title",
-        "reports-no-domains",
-        "reports-no-domains-description",
-        "reports-list-title",
-        "reports-list-description",
-        "reports-matrix-title",
-        "reports-matrix-description",
-        "reports-orphaned-aliases-title",
-        "reports-orphaned-aliases-description",
-        "reports-external-forwarders-title",
-        "reports-external-forwarders-description",
-        "reports-alias-cross-domain-title",
-        "reports-alias-cross-domain-description",
-        "reports-cross-db-user-distribution-title",
-        "reports-cross-db-user-distribution-description",
-        "reports-cross-db-feature-toggle-title",
-        "reports-cross-db-feature-toggle-description",
-        "reports-cross-db-migration-title",
-        "reports-cross-db-migration-description",
-        "reports-view-report",
-        "reports-user-header",
-        "reports-present",
-        "reports-no-users",
-        "reports-no-users-description",
-        "reports-disabled",
-        "reports-database-status-header",
-        "reports-read-only",
-        "reports-no-new-users",
-        "reports-no-new-domains",
-        "reports-no-password-updates",
-        "reports-enabled",
-        "reports-status-header",
-        "reports-last-migration-header",
-        "reports-migration-count-header",
-    ];
-
-    let mut translations = HashMap::new();
-    for key in reports_keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch not-found related translations
-pub async fn get_not_found_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    let not_found_keys = vec!["not-found-title", "not-found-message"];
-
-    let mut translations = HashMap::new();
-    for key in not_found_keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-
-    translations
-}
 
 /// Helper function to fetch pagination-related translations
-pub async fn get_pagination_translations(
-    state: &AppState,
-    locale: &str,
-) -> HashMap<String, String> {
-    let pagination_keys = vec![
-        "pagination-previous",
-        "pagination-next",
-        "pagination-showing",
-        "pagination-to",
-        "pagination-of",
-        "pagination-results",
-    ];
-
-    let mut translations = HashMap::new();
-    for key in pagination_keys {
-        let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
-    }
-
-    translations
-}
 
 /// Helper function to get database pool with consistent error handling
 pub async fn get_db_pool_or_error(

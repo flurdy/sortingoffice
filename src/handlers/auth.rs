@@ -15,7 +15,7 @@ pub async fn login_form(State(state): State<AppState>, headers: HeaderMap) -> Ht
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Get all login translations using consolidated helper function
-    let translations = crate::handlers::utils::get_login_translations(&state, &locale).await;
+    let translations = crate::handlers::translations::get_login_translations(&state, &locale).await;
 
     let template = LoginTemplate {
         title: &translations["login-title"],
@@ -90,7 +90,7 @@ pub async fn login(
         } else {
             // Return full page for regular requests
             let translations =
-                crate::handlers::utils::get_login_translations(&state, &locale).await;
+                crate::handlers::translations::get_login_translations(&state, &locale).await;
 
             let template = LoginTemplate {
                 title: &translations["login-title"],

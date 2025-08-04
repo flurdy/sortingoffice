@@ -9,7 +9,8 @@ use crate::{
     db,
     handlers::{
         language::get_user_locale,
-        utils::{get_translations_batch, handle_database_error},
+        utils::{handle_database_error},
+        translations::{get_translations_batch},
     },
     i18n::get_translation,
     models::{PaginatedResult, PaginationParams},
