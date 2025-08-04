@@ -17,7 +17,9 @@ use serde::Deserialize;
 use tracing::error;
 
 use crate::handlers::database_ops::{get_entity_or_handle_error, handle_entity_operation};
-use crate::handlers::utils::{render_user_form_page, render_user_list_page, render_user_show_page};
+use crate::handlers::rendering::{
+    render_user_form_page, render_user_list_page, render_user_show_page,
+};
 
 #[derive(Deserialize)]
 pub struct ChangePasswordForm {

@@ -71,6 +71,8 @@
 
 ## Recovery Branch Commits to Implement
 
+**SUMMARY**: Successfully implemented 2 out of 3 recovery branch commits using an incremental, controlled approach that maintained compilation throughout the process.
+
 - **94281b8** - Refactors database utilities into dedicated module
   - ✅ **COMPLETED** - Moved get_entity_or_handle_error, handle_entity_operation, handle_entity_operation_redirect, and handle_db_crud_operation from utils.rs to database_ops.rs
   - ✅ **COMPLETED** - Updated all call sites in aliases.rs, clients.rs, domain_backup.rs, relays.rs, relocated.rs, and users.rs to use the new database_ops module
@@ -97,9 +99,24 @@
   - ✅ **COMPLETED** - Moved render_backup_show_page, render_backup_form_page, render_backup_form_page_with_error from utils.rs to rendering.rs
   - ✅ **COMPLETED** - Updated 8 call sites in domain_backup.rs to use the new rendering module
   - ✅ **COMPLETED** - Removed backup rendering functions from utils.rs
-  - **IN PROGRESS** - Continue moving remaining render_*_page functions from utils.rs to rendering.rs (users, clients, relocated, domains)
-  - **IN PROGRESS** - Update remaining call sites to use the new rendering module
-  - **IN PROGRESS** - Ensure template compatibility with the current codebase
+  - ✅ **COMPLETED** - Moved render_domain_list_page, render_domain_show_page, render_domain_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated 4 call sites in domains.rs to use the new rendering module
+  - ✅ **COMPLETED** - Updated 3 call sites in aliases.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed domain rendering functions from utils.rs
+  - ✅ **COMPLETED** - Moved render_user_list_page, render_user_show_page, render_user_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated import statement in users.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed user rendering functions from utils.rs
+  - ✅ **COMPLETED** - Moved render_client_list_page, render_client_show_page, render_client_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated import statement in clients.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed client rendering functions from utils.rs
+  - ✅ **COMPLETED** - Moved render_relocated_list_page, render_relocated_show_page, render_relocated_form_page from utils.rs to rendering.rs
+  - ✅ **COMPLETED** - Updated import statement in relocated.rs to use the new rendering module
+  - ✅ **COMPLETED** - Removed relocated rendering functions from utils.rs
+  - ✅ **COMPLETED** - Cleaned up empty doc comments in utils.rs
+  - ✅ **COMPLETED** - All rendering functions successfully moved to rendering.rs module
+  - ✅ **COMPLETED** - All call sites updated to use the new rendering module
+  - ✅ **COMPLETED** - Template compatibility maintained throughout the process
+  - **RENDERING REFACTOR COMPLETE** - Successfully implemented the rendering refactor (475de2c) with all functions properly organized
 
 - **474eb69** - Adds a refactoring tool for Rust codebase
   - ✅ **COMPLETED** - Added refactor.sh and refactor_generic.sh scripts

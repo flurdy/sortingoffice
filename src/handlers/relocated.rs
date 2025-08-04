@@ -10,7 +10,7 @@ use tracing::{debug, error, info};
 
 use crate::handlers::database_ops::handle_entity_operation;
 
-use crate::handlers::utils::{
+use crate::handlers::rendering::{
     render_relocated_form_page, render_relocated_list_page, render_relocated_show_page,
 };
 
