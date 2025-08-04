@@ -140,7 +140,7 @@ macro_rules! render_template {
             }
         };
 
-        if $crate::handlers::utils::is_htmx_request($headers) {
+        if $crate::handlers::http_helpers::is_htmx_request($headers) {
             Html(content)
         } else {
             // Get current database id from session/cookie or default
@@ -196,7 +196,7 @@ macro_rules! render_template_with_title {
             }
         };
 
-        if $crate::handlers::utils::is_htmx_request($headers) {
+        if $crate::handlers::http_helpers::is_htmx_request($headers) {
             Html(content)
         } else {
             // Get current database id from session/cookie or default
@@ -325,10 +325,6 @@ macro_rules! get_system_stats_or_default {
     }};
 }
 
-/// Check if the request is an HTMX request
-pub fn is_htmx_request(headers: &HeaderMap) -> bool {
-    headers.get("HX-Request").is_some_and(|v| v == "true")
-}
 
 /// Get user locale from headers
 pub fn get_user_locale(headers: &HeaderMap) -> String {
@@ -636,89 +632,7 @@ pub async fn handle_not_found<T>(
     }
 }
 
-/// Check database feature restrictions and return error if operation is not allowed
-pub fn check_database_restrictions(
-    state: &AppState,
-    database_id: &str,
-    operation: &str,
-) -> Result<(), StatusCode> {
-    let config = &state.config;
 
-    // Check if database is completely disabled
-    if config.is_database_disabled(database_id) {
-        tracing::warn!(
-            "Operation '{}' blocked on database '{}': Database is disabled",
-            operation,
-            database_id
-        );
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // Check read-only restriction
-    if config.is_database_read_only(database_id) {
-        tracing::warn!(
-            "Operation '{}' blocked on database '{}': Database is read-only",
-            operation,
-            database_id
-        );
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // Check specific operation restrictions
-    match operation {
-        "create_user" | "update_user" if config.is_new_users_blocked(database_id) => {
-            tracing::warn!(
-                "Operation '{}' blocked on database '{}': New users are not allowed",
-                operation,
-                database_id
-            );
-            return Err(StatusCode::FORBIDDEN);
-        }
-        "create_domain" | "update_domain" if config.is_new_domains_blocked(database_id) => {
-            tracing::warn!(
-                "Operation '{}' blocked on database '{}': New domains are not allowed",
-                operation,
-                database_id
-            );
-            return Err(StatusCode::FORBIDDEN);
-        }
-        "update_user" if config.is_password_updates_blocked(database_id) => {
-            tracing::warn!(
-                "Operation '{}' blocked on database '{}': Password updates are not allowed",
-                operation,
-                database_id
-            );
-            return Err(StatusCode::FORBIDDEN);
-        }
-        _ => {}
-    }
-
-    Ok(())
-}
-
-/// Check if the current database has any write restrictions
-pub fn get_database_restrictions_info(state: &AppState, database_id: &str) -> Vec<String> {
-    let config = &state.config;
-    let mut restrictions = Vec::new();
-
-    if config.is_database_disabled(database_id) {
-        restrictions.push("Database disabled".to_string());
-    }
-    if config.is_database_read_only(database_id) {
-        restrictions.push("Read-only mode".to_string());
-    }
-    if config.is_new_users_blocked(database_id) {
-        restrictions.push("No new users".to_string());
-    }
-    if config.is_new_domains_blocked(database_id) {
-        restrictions.push("No new domains".to_string());
-    }
-    if config.is_password_updates_blocked(database_id) {
-        restrictions.push("No password updates".to_string());
-    }
-
-    restrictions
-}
 
 /// Helper function to handle database errors with logging
 pub fn handle_db_error<T, E>(result: Result<T, E>, error_msg: &str) -> Result<T, E>

@@ -41,7 +41,7 @@ pub async fn not_found(headers: HeaderMap, State(state): State<AppState>) -> Res
     )
     .await
     .unwrap();
-    let html = match crate::handlers::utils::render_template_safely(template) {
+    let html = match crate::handlers::templates::render_template_safely(template) {
         Ok(html) => html,
         Err(_) => {
             return crate::handlers::errors::render_404_page(&state, &headers)

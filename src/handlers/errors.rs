@@ -45,7 +45,7 @@ pub async fn render_error_page(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Html<String> {
-    let locale = crate::handlers::utils::get_user_locale(headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(headers);
     let (current_db_label, current_db_id) =
         crate::handlers::utils::get_current_db_info_optimized(state, headers);
 
@@ -67,7 +67,7 @@ pub async fn render_error_page(
     )
     .await
     {
-        Ok(template) => match crate::handlers::utils::render_template_safely(template) {
+        Ok(template) => match crate::handlers::templates::render_template_safely(template) {
             Ok(html) => {
                 println!(
                     "[DEBUG] Error template rendered successfully, length: {}",

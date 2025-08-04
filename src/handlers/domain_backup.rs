@@ -273,7 +273,7 @@ pub async fn toggle_enabled(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     match crate::handlers::utils::handle_entity_operation(
         || async { db::toggle_backup_enabled(&pool, id) },

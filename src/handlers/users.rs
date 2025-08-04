@@ -402,20 +402,20 @@ pub async fn create(
 
     // Check database restrictions
     if let Err(_status_code) =
-        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "create_user")
+        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "create_user")
     {
         // Return error form for restrictions
-        let locale = crate::handlers::utils::get_user_locale(&headers);
+        let locale = crate::handlers::http_helpers::get_user_locale(&headers);
         let error_message = get_translation(&state, &locale, "error-database-restriction").await;
         let form_template =
             build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
                 .await;
-        let content = match crate::handlers::utils::render_template_safely(form_template) {
+        let content = match crate::handlers::templates::render_template_safely(form_template) {
             Ok(content) => content,
             Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
         };
 
-        if crate::handlers::utils::is_htmx_request(&headers) {
+        if crate::handlers::http_helpers::is_htmx_request(&headers) {
             return Html(content);
         } else {
             let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
@@ -429,14 +429,14 @@ pub async fn create(
             )
             .await
             .unwrap();
-            return match crate::handlers::utils::render_template_safely(template) {
+            return match crate::handlers::templates::render_template_safely(template) {
                 Ok(content) => Html(content),
                 Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
             };
         }
     }
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Validate user ID using helper function
     if let Err(error_html) = crate::handlers::validation::validate_user_form_field(
@@ -488,7 +488,7 @@ pub async fn create(
                 .await;
                 let content = form_template.render().unwrap();
 
-                if crate::handlers::utils::is_htmx_request(&headers) {
+                if crate::handlers::http_helpers::is_htmx_request(&headers) {
                     return Html(content);
                 } else {
                     let (current_db_label, current_db_id) =
@@ -519,7 +519,7 @@ pub async fn create(
                     .await;
             let content = form_template.render().unwrap();
 
-            if crate::handlers::utils::is_htmx_request(&headers) {
+            if crate::handlers::http_helpers::is_htmx_request(&headers) {
                 return Html(content);
             } else {
                 let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
@@ -558,7 +558,7 @@ pub async fn create(
                 build_user_list_template(&state, &locale, users, paginated).await;
             let content = content_template.render().unwrap();
 
-            if crate::handlers::utils::is_htmx_request(&headers) {
+            if crate::handlers::http_helpers::is_htmx_request(&headers) {
                 Html(content)
             } else {
                 let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
@@ -609,7 +609,7 @@ pub async fn update(
 
     // Check database restrictions
     if let Err(_status_code) =
-        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "update_user")
+        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "update_user")
     {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
@@ -637,7 +637,7 @@ pub async fn update(
         .await;
         let content = form_template.render().unwrap();
 
-        if crate::handlers::utils::is_htmx_request(&headers) {
+        if crate::handlers::http_helpers::is_htmx_request(&headers) {
             return Html(content);
         } else {
             let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;
@@ -708,7 +708,7 @@ pub async fn update(
                 let content_template = build_user_show_template(&state, &locale, user).await;
                 let content = content_template.render().unwrap();
 
-                if crate::handlers::utils::is_htmx_request(&headers) {
+                if crate::handlers::http_helpers::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let (current_db_label, current_db_id) =
@@ -743,7 +743,7 @@ pub async fn update(
                 .await;
                 let content = form_template.render().unwrap();
 
-                if crate::handlers::utils::is_htmx_request(&headers) {
+                if crate::handlers::http_helpers::is_htmx_request(&headers) {
                     Html(content)
                 } else {
                     let (current_db_label, current_db_id) =
@@ -1082,7 +1082,7 @@ pub async fn toggle_change_password(
             let content_template = build_user_show_template(&state, &locale, updated_user).await;
             let content = content_template.render().unwrap();
 
-            if crate::handlers::utils::is_htmx_request(&headers) {
+            if crate::handlers::http_helpers::is_htmx_request(&headers) {
                 Html(content)
             } else {
                 let (current_db_label, current_db_id) = get_current_db_info(&state, &headers).await;

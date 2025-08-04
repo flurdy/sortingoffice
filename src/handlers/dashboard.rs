@@ -14,7 +14,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     let stats = get_system_stats_or_default!(db::get_system_stats(&pool));
 
     // Get user's preferred locale
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let current_db_id = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 

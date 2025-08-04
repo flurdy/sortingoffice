@@ -8,7 +8,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Use the new macro for SystemStats retrieval
     let system_stats = get_system_stats_or_default!(db::get_system_stats(&pool));

@@ -120,7 +120,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         license: &form_translations["about-license"],
         maintainer: &form_translations["about-maintainer"],
     };
-    let content = match crate::handlers::utils::render_template_safely(content_template) {
+    let content = match crate::handlers::templates::render_template_safely(content_template) {
         Ok(content) => content,
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     };
@@ -148,7 +148,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     .await
     .unwrap();
 
-    match crate::handlers::utils::render_template_safely(template) {
+    match crate::handlers::templates::render_template_safely(template) {
         Ok(content) => Html(content),
         Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }

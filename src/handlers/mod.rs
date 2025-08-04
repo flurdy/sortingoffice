@@ -12,11 +12,14 @@ pub mod domain_backup;
 pub mod domains;
 pub mod errors;
 pub mod health; // Add health module
+pub mod http_helpers;
 pub mod language;
 pub mod not_found;
 pub mod performance;
 pub mod relays;
 pub mod relocated;
+pub mod restrictions;
+pub mod templates;
 pub mod reports;
 pub mod stats;
 pub mod theme;
@@ -79,7 +82,7 @@ pub use users::{
     toggle_enabled_list as toggle_user_enabled_list,
     toggle_enabled_show as toggle_user_enabled_show, update as update_user,
 };
-pub use utils::get_user_locale as get_user_locale_util; // Export health handlers
+pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
 pub use wizard::{
     alias_config, alias_config_post, complete, destination_search, domain_config,
     domain_config_post, execute, index as wizard_index, review,

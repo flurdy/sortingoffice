@@ -43,7 +43,7 @@ async fn validate_domain_creation(
 
     // Check database restrictions first (guard clause)
     if let Err(_status_code) =
-        crate::handlers::utils::check_database_restrictions(state, &current_db_id, "create_domain")
+        crate::handlers::restrictions::check_database_restrictions(state, &current_db_id, "create_domain")
     {
         return Err(handle_domain_form_error(
             state,
@@ -261,7 +261,7 @@ pub async fn render_domain_show_page(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(headers);
 
     // Get alias report and existing aliases
     let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
@@ -304,7 +304,7 @@ pub async fn list(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
 
@@ -328,7 +328,7 @@ pub async fn list(
 }
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let form = DomainForm {
         domain: "".to_string(),
         transport: "virtual".to_string(),
@@ -370,7 +370,7 @@ pub async fn show(
         Err(error_response) => return error_response,
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Use focused database operation for alias data
     let (alias_report, existing_aliases) =
@@ -426,7 +426,7 @@ pub async fn edit(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Get domain with proper error handling
     let domain = match db::get_domain(&pool, id) {
@@ -462,7 +462,7 @@ pub async fn create(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Early return for validation errors using guard clauses
     if let Err(error_response) = validate_domain_creation(&state, &headers, &form, &locale).await {
@@ -500,7 +500,7 @@ pub async fn update(
     headers: HeaderMap,
     Form(form): Form<DomainForm>,
 ) -> Html<String> {
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Get current database ID for restriction checks
     let current_db_id = get_selected_database(&headers)
@@ -508,7 +508,7 @@ pub async fn update(
 
     // Check database restrictions
     if let Err(_status_code) =
-        crate::handlers::utils::check_database_restrictions(&state, &current_db_id, "update_domain")
+        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "update_domain")
     {
         return handle_domain_form_error(
             &state,
@@ -586,7 +586,7 @@ pub async fn delete(
     };
 
     // Use functional error handling pattern - prepare success response first
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let success_response =
         render_domain_list_after_creation(&pool, &state, &locale, &headers).await;
 
@@ -613,7 +613,7 @@ pub async fn toggle_enabled(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -657,7 +657,7 @@ pub async fn toggle_enabled_list(
                 id
             );
 
-            let locale = crate::handlers::utils::get_user_locale(&headers);
+            let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
             // Get updated domains list
             let domains = match db::get_domains(&pool) {
@@ -718,7 +718,7 @@ pub async fn toggle_enabled_show(
                 id
             );
 
-            let locale = crate::handlers::utils::get_user_locale(&headers);
+            let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
             // Get updated domain
             let domain = match db::get_domain(&pool, id) {
@@ -752,7 +752,7 @@ pub async fn add_missing_required_aliases(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Get domain with proper error handling
     let domain = match db::get_domain(&pool, id) {
@@ -834,7 +834,7 @@ pub async fn add_missing_required_alias(
         }
     };
 
-    let locale = crate::handlers::utils::get_user_locale(&headers);
+    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Get domain with proper error handling
     let domain = match db::get_domain(&pool, id) {

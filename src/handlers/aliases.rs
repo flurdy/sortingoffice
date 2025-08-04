@@ -643,7 +643,7 @@ pub async fn search(
             no_results: &translations["aliases-search-no-results"],
             select_text: &translations["aliases-search-select"],
         };
-        return match crate::handlers::utils::render_template_safely(content_template) {
+        return match crate::handlers::templates::render_template_safely(content_template) {
             Ok(content) => Html(content),
             Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
         };
@@ -743,7 +743,7 @@ pub async fn domain_search(
             status_active: &translations["status-active"],
             status_inactive: &translations["status-inactive"],
         };
-        return match crate::handlers::utils::render_template_safely(content_template) {
+        return match crate::handlers::templates::render_template_safely(content_template) {
             Ok(content) => Html(content),
             Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
         };
@@ -773,7 +773,7 @@ pub async fn domain_search(
         status_active: &translations["status-active"],
         status_inactive: &translations["status-inactive"],
     };
-    match crate::handlers::utils::render_template_safely(content_template) {
+    match crate::handlers::templates::render_template_safely(content_template) {
         Ok(content) => Html(content),
         Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
     }
