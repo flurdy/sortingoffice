@@ -230,4 +230,4 @@ pub async fn create_base_template(
 
     let rendered = render_template_safely(template)?;
     Ok(Html(rendered))
-} 
+}

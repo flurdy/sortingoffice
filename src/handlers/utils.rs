@@ -328,9 +328,6 @@ macro_rules! get_system_stats_or_default {
     }};
 }
 
-
-
-
 /// Get the current database pool from the state
 /// This gets the database pool based on the user's session selection
 pub async fn get_current_db_pool(
@@ -631,8 +628,6 @@ pub async fn handle_not_found<T>(
         Err(_) => Err(StatusCode::NOT_FOUND),
     }
 }
-
-
 
 /// Helper function to handle database errors with logging
 pub fn handle_db_error<T, E>(result: Result<T, E>, error_msg: &str) -> Result<T, E>

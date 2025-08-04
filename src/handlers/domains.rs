@@ -42,9 +42,11 @@ async fn validate_domain_creation(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions first (guard clause)
-    if let Err(_status_code) =
-        crate::handlers::restrictions::check_database_restrictions(state, &current_db_id, "create_domain")
-    {
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        state,
+        &current_db_id,
+        "create_domain",
+    ) {
         return Err(handle_domain_form_error(
             state,
             locale,
@@ -507,9 +509,11 @@ pub async fn update(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) =
-        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "update_domain")
-    {
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "update_domain",
+    ) {
         return handle_domain_form_error(
             &state,
             &locale,

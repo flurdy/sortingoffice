@@ -18,10 +18,10 @@ pub mod not_found;
 pub mod performance;
 pub mod relays;
 pub mod relocated;
-pub mod restrictions;
-pub mod templates;
 pub mod reports;
+pub mod restrictions;
 pub mod stats;
+pub mod templates;
 pub mod theme;
 pub mod users;
 pub mod utils;
@@ -56,6 +56,7 @@ pub use domains::{
     toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
 };
 pub use health::*;
+pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
 pub use language::{get_user_locale, set_language};
 pub use not_found::not_found;
 pub use relays::{
@@ -82,7 +83,6 @@ pub use users::{
     toggle_enabled_list as toggle_user_enabled_list,
     toggle_enabled_show as toggle_user_enabled_show, update as update_user,
 };
-pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
 pub use wizard::{
     alias_config, alias_config_post, complete, destination_search, domain_config,
     domain_config_post, execute, index as wizard_index, review,

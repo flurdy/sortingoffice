@@ -401,9 +401,11 @@ pub async fn create(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) =
-        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "create_user")
-    {
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "create_user",
+    ) {
         // Return error form for restrictions
         let locale = crate::handlers::http_helpers::get_user_locale(&headers);
         let error_message = get_translation(&state, &locale, "error-database-restriction").await;
@@ -608,9 +610,11 @@ pub async fn update(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
     // Check database restrictions
-    if let Err(_status_code) =
-        crate::handlers::restrictions::check_database_restrictions(&state, &current_db_id, "update_user")
-    {
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "update_user",
+    ) {
         let locale = crate::handlers::language::get_user_locale(&headers);
         let error_msg = get_translation(&state, &locale, "error-operation-not-allowed").await;
 

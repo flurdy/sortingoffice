@@ -87,4 +87,4 @@ pub fn get_database_restrictions_info(state: &AppState, database_id: &str) -> Ve
     }
 
     restrictions
-} 
+}

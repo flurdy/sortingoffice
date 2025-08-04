@@ -16,4 +16,4 @@ pub fn get_user_locale(headers: &HeaderMap) -> String {
         .and_then(|s| s.split(',').next())
         .unwrap_or("en")
         .to_string()
-} 
+}
