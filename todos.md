@@ -2,23 +2,6 @@
 
 - ✅ **Updated deprecated Selenium methods**: Replaced deprecated `driver.switch_to().alert()`, `alert.accept()`, and `driver.switch_to().default_content()` with modern `driver.accept_alert()` and `driver.enter_default_frame()` methods in tests/ui_helpers.rs
 
-- ✅ **Refactor long functions and complex logic**: Applied extraction and guard clause patterns to domains.rs
-  - ✅ Extracted validation logic from domain create function using guard clauses  
-  - ✅ Extracted alias filtering logic into separate helper function
-  - ✅ Simplified complex conditional logic using early returns
-  - ✅ **Consolidated error handling patterns**: Applied functional programming approach to database operations
-  - ✅ Created reusable database operation helpers with consistent error handling
-  - ✅ Refactored domain create and delete functions to use functional error handling patterns
-  - ✅ **Extracted database operations**: Created focused database operation functions with structured error handling
-  - ✅ Extracted repetitive database operations into reusable helper functions
-  - ✅ Applied structured error handling patterns from Rust error handling guide
-  - ✅ Refactored domain list and show functions to use focused database operations
-
-- ✅ **Improved error handling and logging**: Applied structured error handling patterns
-  - ✅ Created custom error types using thiserror for database and validation operations
-  - ✅ Replaced unwrap() calls with proper error handling in critical database functions
-  - ✅ Added structured error handling patterns from Rust error handling guide
-  - ✅ Implemented consistent error response patterns with custom error types
   - Add error recovery mechanisms
 
 - ✅ **Performance optimizations**: Reduced unnecessary cloning and improved database operations
@@ -36,17 +19,20 @@
   - ✅ Created performance.rs module for performance-optimized helpers
   - ✅ Updated module declarations in handlers/mod.rs
   - ✅ Fixed all compilation errors - updated all references to use new error module
-  - Extract magic numbers to named constants
-    - Explain the changes first, and get approval before changing magic numbers
   - ✅ Consolidate duplicate configuration logic
-  - Improve module structure and separation of concerns
+  - ✅ Improve module structure and separation of concerns
   - Add comprehensive documentation
+
+- Documentation enhancements
+  - Remove duplication, where things are explained in detail in multiple places, instead refer to relevant file instead
+  - Remove cruft.
 
 - Testing enhancements
   - Add missing unit tests for utility functions
   - Improve test coverage for edge cases
   - Add integration tests for error scenarios
   - Implement property-based testing
+  - ✅ **Remove tests that don't actually test anything**: Removed 8 tests from tests/utils.rs that were testing basic struct field assignment and string operations instead of actual functionality. Kept and improved the checkbox deserialization test to properly test the actual checkbox functionality.
 
 - Security improvements
   - Audit and improve input validation
@@ -65,62 +51,6 @@
   - Implement environment-specific configs
   - Add configuration validation
   - Improve configuration documentation
-
-
-- The utils.rs file is huge. Can it be split?
-
-## Recovery Branch Commits to Implement
-
-**SUMMARY**: Successfully implemented 2 out of 3 recovery branch commits using an incremental, controlled approach that maintained compilation throughout the process.
-
-- **94281b8** - Refactors database utilities into dedicated module
-  - ✅ **COMPLETED** - Moved get_entity_or_handle_error, handle_entity_operation, handle_entity_operation_redirect, and handle_db_crud_operation from utils.rs to database_ops.rs
-  - ✅ **COMPLETED** - Updated all call sites in aliases.rs, clients.rs, domain_backup.rs, relays.rs, relocated.rs, and users.rs to use the new database_ops module
-  - ✅ **COMPLETED** - Added proper imports for database_ops functions in all affected files
-  - ✅ **COMPLETED** - Maintained compilation and functionality while improving code organization
-  - ✅ **COMPLETED** - Removed duplicate database functions from utils.rs (get_entity_or_not_found, handle_db_operation, get_entity_list_with_pagination, get_paginated_domains_with_fallback, get_backups_with_fallback, get_domain_with_not_found_handling, get_domain_aliases_with_fallback)
-  - ✅ **COMPLETED** - Kept essential database functions in utils.rs to maintain backward compatibility
-  - ✅ **COMPLETED** - Cleaned up unused imports and reduced code duplication
-  - **DATABASE REFACTORING COMPLETE** - Successfully implemented a smaller, more manageable version of the original database_helpers refactor
-
-- **475de2c** - Rendering refactor  
-  - ✅ **COMPLETED** - Created rendering.rs module with generic template rendering functions
-  - ✅ **COMPLETED** - Added render_form_template, render_list_template, render_show_template to rendering.rs
-  - ✅ **COMPLETED** - Added rendering module to handlers/mod.rs
-  - ✅ **COMPLETED** - Maintained compilation and functionality
-  - ✅ **COMPLETED** - Moved render_domain_list_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated 3 call sites in domains.rs to use the new rendering module
-  - ✅ **COMPLETED** - Moved render_alias_list_page, render_alias_show_page, render_alias_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated 15+ call sites in aliases.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed alias rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_relay_list_page, render_relay_show_page, render_relay_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated 4 call sites in relays.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed relay rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_backup_show_page, render_backup_form_page, render_backup_form_page_with_error from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated 8 call sites in domain_backup.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed backup rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_domain_list_page, render_domain_show_page, render_domain_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated 4 call sites in domains.rs to use the new rendering module
-  - ✅ **COMPLETED** - Updated 3 call sites in aliases.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed domain rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_user_list_page, render_user_show_page, render_user_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated import statement in users.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed user rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_client_list_page, render_client_show_page, render_client_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated import statement in clients.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed client rendering functions from utils.rs
-  - ✅ **COMPLETED** - Moved render_relocated_list_page, render_relocated_show_page, render_relocated_form_page from utils.rs to rendering.rs
-  - ✅ **COMPLETED** - Updated import statement in relocated.rs to use the new rendering module
-  - ✅ **COMPLETED** - Removed relocated rendering functions from utils.rs
-  - ✅ **COMPLETED** - Cleaned up empty doc comments in utils.rs
-  - ✅ **COMPLETED** - All rendering functions successfully moved to rendering.rs module
-  - ✅ **COMPLETED** - All call sites updated to use the new rendering module
-  - ✅ **COMPLETED** - Template compatibility maintained throughout the process
-  - **RENDERING REFACTOR COMPLETE** - Successfully implemented the rendering refactor (475de2c) with all functions properly organized
-
-- **474eb69** - Adds a refactoring tool for Rust codebase
-  - ✅ **COMPLETED** - Added refactor.sh and refactor_generic.sh scripts
-  - ✅ **COMPLETED** - Added comprehensive README.md for refactoring tools
 
 - Github actions apart from smoke test still fail
   - https://github.com/flurdy/sortingoffice/actions/  

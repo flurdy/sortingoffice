@@ -444,7 +444,7 @@ pub async fn create(
     let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
     // Validate user ID using helper function
-    if let Err(error_html) = crate::handlers::validation::validate_user_form_field(
+    if let Err(error_html) = validate_user_form_field(
         &state,
         &headers,
         &form,
@@ -458,7 +458,7 @@ pub async fn create(
 
     // Validate password is not empty using helper function
     if form.password.trim().is_empty() {
-        if let Err(error_html) = crate::handlers::validation::validate_user_form_field(
+        if let Err(error_html) = validate_user_form_field(
             &state,
             &headers,
             &form,
@@ -1108,5 +1108,58 @@ pub async fn toggle_change_password(
             }
         }
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
+    }
+}
+
+/// Validate user form field with error handling
+pub async fn validate_user_form_field<F>(
+    state: &AppState,
+    headers: &HeaderMap,
+    form: &crate::models::UserForm,
+    validator: F,
+    error_key: &str,
+) -> Result<(), Html<String>>
+where
+    F: FnOnce(&crate::models::UserForm) -> Result<(), crate::validation::ValidationError>,
+{
+    match validator(form) {
+        Ok(_) => Ok(()),
+        Err(_) => {
+            let locale = crate::handlers::http_helpers::get_user_locale(headers);
+            let error_msg = crate::i18n::get_translation(state, &locale, error_key).await;
+
+            // Build user form template with error
+            let form_template =
+                build_user_form_template(state, &locale, None, form.clone(), Some(error_msg)).await;
+            let content = match crate::handlers::templates::render_template_safely(form_template) {
+                Ok(content) => content,
+                Err(_) => {
+                    return Err(crate::handlers::errors::render_500_page(state, headers).await)
+                }
+            };
+
+            if crate::handlers::http_helpers::is_htmx_request(headers) {
+                Err(Html(content))
+            } else {
+                let (current_db_label, current_db_id) =
+                    crate::handlers::utils::get_current_db_info(state, headers).await;
+                let template = crate::templates::layout::BaseTemplate::with_i18n(
+                    crate::i18n::get_translation(state, &locale, "users-new-user").await,
+                    content,
+                    state,
+                    &locale,
+                    current_db_label,
+                    current_db_id,
+                )
+                .await
+                .unwrap();
+                Err(
+                    match crate::handlers::templates::render_template_safely(template) {
+                        Ok(content) => Html(content),
+                        Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
+                    },
+                )
+            }
+        }
     }
 }
