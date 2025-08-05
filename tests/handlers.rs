@@ -991,7 +991,7 @@ mod tests {
         let updated_domain = "backup-updated-content-test.com";
         let form_data = TestData::backup_form_data(updated_domain, "smtp:updated");
 
-        let response = TestUtils::make_handler_put_request(
+        let response = TestUtils::make_handler_put_request_htmx(
             &app,
             &state,
             &format!("/domain_backup/{}", _backup.pkid),

@@ -18,7 +18,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
         enabled: true,
     };
 
-    render_backup_form_page(form, None, "backups-add-title", &state, &locale, &headers).await
+    render_backup_form_page(form, None, "backups-new-backup", &state, &locale, &headers).await
 }
 
 pub async fn show(

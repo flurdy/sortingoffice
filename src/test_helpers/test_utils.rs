@@ -324,6 +324,35 @@ impl TestUtils {
             .unwrap()
     }
 
+    /// Make a PUT request for handler tests with HTMX headers (returns Response directly)
+    pub async fn make_handler_put_request_htmx(
+        app: &Router<AppState>,
+        state: &AppState,
+        uri: &str,
+        form_data: &str,
+        auth_cookie: Option<axum::http::HeaderValue>,
+    ) -> axum::http::Response<Body> {
+        let mut request_builder = Request::builder()
+            .method("PUT")
+            .uri(uri)
+            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .header("HX-Request", "true");
+
+        if let Some(cookie) = auth_cookie {
+            request_builder = request_builder.header("cookie", cookie);
+        }
+
+        let request = request_builder
+            .body(Body::from(form_data.to_string()))
+            .unwrap();
+
+        app.clone()
+            .with_state(state.clone())
+            .oneshot(request)
+            .await
+            .unwrap()
+    }
+
     /// Make a DELETE request for handler tests (returns Response directly)
     pub async fn make_handler_delete_request(
         app: &Router<AppState>,

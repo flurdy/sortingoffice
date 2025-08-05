@@ -25,9 +25,17 @@ fn validate_domain_form(form: &DomainForm) -> Result<(), String> {
 
     // Add comprehensive domain validation
     match crate::validation::validate_domain(form.domain.trim()) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(format!("validation-domain-invalid: {e}")),
+        Ok(_) => (),
+        Err(e) => return Err(format!("validation-domain-invalid: {e}")),
     }
+
+    // Add transport validation
+    match crate::validation::validate_transport(&form.transport) {
+        Ok(_) => (),
+        Err(e) => return Err(format!("validation-transport-invalid: {e}")),
+    }
+
+    Ok(())
 }
 
 // Helper function to validate domain creation with early returns (guard clauses)

@@ -10,6 +10,7 @@ pub enum ValidationError {
     UserIdInvalid(String),
     UserPathInvalid(String),
     BackupNameInvalid(String),
+    TransportInvalid(String),
 }
 
 impl std::fmt::Display for ValidationError {
@@ -28,6 +29,9 @@ impl std::fmt::Display for ValidationError {
             }
             ValidationError::BackupNameInvalid(msg) => {
                 write!(f, "Backup name validation error: {msg}")
+            }
+            ValidationError::TransportInvalid(msg) => {
+                write!(f, "Transport validation error: {msg}")
             }
         }
     }
@@ -436,6 +440,36 @@ pub fn validate_backup_name(name: &str) -> Result<(), ValidationError> {
     if name.contains("..") || name.contains("--") {
         return Err(ValidationError::BackupNameInvalid(
             "Backup name cannot have consecutive dots or hyphens".to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
+/// Validate transport strings
+///
+/// Rules:
+/// - Cannot be empty
+/// - Must not exceed 255 characters (database limit)
+/// - Must not contain null bytes or other control characters
+pub fn validate_transport(transport: &str) -> Result<(), ValidationError> {
+    if transport.is_empty() {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot be empty".to_string(),
+        ));
+    }
+
+    // Check length limit (database VARCHAR(255))
+    if transport.len() > 255 {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot exceed 255 characters".to_string(),
+        ));
+    }
+
+    // Check for null bytes and control characters
+    if transport.chars().any(|c| c == '\0' || c.is_control()) {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot contain null bytes or control characters".to_string(),
         ));
     }
 
@@ -1212,6 +1246,74 @@ mod tests {
                 let result2 = validate_domain(case);
                 assert_eq!(result1.is_ok(), result2.is_ok());
             }
+        }
+    }
+
+    #[test]
+    fn test_validate_transport() {
+        // Valid transports
+        assert!(validate_transport("smtp:localhost").is_ok());
+        assert!(validate_transport("virtual:user").is_ok());
+        assert!(validate_transport("dovecot:user").is_ok());
+        assert!(validate_transport("smtp:mail.example.com").is_ok());
+        assert!(validate_transport("virtual:").is_ok()); // Empty local part is valid
+        assert!(validate_transport("smtp:[]").is_ok()); // Empty brackets are valid
+
+        // Invalid transports
+        assert!(validate_transport("").is_err()); // Empty
+        assert!(validate_transport(&"a".repeat(256)).is_err()); // Too long (256 chars)
+        assert!(validate_transport(&"a".repeat(255)).is_ok()); // Exactly at limit
+        assert!(validate_transport("smtp:\x00localhost").is_err()); // Null byte
+        assert!(validate_transport("smtp:\x01localhost").is_err()); // Control character
+        assert!(validate_transport("smtp:\x7flocalhost").is_err()); // Control character
+    }
+
+    #[test]
+    fn test_validate_transport_edge_cases() {
+        // Edge cases for transport validation
+        let long_invalid = "a".repeat(256);
+        let long_valid = "a".repeat(255);
+
+        let edge_cases = vec![
+            ("", "Empty transport"),
+            (&long_invalid, "Too long transport"),
+            ("smtp:\x00localhost", "Null byte in transport"),
+            ("smtp:\x01localhost", "Control character in transport"),
+            ("smtp:\x7flocalhost", "Control character in transport"),
+            ("smtp:\x1flocalhost", "Control character in transport"),
+            ("smtp:\x00", "Null byte only"),
+            ("\x00smtp:localhost", "Null byte at start"),
+            ("smtp:localhost\x00", "Null byte at end"),
+        ];
+
+        for (transport, description) in edge_cases {
+            let result = validate_transport(transport);
+            assert!(
+                result.is_err(),
+                "{} should be invalid: {:?}",
+                description,
+                result
+            );
+        }
+
+        // Valid edge cases
+        let valid_edge_cases = vec![
+            ("smtp:localhost", "Normal transport"),
+            ("virtual:user", "Virtual transport"),
+            ("dovecot:user", "Dovecot transport"),
+            ("smtp:[]", "Empty brackets"),
+            ("virtual:", "Empty local part"),
+            (&long_valid, "Exactly at limit"),
+        ];
+
+        for (transport, description) in valid_edge_cases {
+            let result = validate_transport(transport);
+            assert!(
+                result.is_ok(),
+                "{} should be valid: {:?}",
+                description,
+                result
+            );
         }
     }
 }

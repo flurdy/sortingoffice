@@ -10,9 +10,7 @@ use crate::handlers::http_helpers::{get_user_locale, is_htmx_request};
 
 // Import translation functions directly
 use crate::handlers::templates::render_template_safely;
-use crate::handlers::translations::{
-    get_entity_error_translations, get_entity_form_translations, get_field_translations,
-};
+use crate::handlers::translations::{get_entity_error_translations, get_entity_form_translations};
 
 /// Generic form validation with error handling
 pub async fn validate_form_and_handle_error<F, V, E>(
@@ -109,13 +107,30 @@ where
 
             // Get form translations
             let form_translations = get_entity_form_translations(state, &locale, "aliases").await;
-            let field_translations = get_field_translations(
-                state,
-                &locale,
-                "aliases",
-                &["mail", "destination", "active"],
-            )
-            .await;
+
+            // Get individual translations like the rendering module does
+            let mail_address =
+                crate::i18n::get_translation(state, &locale, "aliases-field-mail").await;
+            let destination =
+                crate::i18n::get_translation(state, &locale, "aliases-field-destination").await;
+            let placeholder_mail =
+                crate::i18n::get_translation(state, &locale, "aliases-placeholder-mail").await;
+            let placeholder_destination =
+                crate::i18n::get_translation(state, &locale, "aliases-placeholder-destination")
+                    .await;
+            let tooltip_mail =
+                crate::i18n::get_translation(state, &locale, "aliases-field-mail-help").await;
+            let tooltip_destination =
+                crate::i18n::get_translation(state, &locale, "aliases-field-destination-help")
+                    .await;
+            let active = crate::i18n::get_translation(state, &locale, "form-enabled").await;
+            let tooltip_active =
+                crate::i18n::get_translation(state, &locale, "aliases-tooltip-enabled").await;
+            let cancel = crate::i18n::get_translation(state, &locale, "form-cancel").await;
+            let update_alias =
+                crate::i18n::get_translation(state, &locale, "aliases-update-alias").await;
+            let create_alias =
+                crate::i18n::get_translation(state, &locale, "aliases-create-alias").await;
 
             let content_template = crate::templates::aliases::AliasFormTemplate {
                 title: &form_translations["aliases-add-title"],
@@ -126,17 +141,17 @@ where
                 edit_alias: &form_translations["aliases-edit-alias"],
                 new_alias: &form_translations["aliases-new-alias"],
                 form_error: &form_translations["form-error"],
-                mail_address: &field_translations["aliases-field-mail"],
-                destination: &field_translations["aliases-field-destination"],
-                placeholder_mail: &field_translations["aliases-placeholder-mail"],
-                placeholder_destination: &field_translations["aliases-placeholder-destination"],
-                tooltip_mail: &field_translations["aliases-field-mail-help"],
-                tooltip_destination: &field_translations["aliases-field-destination-help"],
-                active: &field_translations["aliases-field-active"],
-                tooltip_active: &field_translations["aliases-field-active-help"],
-                cancel: &form_translations["form-cancel"],
-                update_alias: &form_translations["action-save"],
-                create_alias: &form_translations["action-save"],
+                mail_address: &mail_address,
+                destination: &destination,
+                placeholder_mail: &placeholder_mail,
+                placeholder_destination: &placeholder_destination,
+                tooltip_mail: &tooltip_mail,
+                tooltip_destination: &tooltip_destination,
+                active: &active,
+                tooltip_active: &tooltip_active,
+                cancel: &cancel,
+                update_alias: &update_alias,
+                create_alias: &create_alias,
             };
 
             let error_html = crate::handlers::utils::render_form_template(
