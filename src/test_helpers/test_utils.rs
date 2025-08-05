@@ -1,5 +1,5 @@
 use crate::{
-    config::{AdminRole, Config, DatabaseConfig, DatabaseFeatures},
+    config::{AdminRole, Config, DatabaseConfig},
     db::DatabaseManager,
     handlers,
     i18n::I18n,
@@ -10,7 +10,6 @@ use axum::{
     http::{header, Request, StatusCode},
     Router,
 };
-use std::collections::HashMap;
 use tower::ServiceExt;
 
 /// Common test utilities for sharing between integration and UI tests
@@ -44,7 +43,7 @@ impl TestUtils {
         Self::create_auth_cookie(AdminRole::ReadOnly)
     }
 
-    /// Create a test app with a single database
+    /// Create a test app with a specific database
     pub async fn create_test_app_with_db(
         db_url: &str,
         db_id: &str,
@@ -65,8 +64,9 @@ impl TestUtils {
             id: db_id.to_string(),
             label: "Test Database".to_string(),
             url: db_url.to_string(),
-            features: DatabaseFeatures::default(),
-            field_map: HashMap::new(),
+            features: crate::config::DatabaseFeatures::default(),
+            field_map: std::collections::HashMap::new(),
+            connection_pool: crate::config::ConnectionPoolConfig::default(),
         }];
 
         let db_manager = DatabaseManager::new(db_config)

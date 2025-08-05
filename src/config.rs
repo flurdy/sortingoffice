@@ -31,6 +31,8 @@ pub struct DatabaseConfig {
     pub features: DatabaseFeatures,
     #[serde(default)]
     pub field_map: std::collections::HashMap<String, String>,
+    #[serde(default)]
+    pub connection_pool: ConnectionPoolConfig,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -472,6 +474,66 @@ impl DatabaseConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConnectionPoolConfig {
+    #[serde(default = "default_max_size")]
+    pub max_size: u32,
+    #[serde(default = "default_min_idle")]
+    pub min_idle: u32,
+    #[serde(default = "default_connection_timeout")]
+    pub connection_timeout: u64,
+    #[serde(default = "default_idle_timeout")]
+    pub idle_timeout: u64,
+    #[serde(default = "default_max_lifetime")]
+    pub max_lifetime: u64,
+    #[serde(default = "default_test_on_acquire")]
+    pub test_on_acquire: bool,
+    #[serde(default = "default_test_on_return")]
+    pub test_on_return: bool,
+}
+
+fn default_max_size() -> u32 {
+    10
+}
+
+fn default_min_idle() -> u32 {
+    1
+}
+
+fn default_connection_timeout() -> u64 {
+    30
+}
+
+fn default_idle_timeout() -> u64 {
+    300
+}
+
+fn default_max_lifetime() -> u64 {
+    1800
+}
+
+fn default_test_on_acquire() -> bool {
+    true
+}
+
+fn default_test_on_return() -> bool {
+    false
+}
+
+impl Default for ConnectionPoolConfig {
+    fn default() -> Self {
+        Self {
+            max_size: default_max_size(),
+            min_idle: default_min_idle(),
+            connection_timeout: default_connection_timeout(),
+            idle_timeout: default_idle_timeout(),
+            max_lifetime: default_max_lifetime(),
+            test_on_acquire: default_test_on_acquire(),
+            test_on_return: default_test_on_return(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -487,6 +549,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -508,6 +571,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -527,6 +591,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -552,6 +617,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -567,6 +633,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -584,6 +651,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -601,6 +669,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -618,6 +687,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -639,6 +709,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -654,6 +725,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -671,6 +743,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -688,6 +761,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 
@@ -705,6 +779,7 @@ mod tests {
                 ..Default::default()
             },
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         };
         config.databases.push(db_config);
 

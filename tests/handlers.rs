@@ -3,7 +3,7 @@ mod tests {
     use axum::{http::StatusCode, Router};
 
     use sortingoffice::{
-        config::{AdminRole, DatabaseConfig, DatabaseFeatures},
+        config::{AdminRole, ConnectionPoolConfig, DatabaseConfig, DatabaseFeatures},
         db::{self, DatabaseManager},
         i18n::I18n,
         models::{AliasForm, NewBackup, NewDomain, UserForm},
@@ -1124,6 +1124,7 @@ mod tests {
             url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         }];
         let db_manager = DatabaseManager::new(db_config)
             .await
@@ -1172,6 +1173,7 @@ mod tests {
             url: format!("mysql://root@127.0.0.1:{port}/{schema}"),
             features: DatabaseFeatures::default(),
             field_map: std::collections::HashMap::new(),
+            connection_pool: ConnectionPoolConfig::default(),
         }];
         let db_manager = DatabaseManager::new(db_config)
             .await

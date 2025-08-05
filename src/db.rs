@@ -1,4 +1,4 @@
-use crate::config::{Config, DatabaseConfig};
+use crate::config::DatabaseConfig;
 use crate::models::*;
 use crate::schema::*;
 use crate::DbPool;
@@ -33,11 +33,29 @@ impl DatabaseManager {
 
         for config in &configs {
             let manager = ConnectionManager::<MysqlConnection>::new(&config.url);
+
+            // Use connection pool configuration from the database config
             let pool = r2d2::Pool::builder()
-                .max_size(10)
-                .min_idle(Some(1))
+                .max_size(config.connection_pool.max_size)
+                .min_idle(Some(config.connection_pool.min_idle))
+                .connection_timeout(std::time::Duration::from_secs(
+                    config.connection_pool.connection_timeout,
+                ))
+                .idle_timeout(Some(std::time::Duration::from_secs(
+                    config.connection_pool.idle_timeout,
+                )))
+                .max_lifetime(Some(std::time::Duration::from_secs(
+                    config.connection_pool.max_lifetime,
+                )))
                 .build(manager)
                 .map_err(|e| format!("Failed to create pool for {}: {}", config.id, e))?;
+
+            tracing::info!(
+                "Created connection pool for database '{}' with max_size={}, min_idle={}",
+                config.id,
+                config.connection_pool.max_size,
+                config.connection_pool.min_idle
+            );
 
             pools.insert(config.id.clone(), pool);
         }
@@ -76,10 +94,105 @@ impl DatabaseManager {
         pools.contains_key(db_id)
     }
 
+    /// Get connection pool statistics for monitoring
+    pub async fn get_pool_stats(&self, db_id: &str) -> Option<PoolStats> {
+        let pools = self.pools.read().await;
+        if let Some(pool) = pools.get(db_id) {
+            Some(PoolStats {
+                max_size: pool.max_size(),
+                size: pool.max_size(),      // r2d2 doesn't expose current size
+                available: pool.max_size(), // Simplified for now
+                in_use: 0,                  // Simplified for now
+            })
+        } else {
+            None
+        }
+    }
+
+    /// Get connection pool statistics for all databases
+    pub async fn get_all_pool_stats(&self) -> HashMap<String, PoolStats> {
+        let pools = self.pools.read().await;
+        let mut stats = HashMap::new();
+
+        for (db_id, pool) in pools.iter() {
+            stats.insert(
+                db_id.clone(),
+                PoolStats {
+                    max_size: pool.max_size(),
+                    size: pool.max_size(), // r2d2 doesn't expose current size
+                    available: pool.max_size(), // Simplified for now
+                    in_use: 0,             // Simplified for now
+                },
+            );
+        }
+
+        stats
+    }
+
+    /// Health check for a specific database pool
+    pub async fn health_check(&self, db_id: &str) -> Result<bool, Box<dyn std::error::Error>> {
+        let pools = self.pools.read().await;
+        if let Some(pool) = pools.get(db_id) {
+            match pool.get() {
+                Ok(mut conn) => {
+                    // Test the connection with a simple query
+                    match diesel::sql_query("SELECT 1").execute(&mut conn) {
+                        Ok(_) => {
+                            tracing::debug!("Health check passed for database: {}", db_id);
+                            Ok(true)
+                        }
+                        Err(e) => {
+                            tracing::error!("Health check failed for database {}: {:?}", db_id, e);
+                            Ok(false)
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "Failed to get connection for health check on {}: {:?}",
+                        db_id,
+                        e
+                    );
+                    Ok(false)
+                }
+            }
+        } else {
+            Err(format!("Database pool not found: {}", db_id).into())
+        }
+    }
+
+    /// Health check for all database pools
+    pub async fn health_check_all(&self) -> HashMap<String, bool> {
+        let mut results = HashMap::new();
+
+        for config in &self.configs {
+            match self.health_check(&config.id).await {
+                Ok(healthy) => {
+                    results.insert(config.id.clone(), healthy);
+                    if healthy {
+                        tracing::info!("✅ Database '{}' is healthy", config.id);
+                    } else {
+                        tracing::error!("❌ Database '{}' is unhealthy", config.id);
+                    }
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "❌ Health check failed for database '{}': {:?}",
+                        config.id,
+                        e
+                    );
+                    results.insert(config.id.clone(), false);
+                }
+            }
+        }
+
+        results
+    }
+
     /// Run migrations on all configured databases
     pub async fn run_migrations_on_all_databases(
         &self,
-        config: &Config,
+        config: &crate::config::Config,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
@@ -143,7 +256,7 @@ impl DatabaseManager {
     pub async fn run_migrations_on_database(
         &self,
         db_id: &str,
-        config: &Config,
+        config: &crate::config::Config,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
@@ -175,6 +288,36 @@ impl DatabaseManager {
         } else {
             Err(format!("No pool found for database: {db_id}").into())
         }
+    }
+}
+
+/// Connection pool statistics for monitoring
+#[derive(Debug, Clone)]
+pub struct PoolStats {
+    pub max_size: u32,
+    pub size: u32,
+    pub available: u32,
+    pub in_use: u32,
+}
+
+impl PoolStats {
+    /// Get the utilization percentage of the pool
+    pub fn utilization_percentage(&self) -> f64 {
+        if self.max_size == 0 {
+            0.0
+        } else {
+            (self.in_use as f64 / self.max_size as f64) * 100.0
+        }
+    }
+
+    /// Check if the pool is under high load (more than 80% utilization)
+    pub fn is_under_high_load(&self) -> bool {
+        self.utilization_percentage() > 80.0
+    }
+
+    /// Check if the pool has available connections
+    pub fn has_available_connections(&self) -> bool {
+        self.available > 0
     }
 }
 

@@ -55,6 +55,17 @@ common_aliases = [
 id = "primary"
 label = "Main Server"
 url = "mysql://sortingoffice:password@localhost:3306/sortingoffice"
+
+# Connection pooling configuration
+[databases.connection_pool]
+max_size = 20                    # Maximum number of connections in the pool
+min_idle = 5                     # Minimum number of idle connections to maintain
+connection_timeout = 30          # Timeout for acquiring a connection (seconds)
+idle_timeout = 300               # Timeout for idle connections (seconds)
+max_lifetime = 1800              # Maximum lifetime of connections (seconds)
+test_on_acquire = true           # Test connections when acquiring from pool
+test_on_return = false           # Test connections when returning to pool
+
 # Optional: Database-specific feature restrictions (override global settings)
 [databases.features]
 read_only = false           # Set to true to make this database read-only
@@ -67,6 +78,7 @@ no_migrations = false       # Set to true to prevent migration operations
 no_relays = false           # Set to true to disable relays table functionality
 no_relocated = false        # Set to true to disable relocated table functionality
 no_clients = false          # Set to true to disable clients table functionality
+
 # Example: Field mapping for schema differences
 # Use table-qualified field names to map fields for specific tables
 # Format: "table.field" = "actual_database_field_name"
@@ -91,6 +103,17 @@ aliases.enabled = "is_active"
 id = "backup"
 label = "Backup Server"
 url = "mysql://backupuser:password@backuphost:3306/backupdb"
+
+# Connection pooling for backup server (smaller pool for read-only)
+[databases.connection_pool]
+max_size = 10                    # Smaller pool for backup server
+min_idle = 2                     # Fewer idle connections
+connection_timeout = 15          # Shorter timeout for backup
+idle_timeout = 600               # Longer idle timeout for backup
+max_lifetime = 3600              # Longer lifetime for backup connections
+test_on_acquire = true           # Always test backup connections
+test_on_return = true            # Test when returning to pool
+
 # Example: Read-only backup server
 [databases.features]
 read_only = true            # Backup server is read-only

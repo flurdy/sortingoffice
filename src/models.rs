@@ -1399,6 +1399,7 @@ mod tests {
             url: "mysql://test:test@localhost/test".to_string(),
             features: DatabaseFeatures::default(),
             field_map,
+            connection_pool: crate::config::ConnectionPoolConfig::default(),
         };
 
         // Test table-qualified field mapping
