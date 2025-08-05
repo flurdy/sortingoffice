@@ -239,7 +239,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
     diesel::insert_into(domains::table)
         .values((
             domains::domain.eq(new_domain.domain),
-            domains::transport.eq(new_domain.transport.clone()),
+            domains::transport.eq(new_domain.transport),
             domains::enabled.eq(new_domain.enabled),
             domains::created.eq(now),
             domains::modified.eq(now),
@@ -261,7 +261,7 @@ pub fn update_domain(
     diesel::update(domains::table.find(domain_id))
         .set((
             domains::domain.eq(domain_data.domain),
-            domains::transport.eq(domain_data.transport.clone()),
+            domains::transport.eq(domain_data.transport),
             domains::enabled.eq(domain_data.enabled),
             domains::modified.eq(Utc::now().naive_utc()),
         ))
@@ -338,6 +338,7 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
             users::uid.eq(new_user.uid),
             users::gid.eq(new_user.gid),
             users::enabled.eq(new_user.enabled),
+            users::change_password.eq(new_user.change_password),
             users::created.eq(now),
             users::modified.eq(now),
         ))
@@ -354,20 +355,21 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
     let mut conn = pool.get().unwrap();
 
     // First get the current user to preserve unchanged fields
-    let _current_user = get_user(pool, user_id.clone())?;
+    let _current_user = get_user_by_id(pool, &user_id)?;
 
     // Update the user - include id if it's different from the current one
     if user_data.id != user_id {
-        diesel::update(users.filter(id.eq(user_id.clone())))
+        let new_id = user_data.id.clone();
+        diesel::update(users.filter(id.eq(&user_id)))
             .set((
-                id.eq(user_data.id.clone()),
+                id.eq(new_id),
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
                 change_password.eq(user_data.change_password),
             ))
             .execute(&mut conn)?;
     } else {
-        diesel::update(users.filter(id.eq(user_id.clone())))
+        diesel::update(users.filter(id.eq(&user_id)))
             .set((
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
@@ -764,7 +766,7 @@ pub fn create_backup(pool: &DbPool, new_backup: NewBackup) -> Result<Backup, Err
     diesel::insert_into(backups::table)
         .values((
             backups::domain.eq(new_backup.domain),
-            backups::transport.eq(new_backup.transport.clone()),
+            backups::transport.eq(new_backup.transport),
             backups::enabled.eq(new_backup.enabled),
             backups::created.eq(now),
             backups::modified.eq(now),
@@ -786,7 +788,7 @@ pub fn update_backup(
     diesel::update(backups::table.find(backup_id))
         .set((
             backups::domain.eq(backup_data.domain),
-            backups::transport.eq(backup_data.transport.clone()),
+            backups::transport.eq(backup_data.transport),
             backups::enabled.eq(backup_data.enabled),
             backups::modified.eq(Utc::now().naive_utc()),
         ))
