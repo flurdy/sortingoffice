@@ -16,8 +16,7 @@ use crate::handlers::http_helpers::is_htmx_request;
 
 /// Helper function to get current database info without unnecessary cloning
 pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (String, String) {
-    let current_db_id = crate::handlers::auth::get_selected_database(headers)
-        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_id = get_current_db_id(state, headers);
     let current_db_label = state
         .db_manager
         .get_configs()
@@ -27,6 +26,12 @@ pub fn get_current_db_info_optimized(state: &AppState, headers: &HeaderMap) -> (
         .unwrap_or_else(|| current_db_id.clone());
 
     (current_db_label, current_db_id)
+}
+
+/// Helper function to get current database ID with fallback to default
+pub fn get_current_db_id(state: &AppState, headers: &HeaderMap) -> String {
+    crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string())
 }
 
 /// Macro to fetch multiple translations at once

@@ -27,11 +27,7 @@ pub fn setup_test_db() -> DbPool {
             });
 
             // For now, keep using MySQL but with a test database
-            let database_url = std::env::var("TEST_DATABASE_URL")
-                .or_else(|_| std::env::var("DATABASE_URL"))
-                .unwrap_or_else(|_| {
-                    "mysql://root:password@localhost/sortingoffice_test".to_string()
-                });
+            let database_url = crate::config_utils::ConfigUtils::get_test_database_url();
 
             let manager = ConnectionManager::<MysqlConnection>::new(database_url);
             let pool = Pool::builder()

@@ -50,7 +50,7 @@
 //! - All test data is cleaned up automatically when the test completes
 
 use anyhow::Result;
-use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
+use sortingoffice::{config_utils::ConfigUtils, test_helpers::testcontainers_setup::setup_test_db};
 use std::time::Duration;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
@@ -78,12 +78,14 @@ pub struct SmokeTestConfig {
 
 impl Default for SmokeTestConfig {
     fn default() -> Self {
+        let config = ConfigUtils::get_smoke_test_config();
         Self {
-            app_url: std::env::var("SMOKE_TEST_APP_URL")
-                .unwrap_or_else(|_| "http://host.docker.internal:3000".to_string()),
-            headless: false,
-            timeout_seconds: 300, // 5 minutes
-            enable_vnc: true,
+            app_url: config
+                .app_url
+                .unwrap_or_else(|| "http://host.docker.internal:3000".to_string()),
+            headless: config.headless,
+            timeout_seconds: config.timeout_seconds as u64,
+            enable_vnc: config.enable_vnc,
         }
     }
 }

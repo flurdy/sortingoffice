@@ -1,11 +1,10 @@
-use sortingoffice::{AppState, Config, DatabaseManager, I18n};
+use sortingoffice::{config_utils::ConfigUtils, AppState, Config, DatabaseManager, I18n};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
-    let config_path =
-        std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config/config.toml".to_string());
+    let config_path = ConfigUtils::get_default_config_path();
     let config = Config::load_config_with_env(&config_path)
         .unwrap_or_else(|e| panic!("Failed to load configuration from {config_path}: {e:?}"));
     // Debug: log all loaded database configs
@@ -58,10 +57,7 @@ async fn main() {
     let app = app.with_state(state);
 
     // Bind to port from env or default 3000
-    let port = std::env::var("PORT")
-        .ok()
-        .and_then(|p| p.parse().ok())
-        .unwrap_or(3000);
+    let port = ConfigUtils::get_default_port();
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await.unwrap();
     println!("Listening on {addr}");

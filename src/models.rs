@@ -384,9 +384,10 @@ pub struct RequiredAliasConfig {
 
 impl Default for RequiredAliasConfig {
     fn default() -> Self {
-        // Try to read from environment variables first
-        let required_from_env = std::env::var("REQUIRED_ALIASES").ok();
-        let common_from_env = std::env::var("COMMON_ALIASES").ok();
+        // Use centralized config utilities
+        let required_from_env =
+            crate::config_utils::ConfigUtils::get_env_var_opt("REQUIRED_ALIASES");
+        let common_from_env = crate::config_utils::ConfigUtils::get_env_var_opt("COMMON_ALIASES");
 
         let required_aliases = if let Some(aliases_str) = required_from_env {
             let aliases: Vec<String> = aliases_str

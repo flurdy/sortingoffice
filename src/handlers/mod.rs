@@ -114,7 +114,7 @@ async fn security_headers(
     headers.insert("Content-Security-Policy", csp.parse().unwrap());
 
     // HSTS (only in production)
-    if std::env::var("RUST_ENV").unwrap_or_default() == "production" {
+    if crate::config_utils::ConfigUtils::is_production() {
         headers.insert(
             "Strict-Transport-Security",
             "max-age=31536000; includeSubDomains".parse().unwrap(),
