@@ -1,6 +1,9 @@
 use crate::AppState;
 use axum::http::HeaderMap;
 use axum::response::Html;
+use std::time::{Duration, Instant};
+use tokio::time::sleep;
+use tracing::{error, info, warn};
 
 /// Custom error type for database operations
 /// Based on structured error handling patterns from Rust error handling guide
@@ -36,6 +39,203 @@ pub enum ValidationError {
 
     #[error("Validation failed: {message}")]
     Custom { message: String },
+}
+
+/// Circuit breaker state for error recovery
+#[derive(Debug, Clone)]
+pub struct CircuitBreaker {
+    pub failure_count: u32,
+    pub last_failure_time: Option<Instant>,
+    pub state: CircuitBreakerState,
+    pub threshold: u32,
+    pub timeout: Duration,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CircuitBreakerState {
+    Closed,   // Normal operation
+    Open,     // Failing, reject requests
+    HalfOpen, // Testing if service is recovered
+}
+
+impl CircuitBreaker {
+    pub fn new(threshold: u32, timeout: Duration) -> Self {
+        Self {
+            failure_count: 0,
+            last_failure_time: None,
+            state: CircuitBreakerState::Closed,
+            threshold,
+            timeout,
+        }
+    }
+
+    pub fn can_execute(&mut self) -> bool {
+        match self.state {
+            CircuitBreakerState::Closed => true,
+            CircuitBreakerState::Open => {
+                if let Some(last_failure) = self.last_failure_time {
+                    if last_failure.elapsed() >= self.timeout {
+                        self.state = CircuitBreakerState::HalfOpen;
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+            CircuitBreakerState::HalfOpen => true,
+        }
+    }
+
+    pub fn on_success(&mut self) {
+        self.failure_count = 0;
+        self.last_failure_time = None;
+        self.state = CircuitBreakerState::Closed;
+    }
+
+    pub fn on_failure(&mut self) {
+        self.failure_count += 1;
+        self.last_failure_time = Some(Instant::now());
+
+        if self.failure_count >= self.threshold {
+            self.state = CircuitBreakerState::Open;
+        }
+    }
+}
+
+/// Retry configuration for error recovery
+#[derive(Debug, Clone)]
+pub struct RetryConfig {
+    pub max_attempts: u32,
+    pub base_delay: Duration,
+    pub max_delay: Duration,
+    pub backoff_multiplier: f64,
+}
+
+impl Default for RetryConfig {
+    fn default() -> Self {
+        Self {
+            max_attempts: 3,
+            base_delay: Duration::from_millis(100),
+            max_delay: Duration::from_secs(5),
+            backoff_multiplier: 2.0,
+        }
+    }
+}
+
+/// Execute operation with retry mechanism
+pub async fn execute_with_retry<T, E, F, Fut>(
+    operation: F,
+    config: RetryConfig,
+    operation_name: &str,
+) -> Result<T, E>
+where
+    F: Fn() -> Fut,
+    Fut: std::future::Future<Output = Result<T, E>>,
+    E: std::fmt::Debug,
+{
+    let mut attempt = 1;
+    let mut delay = config.base_delay;
+
+    loop {
+        match operation().await {
+            Ok(result) => {
+                if attempt > 1 {
+                    info!("{} succeeded after {} attempts", operation_name, attempt);
+                }
+                return Ok(result);
+            }
+            Err(e) => {
+                if attempt >= config.max_attempts {
+                    error!(
+                        "{} failed after {} attempts: {:?}",
+                        operation_name, attempt, e
+                    );
+                    return Err(e);
+                }
+
+                warn!(
+                    "{} failed on attempt {}: {:?}, retrying in {:?}",
+                    operation_name, attempt, e, delay
+                );
+
+                sleep(delay).await;
+                attempt += 1;
+                delay = std::cmp::min(
+                    Duration::from_secs_f64(delay.as_secs_f64() * config.backoff_multiplier),
+                    config.max_delay,
+                );
+            }
+        }
+    }
+}
+
+/// Simple retry wrapper for database operations
+pub async fn retry_db_operation<T, F, Fut>(
+    operation: F,
+    max_attempts: u32,
+    operation_name: &str,
+) -> Result<T, diesel::result::Error>
+where
+    F: Fn() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+{
+    let mut attempt = 1;
+    let mut delay = Duration::from_millis(100);
+
+    loop {
+        match operation().await {
+            Ok(result) => {
+                if attempt > 1 {
+                    info!("{} succeeded after {} attempts", operation_name, attempt);
+                }
+                return Ok(result);
+            }
+            Err(e) => {
+                if attempt >= max_attempts {
+                    error!(
+                        "{} failed after {} attempts: {:?}",
+                        operation_name, attempt, e
+                    );
+                    return Err(e);
+                }
+
+                warn!(
+                    "{} failed on attempt {}: {:?}, retrying in {:?}",
+                    operation_name, attempt, e, delay
+                );
+
+                sleep(delay).await;
+                attempt += 1;
+                delay = std::cmp::min(
+                    Duration::from_secs_f64(delay.as_secs_f64() * 2.0),
+                    Duration::from_secs(2),
+                );
+            }
+        }
+    }
+}
+
+/// Retry wrapper for operations that can be called multiple times
+pub async fn retry_operation_once<T, F, Fut>(
+    operation: F,
+    operation_name: &str,
+) -> Result<T, diesel::result::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+{
+    match operation().await {
+        Ok(result) => {
+            info!("{} succeeded", operation_name);
+            Ok(result)
+        }
+        Err(e) => {
+            error!("{} failed: {:?}", operation_name, e);
+            Err(e)
+        }
+    }
 }
 
 /// Helper function to render error pages consistently with proper theming and translations

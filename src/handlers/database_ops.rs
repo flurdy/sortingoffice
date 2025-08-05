@@ -1,8 +1,10 @@
+use crate::handlers::errors::{execute_with_retry, RetryConfig};
 use crate::AppState;
 use axum::http::HeaderMap;
 use axum::response::Html;
 use diesel::result::Error;
-use tracing::{error, info};
+use std::time::Duration;
+use tracing::{error, info, warn};
 
 /// Helper function to safely get database connection with proper error handling
 /// Replaces unwrap() calls with structured error handling
@@ -35,15 +37,24 @@ pub fn parse_header_value_safely(
     })
 }
 
-/// Get database pool or handle error with consistent error handling
+/// Get database pool or handle error with consistent error handling and retry mechanism
 pub async fn get_db_pool_or_handle_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Html<String>> {
-    match crate::handlers::utils::get_current_db_pool(state, headers).await {
+    let retry_config = RetryConfig {
+        max_attempts: 3,
+        base_delay: Duration::from_millis(100),
+        max_delay: Duration::from_secs(2),
+        backoff_multiplier: 2.0,
+    };
+
+    let operation = || async { crate::handlers::utils::get_current_db_pool(state, headers).await };
+
+    match execute_with_retry(operation, retry_config, "get_database_pool").await {
         Ok(pool) => Ok(pool),
         Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
+            error!("Failed to get database pool after retries: {:?}", e);
             Err(crate::handlers::errors::render_database_error_page(state, headers).await)
         }
     }
@@ -100,39 +111,69 @@ where
     }
 }
 
-/// Get current database pool or return error
+/// Get current database pool or return error with retry mechanism
 pub async fn get_current_db_pool(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
-    let selected_db = crate::handlers::auth::get_selected_database(headers);
-    state
-        .db_manager
-        .get_pool(&selected_db.unwrap_or_else(|| "primary".to_string()))
-        .await
-        .ok_or_else(|| "Database pool not found".into())
+    let retry_config = RetryConfig {
+        max_attempts: 2,
+        base_delay: Duration::from_millis(50),
+        max_delay: Duration::from_secs(1),
+        backoff_multiplier: 2.0,
+    };
+
+    let operation = || async {
+        let selected_db = crate::handlers::auth::get_selected_database(headers);
+        state
+            .db_manager
+            .get_pool(&selected_db.unwrap_or_else(|| "primary".to_string()))
+            .await
+            .ok_or_else(|| "Database pool not found".into())
+    };
+
+    execute_with_retry(operation, retry_config, "get_current_db_pool").await
 }
 
-/// Get database pool or error with HTML response
+/// Get database pool or error with HTML response and fallback mechanism
 pub async fn get_db_pool_or_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Html<String>> {
+    // Try primary operation first
     match get_current_db_pool(state, headers).await {
         Ok(pool) => Ok(pool),
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            Err(crate::handlers::errors::render_database_error_page(state, headers).await)
+        Err(_) => {
+            // Fallback to default database
+            match state.db_manager.get_pool("primary").await {
+                Some(pool) => {
+                    warn!("Using fallback database pool");
+                    Ok(pool)
+                }
+                None => {
+                    error!("Both primary and fallback database pools failed");
+                    Err(crate::handlers::errors::render_database_error_page(state, headers).await)
+                }
+            }
         }
     }
 }
 
-/// Get database pool or redirect error
+/// Get database pool or redirect error with retry mechanism
 pub async fn get_db_pool_or_redirect_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, (axum::http::StatusCode, String)> {
-    match get_current_db_pool(state, headers).await {
+    let retry_config = RetryConfig {
+        max_attempts: 2,
+        base_delay: Duration::from_millis(100),
+        max_delay: Duration::from_secs(1),
+        backoff_multiplier: 2.0,
+    };
+
+    let operation = || async { get_current_db_pool(state, headers).await };
+
+    match execute_with_retry(operation, retry_config, "get_database_pool_redirect").await {
         Ok(pool) => Ok(pool),
         Err(e) => {
             error!("Failed to get database pool: {:?}", e);
@@ -202,14 +243,23 @@ pub async fn get_backups_with_fallback(pool: &crate::DbPool) -> Vec<crate::model
     }
 }
 
-/// Get domain with not found handling
+/// Get domain with not found handling and retry mechanism
 pub async fn get_domain_with_not_found_handling(
     pool: &crate::DbPool,
     id: i32,
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::models::Domain, Html<String>> {
-    match crate::db::get_domain(pool, id) {
+    let retry_config = RetryConfig {
+        max_attempts: 2,
+        base_delay: Duration::from_millis(100),
+        max_delay: Duration::from_secs(1),
+        backoff_multiplier: 2.0,
+    };
+
+    let operation = || async { crate::db::get_domain(pool, id) };
+
+    match execute_with_retry(operation, retry_config, "get_domain").await {
         Ok(domain) => Ok(domain),
         Err(_) => {
             let error_response = crate::handlers::errors::handle_entity_not_found(
@@ -232,8 +282,24 @@ pub async fn get_domain_aliases_with_fallback(
     Option<crate::models::DomainAliasReport>,
     Vec<crate::models::Alias>,
 ) {
-    let alias_report = crate::db::get_domain_alias_report(pool, domain_name).ok();
-    let existing_aliases = crate::db::get_aliases_for_domain(pool, domain_name).unwrap_or_default();
+    // Try to get alias report
+    let alias_report = match crate::db::get_domain_alias_report(pool, domain_name) {
+        Ok(report) => Some(report),
+        Err(e) => {
+            error!("Failed to get domain alias report: {:?}", e);
+            None
+        }
+    };
+
+    // Try to get existing aliases
+    let existing_aliases = match crate::db::get_aliases_for_domain(pool, domain_name) {
+        Ok(aliases) => aliases,
+        Err(e) => {
+            error!("Failed to get aliases for domain: {:?}", e);
+            vec![]
+        }
+    };
+
     (alias_report, existing_aliases)
 }
 
