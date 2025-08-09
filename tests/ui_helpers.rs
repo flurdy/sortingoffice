@@ -4,13 +4,19 @@
 //! to eliminate code duplication.
 
 use anyhow::Result;
+use diesel::RunQueryDsl;
+use diesel_migrations::MigrationHarness;
 use rand::RngCore;
+use sortingoffice::test_helpers::testcontainers_setup::TestContainer;
+use sortingoffice::test_helpers::testcontainers_setup::MIGRATIONS;
 use std::net::TcpListener;
+use std::process::Command;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::ContainerAsync;
 use testcontainers::GenericImage;
 use testcontainers::ImageExt;
+use testcontainers_modules::mysql::Mysql;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
@@ -120,6 +126,12 @@ pub async fn setup_selenium_container_and_driver(
     caps.add_arg("--remote-debugging-port=9222")?;
     caps.add_arg("--whitelisted-ips=")?;
     caps.add_arg("--disable-features=VizDisplayCompositor")?;
+    // Add SSL/TLS configuration to handle protocol errors
+    caps.add_arg("--ignore-ssl-errors")?;
+    caps.add_arg("--ignore-certificate-errors")?;
+    caps.add_arg("--allow-insecure-localhost")?;
+    caps.add_arg("--disable-extensions")?;
+    caps.add_arg("--disable-plugins")?;
 
     // println!("[UI HELPERS] Chrome configured with minimal settings to avoid conflicts");
 
@@ -204,26 +216,41 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
 #[allow(dead_code)]
 pub async fn setup_app_container(
     db_url: &str,
-    host_port: u16,
-    _admin_username: &str,
-    _admin_password_hash: &str,
+    host_port: Option<u16>,
     config_path: &str,
     container_name: &str,
     extra_env: &[(&str, &str)],
-) -> anyhow::Result<(ContainerAsync<GenericImage>, String /* bridge IP */)> {
+) -> anyhow::Result<(
+    ContainerAsync<GenericImage>,
+    String, /* bridge IP */
+    u16,
+)> {
+    let app_port = if host_port.is_some() {
+        host_port.unwrap()
+    } else {
+        find_free_port()
+    };
     let mut app_image = GenericImage::new("sortingoffice", "latest")
         .with_env_var("DATABASE_URL", db_url)
         .with_env_var("PORT", "3000")
+        .with_env_var("HOST", "0.0.0.0") // Bind to all interfaces so other containers can reach it
         .with_env_var("CONFIG_PATH", "/app/config/config.toml")
-        .with_mapped_port(host_port, 3000.into())
+        .with_mapped_port(app_port, 3000.into())
         .with_container_name(container_name)
         .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
     for (key, value) in extra_env {
         app_image = app_image.with_env_var(*key, *value);
     }
 
+    println!(
+        "[DEBUG] Starting app container with port mapping: {}:3000",
+        app_port
+    );
     let app_container = match AsyncRunner::start(app_image).await {
-        Ok(c) => c,
+        Ok(c) => {
+            println!("[DEBUG] App container started successfully");
+            c
+        }
         Err(e) => {
             println!("[ERROR] Failed to start app container: {e:?}");
             return Err(e.into());
@@ -231,26 +258,36 @@ pub async fn setup_app_container(
     };
 
     let app_id = app_container.id();
+    println!("[DEBUG] App container ID: {}", app_id);
     let app_ip = get_container_bridge_ip(app_id).await?;
+    println!("[DEBUG] App container IP: {}", app_ip);
     let health_url = format!("http://{app_ip}:3000/health");
+    println!("[DEBUG] Health check URL: {}", health_url);
 
     let client = reqwest::Client::new();
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_secs(30);
 
+    println!("[DEBUG] Starting health check loop for: {}", health_url);
     loop {
         match client.get(&health_url).send().await {
             Ok(resp) if resp.status().is_success() => {
+                println!("[DEBUG] Health check successful: {}", resp.status());
                 break;
             }
-            Ok(_) | Err(_) => {}
+            Ok(resp) => {
+                println!("[DEBUG] Health check failed with status: {}", resp.status());
+            }
+            Err(e) => {
+                println!("[DEBUG] Health check error: {}", e);
+            }
         }
         if start.elapsed() > timeout {
             return Err(anyhow::anyhow!("App /health not healthy after 30s"));
         }
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     }
-    Ok((app_container, app_ip))
+    Ok((app_container, app_ip, app_port))
 }
 
 /// Get container bridge IP
@@ -1124,4 +1161,561 @@ pub async fn check_item_in_paginated_list(
 
     println!("[CHECK] Item '{item_name}' not found after checking {max_pages} pages");
     Ok(false)
+}
+
+/// Create a custom Docker network for test containers
+pub async fn create_test_network(network_name: &str) -> anyhow::Result<()> {
+    println!("[NETWORK] Creating custom Docker network: {}", network_name);
+
+    // Check if network already exists
+    let check_output = Command::new("docker")
+        .args(["network", "ls", "--format", "{{.Name}}"])
+        .output()?;
+
+    let networks = String::from_utf8_lossy(&check_output.stdout);
+    if networks.lines().any(|line| line == network_name) {
+        println!("[NETWORK] Network {} already exists", network_name);
+        return Ok(());
+    }
+
+    // Create the network with a specific subnet to allow static IP assignment
+    let output = Command::new("docker")
+        .args([
+            "network",
+            "create",
+            "--subnet",
+            "10.20.0.0/16",
+            network_name,
+        ])
+        .output()?;
+
+    if output.status.success() {
+        println!(
+            "[NETWORK] ✅ Successfully created network: {}",
+            network_name
+        );
+        Ok(())
+    } else {
+        let error = String::from_utf8_lossy(&output.stderr);
+        Err(anyhow::anyhow!(
+            "Failed to create network {}: {}",
+            network_name,
+            error
+        ))
+    }
+}
+
+/// Clean up a custom Docker network
+pub async fn cleanup_test_network(network_name: &str) -> anyhow::Result<()> {
+    println!("[NETWORK] Cleaning up network: {}", network_name);
+
+    let output = Command::new("docker")
+        .args(["network", "rm", network_name])
+        .output()?;
+
+    if output.status.success() {
+        println!(
+            "[NETWORK] ✅ Successfully removed network: {}",
+            network_name
+        );
+    } else {
+        let error = String::from_utf8_lossy(&output.stderr);
+        println!(
+            "[NETWORK] Warning: Failed to remove network {}: {}",
+            network_name, error
+        );
+    }
+
+    Ok(())
+}
+
+/// Setup MySQL container on a custom network
+pub async fn setup_test_db_with_network(network_name: &str) -> anyhow::Result<TestContainer> {
+    println!(
+        "[DB] Setting up MySQL container on network: {}",
+        network_name
+    );
+
+    // Create the network first
+    create_test_network(network_name).await?;
+
+    // Start MySQL container on the custom network with a static IP
+    let mysql_image = Mysql::default();
+    let mysql_container = AsyncRunner::start(mysql_image).await?;
+
+    // Get container ID for later use
+    let container_id = mysql_container.id();
+    println!("[DB] MySQL container ID: {}", container_id);
+
+    // Connect to the custom network with a static IP
+    let output = Command::new("docker")
+        .args([
+            "network",
+            "connect",
+            "--ip",
+            "10.20.0.10",
+            network_name,
+            container_id,
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow::anyhow!(
+            "Failed to connect MySQL container to network: {}",
+            error
+        ));
+    }
+
+    println!(
+        "[DB] ✅ MySQL container connected to network: {} with static IP",
+        network_name
+    );
+
+    // Use the static IP we assigned
+    let bridge_ip = "10.20.0.10";
+    println!("[DB] MySQL container IP on network: {}", bridge_ip);
+
+    // Create a unique schema for this test
+    let schema = format!("test_{}", rand::random::<u64>());
+
+    // Create the schema
+    let test_url = format!("mysql://root@{}:3306/{}", bridge_ip, schema);
+
+    // Wait for MySQL to be ready
+    tokio::time::sleep(Duration::from_secs(5)).await;
+
+    // Create the schema
+    let output = Command::new("docker")
+        .args([
+            "exec",
+            container_id,
+            "mysql",
+            "-uroot",
+            "-e",
+            &format!("CREATE DATABASE IF NOT EXISTS `{}`", schema),
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow::anyhow!(
+            "Failed to create database schema: {}",
+            error
+        ));
+    }
+
+    println!("[DB] ✅ Created database schema: {}", schema);
+
+    // Create connection pool for the test schema
+    let manager = diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&test_url);
+    let pool = diesel::r2d2::Pool::builder()
+        .max_size(5)
+        .min_idle(Some(1))
+        .build(manager)
+        .expect("Failed to create connection pool");
+
+    // Run migrations on the new schema
+    let mut conn = pool.get().expect("Failed to get connection");
+    if let Err(e) = MigrationHarness::run_pending_migrations(&mut conn, MIGRATIONS) {
+        return Err(anyhow::anyhow!(e.to_string()));
+    }
+    println!("[DB] ✅ Successfully ran database migrations");
+
+    // Seed the database immediately after creation, before the container goes out of scope
+    println!("[DB] Seeding database immediately after creation");
+
+    // Copy the seed data file into the container
+    let copy_status = std::process::Command::new("docker")
+        .args([
+            "cp",
+            "seed_data/all.sql",
+            &format!("{}:/tmp/seed_data.sql", container_id),
+        ])
+        .status();
+
+    match copy_status {
+        Ok(exit_status) => {
+            if !exit_status.success() {
+                println!("[DB] Warning: Failed to copy seed data file to container");
+            } else {
+                println!("[DB] Successfully copied seed data file to container");
+
+                // Now execute the seed data file
+                let seed_status = std::process::Command::new("docker")
+                    .args([
+                        "exec",
+                        container_id,
+                        "mysql",
+                        "-uroot",
+                        &schema,
+                        "-e",
+                        "source /tmp/seed_data.sql",
+                    ])
+                    .status();
+
+                match seed_status {
+                    Ok(exit_status) => {
+                        if !exit_status.success() {
+                            println!(
+                                "[DB] Warning: Seeding DB failed with status: {exit_status:?}"
+                            );
+                        } else {
+                            println!("[DB] Successfully seeded database: {}", schema);
+                        }
+                    }
+                    Err(e) => {
+                        println!("[DB] Error running seeding command: {}", e);
+                        println!("[DB] Skipping seeding due to connection issues");
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            println!("[DB] Error copying seed data file: {}", e);
+            println!("[DB] Skipping seeding due to file copy issues");
+        }
+    }
+
+    // Create connection pool for the test schema
+    let manager = diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&test_url);
+    let pool = diesel::r2d2::Pool::builder()
+        .max_size(5)
+        .min_idle(Some(1))
+        .build(manager)
+        .expect("Failed to create connection pool");
+
+    println!("[DB] Storing container ID: {} for later use", container_id);
+    Ok(TestContainer {
+        pool,
+        schema,
+        port: 3306,
+        bridge_ip: bridge_ip.to_string(),
+        container_id: container_id.to_string(),
+    })
+}
+
+/// Add shared-network helpers and per-schema helpers
+
+pub async fn ensure_shared_network() -> anyhow::Result<String> {
+    let network_name = "sortingoffice-e2e";
+    // Create network if missing (user-defined bridge gives DNS between containers)
+    let check = Command::new("docker")
+        .args(["network", "ls", "--format", "{{.Name}}"])
+        .output()?;
+    let exists = String::from_utf8_lossy(&check.stdout)
+        .lines()
+        .any(|n| n == network_name);
+    if !exists {
+        let out = Command::new("docker")
+            .args(["network", "create", network_name])
+            .output()?;
+        if !out.status.success() {
+            return Err(anyhow::anyhow!(
+                "Failed to create shared network: {}",
+                String::from_utf8_lossy(&out.stderr)
+            ));
+        }
+        println!("[NETWORK] ✅ Created shared network: {}", network_name);
+    }
+    Ok(network_name.to_string())
+}
+
+pub async fn connect_container_to_network(
+    container_id: &str,
+    network: &str,
+    alias: &str,
+) -> anyhow::Result<()> {
+    // If already connected, docker returns error; ignore if already connected
+    let out = Command::new("docker")
+        .args([
+            "network",
+            "connect",
+            "--alias",
+            alias,
+            network,
+            container_id,
+        ])
+        .output()?;
+    if !out.status.success() {
+        let err = String::from_utf8_lossy(&out.stderr);
+        if !err.contains("already exists") {
+            return Err(anyhow::anyhow!(
+                "Failed to connect {} to {}: {}",
+                container_id,
+                network,
+                err
+            ));
+        }
+    }
+    Ok(())
+}
+
+pub async fn get_container_ip_on_network(
+    container_id: &str,
+    network: &str,
+) -> anyhow::Result<String> {
+    let output = Command::new("docker")
+        .args([
+            "inspect",
+            "-f",
+            &format!(
+                "{{{{ (index .NetworkSettings.Networks \"{}\").IPAddress }}}}",
+                network
+            ),
+            container_id,
+        ])
+        .output()
+        .map_err(|e| anyhow::anyhow!("Failed to run docker inspect: {}", e))?;
+    if !output.status.success() {
+        return Err(anyhow::anyhow!(
+            "docker inspect failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let ip = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if ip.is_empty() {
+        return Err(anyhow::anyhow!("No IP for network {}", network));
+    }
+    Ok(ip)
+}
+
+// Per-schema helpers on the shared MySQL container
+pub async fn create_schema(schema: &str) -> anyhow::Result<()> {
+    let port = sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
+    let admin_url = format!("mysql://root@127.0.0.1:{}/mysql", port);
+    let manager =
+        diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&admin_url);
+    let pool = diesel::r2d2::Pool::builder()
+        .max_size(3)
+        .min_idle(Some(1))
+        .build(manager)?;
+    let mut conn = pool.get()?;
+    diesel::sql_query(format!("CREATE DATABASE IF NOT EXISTS `{}`", schema)).execute(&mut conn)?;
+    Ok(())
+}
+
+pub async fn run_migrations_for_schema(schema: &str) -> anyhow::Result<()> {
+    let port = sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
+    let url = format!("mysql://root@127.0.0.1:{}/{}", port, schema);
+    let manager = diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&url);
+    let pool = diesel::r2d2::Pool::builder()
+        .max_size(5)
+        .min_idle(Some(1))
+        .build(manager)?;
+    let mut conn = pool.get()?;
+    match MigrationHarness::run_pending_migrations(&mut conn, MIGRATIONS) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(anyhow::anyhow!(e.to_string())),
+    }
+}
+
+pub async fn seed_schema(schema: &str) -> anyhow::Result<()> {
+    use sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_container_id;
+    let container_id = get_shared_mysql_container_id().await;
+    let copy = Command::new("docker")
+        .args([
+            "cp",
+            "seed_data/all.sql",
+            &format!("{}:/tmp/seed.sql", container_id),
+        ])
+        .status()?;
+    if !copy.success() {
+        return Err(anyhow::anyhow!("Failed to copy seed file"));
+    }
+    let exec = Command::new("docker")
+        .args([
+            "exec",
+            &container_id,
+            "mysql",
+            "-uroot",
+            schema,
+            "-e",
+            "source /tmp/seed.sql",
+        ])
+        .status()?;
+    if !exec.success() {
+        return Err(anyhow::anyhow!("Failed to seed schema"));
+    }
+    Ok(())
+}
+
+// Simplified app container: attach to shared network with name 'app', connect to DB by service name 'db'
+pub async fn setup_app_on_shared_network(
+    schema: &str,
+    host_port: Option<u16>,
+    config_path: &str,
+    extra_env: &[(&str, &str)],
+) -> anyhow::Result<(ContainerAsync<GenericImage>, u16)> {
+    let network = ensure_shared_network().await?;
+
+    // Ensure shared DB exists and is connected to network as alias 'db'
+    let db_container_id =
+        sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_container_id().await;
+    connect_container_to_network(&db_container_id, &network, "db").await?;
+
+    let db_url = format!("mysql://root@db:3306/{}", schema);
+    let app_port = host_port.unwrap_or(find_free_port());
+
+    let mut app_image = GenericImage::new("sortingoffice", "latest")
+        .with_env_var("DATABASE_URL", &db_url)
+        .with_env_var("PORT", "3000")
+        .with_env_var("HOST", "0.0.0.0")
+        .with_env_var("BASE_URL", "http://app:3000")
+        .with_env_var("DEFAULT_LOCALE", "en")
+        .with_env_var("CONFIG_PATH", "/app/config/config.toml")
+        .with_mapped_port(app_port, 3000.into())
+        .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
+
+    for (k, v) in extra_env {
+        app_image = app_image.with_env_var(*k, *v);
+    }
+
+    let app = AsyncRunner::start(app_image).await?;
+
+    // Attach to shared network with alias 'app' so Selenium can resolve http://app:3000
+    let app_id = app.id();
+    connect_container_to_network(app_id, &network, "app").await?;
+    // Debug: show network containers and aliases
+    if let Ok(out) = Command::new("docker")
+        .args([
+            "network",
+            "inspect",
+            &network,
+            "--format",
+            "{{json .Containers}}",
+        ])
+        .output()
+    {
+        println!(
+            "[NETWORK] containers on {}: {}",
+            &network,
+            String::from_utf8_lossy(&out.stdout)
+        );
+    }
+
+    // Health check via mapped host port (simpler and avoids intra-container IP)
+    let health_url = format!("http://127.0.0.1:{}/health", app_port);
+    let client = reqwest::Client::new();
+    let start = std::time::Instant::now();
+    let timeout = std::time::Duration::from_secs(60);
+    loop {
+        if let Ok(resp) = client.get(&health_url).send().await {
+            if resp.status().is_success() {
+                break;
+            }
+        }
+        if start.elapsed() > timeout {
+            return Err(anyhow::anyhow!("App /health not healthy after 60s"));
+        }
+        tokio::time::sleep(Duration::from_millis(500)).await;
+    }
+
+    Ok((app, app_port))
+}
+
+pub async fn setup_selenium_on_shared_network(
+) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let network = ensure_shared_network().await?;
+
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
+        .with_network(&network);
+
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    println!("[UI HELPERS] Selenium URL: http://localhost:{selenium_port}");
+
+    timeout90s!(
+        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
+        "Wait for selenium ready"
+    )?;
+
+    let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--headless=new")?;
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+
+    let driver = timeout(
+        Duration::from_secs(20),
+        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
+    )
+    .await??;
+    Ok((selenium, driver, selenium_port))
+}
+
+pub async fn setup_selenium_on_shared_network_with_args(
+    extra_chrome_args: &[String],
+) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let network = ensure_shared_network().await?;
+
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
+        .with_network(&network);
+
+    let selenium = AsyncRunner::start(selenium_image).await?;
+    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
+    println!("[UI HELPERS] Selenium URL: http://localhost:{selenium_port}");
+
+    timeout90s!(
+        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
+        "Wait for selenium ready"
+    )?;
+
+    let mut caps = DesiredCapabilities::chrome();
+    // Base args
+    caps.add_arg("--headless=new")?;
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+    // Relax network/security for CI
+    caps.add_arg("--allow-insecure-localhost")?;
+    caps.add_arg("--disable-web-security")?;
+    caps.add_arg("--disable-http2")?;
+    caps.add_arg("--disable-quic")?;
+    caps.add_arg("--test-type")?;
+    for a in extra_chrome_args {
+        caps.add_arg(a)?;
+    }
+
+    let driver = timeout(
+        Duration::from_secs(20),
+        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
+    )
+    .await??;
+    Ok((selenium, driver, selenium_port))
+}
+
+pub async fn setup_selenium_host() -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver)> {
+    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
+        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
+        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
+        .with_network("host");
+
+    let selenium = AsyncRunner::start(selenium_image).await?;
+
+    // With host network, WebDriver listens on localhost:4444
+    let wd_url = "http://localhost:4444";
+    timeout90s!(
+        wait_for_selenium_ready(4444, Duration::from_secs(90)),
+        "Wait for selenium ready (host)"
+    )?;
+
+    let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--headless=new")?;
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+
+    let driver = timeout(Duration::from_secs(20), WebDriver::new(wd_url, caps)).await??;
+    Ok((selenium, driver))
 }

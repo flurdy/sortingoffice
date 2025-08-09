@@ -7,20 +7,44 @@ use axum::{
 use serde_json::json;
 
 /// Health check endpoint that returns basic application status
-pub async fn health_check(State(_state): State<AppState>) -> (StatusCode, Json<serde_json::Value>) {
+pub async fn health_check(State(state): State<AppState>) -> (StatusCode, Json<serde_json::Value>) {
+    // Check if we have any databases configured
+    let has_databases = !state.db_manager.get_configs().is_empty();
+
     let health_status = json!({
-        "status": "healthy",
+        "status": if has_databases { "healthy" } else { "unhealthy" },
         "timestamp": chrono::Utc::now().to_rfc3339(),
         "version": env!("CARGO_PKG_VERSION"),
+        "databases_configured": has_databases,
     });
 
-    (StatusCode::OK, Json(health_status))
+    let status_code = if has_databases {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
+
+    (status_code, Json(health_status))
 }
 
 /// Detailed health check with database connection pool statistics
 pub async fn detailed_health_check(
     State(state): State<AppState>,
 ) -> (StatusCode, Json<serde_json::Value>) {
+    // Check if we have any databases configured
+    let has_databases = !state.db_manager.get_configs().is_empty();
+
+    if !has_databases {
+        let error_status = json!({
+            "status": "unhealthy",
+            "timestamp": chrono::Utc::now().to_rfc3339(),
+            "version": env!("CARGO_PKG_VERSION"),
+            "error": "No databases configured",
+            "databases": {}
+        });
+        return (StatusCode::SERVICE_UNAVAILABLE, Json(error_status));
+    }
+
     // Get connection pool statistics
     let pool_stats = state.db_manager.get_all_pool_stats().await;
     let health_status = state.db_manager.health_check_all().await;
@@ -95,8 +119,20 @@ pub async fn pool_stats(State(state): State<AppState>) -> (StatusCode, Json<serd
 
 /// HTML health check page for browser viewing
 pub async fn health_check_html(State(state): State<AppState>) -> Html<String> {
-    let pool_stats = state.db_manager.get_all_pool_stats().await;
-    let health_status = state.db_manager.health_check_all().await;
+    // Check if we have any databases configured
+    let has_databases = !state.db_manager.get_configs().is_empty();
+
+    let pool_stats = if has_databases {
+        state.db_manager.get_all_pool_stats().await
+    } else {
+        std::collections::HashMap::new()
+    };
+
+    let health_status = if has_databases {
+        state.db_manager.health_check_all().await
+    } else {
+        std::collections::HashMap::new()
+    };
 
     let mut html = String::new();
     html.push_str("<!DOCTYPE html>\n<html>\n<head>\n");
@@ -121,6 +157,15 @@ pub async fn health_check_html(State(state): State<AppState>) -> Html<String> {
         "<p><strong>Version:</strong> {}</p>\n",
         env!("CARGO_PKG_VERSION")
     ));
+
+    if !has_databases {
+        html.push_str(
+            "<p><strong>Overall Status:</strong> <span class=\"unhealthy\">Unhealthy</span></p>\n",
+        );
+        html.push_str("<p><strong>Error:</strong> No databases configured</p>\n");
+        html.push_str("</body>\n</html>\n");
+        return Html(html);
+    }
 
     let all_healthy = health_status.values().all(|&healthy| healthy);
     let status_class = if all_healthy { "healthy" } else { "unhealthy" };

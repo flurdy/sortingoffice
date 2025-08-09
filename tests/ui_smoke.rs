@@ -418,18 +418,16 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     };
     let extra_env = &[("DATABASE_URL", db_url_for_container.as_str())];
 
-    let (app_container, app_ip) = setup_app_container(
+    let (app_container, app_ip, app_port) = setup_app_container(
         &db_url_for_container,
-        find_free_port(),
-        "admin",
-        "$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // password
+        None,
         config_path.to_str().unwrap(),
         &container_name,
         extra_env,
     )
     .await?;
 
-    let app_url = format!("http://{app_ip}:3000");
+    let app_url = format!("http://{app_ip}:{app_port}");
     println!("[SMOKE TEST] App container ready at: {app_url}");
     println!("[SMOKE TEST] Using database URL: {db_url_for_container}");
     println!(

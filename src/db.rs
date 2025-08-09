@@ -35,7 +35,7 @@ impl DatabaseManager {
             let manager = ConnectionManager::<MysqlConnection>::new(&config.url);
 
             // Use connection pool configuration from the database config
-            let pool = r2d2::Pool::builder()
+            match r2d2::Pool::builder()
                 .max_size(config.connection_pool.max_size)
                 .min_idle(Some(config.connection_pool.min_idle))
                 .connection_timeout(std::time::Duration::from_secs(
@@ -48,16 +48,24 @@ impl DatabaseManager {
                     config.connection_pool.max_lifetime,
                 )))
                 .build(manager)
-                .map_err(|e| format!("Failed to create pool for {}: {}", config.id, e))?;
-
-            tracing::info!(
-                "Created connection pool for database '{}' with max_size={}, min_idle={}",
-                config.id,
-                config.connection_pool.max_size,
-                config.connection_pool.min_idle
-            );
-
-            pools.insert(config.id.clone(), pool);
+            {
+                Ok(pool) => {
+                    tracing::info!(
+                        "Created connection pool for database '{}' with max_size={}, min_idle={}",
+                        config.id,
+                        config.connection_pool.max_size,
+                        config.connection_pool.min_idle
+                    );
+                    pools.insert(config.id.clone(), pool);
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "Failed to create pool for database '{}': {}. Application will start but this database will be unavailable.",
+                        config.id, e
+                    );
+                    // Don't fail the entire application startup, just log the warning
+                }
+            }
         }
 
         Ok(DatabaseManager {
@@ -161,29 +169,22 @@ impl DatabaseManager {
         }
     }
 
-    /// Health check for all database pools
+    /// Health check all databases
     pub async fn health_check_all(&self) -> HashMap<String, bool> {
         let mut results = HashMap::new();
+        let pools = self.pools.read().await;
 
         for config in &self.configs {
-            match self.health_check(&config.id).await {
-                Ok(healthy) => {
-                    results.insert(config.id.clone(), healthy);
-                    if healthy {
-                        tracing::info!("✅ Database '{}' is healthy", config.id);
-                    } else {
-                        tracing::error!("❌ Database '{}' is unhealthy", config.id);
-                    }
+            let is_healthy = if let Some(_pool) = pools.get(&config.id) {
+                match self.health_check(&config.id).await {
+                    Ok(healthy) => healthy,
+                    Err(_) => false,
                 }
-                Err(e) => {
-                    tracing::error!(
-                        "❌ Health check failed for database '{}': {:?}",
-                        config.id,
-                        e
-                    );
-                    results.insert(config.id.clone(), false);
-                }
-            }
+            } else {
+                // Database pool not available (failed to create)
+                false
+            };
+            results.insert(config.id.clone(), is_healthy);
         }
 
         results

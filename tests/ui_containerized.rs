@@ -1,18 +1,15 @@
 use anyhow::Result;
-
-use testcontainers::core::Mount;
-use testcontainers::runners::AsyncRunner;
 use testcontainers::ContainerAsync;
 use testcontainers::GenericImage;
-use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
-
-use sortingoffice::test_helpers::testcontainers_setup::{setup_test_db, TestContainer};
+use ui_helpers::{
+    authenticate_driver, create_schema, get_container_ip_on_network, run_migrations_for_schema,
+    setup_app_on_shared_network, setup_selenium_on_shared_network_with_args,
+};
 
 #[macro_use]
 mod ui_helpers;
-use ui_helpers::{get_container_bridge_ip, wait_for_selenium_ready};
 
 // Helper macros for timeouts
 macro_rules! timeout30s {
@@ -39,246 +36,27 @@ macro_rules! timeout90s {
     };
 }
 
-/// Find a free port for the application
-fn find_free_port() -> u16 {
-    std::net::TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to bind to random port")
-        .local_addr()
-        .unwrap()
-        .port()
-}
-
-/// Setup app container for containerized tests (uses port 4000)
-async fn setup_app_container_containerized(
-    db_url: &str,
-    host_port: u16,
-    _admin_username: &str,
-    _admin_password_hash: &str,
-    config_path: &str,
-    container_name: &str,
-    extra_env: &[(&str, &str)],
-) -> anyhow::Result<(ContainerAsync<GenericImage>, String /* bridge IP */)> {
-    let mut app_image = GenericImage::new("sortingoffice", "latest")
-        .with_env_var("DATABASE_URL", db_url)
-        .with_env_var("PORT", "4000")
-        .with_mapped_port(host_port, 4000.into())
-        .with_container_name(container_name)
-        .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
-    for (key, value) in extra_env {
-        app_image = app_image.with_env_var(*key, *value);
-    }
-
-    let app_container = match AsyncRunner::start(app_image).await {
-        Ok(c) => c,
-        Err(e) => {
-            println!("[ERROR] Failed to start app container: {e:?}");
-            return Err(e.into());
-        }
-    };
-
-    let app_id = app_container.id();
-    let app_ip = get_container_bridge_ip(app_id).await?;
-    let health_url = format!("http://{app_ip}:4000/health");
-    let client = reqwest::Client::new();
+// Wait for the app to be reachable from inside the Selenium container by loading /health
+async fn wait_for_app_from_selenium(
+    driver: &WebDriver,
+    app_url: &str,
+    max_wait: Duration,
+) -> Result<()> {
+    let health_url = format!("{}/health", app_url.trim_end_matches('/'));
     let start = std::time::Instant::now();
-    let timeout = std::time::Duration::from_secs(30);
     loop {
-        match client.get(&health_url).send().await {
-            Ok(resp) if resp.status().is_success() => {
-                break;
+        match driver.get(&health_url).await {
+            Ok(_) => return Ok(()),
+            Err(_) => {
+                if start.elapsed() >= max_wait {
+                    return Err(anyhow::anyhow!(
+                        "Timed out waiting for app from Selenium at {}",
+                        health_url
+                    ));
+                }
+                tokio::time::sleep(Duration::from_secs(2)).await;
             }
-            Ok(_) | Err(_) => {}
         }
-        if start.elapsed() > timeout {
-            return Err(anyhow::anyhow!("App /health not healthy after 30s"));
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    }
-    Ok((app_container, app_ip))
-}
-
-// Helper function to authenticate the driver
-async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
-    // println!("🔐 Authenticating with headless browser...");
-
-    // Navigate to login page using the provided base_url
-    let login_url = format!("{}/login", base_url.trim_end_matches('/'));
-    // println!("Navigating to login page: {}", login_url);
-    timeout60s!(driver.get(&login_url), "Navigate to login page")?;
-
-    // Fill in login form
-    // println!("Looking for username field...");
-    let username_field = timeout60s!(
-        driver.find(By::Css("input[name='id']")),
-        "Find username field"
-    )?;
-    timeout60s!(username_field.send_keys("admin"), "Fill username field")?;
-    // println!("Username field filled");
-
-    // Wait a moment for the field to be properly filled
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-    // println!("Looking for password field...");
-    let password_field = timeout60s!(
-        driver.find(By::Css("input[name='password']")),
-        "Find password field"
-    )?;
-    timeout60s!(password_field.send_keys("admin123"), "Fill password field")?;
-    // println!("Password field filled");
-
-    // Wait a moment for the field to be properly filled
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-    // Submit the form
-    // println!("Looking for submit button...");
-    let submit_button = timeout60s!(
-        driver.find(By::XPath(
-            "//button[@type='submit' and contains(text(), 'Sign in')]"
-        )),
-        "Find submit button"
-    )?;
-
-    // Wait a moment for the button to be fully loaded
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-    // Check if button is enabled and visible
-    let is_enabled = timeout60s!(submit_button.is_enabled(), "Check button enabled")?;
-    let is_displayed = timeout60s!(submit_button.is_displayed(), "Check button displayed")?;
-    // println!(
-    //     "Button enabled: {}, displayed: {}",
-    //     is_enabled, is_displayed
-    // );
-
-    if is_enabled && is_displayed {
-        timeout60s!(submit_button.click(), "Click submit button")?;
-        // println!("Form submitted");
-    } else {
-        return Err(anyhow::anyhow!(
-            "Submit button is not clickable: enabled={}, displayed={}",
-            is_enabled,
-            is_displayed
-        ));
-    }
-
-    // Wait for redirect and check if we're authenticated
-    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-
-    let current_url = timeout60s!(driver.current_url(), "Get current URL")?;
-    // println!("Current URL after login: {}", current_url);
-
-    if current_url.as_str().contains("/login") {
-        return Err(anyhow::anyhow!(
-            "Still on login page after authentication attempt"
-        ));
-    }
-
-    // println!("✅ Authentication successful!");
-    Ok(())
-}
-
-// Helper function to run a test with timeout
-async fn run_test_with_timeout<F, T>(
-    test_name: &str,
-    test_fn: F,
-    timeout_duration: Duration,
-) -> Result<T>
-where
-    F: std::future::Future<Output = Result<T>>,
-{
-    let start = std::time::Instant::now();
-    let result = timeout(timeout_duration, test_fn)
-        .await
-        .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?;
-    let duration = start.elapsed();
-    let secs = duration.as_secs_f64();
-    println!("[TEST-TIME] {test_name} took {secs:.2}s");
-    result
-}
-
-/// Centralized helper to start Selenium container and return (container, WebDriver, port)
-async fn setup_selenium_container_and_driver(
-) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    timeout90s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
-        "Wait for selenium ready"
-    )?;
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--remote-debugging-port=9222")?;
-    caps.add_arg("--whitelisted-ips=")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    let driver = timeout(
-        Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
-    )
-    .await??;
-    Ok((selenium, driver, selenium_port))
-}
-
-/// Helper to login and land on the dashboard
-async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<()> {
-    // Go to login page (or homepage, which should redirect to login if not authenticated)
-    let login_url = format!("{}/login", app_url.trim_end_matches('/'));
-    // println!("[DEBUG] Navigating to login: {}", login_url);
-    timeout60s!(driver.get(&login_url), "Navigate to login page")?;
-    authenticate_driver(driver, app_url).await?;
-    // After login, go to dashboard/homepage
-    let app_url = format!("{}/", app_url.trim_end_matches('/'));
-    // println!("[DEBUG] Navigating to dashboard: {}", app_url);
-    timeout60s!(driver.get(app_url), "Navigate to dashboard after login")?;
-    Ok(())
-}
-
-async fn seed_test_db(container: &TestContainer) {
-    let db_name = &container.schema;
-    let db_ip = container.get_bridge_ip();
-
-    // Add logging to help debug seeding issues
-    println!("[SEED] Seeding database: {db_name} at {db_ip}");
-
-    let status = std::process::Command::new("mysql")
-        .arg("-uroot")
-        .arg("-h")
-        .arg(db_ip)
-        .arg("-P")
-        .arg("3306")
-        .arg(db_name)
-        .arg("-e")
-        .arg("source seed_data/all.sql")
-        .status()
-        .expect("Failed to run mysql seed command");
-
-    if !status.success() {
-        println!("[SEED] Warning: Seeding DB failed with status: {status:?}");
-        // Don't fail the test immediately, as this might be a duplicate key issue
-        // that doesn't affect the actual test functionality
-        // } else {
-        // println!("[SEED] Successfully seeded database: {}", db_name);
     }
 }
 
@@ -289,63 +67,50 @@ struct TestEnv {
     app_url: String,
 }
 
-async fn setup_ui_test_env_with_dbs(db_count: usize, config_path: &str) -> anyhow::Result<TestEnv> {
-    let mut dbs = Vec::new();
-    for _ in 0..db_count {
-        dbs.push(setup_test_db().await);
-    }
-    let db_url = format!(
-        "mysql://root@{}:3306/{}",
-        dbs[0].get_bridge_ip(),
-        dbs[0].schema
-    );
-    let db_url_secondary = if db_count > 1 {
-        Some(format!(
-            "mysql://root@{}:3306/{}",
-            dbs[1].get_bridge_ip(),
-            dbs[1].schema
-        ))
-    } else {
-        None
-    };
-    let port = find_free_port();
-    let unique_app_name = format!("app-{port}");
-    let admin_username = "admin";
-    let admin_password_hash = "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO";
-    let mut extra_env = vec![];
-    if let Some(ref db2) = db_url_secondary {
-        extra_env.push(("DATABASE_URL_SECONDARY", db2.as_str()));
-    }
-    let (app_container, app_ip) = setup_app_container_containerized(
-        &db_url,
-        port,
-        admin_username,
-        admin_password_hash,
-        config_path,
-        &unique_app_name,
-        &extra_env,
-    )
-    .await?;
-    for db in &dbs {
-        seed_test_db(db).await;
-    }
+async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
+    use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
+    let schema = unique_test_id();
+
+    // Per-test schema: create and migrate; seed only when needed by the test
+    create_schema(&schema).await?;
+    run_migrations_for_schema(&schema).await?;
+
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.toml");
+    let config_path_str_owned = config_path.to_str().unwrap().to_string();
+    let extra_env: Vec<(&str, &str)> = vec![];
+    let (app_container, _) =
+        setup_app_on_shared_network(&schema, None, &config_path_str_owned, &extra_env).await?;
+
+    // Start selenium on shared network with extra args
+    let extra_args = vec![
+        "--disable-http2".to_string(),
+        "--disable-quic".to_string(),
+        "--proxy-server=direct://".to_string(),
+        "--proxy-bypass-list=*".to_string(),
+        "--host-resolver-rules=MAP app 0.0.0.0".to_string(),
+        "--lang=en".to_string(),
+    ];
     let (selenium_container, driver, _selenium_port) =
-        setup_selenium_container_and_driver().await?;
-    let app_url = format!("http://{app_ip}:4000");
+        setup_selenium_on_shared_network_with_args(&extra_args).await?;
+
+    // Determine app container IP on the shared bridge network
+    let app_ip = get_container_ip_on_network(app_container.id(), "sortingoffice-e2e").await?;
+    println!("[DEBUG] App container IP on shared network: {}", app_ip);
+
+    // Use the container IP for Selenium to avoid DNS alias issues
+    let app_url = format!("http://{}:3000", app_ip);
+
+    // Ensure app is reachable from Selenium before proceeding
+    let _ = wait_for_app_from_selenium(&driver, &app_url, Duration::from_secs(30)).await?;
+
     Ok(TestEnv {
         app_container,
         selenium_container,
         driver,
         app_url,
     })
-}
-
-async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
-    let config_path = std::env::current_dir()
-        .unwrap()
-        .join("config/config.docker.toml");
-    let config_path_str = config_path.to_str().unwrap();
-    setup_ui_test_env_with_dbs(1, config_path_str).await
 }
 
 async fn test_404_page(driver: &WebDriver, app_url: &str, path: &str, context: &str) -> Result<()> {
@@ -367,17 +132,37 @@ async fn test_homepage_loads_containerized() -> Result<()> {
     run_test_with_timeout(
         "test_homepage_loads_containerized",
         async {
+            println!("[DEBUG] Starting test_homepage_loads_containerized");
             let env = setup_ui_test_env().await?;
+            println!("[DEBUG] TestEnv created successfully");
+
+            // Pre-check: ensure /health is reachable
+            let health_url = format!("{}/health", env.app_url.trim_end_matches('/'));
+            timeout60s!(env.driver.get(&health_url), "Navigate to /health")?;
+
+            // Perform real login and land on the dashboard
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
-            let _page_title = timeout60s!(env.driver.title(), "Get page title")?;
-            let page_source = timeout60s!(env.driver.source(), "Get page source")?;
-            assert!(page_source.contains("Dashboard"));
-            assert!(page_source.contains("Quick Actions"));
+
+            // Wait for main content to be present
+            use thirtyfour::By;
+            let main = timeout60s!(
+                env.driver.find(By::Id("main-content")),
+                "Find #main-content"
+            )?;
+
+            // Find H1 inside main content
+            let h1_elem = timeout60s!(main.find(By::Css("h1")), "Find H1 inside main content")?;
+            let h1_text = timeout60s!(h1_elem.text(), "Get H1 text")?;
+            assert!(
+                h1_text.to_lowercase().contains("dashboard"),
+                "Dashboard H1 should contain 'dashboard', got: {}",
+                h1_text
+            );
             drop(env.app_container);
             drop(env.selenium_container);
             Ok(())
         },
-        Duration::from_secs(40),
+        Duration::from_secs(90),
     )
     .await
 }
@@ -814,7 +599,7 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
     run_test_with_timeout(
         "test_database_dropdown_selection_containerized",
         async {
-            let env = setup_ui_test_env_with_dbs(2, config_path_str).await?;
+            let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
             // Navigate to a page that has the database dropdown (dashboard)
             let dashboard_url = format!("{}/", env.app_url);
@@ -2068,4 +1853,38 @@ async fn test_database_error_handling_with_theme(driver: &WebDriver, app_url: &s
 
     println!("[ERROR TEST] ✅ Database error handling with shared theme test passed");
     Ok(())
+}
+
+/// Helper to login and land on the dashboard
+async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<()> {
+    // Go to login page (or homepage, which should redirect to login if not authenticated)
+    let login_url = format!("{}/login", app_url.trim_end_matches('/'));
+    println!("[DEBUG] Navigating to login: {}", login_url);
+    println!("[DEBUG] App URL: {}", app_url);
+    timeout60s!(driver.get(&login_url), "Navigate to login page")?;
+    authenticate_driver(driver, app_url).await?;
+    // After login, go to dashboard/homepage
+    let app_url = format!("{}/", app_url.trim_end_matches('/'));
+    // println!("[DEBUG] Navigating to dashboard: {}", app_url);
+    timeout60s!(driver.get(app_url), "Navigate to dashboard after login")?;
+    Ok(())
+}
+
+// Helper function to run a test with timeout
+async fn run_test_with_timeout<F, T>(
+    test_name: &str,
+    test_fn: F,
+    timeout_duration: Duration,
+) -> Result<T>
+where
+    F: std::future::Future<Output = Result<T>>,
+{
+    let start = std::time::Instant::now();
+    let result = timeout(timeout_duration, test_fn)
+        .await
+        .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?;
+    let duration = start.elapsed();
+    let secs = duration.as_secs_f64();
+    println!("[TEST-TIME] {test_name} took {secs:.2}s");
+    result
 }

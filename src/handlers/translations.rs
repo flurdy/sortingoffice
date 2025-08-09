@@ -332,11 +332,17 @@ pub async fn get_entity_all_translations(
 pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
     let mut translations = HashMap::new();
 
+    // Keys used by the login template
     let login_keys = vec![
         "login-title",
-        "login-username",
+        // Preferred keys used in templates/handlers
+        "login-user-id",
         "login-password",
+        "login-sign-in",
+        // Legacy/alternate keys kept for compatibility
+        "login-username",
         "login-submit",
+        // Additional login-related keys
         "login-error",
         "login-success",
         "login-logout",
@@ -352,9 +358,24 @@ pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<S
         "login-password-requirements",
     ];
 
-    for key in login_keys {
+    // Common layout/language keys referenced in login template
+    let layout_keys = vec![
+        "app-title",
+        "app-subtitle",
+        "theme-toggle",
+        "language-selector",
+        "language-english",
+        "language-spanish",
+        "language-french",
+        "language-norwegian",
+        "language-german",
+        "language-dutch",
+        "language-italian",
+    ];
+
+    for key in login_keys.iter().chain(layout_keys.iter()) {
         let value = get_translation(state, locale, key).await;
-        translations.insert(key.to_string(), value);
+        translations.insert((*key).to_string(), value);
     }
 
     debug!("Login translations: {translations:#?}");

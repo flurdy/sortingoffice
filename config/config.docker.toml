@@ -20,6 +20,16 @@ id = "primary"
 label = "Test DB"
 url = "${DATABASE_URL}"
 
+# Connection pooling configuration for test environment
+[databases.connection_pool]
+max_size = 10                    # Smaller pool for testing
+min_idle = 2                     # Fewer idle connections for testing
+connection_timeout = 15          # Shorter timeout for testing
+idle_timeout = 300               # Standard idle timeout
+max_lifetime = 1800              # Standard max lifetime
+test_on_acquire = true           # Test connections when acquiring
+test_on_return = false           # Don't test when returning
+
 # Admin user (overridable by env vars)
 [[admins]]
 # Username can be overridden by ADMIN_USERNAME env var

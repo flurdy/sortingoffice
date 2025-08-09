@@ -20,6 +20,7 @@ pub struct TestContainer {
     pub schema: String,
     pub port: u16,
     pub bridge_ip: String,
+    pub container_id: String,
 }
 
 impl TestContainer {
@@ -49,6 +50,10 @@ impl TestContainer {
     pub fn get_bridge_ip(&self) -> &str {
         &self.bridge_ip
     }
+
+    pub fn get_container_id(&self) -> &str {
+        &self.container_id
+    }
 }
 
 pub async fn get_shared_mysql_port() -> u16 {
@@ -62,6 +67,18 @@ pub async fn get_shared_mysql_port() -> u16 {
     let port = container.get_host_port_ipv4(3306).await.expect("get port");
     SHARED_PORT.get_or_init(|| async { port }).await;
     port
+}
+
+/// Expose the shared MySQL container id so tests can connect it to a shared network
+pub async fn get_shared_mysql_container_id() -> String {
+    let container = SHARED_CONTAINER
+        .get_or_init(|| async {
+            AsyncRunner::start(Mysql::default())
+                .await
+                .expect("Failed to start MySQL container")
+        })
+        .await;
+    container.id().to_string()
 }
 
 pub async fn setup_test_db() -> TestContainer {
@@ -129,6 +146,7 @@ pub async fn setup_test_db() -> TestContainer {
         schema,
         port,
         bridge_ip,
+        container_id: container.id().to_string(),
     }
 }
 
