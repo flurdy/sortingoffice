@@ -81,6 +81,64 @@ impl DatabaseManager {
         pools.get(db_id).cloned()
     }
 
+    /// Lazily create a pool on first use with brief retries. This avoids startup races
+    /// where the database is not reachable yet when the application boots.
+    pub async fn get_or_create_pool(&self, db_id: &str) -> Option<DbPool> {
+        // Fast path: already present
+        if let Some(existing) = self.get_pool(db_id).await {
+            return Some(existing);
+        }
+
+        // Find config for this database id
+        let db_config = match self.configs.iter().find(|c| c.id == db_id) {
+            Some(c) => c.clone(),
+            None => return None,
+        };
+
+        // Small retry loop to allow MySQL service/DNS to become ready
+        let mut last_err: Option<String> = None;
+        for attempt in 0..10 {
+            let manager = ConnectionManager::<MysqlConnection>::new(&db_config.url);
+            match r2d2::Pool::builder()
+                .max_size(db_config.connection_pool.max_size)
+                .min_idle(Some(db_config.connection_pool.min_idle))
+                .connection_timeout(std::time::Duration::from_secs(
+                    db_config.connection_pool.connection_timeout,
+                ))
+                .idle_timeout(Some(std::time::Duration::from_secs(
+                    db_config.connection_pool.idle_timeout,
+                )))
+                .max_lifetime(Some(std::time::Duration::from_secs(
+                    db_config.connection_pool.max_lifetime,
+                )))
+                .build(manager)
+            {
+                Ok(pool) => {
+                    // Insert into map
+                    let mut pools = self.pools.write().await;
+                    pools.insert(db_id.to_string(), pool.clone());
+                    tracing::info!(
+                        "Initialized connection pool for '{}' on attempt {}",
+                        db_id,
+                        attempt + 1
+                    );
+                    return Some(pool);
+                }
+                Err(e) => {
+                    last_err = Some(e.to_string());
+                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                }
+            }
+        }
+
+        tracing::warn!(
+            "Failed to initialize connection pool for '{}' after retries: {}",
+            db_id,
+            last_err.unwrap_or_else(|| "unknown error".to_string())
+        );
+        None
+    }
+
     /// Get the default database pool
     pub async fn get_default_pool(&self) -> Option<DbPool> {
         self.get_pool(&self.default_db).await

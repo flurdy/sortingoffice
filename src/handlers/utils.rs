@@ -258,9 +258,13 @@ pub async fn get_current_db_pool(
     let selected_db = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
+    // Try existing pool, otherwise lazily create with brief retries
+    if let Some(pool) = state.db_manager.get_pool(&selected_db).await {
+        return Ok(pool);
+    }
     state
         .db_manager
-        .get_pool(&selected_db)
+        .get_or_create_pool(&selected_db)
         .await
         .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
 }

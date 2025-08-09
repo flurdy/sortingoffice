@@ -160,6 +160,32 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
 
     // Navigate to login page
     timeout60s!(driver.get(&login_url), "Navigate to login page")?;
+    // If DB is warming up, the login route may render a plain error page.
+    // Reload until the login form is present.
+    let mut attempts: usize = 0;
+    loop {
+        // Try to locate the username input; if found, proceed.
+        if let Ok(_) = driver.find(By::Css("input[name='id']")).await {
+            break;
+        }
+        // Check page source for transient DB error and retry if seen
+        let src = driver.source().await.unwrap_or_default();
+        if !src.contains("Database connection error") && src.contains("<form") {
+            // Form likely present but element not yet queried; small settle delay
+            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+        } else {
+            attempts += 1;
+            if attempts >= 15 {
+                let snippet: String = src.chars().take(600).collect();
+                return Err(anyhow::anyhow!(
+                    "Login page not ready after retries. Snippet: {}",
+                    snippet
+                ));
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(600)).await;
+            timeout60s!(driver.get(&login_url), "Reload login page")?;
+        }
+    }
 
     // Find and fill username field
     let username_field = timeout60s!(
@@ -773,6 +799,16 @@ pub async fn create_user(
     timeout60s!(
         user_password_input.send_keys("testpassword123"),
         "Type user password"
+    )?;
+
+    // Add home field - required by validation
+    let user_home_input = timeout60s!(
+        driver.find(By::Css("input[name='home']")),
+        "Find user home input"
+    )?;
+    timeout60s!(
+        user_home_input.send_keys("/var/spool/mail/virtual"),
+        "Type user home directory"
     )?;
 
     let _current_url = timeout60s!(driver.current_url(), "Get current URL after user create")?;
@@ -1563,8 +1599,12 @@ pub async fn setup_app_on_shared_network(
         .with_env_var("HOST", "0.0.0.0")
         .with_env_var("BASE_URL", "http://app:3000")
         .with_env_var("DEFAULT_LOCALE", "en")
+        .with_env_var("SESSION_SECRET", "testsessionsecret")
+        .with_env_var("COOKIE_SECRET", "testcookiesecret")
+        .with_env_var("CSRF_DISABLED", "true")
         .with_env_var("CONFIG_PATH", "/app/config/config.toml")
         .with_mapped_port(app_port, 3000.into())
+        .with_network(&network)
         .with_mount(Mount::bind_mount(config_path, "/app/config/config.toml"));
 
     for (k, v) in extra_env {
@@ -1573,9 +1613,6 @@ pub async fn setup_app_on_shared_network(
 
     let app = AsyncRunner::start(app_image).await?;
 
-    // Attach to shared network with alias 'app' so Selenium can resolve http://app:3000
-    let app_id = app.id();
-    connect_container_to_network(app_id, &network, "app").await?;
     // Debug: show network containers and aliases
     if let Ok(out) = Command::new("docker")
         .args([
@@ -1718,4 +1755,45 @@ pub async fn setup_selenium_host() -> anyhow::Result<(ContainerAsync<GenericImag
 
     let driver = timeout(Duration::from_secs(20), WebDriver::new(wd_url, caps)).await??;
     Ok((selenium, driver))
+}
+
+/// Wait until a page is ready by ensuring either the layout is present
+/// (identified by #main-content) or that an allowed plain-message appears.
+/// Returns true if layout found, false if allowed plain-message detected.
+pub async fn ensure_page_ready(
+    driver: &WebDriver,
+    page_url: &str,
+    max_attempts: usize,
+    allow_plain_message_contains: Option<&str>,
+) -> anyhow::Result<bool> {
+    use thirtyfour::By;
+    let mut attempt: usize = 0;
+    loop {
+        timeout(Duration::from_secs(30), driver.get(page_url)).await??;
+        let src = driver.source().await.unwrap_or_default();
+
+        // Success cases
+        if let Ok(_) = driver.find(By::Id("main-content")).await {
+            return Ok(true);
+        }
+        if let Some(needle) = allow_plain_message_contains {
+            if src.contains(needle) {
+                return Ok(false);
+            }
+        }
+
+        // Backoff and retry
+        let sleep_ms = std::cmp::min(250 * (1 << attempt), 3000);
+        tokio::time::sleep(Duration::from_millis(sleep_ms as u64)).await;
+        attempt += 1;
+        if attempt >= max_attempts {
+            let snippet: String = src.chars().take(600).collect();
+            return Err(anyhow::anyhow!(
+                "Page not ready after {} attempts at {}. Snippet: {}",
+                max_attempts,
+                page_url,
+                snippet
+            ));
+        }
+    }
 }

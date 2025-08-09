@@ -62,6 +62,10 @@ use tokio::time::timeout;
 #[macro_use]
 mod ui_helpers;
 use ui_helpers::*;
+use ui_helpers::{
+    get_container_ip_on_network, setup_app_on_shared_network,
+    setup_selenium_on_shared_network_with_args,
+};
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
@@ -389,56 +393,68 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     let db_url = test_db.get_db_url();
     println!("[SMOKE TEST] Test database ready: {db_url}");
 
-    // Start the application container using the existing UI test function
+    // Start the application container using the shared network approach
     let config_path = std::env::current_dir()?
         .join("config")
         .join("config.docker.toml");
-    let container_name = format!(
-        "smoke-test-app-{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis()
-    );
+    let config_path_str = config_path.to_str().unwrap().to_string();
+    let extra_env: Vec<(&str, &str)> = vec![("TESTING", "true"), ("RUST_ENV", "test")];
 
-    // Convert the database URL to use the database container's bridge IP for container networking
-    let db_url_for_container = if db_url.contains("127.0.0.1:") {
-        // Use the database container's bridge IP instead of host.docker.internal
-        let db_bridge_ip = test_db.get_bridge_ip();
-        let converted_url = format!(
-            "mysql://root@{}:3306/{}",
-            db_bridge_ip,
-            db_url.split('/').next_back().unwrap_or("test")
-        );
-        println!("[SMOKE TEST] Original DB URL: {db_url}");
-        println!("[SMOKE TEST] Converted DB URL: {converted_url}");
-        converted_url
-    } else {
-        db_url.clone()
-    };
-    let extra_env = &[("DATABASE_URL", db_url_for_container.as_str())];
+    // Use the shared network approach like ui_containerized tests
+    let (app_container, _) =
+        setup_app_on_shared_network(&test_db.get_schema(), None, &config_path_str, &extra_env)
+            .await?;
 
-    let (app_container, app_ip, app_port) = setup_app_container(
-        &db_url_for_container,
-        None,
-        config_path.to_str().unwrap(),
-        &container_name,
-        extra_env,
-    )
-    .await?;
+    // Start selenium on shared network with extra args
+    let extra_args = vec![
+        "--disable-http2".to_string(),
+        "--disable-quic".to_string(),
+        "--proxy-server=direct://".to_string(),
+        "--proxy-bypass-list=*".to_string(),
+        "--lang=en".to_string(),
+    ];
+    let (selenium_container, driver, _selenium_port) =
+        setup_selenium_on_shared_network_with_args(&extra_args).await?;
 
-    let app_url = format!("http://{app_ip}:{app_port}");
+    // Determine app container IP on the shared bridge network
+    let app_container_id = app_container.id();
+    let app_ip = get_container_ip_on_network(&app_container_id, "sortingoffice-e2e").await?;
+    let app_url = format!("http://{app_ip}:3000");
+    println!("[DEBUG] App container IP on shared network: {app_ip}");
+
+    // Wait for the app to be reachable from inside the Selenium container
+    let health_url = format!("{}/health", app_url.trim_end_matches('/'));
+    println!("[DEBUG] Health check URL: {health_url}");
+
+    // Wait for app to be ready
+    let start = std::time::Instant::now();
+    let max_wait = Duration::from_secs(30);
+    loop {
+        match driver.get(&health_url).await {
+            Ok(_) => break,
+            Err(_) => {
+                if start.elapsed() >= max_wait {
+                    return Err(anyhow::anyhow!(
+                        "Timed out waiting for app from Selenium at {}",
+                        health_url
+                    ));
+                }
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        }
+    }
+
+    println!("[DEBUG] App URL: {app_url}");
     println!("[SMOKE TEST] App container ready at: {app_url}");
-    println!("[SMOKE TEST] Using database URL: {db_url_for_container}");
+    println!("[SMOKE TEST] Using database URL: {db_url}");
     println!(
         "[SMOKE TEST] Config file mounted from: {}",
         config_path.to_str().unwrap()
     );
 
     // Debug: Check container logs to see what config is being loaded
-    let app_id = app_container.id();
     if let Ok(logs) = std::process::Command::new("docker")
-        .args(["logs", app_id])
+        .args(["logs", app_container_id])
         .output()
     {
         println!(
@@ -446,10 +462,6 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
             String::from_utf8_lossy(&logs.stdout)
         );
     }
-
-    // Set up Selenium container and driver
-    let (selenium_container, driver, _selenium_port) =
-        setup_selenium_container_and_driver().await?;
 
     // Run the actual test
     let test_result = run_smoke_test_workflow(&driver, &app_url).await;
