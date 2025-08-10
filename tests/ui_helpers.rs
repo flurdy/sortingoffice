@@ -154,18 +154,24 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     let logout_url = format!("{}/logout", base_url.trim_end_matches('/'));
     let login_url = format!("{}/login", base_url.trim_end_matches('/'));
 
+    println!("[AUTH] Starting authentication process...");
+    
     // First logout to ensure clean state
+    println!("[AUTH] Logging out first...");
     timeout60s!(driver.get(&logout_url), "Navigate to logout page")?;
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // Navigate to login page
+    println!("[AUTH] Navigating to login page...");
     timeout60s!(driver.get(&login_url), "Navigate to login page")?;
     // If DB is warming up, the login route may render a plain error page.
     // Reload until the login form is present.
     let mut attempts: usize = 0;
+    println!("[AUTH] Waiting for login form to be ready...");
     loop {
         // Try to locate the username input; if found, proceed.
         if let Ok(_) = driver.find(By::Css("input[name='id']")).await {
+            println!("[AUTH] Login form found, proceeding with authentication...");
             break;
         }
         // Check page source for transient DB error and retry if seen
@@ -175,6 +181,8 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
             tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
         } else {
             attempts += 1;
+            println!("[AUTH] Login form not ready, attempt {}/15. Page contains form: {}, DB error: {}", 
+                attempts, src.contains("<form"), src.contains("Database connection error"));
             if attempts >= 15 {
                 let snippet: String = src.chars().take(600).collect();
                 return Err(anyhow::anyhow!(
@@ -188,6 +196,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     }
 
     // Find and fill username field
+    println!("[AUTH] Filling username field...");
     let username_field = timeout60s!(
         driver.find(By::Css("input[name='id']")),
         "Find username field"
@@ -196,6 +205,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
     // Find and fill password field
+    println!("[AUTH] Filling password field...");
     let password_field = timeout60s!(
         driver.find(By::Css("input[name='password']")),
         "Find password field"
@@ -204,6 +214,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
     // Find and click submit button
+    println!("[AUTH] Finding submit button...");
     let submit_button = timeout60s!(
         driver.find(By::XPath(
             "//button[@type='submit' and contains(text(), 'Sign in')]"
@@ -215,7 +226,10 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     let is_enabled = timeout60s!(submit_button.is_enabled(), "Check button enabled")?;
     let is_displayed = timeout60s!(submit_button.is_displayed(), "Check button displayed")?;
 
+    println!("[AUTH] Submit button - enabled: {}, displayed: {}", is_enabled, is_displayed);
+
     if is_enabled && is_displayed {
+        println!("[AUTH] Clicking submit button...");
         timeout60s!(submit_button.click(), "Click submit button")?;
     } else {
         return Err(anyhow::anyhow!(
@@ -226,8 +240,41 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     }
 
     // Wait for redirect and verify authentication
+    println!("[AUTH] Waiting for redirect after login...");
     tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
-    let current_url = timeout60s!(driver.current_url(), "Get current URL")?;
+    
+    // Wait for redirect with retries
+    let mut redirect_attempts = 0;
+    let max_redirect_attempts = 10;
+    let mut current_url = None;
+    
+    while redirect_attempts < max_redirect_attempts {
+        match driver.current_url().await {
+            Ok(url) => {
+                let url_str = url.as_str().to_string();
+                current_url = Some(url);
+                if !url_str.contains("/login") {
+                    println!("[AUTH] Successfully redirected away from login page");
+                    break;
+                }
+            }
+            Err(e) => {
+                println!("[AUTH] Error getting current URL (attempt {}/{}): {}", 
+                    redirect_attempts + 1, max_redirect_attempts, e);
+            }
+        }
+        
+        redirect_attempts += 1;
+        if redirect_attempts < max_redirect_attempts {
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+        }
+    }
+    
+    let current_url = current_url.ok_or_else(|| {
+        anyhow::anyhow!("Failed to get current URL after {} attempts", max_redirect_attempts)
+    })?;
+
+    println!("[AUTH] Current URL after login: {}", current_url);
 
     if current_url.as_str().contains("/login") {
         return Err(anyhow::anyhow!(
@@ -235,6 +282,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
         ));
     }
 
+    println!("[AUTH] Authentication successful!");
     Ok(())
 }
 
@@ -268,10 +316,6 @@ pub async fn setup_app_container(
         app_image = app_image.with_env_var(*key, *value);
     }
 
-    println!(
-        "[DEBUG] Starting app container with port mapping: {}:3000",
-        app_port
-    );
     let app_container = match AsyncRunner::start(app_image).await {
         Ok(c) => {
             println!("[DEBUG] App container started successfully");
@@ -284,17 +328,13 @@ pub async fn setup_app_container(
     };
 
     let app_id = app_container.id();
-    println!("[DEBUG] App container ID: {}", app_id);
     let app_ip = get_container_bridge_ip(app_id).await?;
-    println!("[DEBUG] App container IP: {}", app_ip);
     let health_url = format!("http://{app_ip}:3000/health");
-    println!("[DEBUG] Health check URL: {}", health_url);
 
     let client = reqwest::Client::new();
     let start = std::time::Instant::now();
     let timeout = std::time::Duration::from_secs(30);
 
-    println!("[DEBUG] Starting health check loop for: {}", health_url);
     loop {
         match client.get(&health_url).send().await {
             Ok(resp) if resp.status().is_success() => {
@@ -1614,22 +1654,23 @@ pub async fn setup_app_on_shared_network(
     let app = AsyncRunner::start(app_image).await?;
 
     // Debug: show network containers and aliases
-    if let Ok(out) = Command::new("docker")
-        .args([
-            "network",
-            "inspect",
-            &network,
-            "--format",
-            "{{json .Containers}}",
-        ])
-        .output()
-    {
-        println!(
-            "[NETWORK] containers on {}: {}",
-            &network,
-            String::from_utf8_lossy(&out.stdout)
-        );
-    }
+    // Removed noisy network logging to reduce test output noise
+    // if let Ok(out) = Command::new("docker")
+    //     .args([
+    //         "network",
+    //         "inspect",
+    //         &network,
+    //         "--format",
+    //         "{{json .Containers}}",
+    //     ])
+    //     .output()
+    // {
+    //     println!(
+    //         "[NETWORK] containers on {}: {}",
+    //         &network,
+    //         String::from_utf8_lossy(&out.stdout)
+    //     );
+    // }
 
     // Health check via mapped host port (simpler and avoids intra-container IP)
     let health_url = format!("http://127.0.0.1:{}/health", app_port);
@@ -1647,6 +1688,11 @@ pub async fn setup_app_on_shared_network(
         }
         tokio::time::sleep(Duration::from_millis(500)).await;
     }
+
+    // Determine app container IP on the shared bridge network
+    let _app_ip = get_container_ip_on_network(&app.id(), &network).await?;
+    // Removed noisy debug logging
+    // println!("[DEBUG] App container IP: {}", app_ip);
 
     Ok((app, app_port))
 }

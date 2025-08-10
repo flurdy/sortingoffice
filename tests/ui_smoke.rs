@@ -417,10 +417,8 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
         setup_selenium_on_shared_network_with_args(&extra_args).await?;
 
     // Determine app container IP on the shared bridge network
-    let app_container_id = app_container.id();
-    let app_ip = get_container_ip_on_network(&app_container_id, "sortingoffice-e2e").await?;
+    let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
     let app_url = format!("http://{app_ip}:3000");
-    println!("[DEBUG] App container IP on shared network: {app_ip}");
 
     // Wait for the app to be reachable from inside the Selenium container
     let health_url = format!("{}/health", app_url.trim_end_matches('/'));
@@ -444,7 +442,6 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
         }
     }
 
-    println!("[DEBUG] App URL: {app_url}");
     println!("[SMOKE TEST] App container ready at: {app_url}");
     println!("[SMOKE TEST] Using database URL: {db_url}");
     println!(
@@ -454,7 +451,7 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
 
     // Debug: Check container logs to see what config is being loaded
     if let Ok(logs) = std::process::Command::new("docker")
-        .args(["logs", app_container_id])
+        .args(["logs", app_container.id()])
         .output()
     {
         println!(

@@ -22,7 +22,7 @@ pub fn setup_test_db() -> DbPool {
         #[allow(static_mut_refs)]
         if TEST_POOL.is_none() {
             INIT.call_once(|| {
-                std::env::set_var("RUST_LOG", "debug");
+                std::env::set_var("RUST_LOG", "error");
                 tracing_subscriber::fmt::init();
             });
 

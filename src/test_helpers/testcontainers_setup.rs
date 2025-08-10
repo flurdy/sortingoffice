@@ -83,7 +83,7 @@ pub async fn get_shared_mysql_container_id() -> String {
 
 pub async fn setup_test_db() -> TestContainer {
     INIT.call_once(|| {
-        std::env::set_var("RUST_LOG", "error,testcontainers=error,bollard=error");
+        std::env::set_var("RUST_LOG", "warn,testcontainers=error,bollard=error");
         let _ = tracing_subscriber::fmt::try_init();
     });
 
