@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help run-watch run
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch run
 
 # Default target
 help:
@@ -20,6 +20,8 @@ help:
 	@echo "  make status     - Show service status"
 	@echo "  make clean      - Remove all containers and volumes"
 	@echo "  make test-clean - Remove all test containers"
+	@echo "  make test-single TEST=<name> - Run individual test with cleanup"
+	@echo "  make test-single-ui TEST=<name> - Run individual UI test with cleanup"
 	@echo ""
 	@echo "Development:"
 	@echo "  make dev        - Start development environment"
@@ -122,6 +124,10 @@ test-help:
 	@echo "    make test-clean         - Remove all test containers"
 	@echo "    make clean-rust         - Clean Rust artifacts"
 	@echo ""
+	@echo "  Individual Test Runners:"
+	@echo "    make test-single TEST=<name>     - Run individual test with cleanup"
+	@echo "    make test-single-ui TEST=<name>  - Run individual UI test with cleanup"
+	@echo ""
 	@echo "  Test Runner:"
 	@echo "    ./tests/run_tests.sh help  - Show test runner help"
 	@echo "    ./tests/run_tests.sh unit  - Run specific test type"
@@ -149,7 +155,7 @@ clean:
 	./docker.sh clean
 
 test-clean:
-	./docker.sh test-clean
+	@./tests/run_tests.sh cleanup
 
 # Development environment
 dev:
@@ -308,3 +314,24 @@ tunnel-logs:
 
 test-ui-failfast:
 	./tests/run_tests.sh ui --fail-fast
+
+# Individual test runners with cleanup
+.PHONY: test-single
+test-single:
+	@if [ -z "$(TEST)" ]; then \
+		echo "❌ Error: TEST parameter is required"; \
+		echo "Usage: make test-single TEST=test_name"; \
+		echo "Example: make test-single TEST=test_homepage_loads_containerized"; \
+		exit 1; \
+	fi
+	@./tests/run_tests.sh single $(TEST)
+
+.PHONY: test-single-ui  
+test-single-ui:
+	@if [ -z "$(TEST)" ]; then \
+		echo "❌ Error: TEST parameter is required"; \
+		echo "Usage: make test-single-ui TEST=test_name"; \
+		echo "Example: make test-single-ui TEST=test_homepage_loads_containerized"; \
+		exit 1; \
+	fi
+	@./tests/run_tests.sh single-ui $(TEST)

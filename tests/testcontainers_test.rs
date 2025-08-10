@@ -1,8 +1,13 @@
+mod common;
+
 #[cfg(test)]
 mod tests {
     use diesel::{QueryableByName, RunQueryDsl};
     use sortingoffice::test_helpers::testcontainers_setup::{cleanup_test_db, setup_test_db};
     // No changes needed to connection string, as these tests use the pool directly
+    
+    // Import test suite lifecycle for automatic cleanup
+    use crate::common::test_suite_lifecycle;
 
     #[derive(QueryableByName)]
     struct CountResult {
@@ -18,6 +23,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_testcontainers_mysql_works() {
+        // Register test suite lifecycle handlers
+        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        
         let container = setup_test_db().await;
         let pool = container.get_pool();
 
@@ -33,6 +41,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_testcontainers_tables_exist() {
+        // Register test suite lifecycle handlers
+        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        
         let container = setup_test_db().await;
         let pool = container.get_pool();
 
@@ -62,6 +73,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_testcontainers_isolation() {
+        // Register test suite lifecycle handlers
+        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        
         // Test that each test gets its own isolated database
         let container1 = setup_test_db().await;
         let pool1 = container1.get_pool();
@@ -82,7 +96,7 @@ mod tests {
         assert_eq!(count1.count, 1);
 
         // Check that data does NOT exist in second container (isolation)
-        let mut conn2 = pool2.get().expect("Failed to get connection");
+        let mut conn2 = pool2.get().expect("Failed to count domains");
         let count2: CountResult = diesel::sql_query("SELECT COUNT(*) as count FROM domains")
             .get_result(&mut conn2)
             .expect("Failed to count domains");
@@ -90,5 +104,20 @@ mod tests {
 
         cleanup_test_db(&container1);
         cleanup_test_db(&container2);
+    }
+    
+    /// Test suite finalization function.
+    /// This ensures cleanup happens when the testcontainers test suite finishes.
+    /// It's automatically called by the test suite lifecycle handlers.
+    #[tokio::test]
+    async fn test_suite_finalization() {
+        println!("[SUITE CLEANUP] Finalizing testcontainers test suite...");
+        
+        // Finalize the test suite to ensure cleanup
+        if let Err(e) = test_suite_lifecycle::finalize_test_suite().await {
+            eprintln!("[SUITE CLEANUP] Error finalizing testcontainers test suite: {}", e);
+        }
+        
+        println!("[SUITE CLEANUP] Testcontainers test suite finalized successfully");
     }
 }

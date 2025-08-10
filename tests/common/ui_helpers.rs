@@ -29,6 +29,7 @@ pub fn find_free_port() -> u16 {
 }
 
 // Helper macros for timeouts
+#[macro_export]
 macro_rules! timeout30s {
     ($expr:expr, $desc:expr) => {
         timeout(Duration::from_secs(30), $expr)
@@ -37,6 +38,7 @@ macro_rules! timeout30s {
     };
 }
 
+#[macro_export]
 macro_rules! timeout60s {
     ($expr:expr, $desc:expr) => {
         timeout(Duration::from_secs(60), $expr)
@@ -45,6 +47,7 @@ macro_rules! timeout60s {
     };
 }
 
+#[macro_export]
 macro_rules! timeout90s {
     ($expr:expr, $desc:expr) => {
         timeout(Duration::from_secs(90), $expr)

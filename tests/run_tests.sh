@@ -40,7 +40,11 @@ show_usage() {
     echo "  api               Run API tests (authentication, authorization, etc.)"
     echo "  ui                Run containerized UI tests (app + db in containers)"
     echo "  smoke             Run end-to-end smoke test against running app"
+    echo "  smoke-containerized Run end-to-end smoke test with testcontainers"
     echo "  all               Run all tests (unit + integration + security + api + UI)"
+    echo "  single TEST_NAME  Run individual test with cleanup"
+    echo "  single-ui TEST_NAME Run individual UI test with cleanup"
+    echo "  cleanup           Clean up test resources only"
     echo "  help              Show this help message"
     echo ""
     echo "Examples:"
@@ -51,7 +55,11 @@ show_usage() {
     echo "  $0 api            # Run API tests"
     echo "  $0 ui             # Run containerized UI tests"
     echo "  $0 smoke          # Run end-to-end smoke test"
+    echo "  $0 smoke-containerized # Run end-to-end smoke test with testcontainers"
     echo "  $0 all            # Run all tests"
+    echo "  $0 single test_homepage_loads_containerized # Run individual test"
+    echo "  $0 single-ui test_homepage_loads_containerized # Run individual UI test"
+    echo "  $0 cleanup        # Clean up test resources"
 }
 
 # Function to run unit tests
@@ -107,11 +115,17 @@ run_integration_tests() {
         duration=$((end_time - start_time))
         print_success "Integration tests completed successfully in ${duration}s!"
         echo "[CI-SUMMARY] INTEGRATION PASS ${duration}s"
+        
+        # Clean up test resources after successful completion
+        cleanup_test_resources
     else
         end_time=$(date +%s)
         duration=$((end_time - start_time))
         print_error "Integration tests failed in ${duration}s!"
         echo "[CI-SUMMARY] INTEGRATION FAIL ${duration}s"
+        
+        # Clean up resources even if tests fail
+        cleanup_test_resources
         exit 1
     fi
 }
@@ -197,6 +211,30 @@ check_app_health() {
     return 1
 }
 
+# Function to cleanup test containers and networks
+cleanup_test_resources() {
+    print_status "Cleaning up test resources..."
+    
+    # Clean up test containers using Docker commands
+    if command -v docker > /dev/null 2>&1; then
+        # Remove orphaned MySQL test containers
+        docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " mysql" | grep -v "sortingoffice" | grep -E "(test|mysql)" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
+        
+        # Remove orphaned Selenium test containers
+        docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " selenium" | grep -v "sortingoffice" | grep -E "(test|selenium)" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
+        
+        # Remove orphaned app test containers
+        docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " sortingoffice" | grep "test" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
+        
+        # Remove shared test network
+        docker network rm sortingoffice-e2e 2>/dev/null || true
+        
+        print_success "Test resources cleaned up successfully!"
+    else
+        print_warning "Docker not available, skipping container cleanup"
+    fi
+}
+
 # Function to run containerized UI tests
 run_ui_tests() {
     print_status "Running containerized UI tests for sortingoffice..."
@@ -224,9 +262,14 @@ run_ui_tests() {
         print_success "Containerized UI tests passed!"
     else
         print_error "Containerized UI tests failed!"
+        # Clean up resources even if tests fail
+        cleanup_test_resources
         exit 1
     fi
 
+    # Clean up test resources after successful completion
+    cleanup_test_resources
+    
     echo ""
     print_success "Containerized UI tests completed successfully! 🎉"
 }
@@ -277,9 +320,14 @@ run_smoke_test_containerized() {
         print_success "Smoke test passed!"   
     else
         print_error "Smoke test failed!"
+        # Clean up resources even if tests fail
+        cleanup_test_resources
         exit 1
     fi
 
+    # Clean up test resources after successful completion
+    cleanup_test_resources
+    
     echo ""
     print_success "Smoke test completed successfully! 🎉"
 }
@@ -301,6 +349,76 @@ run_all_tests() {
     duration_all=$((end_all - start_all))
     print_success "All tests completed in ${duration_all}s!"
     echo "[CI-SUMMARY] ALL PASS ${duration_all}s"
+}
+
+# Function to run individual test with cleanup
+run_single_test() {
+    local test_name="$1"
+    if [ -z "$test_name" ]; then
+        print_error "Test name is required for single test run"
+        echo "Usage: $0 single TEST_NAME"
+        echo "Example: $0 single test_homepage_loads_containerized"
+        exit 1
+    fi
+    
+    print_status "Running individual test: $test_name"
+    echo "This will run the test and then clean up any test containers..."
+    
+    # Set test environment
+    export RUST_LOG=error
+    export RUST_BACKTRACE=0
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
+    
+    # Run the individual test
+    start_time=$(date +%s)
+    if cargo test "$test_name" -- --nocapture; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Individual test '$test_name' passed in ${duration}s!"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Individual test '$test_name' failed in ${duration}s!"
+    fi
+    
+    # Always clean up after individual test
+    cleanup_test_resources
+}
+
+# Function to run individual UI test with cleanup
+run_single_ui_test() {
+    local test_name="$1"
+    if [ -z "$test_name" ]; then
+        print_error "Test name is required for single UI test run"
+        echo "Usage: $0 single-ui TEST_NAME"
+        echo "Example: $0 single-ui test_homepage_loads_containerized"
+        exit 1
+    fi
+    
+    print_status "Running individual UI test: $test_name"
+    echo "This will run the UI test and then clean up any test containers..."
+    
+    # Set test environment
+    export RUST_LOG=error
+    export RUST_BACKTRACE=0
+    export TESTCONTAINERS_LOG_LEVEL=error
+    export BOLLARD_LOG_LEVEL=error
+    
+    # Run the individual UI test
+    start_time=$(date +%s)
+    if cargo test --test ui_containerized "$test_name" -- --nocapture; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Individual UI test '$test_name' passed in ${duration}s!"
+    else
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_error "Individual UI test '$test_name' failed in ${duration}s!"
+    fi
+    
+    # Always clean up after individual test
+    cleanup_test_resources
 }
 
 # Main script logic
@@ -331,6 +449,15 @@ case "${1:-unit}" in
         ;;
     "all")
         run_all_tests
+        ;;
+    "single")
+        run_single_test "$2"
+        ;;
+    "single-ui")
+        run_single_ui_test "$2"
+        ;;
+    "cleanup")
+        cleanup_test_resources
         ;;
     "help"|"-h"|"--help")
         show_usage

@@ -11,6 +11,14 @@
 - UI smoke tests are now passing after fixing the missing home field issue
 - Code formatting is clean (cargo fmt passed)
 - All test suites are now passing successfully
+- UI tests tidy up completed:
+  - Fixed compilation errors in ui_containerized.rs
+  - Removed unused functions (setup_selenium_on_shared_network, setup_selenium_host, seed_schema)
+  - Fixed unused variable warnings
+  - Added #[allow(dead_code)] attributes for intentionally shared helper functions
+  - Fixed module import/declaration order
+  - Cleaned up trailing whitespace
+  - All tests now compile without warnings
 
 ## 🔄 IN PROGRESS
 - None currently
@@ -22,7 +30,7 @@
   - Add troubleshooting guide for common test issues
 
 - Code cleanup and optimization
-  - Address unused function warnings in test helpers
+  - ✅ Address unused function warnings in test helpers (completed)
   - Consider consolidating duplicate test setup functions
   - Optimize test container setup and teardown
 
@@ -38,7 +46,7 @@
   
 - When in show domain page, and you add a new alias, you are shown the domain page again. But the alias report is then missing.
 
-- In UI tests, if a test fails the db container is not removed. Now the whole suit shares the db container, so when either the suit finishes the db has to be removed, or somehow when individual test is run as well.
+- In integration and UI tests, the db container is not removed. The whole suit shares the db container, so when either the suit finishes the db has to be removed, or somehow when individual test is run directly as well. Need to handle when tests fail/panics.
 
 - In the rust code, lets reduce or remove if possible and shelling out to CLI commands. 
   - There are some calls to docker CLI. It may by unavoidable.
@@ -47,3 +55,5 @@
   - There may be others
   - Maybe some can be replaced with library code?
   - This is mostly to ensure it can be run anywhere.
+
+- Maybe we should extract a testcontainer helper function to assist the tests in creating and removing mysql, selenium, app testcontainers. Which hides whether it is specific image or the GenericImage.

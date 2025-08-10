@@ -98,6 +98,7 @@ futures-util = "0.3"
 
 [dev-dependencies]
 tokio-test = "0.4"
+ctrlc = "3.4"
 serde_urlencoded = "0.7.1"
 hyper = "1.6.0"
 # UI Testing

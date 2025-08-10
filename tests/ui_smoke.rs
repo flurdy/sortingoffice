@@ -60,12 +60,8 @@ use thirtyfour::prelude::*;
 use tokio::time::timeout;
 
 #[macro_use]
-mod ui_helpers;
-use ui_helpers::*;
-use ui_helpers::{
-    get_container_ip_on_network, setup_app_on_shared_network,
-    setup_selenium_on_shared_network_with_args,
-};
+mod common;
+use common::ui_helpers::*;
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
