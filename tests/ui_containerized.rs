@@ -6,8 +6,9 @@ use tokio::time::{timeout, Duration};
 mod common;
 use common::ui_helpers::{
     authenticate_driver, create_schema, get_container_ip_on_network, run_migrations_for_schema,
-    setup_app_on_shared_network, setup_selenium_on_shared_network_with_args,
+    setup_app_on_shared_network,
 };
+use common::testcontainer_helpers::setup_selenium_on_shared_network;
 
 // Import test suite lifecycle for automatic cleanup
 use common::test_suite_lifecycle;
@@ -123,7 +124,7 @@ async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
         "--lang=en".to_string(),
     ];
     let (selenium_container, driver, _selenium_port) =
-        setup_selenium_on_shared_network_with_args(&extra_args).await?;
+        setup_selenium_on_shared_network(extra_args, "sortingoffice-e2e").await?;
 
     // Determine app container IP on the shared bridge network
     let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
@@ -205,8 +206,7 @@ async fn test_homepage_loads_containerized() -> Result<()> {
             let h1_elem = timeout60s!(main.find(By::Css("h1")), "Find H1 inside main content")?;
             let h1_text = timeout60s!(h1_elem.text(), "Get H1 text")?;
             assert!(h1_text.to_lowercase().contains("dashboard"));
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -250,8 +250,7 @@ async fn test_navigation_containerized() -> Result<()> {
                     "Page should contain {expected_title}"
                 );
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -358,8 +357,7 @@ async fn test_domain_search_containerized() -> Result<()> {
                     || page_source.contains("No domains found"),
                 "Domain search results not found"
             );
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -404,8 +402,7 @@ async fn test_aliases_list_page_containerized() -> Result<()> {
                     "Aliases page does not contain expected content"
                 ));
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -450,8 +447,7 @@ async fn test_domains_list_page_containerized() -> Result<()> {
                     "Domains page does not contain expected content"
                 ));
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(60),
@@ -474,8 +470,7 @@ async fn test_users_list_page_containerized() -> Result<()> {
                 page_source.contains("Users") || page_source.contains("users"),
                 "Users page does not contain expected content"
             );
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -523,8 +518,7 @@ async fn test_clients_list_page_containerized() -> Result<()> {
                             &src.chars().take(600).collect::<String>()
                         ));
                     }
-                    drop(env.app_container);
-                    drop(env.selenium_container);
+                    env.cleanup().await?;
                     return Ok(());
                 }
             };
@@ -535,8 +529,7 @@ async fn test_clients_list_page_containerized() -> Result<()> {
                 "Clients page H1 should contain 'client', got: {}",
                 h1_text
             );
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(60),
@@ -602,8 +595,7 @@ async fn test_responsive_design_containerized() -> Result<()> {
                 current_url
             );
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         test_timeout,
@@ -634,8 +626,7 @@ async fn test_not_found_pages_containerized() -> Result<()> {
             )
             .await?;
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(40),
@@ -660,8 +651,7 @@ async fn test_unauthorized_pages_containerized() -> Result<()> {
                 "401 page does not contain expected login content. Title: {title_401}"
             );
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(40),
@@ -692,8 +682,7 @@ async fn test_domain_form_validation_containerized() -> Result<()> {
             if inputs.is_empty() {
                 return Err(anyhow::anyhow!("Form should have input elements"));
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(40),
@@ -731,8 +720,7 @@ async fn test_page_titles_containerized() -> Result<()> {
             }
 
             // Skip homepage here; covered by dedicated test_homepage_loads_containerized
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(120),
@@ -798,8 +786,7 @@ async fn test_cross_browser_compatibility_containerized() -> Result<()> {
                     ));
                 }
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -821,8 +808,7 @@ async fn test_performance_metrics_containerized() -> Result<()> {
             if load_time > Duration::from_secs(10) {
                 return Err(anyhow::anyhow!("Page load time too slow: {:?}", load_time));
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(30),
@@ -942,8 +928,7 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
                     ));
                 }
             }
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -1200,8 +1185,7 @@ async fn test_e2e_create_domain_aliases_user_and_report() -> anyhow::Result<()> 
                 "Reports page should load"
             );
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -1341,8 +1325,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
                     if new_page_title.contains("Not Found") {
                         println!("[WIZARD TEST] ERROR: Wizard route not available in test environment");
-                        drop(env.app_container);
-                        drop(env.selenium_container);
+                        env.cleanup().await?;
                         return Err(anyhow::anyhow!("Wizard route not available - this is a test failure"));
                     }
                 } else {
@@ -1422,8 +1405,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 // If no domains container, this might not be a wizard page
                 if all_inputs.is_empty() {
                     println!("[WIZARD TEST] ERROR: No input fields found - wizard page not properly loaded");
-                    drop(env.app_container);
-                    drop(env.selenium_container);
+                    env.cleanup().await?;
                     return Err(anyhow::anyhow!("Wizard page not properly loaded - no input fields found"));
                 }
             }
@@ -1746,14 +1728,8 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
 
             println!("[WIZARD TEST] ✅ All verifications completed successfully!");
 
-            // Ensure proper cleanup by closing the driver session before dropping containers
-            // This helps prevent stale element reference errors during cleanup
-            if let Err(e) = env.driver.quit().await {
-                println!("[WIZARD TEST] Warning: Could not quit driver cleanly: {}", e);
-            }
-
-            drop(env.app_container);
-            drop(env.selenium_container);
+            // Cleanup containers and driver
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -1955,8 +1931,7 @@ async fn test_backup_functionality_flow() -> anyhow::Result<()> {
                 "Should be able to navigate back to dashboard"
             );
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),
@@ -1981,8 +1956,7 @@ async fn test_ui_error_handling_with_shared_theme_containerized() -> Result<()> 
             // Test 3: Theme consistency across error pages
             test_theme_consistency_across_error_pages(&env.driver, &env.app_url).await?;
 
-            drop(env.app_container);
-            drop(env.selenium_container);
+            env.cleanup().await?;
             Ok(())
         },
         Duration::from_secs(90),

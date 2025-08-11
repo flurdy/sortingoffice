@@ -366,16 +366,15 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
     // Find the application URL to test
     let app_url = find_app_url().await?;
 
-    // Set up Selenium container and driver
+    // Set up Selenium container and driver using the new helper
     let (selenium_container, driver, _selenium_port) =
-        setup_selenium_container_and_driver().await?;
+        setup_selenium_with_default_args().await?;
 
     // Run the actual test workflow
     let test_result = run_smoke_test_workflow(&driver, &app_url).await;
 
-    // Clean up selenium container
-    let _ = driver.quit().await;
-    let _ = selenium_container.stop().await;
+    // Clean up using the new helper
+    cleanup_selenium_test_env(driver, selenium_container, None).await?;
 
     test_result
 }
@@ -411,7 +410,7 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
         "--lang=en".to_string(),
     ];
     let (selenium_container, driver, _selenium_port) =
-        setup_selenium_on_shared_network_with_args(&extra_args).await?;
+        setup_selenium_with_custom_args(extra_args).await?;
 
     // Determine app container IP on the shared bridge network
     let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
@@ -460,10 +459,8 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     // Run the actual test
     let test_result = run_smoke_test_workflow(&driver, &app_url).await;
 
-    // Clean up containers
-    let _ = driver.quit().await;
-    let _ = selenium_container.stop().await;
-    let _ = app_container.stop().await;
+    // Clean up containers using the new helper
+    cleanup_selenium_test_env(driver, selenium_container, Some(app_container)).await?;
 
     test_result
 }

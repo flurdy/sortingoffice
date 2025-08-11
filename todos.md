@@ -26,6 +26,12 @@
   - Fixed container accumulation issue for debugging individual UI tests
   - Improved make test-clean to use comprehensive cleanup instead of basic Docker cleanup
   - Removed unused should_cleanup_schema/should_cleanup_container methods
+- Test migration to new helpers completed:
+  - Migrated ui_smoke.rs tests to use setup_selenium_with_default_args() and setup_selenium_with_custom_args()
+  - Migrated ui_containerized.rs to use setup_selenium_on_shared_network() for shared network tests
+  - Replaced manual container drop() calls with proper env.cleanup() method calls
+  - Enhanced testcontainer helpers with shared network support
+  - Improved cleanup patterns across test suite for consistency
 
 ## 🔄 IN PROGRESS
 - None currently

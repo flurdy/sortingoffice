@@ -124,6 +124,11 @@ pub async fn setup_selenium_container(config: SeleniumConfig) -> SeleniumResult 
         selenium_image = selenium_image.with_env_var("SE_NODE_CHROME_OPTIONS", &chrome_opts);
     }
 
+    // Connect to network if specified
+    if let Some(network) = &config.network {
+        selenium_image = selenium_image.with_network(network);
+    }
+
     // Start the container
     let selenium_container = AsyncRunner::start(selenium_image).await?;
     let selenium_host_port = selenium_container
@@ -187,6 +192,14 @@ pub async fn setup_selenium_with_default_args() -> SeleniumResult {
 pub async fn setup_selenium_with_custom_args(extra_args: Vec<String>) -> SeleniumResult {
     let mut config = SeleniumConfig::default();
     config.extra_chrome_args.extend(extra_args);
+    setup_selenium_container(config).await
+}
+
+/// Convenience function for setting up Selenium on a shared network with custom args
+pub async fn setup_selenium_on_shared_network(extra_args: Vec<String>, network: &str) -> SeleniumResult {
+    let mut config = SeleniumConfig::default();
+    config.extra_chrome_args.extend(extra_args);
+    config.network = Some(network.to_string());
     setup_selenium_container(config).await
 }
 
