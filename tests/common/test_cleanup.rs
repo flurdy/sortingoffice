@@ -110,9 +110,7 @@ async fn cleanup_orphaned_test_containers() -> anyhow::Result<()> {
         let selenium_containers: Vec<&str> = output_str
             .lines()
             .filter(|line| {
-                line.contains(" selenium")
-                    && !line.contains("sortingoffice")
-                    && (line.contains("test") || line.contains("selenium"))
+                line.contains("selenium") && (line.contains("test") || line.contains("selenium"))
             })
             .map(|line| line.split_whitespace().next().unwrap_or(""))
             .filter(|id| !id.is_empty())
@@ -133,25 +131,15 @@ async fn cleanup_orphaned_test_containers() -> anyhow::Result<()> {
 }
 
 /// Clean up test resources for a specific test.
-/// This should be called at the end of individual tests.
+/// This is a simplified version that calls the main cleanup function.
 pub async fn cleanup_test_resources() -> anyhow::Result<()> {
-    println!("[CLEANUP] Cleaning up test resources...");
-
-    // For individual tests, we don't want to remove the shared container
-    // but we can clean up any test-specific data
-
-    Ok(())
+    cleanup_all_test_resources().await
 }
 
-/// Clean up test resources when a test suite finishes.
-/// This should be called at the end of test suites.
+/// Clean up test suite resources.
+/// This is a simplified version that calls the main cleanup function.
 pub async fn cleanup_test_suite() -> anyhow::Result<()> {
-    println!("[CLEANUP] Cleaning up test suite resources...");
-
-    // Clean up everything including shared containers
-    cleanup_all_test_resources().await?;
-
-    Ok(())
+    cleanup_all_test_resources().await
 }
 
 /// Macro to automatically register cleanup when a test starts.

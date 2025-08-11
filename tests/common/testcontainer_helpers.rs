@@ -26,9 +26,6 @@ use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, GenericImage, ImageExt};
 use thirtyfour::prelude::*;
 
-/// Result type for Selenium setup operations
-pub type SeleniumResult = Result<(ContainerAsync<GenericImage>, WebDriver, u16)>;
-
 /// Configuration for Selenium container optimization
 #[derive(Debug, Clone)]
 struct SeleniumOptimizationConfig {
@@ -36,8 +33,6 @@ struct SeleniumOptimizationConfig {
     startup_timeout: Duration,
     /// Health check interval (more frequent in CI)
     health_check_interval: Duration,
-    /// Whether to use aggressive optimizations (CI mode)
-    aggressive_mode: bool,
 }
 
 impl Default for SeleniumOptimizationConfig {
@@ -54,7 +49,6 @@ impl Default for SeleniumOptimizationConfig {
             } else {
                 Duration::from_secs(2) // Less aggressive locally
             },
-            aggressive_mode: is_ci,
         }
     }
 }
@@ -138,7 +132,8 @@ async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Resu
 }
 
 /// Set up a Selenium container with default configuration (optimized)
-pub async fn setup_selenium_with_default_args() -> SeleniumResult {
+pub async fn setup_selenium_with_default_args(
+) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
     let (selenium_container, selenium_port) = setup_selenium_core(vec![], None).await?;
     let selenium_url = format!("http://localhost:{selenium_port}");
 
@@ -148,7 +143,9 @@ pub async fn setup_selenium_with_default_args() -> SeleniumResult {
 }
 
 /// Set up a Selenium container with custom Chrome arguments (optimized)
-pub async fn setup_selenium_with_custom_args(extra_args: Vec<String>) -> SeleniumResult {
+pub async fn setup_selenium_with_custom_args(
+    extra_args: Vec<String>,
+) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
     let (selenium_container, selenium_port) = setup_selenium_core(extra_args.clone(), None).await?;
     let selenium_url = format!("http://localhost:{selenium_port}");
 

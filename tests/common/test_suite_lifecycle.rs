@@ -135,9 +135,7 @@ async fn cleanup_orphaned_suite_containers() -> anyhow::Result<()> {
         let selenium_containers: Vec<&str> = output_str
             .lines()
             .filter(|line| {
-                line.contains(" selenium")
-                    && !line.contains("sortingoffice")
-                    && (line.contains("test") || line.contains("selenium"))
+                line.contains("selenium") && (line.contains("test") || line.contains("selenium"))
             })
             .map(|line| line.split_whitespace().next().unwrap_or(""))
             .filter(|id| !id.is_empty())
@@ -154,106 +152,63 @@ async fn cleanup_orphaned_suite_containers() -> anyhow::Result<()> {
         }
     }
 
-    // Find and remove orphaned app test containers
-    let app_output = Command::new("docker")
-        .args(["ps", "-a", "--format", "{{.ID}} {{.Image}} {{.Names}}"])
-        .output()?;
+    Ok(())
+}
 
-    if app_output.status.success() {
-        let output_str = String::from_utf8_lossy(&app_output.stdout);
-        let app_containers: Vec<&str> = output_str
-            .lines()
-            .filter(|line| line.contains(" sortingoffice") && line.contains("test"))
-            .map(|line| line.split_whitespace().next().unwrap_or(""))
-            .filter(|id| !id.is_empty())
-            .collect();
+/// Clean up test schemas that might be left behind.
+async fn cleanup_test_schemas() -> anyhow::Result<()> {
+    use std::process::Command;
 
-        for container_id in app_containers {
-            println!(
-                "[SUITE CLEANUP] Removing orphaned app container: {}",
-                container_id
-            );
-            let _ = Command::new("docker")
-                .args(["rm", "-f", container_id])
-                .output();
+    println!("[SUITE CLEANUP] Cleaning up test schemas...");
+
+    // Find and remove test schemas
+    let schema_output = Command::new("docker")
+        .args([
+            "exec",
+            "sortingoffice-mysql",
+            "mysql",
+            "-uroot",
+            "-e",
+            "SHOW DATABASES LIKE 'test_%';",
+        ])
+        .output();
+
+    if let Ok(output) = schema_output {
+        if output.status.success() {
+            let output_str = String::from_utf8_lossy(&output.stdout);
+            let schemas: Vec<&str> = output_str
+                .lines()
+                .filter(|line| line.starts_with("test_"))
+                .collect();
+
+            for schema in schemas {
+                println!("[SUITE CLEANUP] Removing test schema: {}", schema);
+                let _ = Command::new("docker")
+                    .args([
+                        "exec",
+                        "sortingoffice-mysql",
+                        "mysql",
+                        "-uroot",
+                        "-e",
+                        &format!("DROP DATABASE IF EXISTS `{}`;", schema),
+                    ])
+                    .output();
+            }
         }
     }
 
     Ok(())
 }
 
-/// Clean up test schemas that might be left behind in the shared MySQL container.
-async fn cleanup_test_schemas() -> anyhow::Result<()> {
-    println!("[SUITE CLEANUP] Cleaning up test schemas...");
-
-    // This would require connecting to the MySQL container to drop test schemas
-    // For now, we'll rely on the container cleanup to handle this
-    // In the future, we could implement schema cleanup here
-
-    Ok(())
-}
-
-/// Macro to automatically register test suite lifecycle when a test starts.
-/// Use this at the beginning of test functions that need suite-level cleanup.
-#[macro_export]
-macro_rules! test_with_suite_lifecycle {
-    ($test_fn:expr) => {
-        #[tokio::test]
-        async fn test_with_suite_lifecycle() {
-            // Register test suite lifecycle handlers
-            test_suite_lifecycle::register_test_suite_lifecycle().await;
-
-            // Run the test
-            let result = $test_fn().await;
-
-            // Return the result
-            result
-        }
-    };
-}
-
-/// Macro to automatically register test suite lifecycle for integration tests.
-/// This ensures cleanup happens when integration test suites finish.
-#[macro_export]
-macro_rules! integration_test_with_suite_lifecycle {
-    ($test_fn:expr) => {
-        #[tokio::test]
-        async fn integration_test_with_suite_lifecycle() {
-            // Register test suite lifecycle handlers
-            test_suite_lifecycle::register_test_suite_lifecycle().await;
-
-            // Run the test
-            let result = $test_fn().await;
-
-            // Return the result
-            result
-        }
-    };
-}
-
-/// Macro to automatically register test suite lifecycle for UI tests.
-/// This ensures cleanup happens when UI test suites finish.
-#[macro_export]
-macro_rules! ui_test_with_suite_lifecycle {
-    ($test_fn:expr) => {
-        #[tokio::test]
-        async fn ui_test_with_suite_lifecycle() {
-            // Register test suite lifecycle handlers
-            test_suite_lifecycle::register_test_suite_lifecycle().await;
-
-            // Run the test
-            let result = $test_fn().await;
-
-            // Return the result
-            result
-        }
-    };
-}
-
-/// Function to be called at the end of test suites to ensure cleanup.
-/// This should be called in the main test runner or after all tests complete.
+/// Finalize the test suite and clean up all resources.
+/// This should be called at the end of test suites.
 pub async fn finalize_test_suite() -> anyhow::Result<()> {
     println!("[SUITE CLEANUP] Finalizing test suite...");
+
+    // Register lifecycle handlers if not already done
+    if SUITE_CLEANUP_REGISTERED.get().is_none() {
+        register_test_suite_lifecycle().await;
+    }
 
     // Clean up all test suite resources
     cleanup_test_suite_resources().await?;

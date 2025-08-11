@@ -38,18 +38,21 @@
 - ✅ Consolidated duplicate setup logic into core functions
 - ✅ Added configurable health check intervals
 
+### Code Cleanup & Optimization
+- ✅ Consolidated duplicate test setup functions
+- ✅ Removed unused AppConfig and related functions
+- ✅ Streamlined testcontainer_helpers.rs to focus on Selenium setup
+- ✅ Fixed import conflicts in ui_smoke.rs tests
+- ✅ Cleaned up unused functions and static variables
+- ✅ Simplified test cleanup and lifecycle management
+- ✅ Removed redundant code and improved maintainability
+
 ## 📋 PENDING TASKS
 
 ### High Priority
 - **None currently**
 
 ### Medium Priority
-
-#### Code Cleanup & Optimization
-- **Address remaining unused function warnings**
-  - Review and remove unused functions in test helpers
-  - Add `#[allow(dead_code)]` where functions are intentionally shared
-  - Clean up unused constants and type aliases
 
 #### Test Infrastructure Improvements
 - **Investigate alternatives to remaining docker CLI calls**
