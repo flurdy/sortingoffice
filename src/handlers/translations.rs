@@ -359,7 +359,8 @@ pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<S
     ];
 
     // Common layout/language keys referenced in login template
-    let layout_keys = ["app-title",
+    let layout_keys = [
+        "app-title",
         "app-subtitle",
         "theme-toggle",
         "language-selector",
@@ -369,7 +370,8 @@ pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<S
         "language-norwegian",
         "language-german",
         "language-dutch",
-        "language-italian"];
+        "language-italian",
+    ];
 
     for key in login_keys.iter().chain(layout_keys.iter()) {
         let value = get_translation(state, locale, key).await;

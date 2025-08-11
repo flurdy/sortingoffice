@@ -252,9 +252,7 @@ pub async fn render_error_page(
     let title = crate::i18n::get_translation(state, &locale, title_key).await;
     let message = crate::i18n::get_translation(state, &locale, message_key).await;
 
-    println!(
-        "[DEBUG] Rendering error page with title: {title}, message: {message}"
-    );
+    println!("[DEBUG] Rendering error page with title: {title}, message: {message}");
 
     match crate::templates::error::ErrorTemplate::new(
         &title,

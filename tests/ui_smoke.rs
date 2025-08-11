@@ -61,7 +61,9 @@ use tokio::time::timeout;
 
 #[macro_use]
 mod common;
-use common::testcontainer_helpers::*;
+use common::testcontainer_helpers::{
+    cleanup_selenium_test_env, setup_selenium_with_custom_args, setup_selenium_with_default_args,
+};
 use common::ui_helpers::*;
 
 /// Configuration for smoke test execution

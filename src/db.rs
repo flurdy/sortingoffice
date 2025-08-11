@@ -164,11 +164,11 @@ impl DatabaseManager {
     pub async fn get_pool_stats(&self, db_id: &str) -> Option<PoolStats> {
         let pools = self.pools.read().await;
         pools.get(db_id).map(|pool| PoolStats {
-                max_size: pool.max_size(),
-                size: pool.max_size(),      // r2d2 doesn't expose current size
-                available: pool.max_size(), // Simplified for now
-                in_use: 0,                  // Simplified for now
-            })
+            max_size: pool.max_size(),
+            size: pool.max_size(),      // r2d2 doesn't expose current size
+            available: pool.max_size(), // Simplified for now
+            in_use: 0,                  // Simplified for now
+        })
     }
 
     /// Get connection pool statistics for all databases

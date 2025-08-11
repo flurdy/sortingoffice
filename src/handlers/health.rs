@@ -216,9 +216,7 @@ pub async fn health_check_html(State(state): State<AppState>) -> Html<String> {
             pool_stat.map(|s| s.in_use).unwrap_or(0)
         ));
         html.push_str(&format!("<td>{utilization:.1}%</td>\n"));
-        html.push_str(&format!(
-            "<td class=\"{load_class}\">{load_text}</td>\n"
-        ));
+        html.push_str(&format!("<td class=\"{load_class}\">{load_text}</td>\n"));
         html.push_str("</tr>\n");
     }
 
