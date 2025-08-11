@@ -61,8 +61,8 @@ use tokio::time::timeout;
 
 #[macro_use]
 mod common;
-use common::ui_helpers::*;
 use common::testcontainer_helpers::*;
+use common::ui_helpers::*;
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
@@ -367,8 +367,7 @@ async fn ui_smoke_e2e_flow() -> Result<()> {
     let app_url = find_app_url().await?;
 
     // Set up Selenium container and driver using the new helper
-    let (selenium_container, driver, _selenium_port) =
-        setup_selenium_with_default_args().await?;
+    let (selenium_container, driver, _selenium_port) = setup_selenium_with_default_args().await?;
 
     // Run the actual test workflow
     let test_result = run_smoke_test_workflow(&driver, &app_url).await;
@@ -475,17 +474,19 @@ async fn ui_smoke_demo_with_testcontainer_helpers() -> Result<()> {
     let app_url = find_app_url().await?;
 
     // Set up Selenium container using the new helper with default args
-    let (selenium_container, driver, selenium_port) = 
-        setup_selenium_with_default_args().await?;
-    
-    println!("[DEMO] Selenium container started on port: {}", selenium_port);
+    let (selenium_container, driver, selenium_port) = setup_selenium_with_default_args().await?;
+
+    println!(
+        "[DEMO] Selenium container started on port: {}",
+        selenium_port
+    );
 
     // Run a simple test workflow
     let test_result = run_smoke_test_workflow(&driver, &app_url).await;
 
     // Clean up using the new helper
     cleanup_selenium_test_env(driver, selenium_container, None).await?;
-    
+
     println!("[DEMO] Cleanup completed successfully");
 
     test_result

@@ -1546,19 +1546,22 @@ mod tests {
         // The wizard index now redirects to /wizard/domain-config
         TestUtils::assert_status(&response, StatusCode::SEE_OTHER);
     }
-    
+
     /// Test suite finalization function.
     /// This ensures cleanup happens when the handlers test suite finishes.
     /// It's automatically called by the test suite lifecycle handlers.
     #[tokio::test]
     async fn test_suite_finalization() {
         println!("[SUITE CLEANUP] Finalizing handlers test suite...");
-        
+
         // Finalize the test suite to ensure cleanup
         if let Err(e) = crate::common::test_suite_lifecycle::finalize_test_suite().await {
-            eprintln!("[SUITE CLEANUP] Error finalizing handlers test suite: {}", e);
+            eprintln!(
+                "[SUITE CLEANUP] Error finalizing handlers test suite: {}",
+                e
+            );
         }
-        
+
         println!("[SUITE CLEANUP] Handlers test suite finalized successfully");
     }
 }

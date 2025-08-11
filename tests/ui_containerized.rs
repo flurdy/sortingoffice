@@ -4,11 +4,11 @@ use testcontainers::GenericImage;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 mod common;
+use common::testcontainer_helpers::setup_selenium_on_shared_network;
 use common::ui_helpers::{
     authenticate_driver, create_schema, get_container_ip_on_network, run_migrations_for_schema,
     setup_app_on_shared_network,
 };
-use common::testcontainer_helpers::setup_selenium_on_shared_network;
 
 // Import test suite lifecycle for automatic cleanup
 use common::test_suite_lifecycle;
@@ -79,21 +79,24 @@ impl TestEnv {
     /// Explicit cleanup method to be called at end of tests
     async fn cleanup(self) -> anyhow::Result<()> {
         println!("[CLEANUP] Cleaning up test containers...");
-        
+
         // Clean up the driver
         if let Err(e) = self.driver.quit().await {
             eprintln!("[CLEANUP] Warning: Failed to quit driver: {}", e);
         }
-        
+
         // Stop containers explicitly
         if let Err(e) = self.selenium_container.stop().await {
-            eprintln!("[CLEANUP] Warning: Failed to stop Selenium container: {}", e);
+            eprintln!(
+                "[CLEANUP] Warning: Failed to stop Selenium container: {}",
+                e
+            );
         }
-        
+
         if let Err(e) = self.app_container.stop().await {
             eprintln!("[CLEANUP] Warning: Failed to stop app container: {}", e);
         }
-        
+
         println!("[CLEANUP] Test containers cleaned up successfully");
         Ok(())
     }
@@ -163,7 +166,7 @@ async fn test_404_page(driver: &WebDriver, app_url: &str, path: &str, context: &
 async fn test_homepage_loads_containerized() -> Result<()> {
     // Initialize test suite lifecycle for automatic cleanup
     init_test_suite_lifecycle().await;
-    
+
     run_test_with_timeout(
         "test_homepage_loads_containerized",
         async {
@@ -2230,10 +2233,10 @@ where
 #[tokio::test]
 async fn test_suite_finalization() -> Result<()> {
     println!("[SUITE CLEANUP] Finalizing UI test suite...");
-    
+
     // Finalize the test suite to ensure cleanup
     test_suite_lifecycle::finalize_test_suite().await?;
-    
+
     println!("[SUITE CLEANUP] UI test suite finalized successfully");
     Ok(())
 }

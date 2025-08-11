@@ -6,6 +6,7 @@ use axum::{
 use serde::Deserialize;
 
 use crate::{
+    analytics::find_database_common_aliases,
     db,
     handlers::{
         database_ops::{get_entity_or_handle_error, handle_entity_operation},
@@ -251,28 +252,22 @@ pub async fn create(
                             )
                             .await
                         }
-                        Some("domains") => {
-                            // Redirect to domain show page
-                            let locale = get_user_locale(&headers);
-                            crate::handlers::rendering::render_domain_show_page(
-                                domain,
-                                None,   // No alias report
-                                vec![], // No existing aliases
-                                vec![], // No analytics common aliases
-                                &state,
-                                &locale,
-                                &headers,
-                            )
-                            .await
-                        }
                         _ => {
-                            // Default: redirect to domain show page
+                            // Default: redirect to domain show page with proper alias data
                             let locale = get_user_locale(&headers);
+                            let alias_report =
+                                db::get_domain_alias_report(&pool, &domain.domain).ok();
+                            let existing_aliases =
+                                db::get_aliases_for_domain(&pool, &domain.domain)
+                                    .unwrap_or_default();
+                            let analytics_common_aliases =
+                                find_database_common_aliases(&state, &headers, 10, 3).await;
+
                             crate::handlers::rendering::render_domain_show_page(
                                 domain,
-                                None,   // No alias report
-                                vec![], // No existing aliases
-                                vec![], // No analytics common aliases
+                                alias_report,
+                                existing_aliases,
+                                analytics_common_aliases,
                                 &state,
                                 &locale,
                                 &headers,
@@ -602,12 +597,18 @@ pub async fn toggle_enabled_domain_show(
 
             let locale = get_user_locale(&headers);
 
-            // Use resource-specific helper for domain show page
+            // Use resource-specific helper for domain show page with proper alias data
+            let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
+            let existing_aliases =
+                db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+            let analytics_common_aliases =
+                find_database_common_aliases(&state, &headers, 10, 3).await;
+
             crate::handlers::rendering::render_domain_show_page(
                 domain,
-                None,   // No alias report
-                vec![], // No existing aliases
-                vec![], // No analytics common aliases
+                alias_report,
+                existing_aliases,
+                analytics_common_aliases,
                 &state,
                 &locale,
                 &headers,

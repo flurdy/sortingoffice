@@ -265,11 +265,14 @@ async fn test_input_validation_edge_cases() {
 #[tokio::test]
 async fn test_suite_finalization() {
     println!("[SUITE CLEANUP] Finalizing security test suite...");
-    
+
     // Finalize the test suite to ensure cleanup
     if let Err(e) = common::test_suite_lifecycle::finalize_test_suite().await {
-        eprintln!("[SUITE CLEANUP] Error finalizing security test suite: {}", e);
+        eprintln!(
+            "[SUITE CLEANUP] Error finalizing security test suite: {}",
+            e
+        );
     }
-    
+
     println!("[SUITE CLEANUP] Security test suite finalized successfully");
 }
