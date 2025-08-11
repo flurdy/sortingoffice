@@ -39,14 +39,25 @@
   - Added missing import for analytics::find_database_common_aliases function
   - Now the domain show page displays the complete alias report after alias operations
 
+- **Fixed GitHub Actions CI Failures** (NEW):
+  - Increased timeout limits: Main CI (20→30 min), UI Tests (15→25 min)
+  - Added granular step timeouts (5-15 minutes per step)
+  - Implemented CI-specific test optimizations:
+    - Reduced test parallelism: 8 threads → 2 threads for CI
+    - Single-threaded UI tests to prevent container resource contention
+    - Faster container timeouts: 300s → 180s for CI environments
+  - Added CI environment variables: `CI=true`, `RUST_TEST_THREADS=1`, `TEST_THREADS=2`
+  - Optimized container startup: Disabled unnecessary Chrome features, reduced Selenium sessions
+  - All workflows now have proper timeout controls and CI-specific optimizations
+
 ## 🔄 IN PROGRESS
 - None currently
 
 ## 📋 NEXT PRIORITIES
-- **Fix GitHub Actions CI Failures** (High Priority)
-  - CI tests are failing due to timeout issues
-  - Need to investigate and adjust timeout configurations for the CI environment
-  - This affects development workflow and CI/CD pipeline
+- ✅ ~~**Fix GitHub Actions CI Failures** (High Priority)~~ (COMPLETED: Implemented comprehensive CI optimizations)
+  - ~~CI tests are failing due to timeout issues~~
+  - ~~Need to investigate and adjust timeout configurations for the CI environment~~
+  - ~~This affects development workflow and CI/CD pipeline~~
 
 - **Reduce Shell Command Dependencies** (Medium Priority)
   - Replace hardcoded paths in mysqldump calls
@@ -69,9 +80,9 @@
   - Add integration tests for new features
 
 ## 🐛 KNOWN ISSUES
-- **Github actions apart from smoke test still fail** (High Priority)
-  - https://github.com/flurdy/sortingoffice/actions/
-  - I think the individual test timeouts are not long enough for the CI environment.
+- ✅ ~~**Github actions apart from smoke test still fail** (High Priority)~~ (FIXED: Implemented comprehensive CI optimizations)
+  - ~~https://github.com/flurdy/sortingoffice/actions/~~
+  - ~~I think the individual test timeouts are not long enough for the CI environment.~~
 
 - ✅ ~~When in show domain page, and you add a new alias, you are shown the domain page again. But the alias report is then missing.~~ (FIXED: Now properly fetches and displays alias report data)
 

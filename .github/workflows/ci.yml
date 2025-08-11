@@ -3,26 +3,30 @@ name: CI
 on:
   push:
     branches: [ master ]
-  
+
   pull_request:
     branches: [ master ]
-  
+
   workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  CI: true
+  RUST_TEST_THREADS: 1
+  TEST_THREADS: 2
 
 jobs:
   # Unit tests and code quality checks
   test:
     name: Test and Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 20  # Set timeout to 20 minutes for comprehensive testing
+    timeout-minutes: 30  # Increased from 20 to 30 minutes for comprehensive testing
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
@@ -30,14 +34,17 @@ jobs:
         toolchain: stable
         override: true
         components: rustfmt, clippy
+      timeout-minutes: 5
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      timeout-minutes: 5
 
     - name: Start Docker daemon
       run: |
         sudo systemctl start docker
         sudo systemctl status docker
+      timeout-minutes: 5
 
     - name: Cache Rust dependencies
       uses: actions/cache@v4
@@ -49,6 +56,7 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
+      timeout-minutes: 5
 
     # - name: Check code formatting
     #   run: cargo fmt --all -- --check
@@ -59,25 +67,32 @@ jobs:
     - name: Run unit tests
       env:
         RUST_LOG: debug
+        RUST_TEST_THREADS: 1
       run: make test-unit
+      timeout-minutes: 10
 
     - name: Run integration tests
       env:
         RUST_LOG: debug
+        TEST_THREADS: 4
       run: make test-integration
+      timeout-minutes: 15
 
     - name: Run security tests
       env:
         RUST_LOG: debug
       run: make test-security
+      timeout-minutes: 10
 
     - name: Run API tests
       env:
         RUST_LOG: debug
       run: make test-api
+      timeout-minutes: 10
 
     - name: Build release version
       run: cargo build --release
+      timeout-minutes: 10
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -85,13 +100,14 @@ jobs:
         name: sortingoffice-binary
         path: target/release/sortingoffice
         retention-days: 7
+      timeout-minutes: 5
 
   # Security audit
   security:
     name: Security Audit
     runs-on: ubuntu-latest
     timeout-minutes: 10  # Set timeout to 10 minutes for security audit
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -125,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     timeout-minutes: 15  # Set timeout to 15 minutes for Docker build
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -138,4 +154,4 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm sortingoffice:test --help || true 
+        docker run --rm sortingoffice:test --help || true

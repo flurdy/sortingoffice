@@ -65,13 +65,20 @@ show_usage() {
 # Function to run unit tests
 run_unit_tests() {
     print_status "Running unit tests for sortingoffice..."
-    
+
     # Set test environment
     export RUST_LOG=error
     export RUST_BACKTRACE=1
-    export RUST_TEST_THREADS=1
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
+
+    # Reduce test threads for CI environment to prevent resource contention
+    if [ "$CI" = "true" ]; then
+        export RUST_TEST_THREADS=2
+        print_warning "CI environment detected, reducing unit test threads to 2"
+    else
+        export RUST_TEST_THREADS=1
+    fi
 
     # Run only the unit tests (tests in source files)
     print_status "Running unit tests with cargo..."
@@ -93,7 +100,7 @@ run_unit_tests() {
 # Function to run integration tests
 run_integration_tests() {
     print_status "Running integration tests for sortingoffice..."
-    
+
     # Check if DATABASE_URL is set, if not use default test database
     if [ -z "$DATABASE_URL" ]; then
         export DATABASE_URL="mysql://root:password@localhost/sortingoffice_test"
@@ -105,7 +112,17 @@ run_integration_tests() {
     export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
-    TEST_THREADS=8
+
+    # Reduce test threads for CI environment to prevent resource contention
+    if [ "$CI" = "true" ]; then
+        TEST_THREADS=2
+        print_warning "CI environment detected, reducing test threads to $TEST_THREADS"
+        # Also reduce cargo test threads for CI
+        export RUST_TEST_THREADS=2
+    else
+        TEST_THREADS=8
+        export RUST_TEST_THREADS=8
+    fi
 
     # Run only the integration tests (excluding UI tests)
     print_status "Running integration tests with cargo (threads: $TEST_THREADS)..."
@@ -115,7 +132,7 @@ run_integration_tests() {
         duration=$((end_time - start_time))
         print_success "Integration tests completed successfully in ${duration}s!"
         echo "[CI-SUMMARY] INTEGRATION PASS ${duration}s"
-        
+
         # Clean up test resources after successful completion
         cleanup_test_resources
     else
@@ -123,7 +140,7 @@ run_integration_tests() {
         duration=$((end_time - start_time))
         print_error "Integration tests failed in ${duration}s!"
         echo "[CI-SUMMARY] INTEGRATION FAIL ${duration}s"
-        
+
         # Clean up resources even if tests fail
         cleanup_test_resources
         exit 1
@@ -133,12 +150,20 @@ run_integration_tests() {
 # Function to run security tests
 run_security_tests() {
     print_status "Running security tests for sortingoffice..."
-    
+
     # Set test environment
     export RUST_LOG=error
     export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
+
+    # Reduce test threads for CI environment to prevent resource contention
+    if [ "$CI" = "true" ]; then
+        export RUST_TEST_THREADS=2
+        print_warning "CI environment detected, reducing security test threads to 2"
+    else
+        export RUST_TEST_THREADS=1
+    fi
 
     # Run security tests
     print_status "Running security tests with cargo..."
@@ -160,12 +185,20 @@ run_security_tests() {
 # Function to run API tests
 run_api_tests() {
     print_status "Running API tests for sortingoffice..."
-    
+
     # Set test environment
     export RUST_LOG=error
     export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
+
+    # Reduce test threads for CI environment to prevent resource contention
+    if [ "$CI" = "true" ]; then
+        export RUST_TEST_THREADS=2
+        print_warning "CI environment detected, reducing API test threads to 2"
+    else
+        export RUST_TEST_THREADS=1
+    fi
 
     # Run API tests
     print_status "Running API tests with cargo..."
@@ -214,21 +247,21 @@ check_app_health() {
 # Function to cleanup test containers and networks
 cleanup_test_resources() {
     print_status "Cleaning up test resources..."
-    
+
     # Clean up test containers using Docker commands
     if command -v docker > /dev/null 2>&1; then
         # Remove orphaned MySQL test containers
         docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " mysql" | grep -v "sortingoffice" | grep -E "(test|mysql)" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
-        
+
         # Remove orphaned Selenium test containers
         docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " selenium" | grep -v "sortingoffice" | grep -E "(test|selenium)" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
-        
+
         # Remove orphaned app test containers
         docker ps -a --format "{{.ID}} {{.Image}} {{.Names}}" | grep " sortingoffice" | grep "test" | awk '{print $1}' | xargs -r docker rm -f 2>/dev/null || true
-        
+
         # Remove shared test network
         docker network rm sortingoffice-e2e 2>/dev/null || true
-        
+
         print_success "Test resources cleaned up successfully!"
     else
         print_warning "Docker not available, skipping container cleanup"
@@ -238,7 +271,7 @@ cleanup_test_resources() {
 # Function to run containerized UI tests
 run_ui_tests() {
     print_status "Running containerized UI tests for sortingoffice..."
-    
+
     # Check if Docker is available
     if ! command -v docker > /dev/null 2>&1; then
         print_error "Docker is not available. Please install Docker and try again."
@@ -251,8 +284,16 @@ run_ui_tests() {
         exit 1
     fi
 
-    # Set environment variables
-    export RUST_TEST_THREADS="${TEST_THREADS:-8}"
+    # Set environment variables - optimize for CI
+    if [ "$CI" = "true" ]; then
+        export RUST_TEST_THREADS=1
+        export TEST_THREADS=1
+        print_warning "CI environment detected, using single-threaded execution"
+    else
+        export RUST_TEST_THREADS="${TEST_THREADS:-8}"
+        export TEST_THREADS="${TEST_THREADS:-8}"
+    fi
+
     export RUST_LOG=info
     export RUST_BACKTRACE=0
 
@@ -269,7 +310,7 @@ run_ui_tests() {
 
     # Clean up test resources after successful completion
     cleanup_test_resources
-    
+
     echo ""
     print_success "Containerized UI tests completed successfully! 🎉"
 }
@@ -297,13 +338,13 @@ run_smoke_test() {
 
 run_smoke_test_containerized() {
     print_status "Running end-to-end smoke test for sortingoffice..."
-    
+
     # Check if Docker is available
     if ! command -v docker > /dev/null 2>&1; then
         print_error "Docker is not available. Please install Docker and try again."
-        exit 1  
+        exit 1
     fi
-    
+
     # Check if Docker daemon is running
     if ! docker info > /dev/null 2>&1; then
         print_error "Docker daemon is not running. Please start Docker and try again."
@@ -317,7 +358,7 @@ run_smoke_test_containerized() {
     # Run the smoke test
     print_status "Running smoke test in testcontainers..."
     if cargo test ui_smoke_containerized_e2e_flow -- --nocapture; then
-        print_success "Smoke test passed!"   
+        print_success "Smoke test passed!"
     else
         print_error "Smoke test failed!"
         # Clean up resources even if tests fail
@@ -327,7 +368,7 @@ run_smoke_test_containerized() {
 
     # Clean up test resources after successful completion
     cleanup_test_resources
-    
+
     echo ""
     print_success "Smoke test completed successfully! 🎉"
 }
@@ -360,16 +401,16 @@ run_single_test() {
         echo "Example: $0 single test_homepage_loads_containerized"
         exit 1
     fi
-    
+
     print_status "Running individual test: $test_name"
     echo "This will run the test and then clean up any test containers..."
-    
+
     # Set test environment
     export RUST_LOG=error
     export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
-    
+
     # Run the individual test
     start_time=$(date +%s)
     if cargo test "$test_name" -- --nocapture; then
@@ -381,7 +422,7 @@ run_single_test() {
         duration=$((end_time - start_time))
         print_error "Individual test '$test_name' failed in ${duration}s!"
     fi
-    
+
     # Always clean up after individual test
     cleanup_test_resources
 }
@@ -395,16 +436,16 @@ run_single_ui_test() {
         echo "Example: $0 single-ui test_homepage_loads_containerized"
         exit 1
     fi
-    
+
     print_status "Running individual UI test: $test_name"
     echo "This will run the UI test and then clean up any test containers..."
-    
+
     # Set test environment
     export RUST_LOG=error
     export RUST_BACKTRACE=0
     export TESTCONTAINERS_LOG_LEVEL=error
     export BOLLARD_LOG_LEVEL=error
-    
+
     # Run the individual UI test
     start_time=$(date +%s)
     if cargo test --test ui_containerized "$test_name" -- --nocapture; then
@@ -416,7 +457,7 @@ run_single_ui_test() {
         duration=$((end_time - start_time))
         print_error "Individual UI test '$test_name' failed in ${duration}s!"
     fi
-    
+
     # Always clean up after individual test
     cleanup_test_resources
 }
@@ -468,4 +509,4 @@ case "${1:-unit}" in
         show_usage
         exit 1
         ;;
-esac 
+esac

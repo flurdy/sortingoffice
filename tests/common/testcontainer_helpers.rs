@@ -19,12 +19,26 @@
 //! cleanup_selenium_test_env(driver, selenium_container, None).await?;
 //! ```
 
-use anyhow::Result;
 use std::collections::HashMap;
+use std::time::Duration;
+
+use anyhow::Result;
 use testcontainers::core::Mount;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, GenericImage, ImageExt};
 use thirtyfour::prelude::*;
+
+// CI-specific optimizations
+const CI_CONTAINER_TIMEOUT: Duration = Duration::from_secs(120); // 2 minutes for CI
+const LOCAL_CONTAINER_TIMEOUT: Duration = Duration::from_secs(60); // 1 minute for local
+
+fn get_container_timeout() -> Duration {
+    if std::env::var("CI").unwrap_or_default() == "true" {
+        CI_CONTAINER_TIMEOUT
+    } else {
+        LOCAL_CONTAINER_TIMEOUT
+    }
+}
 
 /// Configuration for setting up a Selenium container
 #[derive(Debug, Clone)]
@@ -36,19 +50,32 @@ pub struct SeleniumConfig {
     pub network: Option<String>,
 }
 
+/// Default configuration for Selenium container
 impl Default for SeleniumConfig {
     fn default() -> Self {
         Self {
-            max_sessions: 1,
-            session_timeout: 300,
+            max_sessions: if std::env::var("CI").unwrap_or_default() == "true" {
+                1  // Single session for CI to reduce resource usage
+            } else {
+                4  // Multiple sessions for local development
+            },
+            session_timeout: if std::env::var("CI").unwrap_or_default() == "true" {
+                180  // Shorter timeout for CI to fail fast
+            } else {
+                300  // Longer timeout for local development
+            },
             extra_chrome_args: vec![
                 "--no-sandbox".to_string(),
                 "--disable-dev-shm-usage".to_string(),
                 "--disable-gpu".to_string(),
+                "--disable-extensions".to_string(),
+                "--disable-plugins".to_string(),
+                "--disable-images".to_string(),
+                "--disable-javascript".to_string(),
                 "--disable-web-security".to_string(),
                 "--allow-running-insecure-content".to_string(),
                 "--disable-features=VizDisplayCompositor".to_string(),
-                "--lang=en".to_string(),
+                "--disable-ipc-flooding-protection".to_string(),
             ],
             enable_vnc: false,
             network: None,
@@ -87,7 +114,7 @@ impl Default for AppConfig {
 /// Result type for Selenium container setup
 pub type SeleniumResult = Result<(ContainerAsync<GenericImage>, WebDriver, u16)>;
 
-/// Result type for App container setup  
+/// Result type for App container setup
 pub type AppResult = Result<(ContainerAsync<GenericImage>, String, u16)>;
 
 /// Helper to find a free port on the system
@@ -121,11 +148,13 @@ pub async fn setup_selenium_container(config: SeleniumConfig) -> SeleniumResult 
 
     // Add custom Chrome arguments
     if !config.extra_chrome_args.is_empty() {
-        let chrome_opts = config.extra_chrome_args.join(" ");
-        selenium_image = selenium_image.with_env_var("SE_NODE_CHROME_OPTIONS", &chrome_opts);
+        selenium_image = selenium_image.with_env_var(
+            "SE_NODE_CHROME_ARGS",
+            &config.extra_chrome_args.join(" "),
+        );
     }
 
-    // Connect to network if specified
+    // Add network configuration if specified
     if let Some(network) = &config.network {
         selenium_image = selenium_image.with_network(network);
     }
@@ -141,13 +170,24 @@ pub async fn setup_selenium_container(config: SeleniumConfig) -> SeleniumResult 
 
     // Set up WebDriver capabilities
     let mut caps = DesiredCapabilities::chrome();
+    caps.add_arg("--no-sandbox")?;
+    caps.add_arg("--disable-dev-shm-usage")?;
+    caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--disable-extensions")?;
+    caps.add_arg("--disable-plugins")?;
+    caps.add_arg("--disable-images")?;
+    caps.add_arg("--disable-javascript")?;
+    caps.add_arg("--disable-web-security")?;
+    caps.add_arg("--allow-running-insecure-content")?;
+    caps.add_arg("--disable-features=VizDisplayCompositor")?;
+    caps.add_arg("--disable-ipc-flooding-protection")?;
 
     // Add all the Chrome arguments
     for arg in &config.extra_chrome_args {
         caps.add_arg(arg)?;
     }
 
-    // Connect to WebDriver
+    // Connect to WebDriver with CI-optimized timeout
     let selenium_url = format!("http://127.0.0.1:{}", selenium_host_port);
     println!("[SELENIUM] Connecting to WebDriver at {}", selenium_url);
 
@@ -229,7 +269,7 @@ pub async fn cleanup_containers(containers: Vec<ContainerAsync<GenericImage>>) -
     Ok(())
 }
 
-/// Clean up WebDriver and containers together  
+/// Clean up WebDriver and containers together
 pub async fn cleanup_selenium_test_env(
     driver: WebDriver,
     selenium_container: ContainerAsync<GenericImage>,

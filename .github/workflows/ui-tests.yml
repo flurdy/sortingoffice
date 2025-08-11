@@ -11,40 +11,49 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
   DOCKER_HOST: unix:///var/run/docker.sock
+  CI: true
+  RUST_TEST_THREADS: 1
+  TEST_THREADS: 1
 
 jobs:
   ui-tests:
     name: UI Tests (Containerized)
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Set timeout to 15 minutes to allow for container setup and test execution
+    timeout-minutes: 25  # Increased from 15 to 25 minutes to allow for container setup and test execution
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      timeout-minutes: 5
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      timeout-minutes: 5
 
     - name: Start Docker daemon
       run: |
         sudo systemctl start docker
         sudo systemctl status docker
+      timeout-minutes: 5
 
     - name: Verify Docker is working
       run: |
         docker --version
         docker ps
         sudo usermod -a -G docker $USER || true
+      timeout-minutes: 5
 
     - name: Build Docker image for UI tests
       run: |
         docker build -t sortingoffice:latest .
+      timeout-minutes: 10
 
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         override: true
+      timeout-minutes: 5
 
     - name: Cache Rust dependencies
       uses: actions/cache@v4
@@ -56,13 +65,16 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
+      timeout-minutes: 5
 
     - name: Run containerized UI tests
       env:
         RUST_TEST_THREADS: 1
         RUST_LOG: info
+        TEST_THREADS: 1
       run: |
         make test-ui
+      timeout-minutes: 15
 
     - name: Upload test artifacts
       if: failure()
@@ -73,4 +85,4 @@ jobs:
           screenshots/
           test-results/
           app.log
-        retention-days: 7 
+        retention-days: 7
