@@ -60,9 +60,21 @@
   - ~~This affects development workflow and CI/CD pipeline~~
 
 - **Reduce Shell Command Dependencies** (Medium Priority)
-  - Replace hardcoded paths in mysqldump calls
+  - ✅ Replace hardcoded paths in mysqldump calls (COMPLETED: Implemented portable mysqldump detection)
+  - ✅ Clean up problematic shell commands in smoke tests (COMPLETED: Made IP detection cross-platform)
   - Investigate alternatives to docker CLI calls where possible
   - Make the application more portable across different server environments
+
+- **Shell Command Analysis Completed** (NEW):
+  - **Critical Issue Fixed**: mysqldump hardcoded path `/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump` replaced with portable detection
+  - **Portable mysqldump detection**: Now tries multiple common locations (PATH, /usr/bin, /usr/local/bin, Homebrew paths, etc.)
+  - **Fallback strategy**: Falls back to PATH if no specific location found
+  - **Cross-platform support**: Works on Linux, macOS, and various package managers
+  - **Smoke test cleanup**: Extracted problematic `ip` command usage into cross-platform function
+  - **Cross-platform IP detection**: Now works on Linux, macOS, and Windows with proper fallbacks
+  - **Environment variable support**: Added support for HOST_IP, DOCKER_HOST_IP, etc.
+  - **Docker commands**: Most are unavoidable for test infrastructure (acceptable for now)
+  - **curl usage**: Kept in shell scripts as it's an acceptable requirement for development
 
 - Documentation enhancements
   - Update test documentation to reflect current test status

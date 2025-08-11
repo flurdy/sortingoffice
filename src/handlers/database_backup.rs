@@ -17,6 +17,39 @@ use tempfile::NamedTempFile;
 use tokio::fs as tokio_fs;
 use url::Url;
 
+/// Find mysqldump executable in common locations
+fn find_mysqldump() -> Option<String> {
+    // Common mysqldump locations
+    let common_paths = vec![
+        "mysqldump",  // PATH fallback
+        "/usr/bin/mysqldump",
+        "/usr/local/bin/mysqldump",
+        "/opt/homebrew/bin/mysqldump",  // macOS Homebrew
+        "/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump",  // Linux Homebrew
+        "/usr/local/mysql/bin/mysqldump",  // macOS MySQL
+        "/opt/mysql/bin/mysqldump",  // Linux MySQL
+        "/snap/bin/mysqldump",  // Snap packages
+    ];
+
+    for path in common_paths {
+        if Command::new(path).arg("--version").output().is_ok() {
+            return Some(path.to_string());
+        }
+    }
+
+    None
+}
+
+/// Get mysqldump command with fallback strategy
+fn get_mysqldump_command() -> Result<Command, StatusCode> {
+    if let Some(mysqldump_path) = find_mysqldump() {
+        Ok(Command::new(mysqldump_path))
+    } else {
+        // Final fallback to PATH
+        Ok(Command::new("mysqldump"))
+    }
+}
+
 #[derive(Deserialize)]
 pub struct BackupForm {
     database_id: String,
@@ -179,7 +212,8 @@ pub async fn create_backup(
     let backup_path = temp_file.path().to_path_buf();
 
     // Run mysqldump with minimal options that work with basic SELECT privileges
-    let output = Command::new("mysqldump")
+    let mut command = get_mysqldump_command()?;
+    let output = command
         .arg("--no-tablespaces")
         .arg("--skip-lock-tables")
         .arg("--skip-add-drop-table")
@@ -347,7 +381,7 @@ pub async fn create_backup_htmx(
     let final_path = backup_dir.join(&filename);
 
     // Run mysqldump with minimal options that work with basic SELECT privileges
-    let output = Command::new("/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump")
+    let output = get_mysqldump_command()?
         .arg("--no-tablespaces")
         .arg("--skip-lock-tables")
         .arg("--skip-add-drop-table")
@@ -399,7 +433,7 @@ pub async fn create_backup_htmx(
                     {}
                 </p>
                 <div class="mt-2">
-                    <a href="/database_backup/download/{}" 
+                    <a href="/database_backup/download/{}"
                        class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition duration-200">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
