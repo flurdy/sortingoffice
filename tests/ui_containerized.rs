@@ -74,6 +74,30 @@ struct TestEnv {
     app_url: String,
 }
 
+impl TestEnv {
+    /// Explicit cleanup method to be called at end of tests
+    async fn cleanup(self) -> anyhow::Result<()> {
+        println!("[CLEANUP] Cleaning up test containers...");
+        
+        // Clean up the driver
+        if let Err(e) = self.driver.quit().await {
+            eprintln!("[CLEANUP] Warning: Failed to quit driver: {}", e);
+        }
+        
+        // Stop containers explicitly
+        if let Err(e) = self.selenium_container.stop().await {
+            eprintln!("[CLEANUP] Warning: Failed to stop Selenium container: {}", e);
+        }
+        
+        if let Err(e) = self.app_container.stop().await {
+            eprintln!("[CLEANUP] Warning: Failed to stop app container: {}", e);
+        }
+        
+        println!("[CLEANUP] Test containers cleaned up successfully");
+        Ok(())
+    }
+}
+
 async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
     use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
     let schema = unique_test_id();

@@ -19,6 +19,13 @@
   - Fixed module import/declaration order
   - Cleaned up trailing whitespace
   - All tests now compile without warnings
+- Test cleanup infrastructure completed:
+  - Individual test runs now automatically clean up MySQL containers and resources
+  - Created Makefile aliases: `make test-single TEST=name` and `make test-single-ui TEST=name`
+  - Enhanced run_tests.sh with single/single-ui/cleanup commands
+  - Fixed container accumulation issue for debugging individual UI tests
+  - Improved make test-clean to use comprehensive cleanup instead of basic Docker cleanup
+  - Removed unused should_cleanup_schema/should_cleanup_container methods
 
 ## 🔄 IN PROGRESS
 - None currently
@@ -46,7 +53,7 @@
   
 - When in show domain page, and you add a new alias, you are shown the domain page again. But the alias report is then missing.
 
-- In integration and UI tests, the db container is not removed. The whole suit shares the db container, so when either the suit finishes the db has to be removed, or somehow when individual test is run directly as well. Need to handle when tests fail/panics.
+- ✅ ~~In integration and UI tests, the db container is not removed~~ (FIXED: Now automatically cleaned up)
 
 - In the rust code, lets reduce or remove if possible and shelling out to CLI commands. 
   - There are some calls to docker CLI. It may by unavoidable.
@@ -55,5 +62,6 @@
   - There may be others
   - Maybe some can be replaced with library code?
   - This is mostly to ensure it can be run anywhere.
+  - ✅ ~~Removed the bogus `cargo run --cleanup-tests` call~~ (FIXED)
 
-- Maybe we should extract a testcontainer helper function to assist the tests in creating and removing mysql, selenium, app testcontainers. Which hides whether it is specific image or the GenericImage.
+- ✅ ~~Maybe we should extract a testcontainer helper function to assist the tests in creating and removing mysql, selenium, app testcontainers~~ (COMPLETED: Created testcontainer_helpers.rs with unified API)
