@@ -194,11 +194,10 @@ pub async fn health_check_html(State(state): State<AppState>) -> Html<String> {
         };
         let load_text = if utilization > 80.0 { "High" } else { "Normal" };
 
-        html.push_str(&format!("<tr>\n"));
+        html.push_str("<tr>\n");
         html.push_str(&format!("<td>{}</td>\n", config.label));
         html.push_str(&format!(
-            "<td class=\"{}\">{}</td>\n",
-            status_class, status_text
+            "<td class=\"{status_class}\">{status_text}</td>\n"
         ));
         html.push_str(&format!(
             "<td>{}</td>\n",
@@ -216,10 +215,9 @@ pub async fn health_check_html(State(state): State<AppState>) -> Html<String> {
             "<td>{}</td>\n",
             pool_stat.map(|s| s.in_use).unwrap_or(0)
         ));
-        html.push_str(&format!("<td>{:.1}%</td>\n", utilization));
+        html.push_str(&format!("<td>{utilization:.1}%</td>\n"));
         html.push_str(&format!(
-            "<td class=\"{}\">{}</td>\n",
-            load_class, load_text
+            "<td class=\"{load_class}\">{load_text}</td>\n"
         ));
         html.push_str("</tr>\n");
     }

@@ -253,8 +253,7 @@ pub async fn render_error_page(
     let message = crate::i18n::get_translation(state, &locale, message_key).await;
 
     println!(
-        "[DEBUG] Rendering error page with title: {}, message: {}",
-        title, message
+        "[DEBUG] Rendering error page with title: {title}, message: {message}"
     );
 
     match crate::templates::error::ErrorTemplate::new(
@@ -276,12 +275,12 @@ pub async fn render_error_page(
                 Html(html)
             }
             Err(e) => {
-                println!("[DEBUG] Error rendering template: {}", e);
+                println!("[DEBUG] Error rendering template: {e}");
                 Html("Error rendering error page".to_string())
             }
         },
         Err(e) => {
-            println!("[DEBUG] Error creating template: {:?}", e);
+            println!("[DEBUG] Error creating template: {e:?}");
             Html("Error creating error page".to_string())
         }
     }

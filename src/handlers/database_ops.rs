@@ -17,8 +17,7 @@ pub fn get_db_connection_safely(
 > {
     pool.get().map_err(|e| {
         crate::handlers::errors::DatabaseOperationError::ConnectionFailed(format!(
-            "Failed to get database connection for {}: {:?}",
-            operation, e
+            "Failed to get database connection for {operation}: {e:?}"
         ))
     })
 }
@@ -31,8 +30,7 @@ pub fn parse_header_value_safely(
 ) -> Result<axum::http::HeaderValue, crate::handlers::errors::DatabaseOperationError> {
     value.parse().map_err(|_| {
         crate::handlers::errors::DatabaseOperationError::QueryFailed(format!(
-            "Failed to parse header value for {}: {}",
-            header_name, value
+            "Failed to parse header value for {header_name}: {value}"
         ))
     })
 }
@@ -212,7 +210,7 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
                 "Database operation failed for {} {}: {:?}",
                 error_context, identifier, e
             );
-            Html(format!("Failed to {}", error_context))
+            Html(format!("Failed to {error_context}"))
         }
     }
 }

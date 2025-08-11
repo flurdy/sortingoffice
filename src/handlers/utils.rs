@@ -270,13 +270,13 @@ pub async fn get_current_db_pool(
 }
 
 /// Helper function to fetch field-related translations
-
+///
 /// Helper function to fetch status-related translations
-
+///
 /// Helper function to fetch action-related translations
-
+///
 /// Common translation keys for table headers
-
+///
 /// Helper function to handle "not found" errors consistently
 pub async fn handle_not_found<T>(
     result: Result<T, Box<dyn std::error::Error>>,
@@ -503,7 +503,7 @@ where
 }
 
 /// Helper function to fetch entity-specific translations for list pages
-
+///
 /// Helper function to get database pool with consistent error handling
 pub async fn get_db_pool_or_handle_error(
     state: &AppState,
@@ -568,7 +568,7 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
                 "Database operation failed for {} {}: {:?}",
                 error_context, identifier, e
             );
-            Html(format!("Failed to {}", error_context))
+            Html(format!("Failed to {error_context}"))
         }
     }
 }

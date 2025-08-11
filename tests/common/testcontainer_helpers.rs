@@ -55,14 +55,14 @@ impl Default for SeleniumConfig {
     fn default() -> Self {
         Self {
             max_sessions: if std::env::var("CI").unwrap_or_default() == "true" {
-                1  // Single session for CI to reduce resource usage
+                1 // Single session for CI to reduce resource usage
             } else {
-                4  // Multiple sessions for local development
+                4 // Multiple sessions for local development
             },
             session_timeout: if std::env::var("CI").unwrap_or_default() == "true" {
-                180  // Shorter timeout for CI to fail fast
+                180 // Shorter timeout for CI to fail fast
             } else {
-                300  // Longer timeout for local development
+                300 // Longer timeout for local development
             },
             extra_chrome_args: vec![
                 "--no-sandbox".to_string(),
@@ -148,10 +148,8 @@ pub async fn setup_selenium_container(config: SeleniumConfig) -> SeleniumResult 
 
     // Add custom Chrome arguments
     if !config.extra_chrome_args.is_empty() {
-        selenium_image = selenium_image.with_env_var(
-            "SE_NODE_CHROME_ARGS",
-            &config.extra_chrome_args.join(" "),
-        );
+        selenium_image =
+            selenium_image.with_env_var("SE_NODE_CHROME_ARGS", &config.extra_chrome_args.join(" "));
     }
 
     // Add network configuration if specified

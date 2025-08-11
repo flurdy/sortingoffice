@@ -57,8 +57,7 @@ impl Drop for TestContainer {
                 Ok(rt) => rt,
                 Err(_) => {
                     println!(
-                        "[DEBUG] Warning: Could not create runtime for schema cleanup: {}",
-                        schema
+                        "[DEBUG] Warning: Could not create runtime for schema cleanup: {schema}"
                     );
                     return;
                 }
@@ -181,25 +180,23 @@ pub fn cleanup_test_db(_container: &TestContainer) {
 /// Clean up a specific test schema from the shared MySQL container
 pub async fn cleanup_test_schema(schema: &str) {
     if let Some(port) = SHARED_PORT.get() {
-        let admin_url = format!("mysql://root@127.0.0.1:{}/mysql", port);
+        let admin_url = format!("mysql://root@127.0.0.1:{port}/mysql");
 
         let manager = ConnectionManager::<MysqlConnection>::new(&admin_url);
         if let Ok(pool) = Pool::builder().max_size(1).build(manager) {
             if let Ok(mut conn) = pool.get() {
-                let query = format!("DROP DATABASE IF EXISTS `{}`", schema);
+                let query = format!("DROP DATABASE IF EXISTS `{schema}`");
                 let _ = diesel::sql_query(query).execute(&mut conn);
-                println!("[DEBUG] Cleaned up test schema: {}", schema);
+                println!("[DEBUG] Cleaned up test schema: {schema}");
             } else {
                 println!(
-                    "[DEBUG] Warning: Could not get connection to clean up schema: {}",
-                    schema
+                    "[DEBUG] Warning: Could not get connection to clean up schema: {schema}"
                 );
             }
         }
     } else {
         println!(
-            "[DEBUG] Warning: No shared MySQL port available for schema cleanup: {}",
-            schema
+            "[DEBUG] Warning: No shared MySQL port available for schema cleanup: {schema}"
         );
     }
 }
@@ -235,8 +232,7 @@ pub async fn force_cleanup_shared_mysql_container() {
     if let Some(container) = SHARED_CONTAINER.get() {
         let container_id = container.id().to_string();
         println!(
-            "[DEBUG] Force cleaning up shared MySQL container: {}",
-            container_id
+            "[DEBUG] Force cleaning up shared MySQL container: {container_id}"
         );
 
         // First try to stop the container gracefully
@@ -249,23 +245,20 @@ pub async fn force_cleanup_shared_mysql_container() {
             Ok(output) => {
                 if output.status.success() {
                     println!(
-                        "[DEBUG] Successfully stopped MySQL container: {}",
-                        container_id
+                        "[DEBUG] Successfully stopped MySQL container: {container_id}"
                     );
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
                     if !stderr.contains("No such container") {
                         println!(
-                            "[DEBUG] Warning: Failed to stop container {}: {}",
-                            container_id, stderr
+                            "[DEBUG] Warning: Failed to stop container {container_id}: {stderr}"
                         );
                     }
                 }
             }
             Err(e) => {
                 println!(
-                    "[DEBUG] Warning: Failed to execute docker stop command: {}",
-                    e
+                    "[DEBUG] Warning: Failed to execute docker stop command: {e}"
                 );
             }
         }
@@ -279,30 +272,27 @@ pub async fn force_cleanup_shared_mysql_container() {
             Ok(output) => {
                 if output.status.success() {
                     println!(
-                        "[DEBUG] Successfully removed MySQL container: {}",
-                        container_id
+                        "[DEBUG] Successfully removed MySQL container: {container_id}"
                     );
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
                     if !stderr.contains("No such container") {
                         println!(
-                            "[DEBUG] Warning: Failed to remove container {}: {}",
-                            container_id, stderr
+                            "[DEBUG] Warning: Failed to remove container {container_id}: {stderr}"
                         );
                     }
                 }
             }
             Err(e) => {
                 println!(
-                    "[DEBUG] Warning: Failed to execute docker rm command: {}",
-                    e
+                    "[DEBUG] Warning: Failed to execute docker rm command: {e}"
                 );
             }
         }
 
         // Also try to clean up any volumes that might be associated
         let volume_output = Command::new("docker")
-            .args(["volume", "ls", "-q", "-f", &format!("dangling=true")])
+            .args(["volume", "ls", "-q", "-f", "dangling=true"])
             .output();
 
         if let Ok(volume_output) = volume_output {
@@ -339,8 +329,7 @@ pub async fn cleanup_shared_test_network() {
             let networks = String::from_utf8_lossy(&check_output.stdout);
             if !networks.contains(network_name) {
                 println!(
-                    "[DEBUG] Network {} does not exist, skipping cleanup",
-                    network_name
+                    "[DEBUG] Network {network_name} does not exist, skipping cleanup"
                 );
                 return;
             }
@@ -356,25 +345,22 @@ pub async fn cleanup_shared_test_network() {
         Ok(output) => {
             if output.status.success() {
                 println!(
-                    "[DEBUG] Successfully removed shared test network: {}",
-                    network_name
+                    "[DEBUG] Successfully removed shared test network: {network_name}"
                 );
             } else {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if stderr.contains("No such network") {
-                    println!("[DEBUG] Network {} was already removed", network_name);
+                    println!("[DEBUG] Network {network_name} was already removed");
                 } else {
                     println!(
-                        "[DEBUG] Warning: Failed to remove network {}: {}",
-                        network_name, stderr
+                        "[DEBUG] Warning: Failed to remove network {network_name}: {stderr}"
                     );
                 }
             }
         }
         Err(e) => {
             println!(
-                "[DEBUG] Warning: Failed to execute docker network rm command: {}",
-                e
+                "[DEBUG] Warning: Failed to execute docker network rm command: {e}"
             );
         }
     }
@@ -425,10 +411,10 @@ async fn cleanup_orphaned_test_containers() {
                     || (line.contains("selenium") && !line.contains("sortingoffice"))
                 {
                     let parts: Vec<&str> = line.split_whitespace().collect();
-                    if parts.len() >= 1 {
+                    if !parts.is_empty() {
                         let container_id = parts[0];
                         if !container_id.is_empty() {
-                            println!("[DEBUG] Removing orphaned test container: {}", container_id);
+                            println!("[DEBUG] Removing orphaned test container: {container_id}");
                             let _ = Command::new("docker")
                                 .args(["rm", "-f", container_id])
                                 .output();

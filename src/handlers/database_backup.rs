@@ -21,14 +21,14 @@ use url::Url;
 fn find_mysqldump() -> Option<String> {
     // Common mysqldump locations
     let common_paths = vec![
-        "mysqldump",  // PATH fallback
+        "mysqldump", // PATH fallback
         "/usr/bin/mysqldump",
         "/usr/local/bin/mysqldump",
-        "/opt/homebrew/bin/mysqldump",  // macOS Homebrew
-        "/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump",  // Linux Homebrew
-        "/usr/local/mysql/bin/mysqldump",  // macOS MySQL
-        "/opt/mysql/bin/mysqldump",  // Linux MySQL
-        "/snap/bin/mysqldump",  // Snap packages
+        "/opt/homebrew/bin/mysqldump", // macOS Homebrew
+        "/home/linuxbrew/.linuxbrew/opt/mysql-client/bin/mysqldump", // Linux Homebrew
+        "/usr/local/mysql/bin/mysqldump", // macOS MySQL
+        "/opt/mysql/bin/mysqldump",    // Linux MySQL
+        "/snap/bin/mysqldump",         // Snap packages
     ];
 
     for path in common_paths {
@@ -328,17 +328,16 @@ pub async fn create_backup_htmx(
         let success_html = format!(
             r#"<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                 <strong class="font-bold">Success!</strong>
-                <span class="block sm:inline">Mock backup created successfully for test environment: {}</span>
+                <span class="block sm:inline">Mock backup created successfully for test environment: {filename}</span>
                 <div class="mt-2">
-                    <a href="/database_backup/download/{}" class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition duration-200">
+                    <a href="/database_backup/download/{filename}" class="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition duration-200">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         Download Backup
                     </a>
                 </div>
-            </div>"#,
-            filename, filename
+            </div>"#
         );
 
         return Ok(Html(success_html));

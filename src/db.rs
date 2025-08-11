@@ -163,16 +163,12 @@ impl DatabaseManager {
     /// Get connection pool statistics for monitoring
     pub async fn get_pool_stats(&self, db_id: &str) -> Option<PoolStats> {
         let pools = self.pools.read().await;
-        if let Some(pool) = pools.get(db_id) {
-            Some(PoolStats {
+        pools.get(db_id).map(|pool| PoolStats {
                 max_size: pool.max_size(),
                 size: pool.max_size(),      // r2d2 doesn't expose current size
                 available: pool.max_size(), // Simplified for now
                 in_use: 0,                  // Simplified for now
             })
-        } else {
-            None
-        }
     }
 
     /// Get connection pool statistics for all databases
@@ -223,7 +219,7 @@ impl DatabaseManager {
                 }
             }
         } else {
-            Err(format!("Database pool not found: {}", db_id).into())
+            Err(format!("Database pool not found: {db_id}").into())
         }
     }
 
@@ -234,10 +230,7 @@ impl DatabaseManager {
 
         for config in &self.configs {
             let is_healthy = if let Some(_pool) = pools.get(&config.id) {
-                match self.health_check(&config.id).await {
-                    Ok(healthy) => healthy,
-                    Err(_) => false,
-                }
+                (self.health_check(&config.id).await).unwrap_or_default()
             } else {
                 // Database pool not available (failed to create)
                 false
@@ -407,7 +400,7 @@ pub fn get_domain(pool: &DbPool, domain_id: i32) -> Result<Domain, Error> {
     let mut conn = pool.get().map_err(|e| {
         Error::DatabaseError(
             diesel::result::DatabaseErrorKind::Unknown,
-            Box::new(format!("Failed to get database connection: {:?}", e)),
+            Box::new(format!("Failed to get database connection: {e:?}")),
         )
     })?;
     domains::table
@@ -420,7 +413,7 @@ pub fn get_domain_by_name(pool: &DbPool, domain_name: &str) -> Result<Domain, Er
     let mut conn = pool.get().map_err(|e| {
         Error::DatabaseError(
             diesel::result::DatabaseErrorKind::Unknown,
-            Box::new(format!("Failed to get database connection: {:?}", e)),
+            Box::new(format!("Failed to get database connection: {e:?}")),
         )
     })?;
     domains::table
@@ -433,7 +426,7 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
     let mut conn = pool.get().map_err(|e| {
         Error::DatabaseError(
             diesel::result::DatabaseErrorKind::Unknown,
-            Box::new(format!("Failed to get database connection: {:?}", e)),
+            Box::new(format!("Failed to get database connection: {e:?}")),
         )
     })?;
     let now = Utc::now().naive_utc();
