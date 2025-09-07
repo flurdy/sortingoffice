@@ -8,7 +8,7 @@ use tracing::error;
 pub fn render_template_safely<T: Template>(template: T) -> Result<String, String> {
     template.render().map_err(|e| {
         error!("Template rendering failed: {:?}", e);
-        format!("Template rendering error: {}", e)
+        format!("Template rendering error: {e}")
     })
 }
 

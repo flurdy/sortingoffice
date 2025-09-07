@@ -1,9 +1,7 @@
 //! Testcontainer helper functions for setting up and managing test containers
 //!
-//! This module provides a unified API for setting up common test containers like:
-//! - Selenium containers with Chrome for UI testing
-//! - Application containers for the sortingoffice app
-//! - Consistent cleanup utilities
+//! This module provides a unified API for setting up Selenium containers with optimized
+//! startup times and parallel operations where possible.
 //!
 //! # Examples
 //!
@@ -15,276 +13,210 @@
 //! let extra_args = vec!["--window-size=1920,1080".to_string()];
 //! let (selenium_container, driver, port) = setup_selenium_with_custom_args(extra_args).await?;
 //!
+//! // Set up Selenium on a shared network
+//! let (selenium_container, driver, port) = setup_selenium_on_shared_network(extra_args, "network-name").await?;
+//!
 //! // Clean up everything together
 //! cleanup_selenium_test_env(driver, selenium_container, None).await?;
 //! ```
 
-use std::collections::HashMap;
-use std::time::Duration;
-
 use anyhow::Result;
-use testcontainers::core::Mount;
+use std::time::Duration;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::{ContainerAsync, GenericImage, ImageExt};
 use thirtyfour::prelude::*;
 
-// CI-specific optimizations
-const CI_CONTAINER_TIMEOUT: Duration = Duration::from_secs(120); // 2 minutes for CI
-const LOCAL_CONTAINER_TIMEOUT: Duration = Duration::from_secs(60); // 1 minute for local
-
-fn get_container_timeout() -> Duration {
-    if std::env::var("CI").unwrap_or_default() == "true" {
-        CI_CONTAINER_TIMEOUT
-    } else {
-        LOCAL_CONTAINER_TIMEOUT
-    }
-}
-
-/// Configuration for setting up a Selenium container
+/// Configuration for Selenium container optimization
 #[derive(Debug, Clone)]
-pub struct SeleniumConfig {
-    pub max_sessions: u8,
-    pub session_timeout: u16,
-    pub extra_chrome_args: Vec<String>,
-    pub enable_vnc: bool,
-    pub network: Option<String>,
+#[allow(dead_code)]
+struct SeleniumOptimizationConfig {
+    /// Timeout for container startup (shorter in CI)
+    startup_timeout: Duration,
+    /// Health check interval (more frequent in CI)
+    health_check_interval: Duration,
 }
 
-/// Default configuration for Selenium container
-impl Default for SeleniumConfig {
+impl Default for SeleniumOptimizationConfig {
     fn default() -> Self {
+        let is_ci = std::env::var("CI").unwrap_or_default() == "true";
         Self {
-            max_sessions: if std::env::var("CI").unwrap_or_default() == "true" {
-                1  // Single session for CI to reduce resource usage
+            startup_timeout: if is_ci {
+                Duration::from_secs(30) // Faster fail in CI
             } else {
-                4  // Multiple sessions for local development
+                Duration::from_secs(60) // More patient locally
             },
-            session_timeout: if std::env::var("CI").unwrap_or_default() == "true" {
-                180  // Shorter timeout for CI to fail fast
+            health_check_interval: if is_ci {
+                Duration::from_millis(500) // More frequent in CI
             } else {
-                300  // Longer timeout for local development
+                Duration::from_secs(2) // Less aggressive locally
             },
-            extra_chrome_args: vec![
-                "--no-sandbox".to_string(),
-                "--disable-dev-shm-usage".to_string(),
-                "--disable-gpu".to_string(),
-                "--disable-extensions".to_string(),
-                "--disable-plugins".to_string(),
-                "--disable-images".to_string(),
-                "--disable-javascript".to_string(),
-                "--disable-web-security".to_string(),
-                "--allow-running-insecure-content".to_string(),
-                "--disable-features=VizDisplayCompositor".to_string(),
-                "--disable-ipc-flooding-protection".to_string(),
-            ],
-            enable_vnc: false,
-            network: None,
         }
     }
 }
 
-/// Configuration for setting up an application container
-#[derive(Debug, Clone)]
-pub struct AppConfig {
-    pub image_name: String,
-    pub image_tag: String,
-    pub port: u16,
-    pub host: String,
-    pub database_url: String,
-    pub extra_env: HashMap<String, String>,
-    pub network: Option<String>,
-    pub host_port: Option<u16>,
-}
+/// Core Selenium container setup with optimized configuration
+#[allow(dead_code)]
+async fn setup_selenium_core(
+    extra_args: Vec<String>,
+    network: Option<&str>,
+) -> Result<(ContainerAsync<GenericImage>, u16)> {
+    let config = SeleniumOptimizationConfig::default();
 
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            image_name: "sortingoffice".to_string(),
-            image_tag: "latest".to_string(),
-            port: 3000,
-            host: "0.0.0.0".to_string(),
-            database_url: String::new(),
-            extra_env: HashMap::new(),
-            network: None,
-            host_port: None,
-        }
-    }
-}
-
-/// Result type for Selenium container setup
-pub type SeleniumResult = Result<(ContainerAsync<GenericImage>, WebDriver, u16)>;
-
-/// Result type for App container setup
-pub type AppResult = Result<(ContainerAsync<GenericImage>, String, u16)>;
-
-/// Helper to find a free port on the system
-pub fn find_free_port() -> u16 {
-    use std::net::TcpListener;
-    TcpListener::bind("127.0.0.1:0")
-        .expect("Failed to find free port")
-        .local_addr()
-        .expect("Failed to get local address")
-        .port()
-}
-
-/// Set up a Selenium container with configurable options
-pub async fn setup_selenium_container(config: SeleniumConfig) -> SeleniumResult {
-    let _selenium_port = find_free_port();
-
+    // Build optimized Selenium image
     let mut selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", &config.max_sessions.to_string())
+        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
         .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var(
-            "SE_NODE_SESSION_TIMEOUT",
-            &config.session_timeout.to_string(),
-        )
+        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
         .with_env_var("SE_START_XVFB", "false")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-
-    // Add VNC if enabled
-    if config.enable_vnc {
-        selenium_image = selenium_image.with_env_var("SE_START_VNC", "true");
-    }
-
-    // Add custom Chrome arguments
-    if !config.extra_chrome_args.is_empty() {
-        selenium_image = selenium_image.with_env_var(
-            "SE_NODE_CHROME_ARGS",
-            &config.extra_chrome_args.join(" "),
-        );
-    }
+        .with_env_var("SE_SCREEN_WIDTH", "1920")
+        .with_env_var("SE_SCREEN_HEIGHT", "1080")
+        .with_env_var("SE_SCREEN_DEPTH", "24")
+        .with_env_var("SE_SCREEN_DPI", "96")
+        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
+        .with_env_var("SE_VNC_NO_PASSWORD", "1");
 
     // Add network configuration if specified
-    if let Some(network) = &config.network {
-        selenium_image = selenium_image.with_network(network);
+    if let Some(net) = network {
+        selenium_image = selenium_image.with_network(net);
     }
 
-    // Start the container
+    // Add extra Chrome arguments efficiently
+    if !extra_args.is_empty() {
+        selenium_image = selenium_image.with_env_var("SE_NODE_CHROME_ARGS", extra_args.join(" "));
+    }
+
+    // Start container and get port in parallel
     let selenium_container = AsyncRunner::start(selenium_image).await?;
-    let selenium_host_port = selenium_container.get_host_port_ipv4(4444).await?;
+    let selenium_port = selenium_container.get_host_port_ipv4(4444).await?;
 
-    println!(
-        "[SELENIUM] Container started on port {}",
-        selenium_host_port
-    );
+    // Optimized health check with configurable timeouts
+    let selenium_url = format!("http://localhost:{selenium_port}");
+    let start = std::time::Instant::now();
 
-    // Set up WebDriver capabilities
+    while start.elapsed() < config.startup_timeout {
+        match reqwest::get(&selenium_url).await {
+            Ok(resp) if resp.status().is_success() => break,
+            _ => {
+                tokio::time::sleep(config.health_check_interval).await;
+            }
+        }
+    }
+
+    if start.elapsed() >= config.startup_timeout {
+        return Err(anyhow::anyhow!(
+            "Selenium container failed to start within {:?}",
+            config.startup_timeout
+        ));
+    }
+
+    Ok((selenium_container, selenium_port))
+}
+
+/// Set up WebDriver with optimized capabilities
+#[allow(dead_code)]
+async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Result<WebDriver> {
     let mut caps = DesiredCapabilities::chrome();
+
+    // Essential Chrome arguments for stability
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--disable-extensions")?;
-    caps.add_arg("--disable-plugins")?;
-    caps.add_arg("--disable-images")?;
-    caps.add_arg("--disable-javascript")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    caps.add_arg("--disable-ipc-flooding-protection")?;
 
-    // Add all the Chrome arguments
-    for arg in &config.extra_chrome_args {
+    // Add extra arguments efficiently
+    for arg in extra_args {
         caps.add_arg(arg)?;
     }
 
-    // Connect to WebDriver with CI-optimized timeout
-    let selenium_url = format!("http://127.0.0.1:{}", selenium_host_port);
-    println!("[SELENIUM] Connecting to WebDriver at {}", selenium_url);
+    // Connect with timeout
+    let driver =
+        tokio::time::timeout(Duration::from_secs(10), WebDriver::new(selenium_url, caps)).await??;
 
-    let driver = WebDriver::new(&selenium_url, caps).await?;
-
-    Ok((selenium_container, driver, selenium_host_port))
+    Ok(driver)
 }
 
-/// Set up an application container with configurable options
-pub async fn setup_app_container(config: AppConfig) -> AppResult {
-    let _host_port = config.host_port.unwrap_or_else(find_free_port);
+/// Set up a Selenium container with default configuration (optimized)
+#[allow(dead_code)]
+pub async fn setup_selenium_with_default_args(
+) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let (selenium_container, selenium_port) = setup_selenium_core(vec![], None).await?;
+    let selenium_url = format!("http://localhost:{selenium_port}");
 
-    let mut app_image = GenericImage::new(&config.image_name, &config.image_tag)
-        .with_env_var("DATABASE_URL", &config.database_url)
-        .with_env_var("PORT", &config.port.to_string())
-        .with_env_var("HOST", &config.host);
+    let driver = setup_webdriver_core(&selenium_url, &[]).await?;
 
-    // Add extra environment variables
-    for (key, value) in &config.extra_env {
-        app_image = app_image.with_env_var(key, value);
-    }
-
-    // Start the container
-    let app_container = AsyncRunner::start(app_image).await?;
-    let app_host_port = app_container.get_host_port_ipv4(config.port).await?;
-
-    // Get container bridge IP for inter-container communication
-    let bridge_ip = app_container.get_bridge_ip_address().await?;
-
-    println!(
-        "[APP] Container started on host port {} (bridge IP: {})",
-        app_host_port, bridge_ip
-    );
-
-    Ok((app_container, bridge_ip.to_string(), app_host_port))
+    Ok((selenium_container, driver, selenium_port))
 }
 
-/// Convenience function for setting up Selenium with default Chrome args
-pub async fn setup_selenium_with_default_args() -> SeleniumResult {
-    setup_selenium_container(SeleniumConfig::default()).await
+/// Set up a Selenium container with custom Chrome arguments (optimized)
+#[allow(dead_code)]
+pub async fn setup_selenium_with_custom_args(
+    extra_args: Vec<String>,
+) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let (selenium_container, selenium_port) = setup_selenium_core(extra_args.clone(), None).await?;
+    let selenium_url = format!("http://localhost:{selenium_port}");
+
+    let driver = setup_webdriver_core(&selenium_url, &extra_args).await?;
+
+    Ok((selenium_container, driver, selenium_port))
 }
 
-/// Convenience function for setting up Selenium with custom Chrome args
-pub async fn setup_selenium_with_custom_args(extra_args: Vec<String>) -> SeleniumResult {
-    let mut config = SeleniumConfig::default();
-    config.extra_chrome_args.extend(extra_args);
-    setup_selenium_container(config).await
-}
-
-/// Convenience function for setting up Selenium on a shared network with custom args
+/// Set up a Selenium container on a shared network (optimized)
+#[allow(dead_code)]
 pub async fn setup_selenium_on_shared_network(
     extra_args: Vec<String>,
     network: &str,
-) -> SeleniumResult {
-    let mut config = SeleniumConfig::default();
-    config.extra_chrome_args.extend(extra_args);
-    config.network = Some(network.to_string());
-    setup_selenium_container(config).await
+) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
+    let (selenium_container, selenium_port) =
+        setup_selenium_core(extra_args.clone(), Some(network)).await?;
+    let selenium_url = format!("http://localhost:{selenium_port}");
+
+    let driver = setup_webdriver_core(&selenium_url, &extra_args).await?;
+
+    Ok((selenium_container, driver, selenium_port))
 }
 
-/// Convenience function for setting up the sortingoffice app container
-pub async fn setup_sortingoffice_app(
-    database_url: &str,
-    extra_env: HashMap<String, String>,
-) -> AppResult {
-    let mut config = AppConfig::default();
-    config.database_url = database_url.to_string();
-    config.extra_env = extra_env;
-    setup_app_container(config).await
-}
-
-/// Clean up multiple containers safely
+/// Parallel container cleanup for better performance
+#[allow(dead_code)]
 pub async fn cleanup_containers(containers: Vec<ContainerAsync<GenericImage>>) -> Result<()> {
-    for container in containers {
-        if let Err(e) = container.stop().await {
-            eprintln!("[CLEANUP] Warning: Failed to stop container: {}", e);
-        }
+    if containers.is_empty() {
+        return Ok(());
     }
+
+    // Use join_all for parallel cleanup
+    let cleanup_futures: Vec<_> = containers
+        .into_iter()
+        .map(|container| async move {
+            if let Err(e) = container.stop().await {
+                eprintln!("[CLEANUP] Warning: Failed to stop container: {}", e);
+            }
+        })
+        .collect();
+
+    futures_util::future::join_all(cleanup_futures).await;
     Ok(())
 }
 
-/// Clean up WebDriver and containers together
+/// Clean up WebDriver and containers together (optimized)
+#[allow(dead_code)]
 pub async fn cleanup_selenium_test_env(
     driver: WebDriver,
     selenium_container: ContainerAsync<GenericImage>,
     app_container: Option<ContainerAsync<GenericImage>>,
 ) -> Result<()> {
-    // Clean up driver first
-    if let Err(e) = driver.quit().await {
-        eprintln!("[CLEANUP] Warning: Failed to quit WebDriver: {}", e);
-    }
+    // Clean up driver first (this can be slow)
+    let driver_cleanup = async {
+        if let Err(e) = driver.quit().await {
+            eprintln!("[CLEANUP] Warning: Failed to quit WebDriver: {}", e);
+        }
+    };
 
-    // Clean up containers
+    // Prepare containers for cleanup
     let mut containers = vec![selenium_container];
     if let Some(app) = app_container {
         containers.push(app);
     }
 
-    cleanup_containers(containers).await
+    // Run driver cleanup and container cleanup in parallel
+    let (_, _) = tokio::join!(driver_cleanup, cleanup_containers(containers));
+
+    Ok(())
 }

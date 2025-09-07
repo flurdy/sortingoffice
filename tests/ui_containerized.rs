@@ -16,7 +16,7 @@ use common::test_suite_lifecycle;
 /// Initialize test suite lifecycle handlers for UI tests.
 /// This ensures proper cleanup of shared containers and networks.
 async fn init_test_suite_lifecycle() {
-    test_suite_lifecycle::register_test_suite_lifecycle().await;
+    test_suite_lifecycle::register_test_suite_lifecycle();
 }
 
 // Helper macros for timeouts
@@ -165,7 +165,7 @@ async fn test_404_page(driver: &WebDriver, app_url: &str, path: &str, context: &
 #[tokio::test]
 async fn test_homepage_loads_containerized() -> Result<()> {
     // Initialize test suite lifecycle for automatic cleanup
-    init_test_suite_lifecycle().await;
+    let _ = init_test_suite_lifecycle();
 
     run_test_with_timeout(
         "test_homepage_loads_containerized",
@@ -2225,18 +2225,4 @@ where
     let secs = duration.as_secs_f64();
     println!("[TEST-TIME] {test_name} took {secs:.2}s");
     result
-}
-
-/// Test suite finalization function.
-/// This ensures cleanup happens when the test suite finishes.
-/// It's automatically called by the test suite lifecycle handlers.
-#[tokio::test]
-async fn test_suite_finalization() -> Result<()> {
-    println!("[SUITE CLEANUP] Finalizing UI test suite...");
-
-    // Finalize the test suite to ensure cleanup
-    test_suite_lifecycle::finalize_test_suite().await?;
-
-    println!("[SUITE CLEANUP] UI test suite finalized successfully");
-    Ok(())
 }

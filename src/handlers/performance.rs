@@ -2,7 +2,7 @@ use crate::AppState;
 
 /// Optimized helper to get config aliases without cloning
 /// Performance optimization: Avoid unnecessary cloning of config data
-pub fn get_config_aliases_references<'a>(state: &'a AppState) -> (&'a [String], &'a [String]) {
+pub fn get_config_aliases_references(state: &AppState) -> (&[String], &[String]) {
     (&state.config.required_aliases, &state.config.common_aliases)
 }
 

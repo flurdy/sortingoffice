@@ -80,7 +80,7 @@ pub async fn get_field_translations(
     let mut translations = HashMap::new();
 
     for field in fields {
-        let key = format!("{entity}-field-{}", field);
+        let key = format!("{entity}-field-{field}");
         let value = get_translation(state, locale, &key).await;
         translations.insert(field.to_string(), value);
     }
@@ -359,7 +359,7 @@ pub async fn get_login_translations(state: &AppState, locale: &str) -> HashMap<S
     ];
 
     // Common layout/language keys referenced in login template
-    let layout_keys = vec![
+    let layout_keys = [
         "app-title",
         "app-subtitle",
         "theme-toggle",

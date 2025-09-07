@@ -8,9 +8,6 @@ mod tests {
     use sortingoffice::test_helpers::test_utils::{TestData, TestUtils};
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
 
-    // Import test suite lifecycle for automatic cleanup
-    use crate::common::test_suite_lifecycle;
-
     // Domain management tests
     mod domain_tests {
         use super::*;
@@ -1300,23 +1297,5 @@ mod tests {
                 TestUtils::assert_status(&response, StatusCode::OK);
             }
         }
-    }
-
-    /// Test suite finalization function.
-    /// This ensures cleanup happens when the integration test suite finishes.
-    /// It's automatically called by the test suite lifecycle handlers.
-    #[tokio::test]
-    async fn test_suite_finalization() {
-        println!("[SUITE CLEANUP] Finalizing integration test suite...");
-
-        // Finalize the test suite to ensure cleanup
-        if let Err(e) = test_suite_lifecycle::finalize_test_suite().await {
-            eprintln!(
-                "[SUITE CLEANUP] Error finalizing integration test suite: {}",
-                e
-            );
-        }
-
-        println!("[SUITE CLEANUP] Integration test suite finalized successfully");
     }
 }

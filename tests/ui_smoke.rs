@@ -61,7 +61,9 @@ use tokio::time::timeout;
 
 #[macro_use]
 mod common;
-use common::testcontainer_helpers::*;
+use common::testcontainer_helpers::{
+    cleanup_selenium_test_env, setup_selenium_with_custom_args, setup_selenium_with_default_args,
+};
 use common::ui_helpers::*;
 
 /// Configuration for smoke test execution
@@ -242,6 +244,102 @@ async fn run_smoke_test_workflow(driver: &WebDriver, app_url: &str) -> Result<()
     Ok(())
 }
 
+/// Get the host IP address that containers can use to reach the host
+/// This is cross-platform and doesn't rely on Linux-specific `ip` commands
+///
+/// Environment variables (in order of precedence):
+/// - `HOST_IP`: Direct host IP address
+/// - `DOCKER_HOST_IP`: Alternative host IP for Docker
+/// - `HOST_BRIDGE_IP`: Bridge network IP
+/// - `GATEWAY_IP`: Gateway IP address
+///
+/// If no environment variables are set, the function will:
+/// - On Linux: Try to detect the bridge IP using `ip route`
+/// - On macOS/Windows: Use `host.docker.internal` (Docker Desktop feature)
+/// - Fallback: Try common Docker bridge IPs (172.17.0.1, etc.)
+/// - Ultimate fallback: 172.17.0.1 (most common Docker default)
+fn get_host_ip_for_containers() -> String {
+    // First, check if HOST_IP environment variable is set
+    if let Ok(host_ip) = std::env::var("HOST_IP") {
+        return host_ip;
+    }
+
+    // Check for other common environment variables
+    for env_var in &["DOCKER_HOST_IP", "HOST_BRIDGE_IP", "GATEWAY_IP"] {
+        if let Ok(ip) = std::env::var(env_var) {
+            return ip;
+        }
+    }
+
+    // Platform-specific detection
+    #[cfg(target_os = "linux")]
+    {
+        // Linux: try to get the host's bridge IP
+        // This is the most reliable method for Linux Docker environments
+        if let Ok(output) = std::process::Command::new("ip")
+            .args(["route", "get", "8.8.8.8"])
+            .output()
+        {
+            if let Ok(stdout) = String::from_utf8(output.stdout) {
+                if let Some(line) = stdout.lines().next() {
+                    // The source IP is typically the 7th field in the output
+                    if let Some(src_ip) = line.split_whitespace().nth(6) {
+                        if !src_ip.is_empty() && src_ip != "8.8.8.8" {
+                            return src_ip.to_string();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        // macOS: use host.docker.internal which works reliably
+        return "host.docker.internal".to_string();
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        // Windows: use host.docker.internal which works reliably
+        return "host.docker.internal".to_string();
+    }
+
+    // Final fallback: common Docker bridge IPs
+    // These are the most common default bridge IPs
+    let common_bridge_ips = vec![
+        "172.17.0.1",  // Default Docker bridge
+        "172.18.0.1",  // Alternative Docker bridge
+        "192.168.1.1", // Common home router
+        "10.0.0.1",    // Common home network
+    ];
+
+    for ip in common_bridge_ips {
+        // Quick check if this IP is reachable (basic connectivity test)
+        // Use platform-specific ping arguments
+        let ping_result = if cfg!(target_os = "windows") {
+            // Windows: ping -n 1 -w 1000
+            std::process::Command::new("ping")
+                .args(["-n", "1", "-w", "1000", ip])
+                .output()
+        } else {
+            // Unix-like systems: ping -c 1 -W 1
+            std::process::Command::new("ping")
+                .args(["-c", "1", "-W", "1", ip])
+                .output()
+        };
+
+        if let Ok(output) = ping_result {
+            if output.status.success() {
+                return ip.to_string();
+            }
+        }
+    }
+
+    // Ultimate fallback
+    "172.17.0.1".to_string()
+}
+
 /// Find the application URL to use for testing
 /// Either uses SMOKE_TEST_APP_URL environment variable or tries to find localhost:3000
 async fn find_app_url() -> anyhow::Result<String> {
@@ -267,63 +365,7 @@ async fn find_app_url() -> anyhow::Result<String> {
 
                 // For Selenium container to reach host localhost, we need to use the host's bridge IP
                 // On Linux, host.docker.internal doesn't work, so we need to get the host's IP
-                let host_ip = std::env::var("HOST_IP").unwrap_or_else(|_| {
-                    // Try to get the host's actual IP address, not the gateway
-                    let output = std::process::Command::new("ip")
-                        .args(["route", "get", "8.8.8.8"])
-                        .output();
-
-                    if let Ok(output) = output {
-                        if let Ok(stdout) = String::from_utf8(output.stdout) {
-                            if let Some(line) = stdout.lines().next() {
-                                // The source IP is the 7th field in the output
-                                if let Some(src_ip) = line.split_whitespace().nth(6) {
-                                    return src_ip.to_string();
-                                }
-                            }
-                        }
-                    }
-
-                    // Fallback: try to get the IP of the default interface
-                    let output = std::process::Command::new("ip")
-                        .args(["route", "show", "default"])
-                        .output();
-
-                    if let Ok(output) = output {
-                        if let Ok(stdout) = String::from_utf8(output.stdout) {
-                            if let Some(line) = stdout.lines().next() {
-                                if let Some(dev) = line.split_whitespace().nth(4) {
-                                    // Get the IP of this interface
-                                    let if_output = std::process::Command::new("ip")
-                                        .args(["addr", "show", dev])
-                                        .output();
-
-                                    if let Ok(if_output) = if_output {
-                                        if let Ok(if_stdout) = String::from_utf8(if_output.stdout) {
-                                            for line in if_stdout.lines() {
-                                                if line.contains("inet ")
-                                                    && !line.contains("127.0.0.1")
-                                                {
-                                                    if let Some(ip) = line.split_whitespace().nth(1)
-                                                    {
-                                                        if let Some(ip_only) = ip.split('/').next()
-                                                        {
-                                                            return ip_only.to_string();
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Final fallback to common Docker bridge IP
-                    "172.17.0.1".to_string()
-                });
-
+                let host_ip = get_host_ip_for_containers();
                 let app_url_for_selenium = format!("http://{host_ip}:3000");
                 println!(
                     "[SMOKE TEST] Using {app_url_for_selenium} for Selenium container to reach host application"
