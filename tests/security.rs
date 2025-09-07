@@ -11,9 +11,11 @@ use sortingoffice::{
 async fn create_test_app() -> (
     axum::Router<sortingoffice::AppState>,
     sortingoffice::AppState,
+    sortingoffice::test_helpers::testcontainers_setup::TestContainer,
 ) {
     let container = setup_test_db().await;
-    TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await
+    let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+    (app, state, container)
 }
 
 fn create_auth_cookie(role: AdminRole) -> axum::http::HeaderValue {
@@ -23,7 +25,7 @@ fn create_auth_cookie(role: AdminRole) -> axum::http::HeaderValue {
 // Security Headers Tests
 #[tokio::test]
 async fn test_security_headers_comprehensive() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     // Test various endpoints to ensure security headers are applied consistently
     let test_endpoints = vec![
@@ -89,7 +91,7 @@ async fn test_security_headers_comprehensive() {
 // SQL Injection Tests
 #[tokio::test]
 async fn test_sql_injection_domain_creation() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     // Test various SQL injection attempts
     let sql_injection_payloads = vec![
@@ -134,7 +136,7 @@ async fn test_sql_injection_domain_creation() {
 // Authentication Bypass Tests
 #[tokio::test]
 async fn test_authentication_bypass_domains() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     // Test without authentication
     let form_data = TestData::domain_form_data("test.com", "smtp:localhost", true);
@@ -159,7 +161,7 @@ async fn test_authentication_bypass_domains() {
 
 #[tokio::test]
 async fn test_authentication_bypass_users() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     // Test without authentication
     let form_data = TestData::user_form_data("user@test.com", "password123", "Test User");
@@ -185,7 +187,7 @@ async fn test_authentication_bypass_users() {
 // Authorization Tests
 #[tokio::test]
 async fn test_authorization_readonly_user() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     // Test that readonly users cannot create domains
     let form_data = TestData::domain_form_data("test.com", "smtp:localhost", true);
@@ -208,7 +210,7 @@ async fn test_authorization_readonly_user() {
 // Input Validation Edge Cases
 #[tokio::test]
 async fn test_input_validation_edge_cases() {
-    let (app, _state) = create_test_app().await;
+    let (app, _state, _container) = create_test_app().await;
 
     let edge_cases = vec![
         // Extremely long inputs
