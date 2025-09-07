@@ -1,12 +1,15 @@
-use std::sync::Once;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Once;
 
+#[allow(dead_code)]
 static SUITE_LIFECYCLE_INIT: Once = Once::new();
+#[allow(dead_code)]
 static SUITE_LIFECYCLE_REGISTERED: AtomicBool = AtomicBool::new(false);
 
 /// Register test suite lifecycle handlers for panic and ctrl-c cleanup.
 /// This should be called early in test execution to ensure proper cleanup.
 /// This function is idempotent - it will only register handlers once.
+#[allow(dead_code)]
 pub fn register_test_suite_lifecycle() {
     // Only register once across all tests
     if SUITE_LIFECYCLE_REGISTERED.load(Ordering::Acquire) {
@@ -28,7 +31,10 @@ pub fn register_test_suite_lifecycle() {
             cleanup_suite_on_panic_blocking();
             std::process::exit(0);
         }) {
-            eprintln!("[SUITE CLEANUP] Warning: Failed to set ctrl-c handler: {}", e);
+            eprintln!(
+                "[SUITE CLEANUP] Warning: Failed to set ctrl-c handler: {}",
+                e
+            );
             // Don't fail the test if ctrl-c handler setup fails
         }
 
@@ -38,6 +44,7 @@ pub fn register_test_suite_lifecycle() {
 }
 
 /// Blocking cleanup function for suite panic and ctrl-c handlers
+#[allow(dead_code)]
 fn cleanup_suite_on_panic_blocking() {
     // Targeted cleanup - only remove resources specifically related to this app's tests
     // This is much safer than the broad prune commands
@@ -81,9 +88,7 @@ fn cleanup_suite_on_panic_blocking() {
                 // Only target networks that are clearly test-related
                 let test_networks: Vec<&str> = output_str
                     .lines()
-                    .filter(|line| {
-                        line.contains("test") || line.contains("sortingoffice-e2e")
-                    })
+                    .filter(|line| line.contains("test") || line.contains("sortingoffice-e2e"))
                     .map(|line| line.split_whitespace().next().unwrap_or(""))
                     .filter(|id| !id.is_empty())
                     .collect();
@@ -107,9 +112,7 @@ fn cleanup_suite_on_panic_blocking() {
                 // Only target volumes that are clearly test-related
                 let test_volumes: Vec<&str> = output_str
                     .lines()
-                    .filter(|line| {
-                        line.contains("test") || line.contains("sortingoffice")
-                    })
+                    .filter(|line| line.contains("test") || line.contains("sortingoffice"))
                     .collect();
 
                 for volume_name in test_volumes {
@@ -124,6 +127,7 @@ fn cleanup_suite_on_panic_blocking() {
 
 /// Clean up all test suite resources including shared containers and networks.
 /// This should be called at the end of test suites or when the process exits.
+#[allow(dead_code)]
 pub async fn cleanup_test_suite_resources() -> anyhow::Result<()> {
     println!("[SUITE CLEANUP] Starting cleanup of test suite resources...");
 
@@ -138,6 +142,7 @@ pub async fn cleanup_test_suite_resources() -> anyhow::Result<()> {
 }
 
 /// Clean up orphaned containers that might be left behind by the test suite.
+#[allow(dead_code)]
 async fn cleanup_orphaned_suite_containers() -> anyhow::Result<()> {
     println!("[SUITE CLEANUP] Cleaning up orphaned test containers...");
 
@@ -148,6 +153,7 @@ async fn cleanup_orphaned_suite_containers() -> anyhow::Result<()> {
 }
 
 /// Fallback shell-based cleanup for orphaned suite containers
+#[allow(dead_code)]
 async fn cleanup_orphaned_suite_containers_shell() -> anyhow::Result<()> {
     use std::process::Command;
 
@@ -213,6 +219,7 @@ async fn cleanup_orphaned_suite_containers_shell() -> anyhow::Result<()> {
 }
 
 /// Clean up test schemas that might be left behind.
+#[allow(dead_code)]
 async fn cleanup_test_schemas() -> anyhow::Result<()> {
     use std::process::Command;
 
@@ -259,6 +266,7 @@ async fn cleanup_test_schemas() -> anyhow::Result<()> {
 
 /// Finalize the test suite and clean up all resources.
 /// This should be called at the end of test suites.
+#[allow(dead_code)]
 pub async fn finalize_test_suite() -> anyhow::Result<()> {
     println!("[SUITE CLEANUP] Finalizing test suite...");
 

@@ -7,7 +7,6 @@ mod tests {
     use sortingoffice::db;
     use sortingoffice::test_helpers::test_utils::{TestData, TestUtils};
     use sortingoffice::test_helpers::testcontainers_setup::setup_test_db;
-    use sortingoffice::test_helpers::testcontainers_setup::TestContainer;
 
     // Domain management tests
     mod domain_tests {

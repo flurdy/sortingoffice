@@ -28,6 +28,7 @@ use thirtyfour::prelude::*;
 
 /// Configuration for Selenium container optimization
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct SeleniumOptimizationConfig {
     /// Timeout for container startup (shorter in CI)
     startup_timeout: Duration,
@@ -54,6 +55,7 @@ impl Default for SeleniumOptimizationConfig {
 }
 
 /// Core Selenium container setup with optimized configuration
+#[allow(dead_code)]
 async fn setup_selenium_core(
     extra_args: Vec<String>,
     network: Option<&str>,
@@ -111,6 +113,7 @@ async fn setup_selenium_core(
 }
 
 /// Set up WebDriver with optimized capabilities
+#[allow(dead_code)]
 async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Result<WebDriver> {
     let mut caps = DesiredCapabilities::chrome();
 
@@ -132,6 +135,7 @@ async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Resu
 }
 
 /// Set up a Selenium container with default configuration (optimized)
+#[allow(dead_code)]
 pub async fn setup_selenium_with_default_args(
 ) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
     let (selenium_container, selenium_port) = setup_selenium_core(vec![], None).await?;
@@ -143,6 +147,7 @@ pub async fn setup_selenium_with_default_args(
 }
 
 /// Set up a Selenium container with custom Chrome arguments (optimized)
+#[allow(dead_code)]
 pub async fn setup_selenium_with_custom_args(
     extra_args: Vec<String>,
 ) -> Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
@@ -155,6 +160,7 @@ pub async fn setup_selenium_with_custom_args(
 }
 
 /// Set up a Selenium container on a shared network (optimized)
+#[allow(dead_code)]
 pub async fn setup_selenium_on_shared_network(
     extra_args: Vec<String>,
     network: &str,
@@ -169,6 +175,7 @@ pub async fn setup_selenium_on_shared_network(
 }
 
 /// Parallel container cleanup for better performance
+#[allow(dead_code)]
 pub async fn cleanup_containers(containers: Vec<ContainerAsync<GenericImage>>) -> Result<()> {
     if containers.is_empty() {
         return Ok(());
@@ -189,6 +196,7 @@ pub async fn cleanup_containers(containers: Vec<ContainerAsync<GenericImage>>) -
 }
 
 /// Clean up WebDriver and containers together (optimized)
+#[allow(dead_code)]
 pub async fn cleanup_selenium_test_env(
     driver: WebDriver,
     selenium_container: ContainerAsync<GenericImage>,

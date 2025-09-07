@@ -18,7 +18,8 @@ mod tests {
 
     async fn create_test_app() -> (Router<AppState>, AppState, TestContainer) {
         let container = setup_test_db().await;
-        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
         (app, state, container)
     }
 
@@ -61,7 +62,8 @@ mod tests {
     #[tokio::test]
     async fn test_domains_create() {
         let container = setup_test_db().await;
-        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
 
         let unique_id = unique_test_id();
         let domain = format!("create-test-{unique_id}.com");
@@ -118,13 +120,13 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains(&domain));
-
     }
 
     #[tokio::test]
     async fn test_domains_edit() {
         let container = setup_test_db().await;
-        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -159,7 +161,8 @@ mod tests {
     #[tokio::test]
     async fn test_domains_update() {
         let container = setup_test_db().await;
-        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -195,7 +198,8 @@ mod tests {
     #[tokio::test]
     async fn test_domains_toggle_enabled() {
         let container = setup_test_db().await;
-        let (app, state) = TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
+        let (app, state) =
+            TestUtils::create_test_app_with_db(&container.get_db_url(), "test").await;
 
         // Create test domain
         let unique_id = unique_test_id();
@@ -271,7 +275,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains(&format!("list-test-{unique_id}")));
-
     }
 
     #[tokio::test]
@@ -317,7 +320,6 @@ mod tests {
         let users = db::get_users(&pool).unwrap();
         assert!(!users.is_empty());
         assert!(users.iter().any(|u| u.id == user_id));
-
     }
 
     #[tokio::test]
@@ -366,7 +368,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains(&format!("show-test-{unique_id}")));
-
     }
 
     #[tokio::test]
@@ -416,7 +417,6 @@ mod tests {
 
         assert!(body_str.contains(&format!("edit-test-{unique_id}")));
         assert!(body_str.contains("Edit User"));
-
     }
 
     #[tokio::test]
@@ -476,7 +476,6 @@ mod tests {
         assert_eq!(updated_user.id, updated_user_id);
         assert_eq!(updated_user.name, "Updated User");
         assert!(updated_user.enabled);
-
     }
 
     #[tokio::test]
@@ -524,7 +523,6 @@ mod tests {
         // Verify user was toggled
         let toggled_user = db::get_user(&pool, _user.id).unwrap();
         assert!(!toggled_user.enabled);
-
     }
 
     #[tokio::test]
@@ -571,7 +569,6 @@ mod tests {
 
         assert!(body_str.contains(mail));
         assert!(body_str.contains(destination));
-
     }
 
     #[tokio::test]
@@ -609,7 +606,6 @@ mod tests {
         let aliases = db::get_aliases(&pool).unwrap();
         assert!(!aliases.is_empty());
         assert!(aliases.iter().any(|a| a.mail == mail));
-
     }
 
     #[tokio::test]
@@ -668,13 +664,12 @@ mod tests {
 
         // Should contain statistics information
         assert!(body_str.contains("Statistics") || body_str.contains("stats"));
-
     }
 
     #[tokio::test]
     async fn test_dashboard() {
-        let (app, state, container) = create_test_app().await;
-        let pool = state
+        let (app, state, _container) = create_test_app().await;
+        let _pool = state
             .db_manager
             .get_default_pool()
             .await
@@ -693,7 +688,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_about() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, _state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,
@@ -716,7 +711,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_not_found() {
-        let (app, state, container) = create_test_app().await;
+        let (app, state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,
@@ -760,12 +755,11 @@ mod tests {
         let backups = db::get_backups(&pool).unwrap();
         assert!(!backups.is_empty());
         assert!(backups.iter().any(|b| b.domain == domain));
-
     }
 
     #[tokio::test]
     async fn test_backups_new() {
-        let (app, state, container) = create_test_app().await;
+        let (app, state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,
@@ -816,7 +810,6 @@ mod tests {
         let body_str = String::from_utf8(body.to_vec()).unwrap();
 
         assert!(body_str.contains(domain));
-
     }
 
     #[tokio::test]
@@ -850,7 +843,6 @@ mod tests {
 
         assert!(body_str.contains(domain));
         assert!(body_str.contains("Edit Backup"));
-
     }
 
     #[tokio::test]
@@ -885,7 +877,6 @@ mod tests {
         let updated_backup = db::get_backup(&pool, _backup.pkid).unwrap();
         assert_eq!(updated_backup.domain, updated_domain);
         assert_eq!(updated_backup.transport, Some("smtp:updated".to_string()));
-
     }
 
     #[tokio::test]
@@ -917,13 +908,12 @@ mod tests {
         // Verify backup was toggled
         let toggled_backup = db::get_backup(&pool, _backup.pkid).unwrap();
         assert!(!toggled_backup.enabled);
-
     }
 
     #[tokio::test]
     async fn test_backups_create_redirects_to_domains() {
         let (app, state, container) = create_test_app().await;
-        let pool = container.get_pool();
+        let _pool = container.get_pool();
 
         let domain = "backup-redirect-test.com";
         let form_data = TestData::backup_form_data(domain, "smtp:localhost");
@@ -946,7 +936,6 @@ mod tests {
 
         // Should contain redirect script to domains page
         assert!(body_str.contains("window.location.href='/domains'"));
-
     }
 
     #[tokio::test]
@@ -986,7 +975,6 @@ mod tests {
         assert!(!body_str.contains("<html>"));
         assert!(!body_str.contains("<head>"));
         assert!(!body_str.contains("<body>"));
-
     }
 
     #[tokio::test]
@@ -1020,7 +1008,6 @@ mod tests {
 
         // Should contain redirect script to domains page
         assert!(body_str.contains("window.location.href='/domains'"));
-
     }
 
     #[tokio::test]
@@ -1065,7 +1052,6 @@ mod tests {
         // Should contain both domain and backup
         assert!(body_str.contains(&format!("domain-backup-test-{unique_id}")));
         assert!(body_str.contains(&format!("backup-domain-test-{unique_id}")));
-
     }
 
     #[tokio::test]
@@ -1245,7 +1231,7 @@ mod tests {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         let (app, state, container) = create_test_app().await;
-        let pool = container.get_pool();
+        let _pool = container.get_pool();
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1299,12 +1285,11 @@ mod tests {
         .await;
 
         TestUtils::assert_status(&response, StatusCode::OK);
-
     }
 
     #[tokio::test]
     async fn test_not_found_handler_anonymous() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, _state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(&app, &_state, "/notfound", None).await;
 
@@ -1441,7 +1426,6 @@ mod tests {
 
         // Should contain search results from mail field
         assert!(body_str.contains("admin@search-test-"));
-
     }
 
     #[tokio::test]
@@ -1477,13 +1461,12 @@ mod tests {
 
         // Should contain domain search results
         assert!(body_str.contains(&format!("search-test-{unique_id}")));
-
     }
 
     #[tokio::test]
     async fn test_database_dropdown() {
         // Use the standard test app setup which uses test containers
-        let (app, state, container) = create_test_app().await;
+        let (app, state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,
@@ -1499,7 +1482,7 @@ mod tests {
     // Basic wizard test to verify the route exists and redirects properly
     #[tokio::test]
     async fn test_wizard_basic() {
-        let (app, _state, container) = create_test_app().await;
+        let (app, _state, _container) = create_test_app().await;
 
         let response = TestUtils::make_handler_get_request(
             &app,

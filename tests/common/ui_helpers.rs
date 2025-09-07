@@ -1262,6 +1262,7 @@ pub async fn check_item_in_paginated_list(
 
 /// Add shared-network helpers and per-schema helpers
 
+#[allow(dead_code)]
 pub async fn ensure_shared_network() -> anyhow::Result<String> {
     let network_name = "sortingoffice-e2e";
     // Create network if missing (user-defined bridge gives DNS between containers)
@@ -1286,6 +1287,7 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
     Ok(network_name.to_string())
 }
 
+#[allow(dead_code)]
 pub async fn connect_container_to_network(
     container_id: &str,
     network: &str,
@@ -1316,6 +1318,7 @@ pub async fn connect_container_to_network(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn get_container_ip_on_network(
     container_id: &str,
     network: &str,
@@ -1378,6 +1381,7 @@ pub async fn run_migrations_for_schema(schema: &str) -> anyhow::Result<()> {
 }
 
 // Simplified app container: attach to shared network with name 'app', connect to DB by service name 'db'
+#[allow(dead_code)]
 pub async fn setup_app_on_shared_network(
     schema: &str,
     host_port: Option<u16>,
@@ -1458,6 +1462,7 @@ pub async fn setup_app_on_shared_network(
     Ok((app, app_port))
 }
 
+#[allow(dead_code)]
 pub async fn setup_selenium_on_shared_network_with_args(
     extra_chrome_args: &[String],
 ) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {

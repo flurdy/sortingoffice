@@ -1,11 +1,14 @@
 use std::sync::Once;
 use tokio::sync::OnceCell;
 
+#[allow(dead_code)]
 static CLEANUP_INIT: Once = Once::new();
+#[allow(dead_code)]
 static CLEANUP_REGISTERED: OnceCell<bool> = OnceCell::const_new();
 
 /// Register cleanup handlers for the current test process.
 /// This should be called early in test execution to ensure proper cleanup.
+#[allow(dead_code)]
 pub async fn register_test_cleanup() {
     if CLEANUP_REGISTERED.get().is_some() {
         return; // Already registered
@@ -37,6 +40,7 @@ pub async fn register_test_cleanup() {
 }
 
 /// Blocking cleanup function for panic and ctrl-c handlers
+#[allow(dead_code)]
 fn cleanup_on_panic_blocking() {
     // Targeted cleanup - only remove resources specifically related to this app's tests
     // This is much safer than the broad prune commands
@@ -80,9 +84,7 @@ fn cleanup_on_panic_blocking() {
                 // Only target networks that are clearly test-related
                 let test_networks: Vec<&str> = output_str
                     .lines()
-                    .filter(|line| {
-                        line.contains("test") || line.contains("sortingoffice-e2e")
-                    })
+                    .filter(|line| line.contains("test") || line.contains("sortingoffice-e2e"))
                     .map(|line| line.split_whitespace().next().unwrap_or(""))
                     .filter(|id| !id.is_empty())
                     .collect();
@@ -106,9 +108,7 @@ fn cleanup_on_panic_blocking() {
                 // Only target volumes that are clearly test-related
                 let test_volumes: Vec<&str> = output_str
                     .lines()
-                    .filter(|line| {
-                        line.contains("test") || line.contains("sortingoffice")
-                    })
+                    .filter(|line| line.contains("test") || line.contains("sortingoffice"))
                     .collect();
 
                 for volume_name in test_volumes {
@@ -123,6 +123,7 @@ fn cleanup_on_panic_blocking() {
 
 /// Clean up all test resources including MySQL container and shared network.
 /// This should be called at the end of test suites or when individual tests finish.
+#[allow(dead_code)]
 pub async fn cleanup_all_test_resources() -> anyhow::Result<()> {
     println!("[CLEANUP] Starting cleanup of all test resources...");
 
@@ -140,6 +141,7 @@ pub async fn cleanup_all_test_resources() -> anyhow::Result<()> {
 }
 
 /// Fallback shell-based cleanup for orphaned test containers
+#[allow(dead_code)]
 async fn cleanup_orphaned_test_containers_shell() -> anyhow::Result<()> {
     use std::process::Command;
 
@@ -206,12 +208,14 @@ async fn cleanup_orphaned_test_containers_shell() -> anyhow::Result<()> {
 
 /// Clean up test resources for a specific test.
 /// This is a simplified version that calls the main cleanup function.
+#[allow(dead_code)]
 pub async fn cleanup_test_resources() -> anyhow::Result<()> {
     cleanup_all_test_resources().await
 }
 
 /// Clean up test suite resources.
 /// This is a simplified version that calls the main cleanup function.
+#[allow(dead_code)]
 pub async fn cleanup_test_suite() -> anyhow::Result<()> {
     cleanup_all_test_resources().await
 }

@@ -66,7 +66,15 @@ impl Drop for TestContainer {
 fn cleanup_test_schema_blocking(schema: &str, port: u16) {
     // Try to use mysql client if available
     let mysql_result = std::process::Command::new("mysql")
-        .args(["-h", "127.0.0.1", "-P", &port.to_string(), "-uroot", "-e", &format!("DROP DATABASE IF EXISTS `{}`;", schema)])
+        .args([
+            "-h",
+            "127.0.0.1",
+            "-P",
+            &port.to_string(),
+            "-uroot",
+            "-e",
+            &format!("DROP DATABASE IF EXISTS `{}`;", schema),
+        ])
         .output();
 
     match mysql_result {
@@ -75,14 +83,21 @@ fn cleanup_test_schema_blocking(schema: &str, port: u16) {
             // Fallback: try to use docker exec if mysql client not available
             let docker_result = std::process::Command::new("docker")
                 .args([
-                    "exec", "sortingoffice-mysql", "mysql", "-uroot", "-e",
-                    &format!("DROP DATABASE IF EXISTS `{}`;", schema)
+                    "exec",
+                    "sortingoffice-mysql",
+                    "mysql",
+                    "-uroot",
+                    "-e",
+                    &format!("DROP DATABASE IF EXISTS `{}`;", schema),
                 ])
                 .output();
 
             match docker_result {
                 Ok(_) => println!("[DEBUG] Cleaned up test schema: {schema} via docker exec"),
-                Err(e) => println!("[DEBUG] Warning: Could not clean up schema {}: {}", schema, e),
+                Err(e) => println!(
+                    "[DEBUG] Warning: Could not clean up schema {}: {}",
+                    schema, e
+                ),
             }
         }
     }
@@ -183,8 +198,7 @@ pub async fn setup_test_db() -> TestContainer {
     let mut conn = pool.get().expect("Failed to get admin connection");
 
     // Drop the schema if it exists to ensure clean state
-    let _ = diesel::sql_query(format!("DROP DATABASE IF EXISTS `{schema}`"))
-        .execute(&mut conn);
+    let _ = diesel::sql_query(format!("DROP DATABASE IF EXISTS `{schema}`")).execute(&mut conn);
 
     // Create the new schema with retry logic
     let mut attempts = 0;
@@ -192,17 +206,25 @@ pub async fn setup_test_db() -> TestContainer {
 
     loop {
         attempts += 1;
-        match diesel::sql_query(format!("CREATE DATABASE `{schema}`"))
-            .execute(&mut conn) {
+        match diesel::sql_query(format!("CREATE DATABASE `{schema}`")).execute(&mut conn) {
             Ok(_) => {
-                println!("[DEBUG] Successfully created test schema {} on attempt {}", schema, attempts);
+                println!(
+                    "[DEBUG] Successfully created test schema {} on attempt {}",
+                    schema, attempts
+                );
                 break;
             }
             Err(e) => {
                 if attempts >= max_attempts {
-                    panic!("Failed to create test schema {} after {} attempts: {}", schema, max_attempts, e);
+                    panic!(
+                        "Failed to create test schema {} after {} attempts: {}",
+                        schema, max_attempts, e
+                    );
                 }
-                println!("[DEBUG] Failed to create test schema {} on attempt {}: {}. Retrying...", schema, attempts, e);
+                println!(
+                    "[DEBUG] Failed to create test schema {} on attempt {}: {}. Retrying...",
+                    schema, attempts, e
+                );
                 tokio::time::sleep(tokio::time::Duration::from_millis(100 * attempts)).await;
             }
         }
@@ -227,18 +249,29 @@ pub async fn setup_test_db() -> TestContainer {
         attempts += 1;
         match conn.run_pending_migrations(MIGRATIONS) {
             Ok(_) => {
-                println!("[DEBUG] Successfully ran migrations on schema {} on attempt {}", schema, attempts);
+                println!(
+                    "[DEBUG] Successfully ran migrations on schema {} on attempt {}",
+                    schema, attempts
+                );
                 break;
             }
             Err(e) => {
                 if attempts >= max_attempts {
-                    panic!("Failed to run migrations on schema {} after {} attempts: {}", schema, max_attempts, e);
+                    panic!(
+                        "Failed to run migrations on schema {} after {} attempts: {}",
+                        schema, max_attempts, e
+                    );
                 }
-                println!("[DEBUG] Failed to run migrations on schema {} on attempt {}: {}. Retrying...", schema, attempts, e);
+                println!(
+                    "[DEBUG] Failed to run migrations on schema {} on attempt {}: {}. Retrying...",
+                    schema, attempts, e
+                );
                 tokio::time::sleep(tokio::time::Duration::from_millis(200 * attempts)).await;
 
                 // Get a fresh connection for retry
-                conn = pool.get().expect("Failed to get connection for migration retry");
+                conn = pool
+                    .get()
+                    .expect("Failed to get connection for migration retry");
             }
         }
     }

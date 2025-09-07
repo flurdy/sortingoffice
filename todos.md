@@ -121,3 +121,8 @@
   - Some tests fail with "Unknown database" errors
   - Appears to be test infrastructure timing issues
   - May need investigation into container lifecycle management
+
+- The readme has some outdated parts
+  - The database schema is outdated. And does not really belong in the readme.
+  - The project structure is outdated. And too granular. It should not include individual files apart from the absolute core project ones.
+  - In general too much detail. If the section refers to a md file in /docs then the root readme should have minimal detail to avoid updating two different docs or becoming outdated.

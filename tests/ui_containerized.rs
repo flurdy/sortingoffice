@@ -165,7 +165,7 @@ async fn test_404_page(driver: &WebDriver, app_url: &str, path: &str, context: &
 #[tokio::test]
 async fn test_homepage_loads_containerized() -> Result<()> {
     // Initialize test suite lifecycle for automatic cleanup
-    init_test_suite_lifecycle();
+    let _ = init_test_suite_lifecycle();
 
     run_test_with_timeout(
         "test_homepage_loads_containerized",
