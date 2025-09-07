@@ -24,7 +24,7 @@ mod tests {
     #[tokio::test]
     async fn test_testcontainers_mysql_works() {
         // Register test suite lifecycle handlers
-        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        test_suite_lifecycle::register_test_suite_lifecycle();
 
         let container = setup_test_db().await;
         let pool = container.get_pool();
@@ -37,12 +37,15 @@ mod tests {
         assert_eq!(result.result, 1);
 
         cleanup_test_db(&container);
+
+        // Small delay to reduce resource contention between tests
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 
     #[tokio::test]
     async fn test_testcontainers_tables_exist() {
         // Register test suite lifecycle handlers
-        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        test_suite_lifecycle::register_test_suite_lifecycle();
 
         let container = setup_test_db().await;
         let pool = container.get_pool();
@@ -69,12 +72,15 @@ mod tests {
         assert_eq!(backups_count.count, 0);
 
         cleanup_test_db(&container);
+
+        // Small delay to reduce resource contention between tests
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 
     #[tokio::test]
     async fn test_testcontainers_isolation() {
         // Register test suite lifecycle handlers
-        test_suite_lifecycle::register_test_suite_lifecycle().await;
+        test_suite_lifecycle::register_test_suite_lifecycle();
 
         // Test that each test gets its own isolated database
         let container1 = setup_test_db().await;
@@ -104,23 +110,8 @@ mod tests {
 
         cleanup_test_db(&container1);
         cleanup_test_db(&container2);
-    }
 
-    /// Test suite finalization function.
-    /// This ensures cleanup happens when the testcontainers test suite finishes.
-    /// It's automatically called by the test suite lifecycle handlers.
-    #[tokio::test]
-    async fn test_suite_finalization() {
-        println!("[SUITE CLEANUP] Finalizing testcontainers test suite...");
-
-        // Finalize the test suite to ensure cleanup
-        if let Err(e) = test_suite_lifecycle::finalize_test_suite().await {
-            eprintln!(
-                "[SUITE CLEANUP] Error finalizing testcontainers test suite: {}",
-                e
-            );
-        }
-
-        println!("[SUITE CLEANUP] Testcontainers test suite finalized successfully");
+        // Small delay to reduce resource contention between tests
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 }

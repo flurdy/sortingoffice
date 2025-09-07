@@ -319,18 +319,3 @@ async fn test_api_security_headers() {
         }
     }
 }
-
-/// Test suite finalization function.
-/// This ensures cleanup happens when the API test suite finishes.
-/// It's automatically called by the test suite lifecycle handlers.
-#[tokio::test]
-async fn test_suite_finalization() {
-    println!("[SUITE CLEANUP] Finalizing API test suite...");
-
-    // Finalize the test suite to ensure cleanup
-    if let Err(e) = common::test_suite_lifecycle::finalize_test_suite().await {
-        eprintln!("[SUITE CLEANUP] Error finalizing API test suite: {}", e);
-    }
-
-    println!("[SUITE CLEANUP] API test suite finalized successfully");
-}

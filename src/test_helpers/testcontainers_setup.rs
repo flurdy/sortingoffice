@@ -51,21 +51,40 @@ impl Drop for TestContainer {
         // Clean up the schema when the TestContainer is dropped
         // Each test owns its own schema and should clean it up
         let schema = self.schema.clone();
-        // Spawn async task for cleanup - best effort, don't block drop
+        let port = self.port;
+
+        // Use blocking cleanup to avoid runtime creation issues
+        // This is a best-effort cleanup that won't block the drop
         std::thread::spawn(move || {
-            let rt = match tokio::runtime::Runtime::new() {
-                Ok(rt) => rt,
-                Err(_) => {
-                    println!(
-                        "[DEBUG] Warning: Could not create runtime for schema cleanup: {schema}"
-                    );
-                    return;
-                }
-            };
-            rt.block_on(async {
-                cleanup_test_schema(&schema).await;
-            });
+            // Use blocking cleanup without creating new runtimes
+            cleanup_test_schema_blocking(&schema, port);
         });
+    }
+}
+
+/// Blocking cleanup function for TestContainer drop
+fn cleanup_test_schema_blocking(schema: &str, port: u16) {
+    // Try to use mysql client if available
+    let mysql_result = std::process::Command::new("mysql")
+        .args(["-h", "127.0.0.1", "-P", &port.to_string(), "-uroot", "-e", &format!("DROP DATABASE IF EXISTS `{}`;", schema)])
+        .output();
+
+    match mysql_result {
+        Ok(_) => println!("[DEBUG] Cleaned up test schema: {schema} via mysql client"),
+        Err(_) => {
+            // Fallback: try to use docker exec if mysql client not available
+            let docker_result = std::process::Command::new("docker")
+                .args([
+                    "exec", "sortingoffice-mysql", "mysql", "-uroot", "-e",
+                    &format!("DROP DATABASE IF EXISTS `{}`;", schema)
+                ])
+                .output();
+
+            match docker_result {
+                Ok(_) => println!("[DEBUG] Cleaned up test schema: {schema} via docker exec"),
+                Err(e) => println!("[DEBUG] Warning: Could not clean up schema {}: {}", schema, e),
+            }
+        }
     }
 }
 
@@ -80,22 +99,56 @@ impl TestContainer {
 }
 
 pub async fn get_shared_mysql_port() -> u16 {
+    // Use a more robust initialization pattern to avoid race conditions
+    if let Some(port) = SHARED_PORT.get() {
+        return *port;
+    }
+
     let container = SHARED_CONTAINER
         .get_or_init(|| async {
-            AsyncRunner::start(Mysql::default())
-                .await
-                .expect("Failed to start MySQL container")
+            // Add a small delay to avoid rapid container creation
+            tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
+
+            // Add retry logic for container startup
+            let mut attempts = 0;
+            let max_attempts = 3;
+
+            loop {
+                attempts += 1;
+                match AsyncRunner::start(Mysql::default()).await {
+                    Ok(container) => {
+                        println!("[DEBUG] Successfully started MySQL container on attempt {}", attempts);
+                        break container;
+                    }
+                    Err(e) => {
+                        if attempts >= max_attempts {
+                            panic!("Failed to start MySQL container after {} attempts: {}", max_attempts, e);
+                        }
+                        println!("[DEBUG] Failed to start MySQL container on attempt {}: {}. Retrying...", attempts, e);
+                        tokio::time::sleep(tokio::time::Duration::from_millis(500 * attempts)).await;
+                    }
+                }
+            }
         })
         .await;
+
     let port = container.get_host_port_ipv4(3306).await.expect("get port");
-    SHARED_PORT.get_or_init(|| async { port }).await;
+
+    // Set the port atomically
+    if SHARED_PORT.get().is_none() {
+        let _ = SHARED_PORT.set(port);
+    }
+
     port
 }
 
 /// Expose the shared MySQL container id so tests can connect it to a shared network
 pub async fn get_shared_mysql_container_id() -> String {
+    // Use the same robust initialization pattern
     let container = SHARED_CONTAINER
         .get_or_init(|| async {
+            // Add a small delay to avoid rapid container creation
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             AsyncRunner::start(Mysql::default())
                 .await
                 .expect("Failed to start MySQL container")
@@ -119,32 +172,76 @@ pub async fn setup_test_db() -> TestContainer {
     let admin_url = format!("mysql://root@{host}:{port}/mysql");
     let test_url = format!("mysql://root@{host}:{port}/{schema}");
 
-    // Create the schema
-    {
-        let manager = ConnectionManager::<MysqlConnection>::new(&admin_url);
-        let pool = Pool::builder()
-            .max_size(3)
-            .min_idle(Some(1))
-            .build(manager)
-            .expect("Failed to create admin pool");
-        let mut conn = pool.get().expect("Failed to get admin connection");
-        diesel::sql_query(format!("CREATE DATABASE IF NOT EXISTS `{schema}`"))
-            .execute(&mut conn)
-            .expect("Failed to create test schema");
+    // Create the schema - simplified without complex retry logic
+    let manager = ConnectionManager::<MysqlConnection>::new(&admin_url);
+    let pool = Pool::builder()
+        .max_size(2)
+        .min_idle(Some(1))
+        .build(manager)
+        .expect("Failed to create admin pool");
+
+    let mut conn = pool.get().expect("Failed to get admin connection");
+
+    // Drop the schema if it exists to ensure clean state
+    let _ = diesel::sql_query(format!("DROP DATABASE IF EXISTS `{schema}`"))
+        .execute(&mut conn);
+
+    // Create the new schema with retry logic
+    let mut attempts = 0;
+    let max_attempts = 3;
+
+    loop {
+        attempts += 1;
+        match diesel::sql_query(format!("CREATE DATABASE `{schema}`"))
+            .execute(&mut conn) {
+            Ok(_) => {
+                println!("[DEBUG] Successfully created test schema {} on attempt {}", schema, attempts);
+                break;
+            }
+            Err(e) => {
+                if attempts >= max_attempts {
+                    panic!("Failed to create test schema {} after {} attempts: {}", schema, max_attempts, e);
+                }
+                println!("[DEBUG] Failed to create test schema {} on attempt {}: {}. Retrying...", schema, attempts, e);
+                tokio::time::sleep(tokio::time::Duration::from_millis(100 * attempts)).await;
+            }
+        }
     }
 
     // Create connection pool for the test schema
     let manager = ConnectionManager::<MysqlConnection>::new(&test_url);
     let pool = Pool::builder()
-        .max_size(5)
+        .max_size(2)
         .min_idle(Some(1))
         .build(manager)
         .expect("Failed to create pool");
 
     // Run migrations on the new schema
     let mut conn = pool.get().expect("Failed to get connection");
-    conn.run_pending_migrations(MIGRATIONS)
-        .expect("Failed to run migrations");
+
+    // Run migrations with retry logic
+    let mut attempts = 0;
+    let max_attempts = 3;
+
+    loop {
+        attempts += 1;
+        match conn.run_pending_migrations(MIGRATIONS) {
+            Ok(_) => {
+                println!("[DEBUG] Successfully ran migrations on schema {} on attempt {}", schema, attempts);
+                break;
+            }
+            Err(e) => {
+                if attempts >= max_attempts {
+                    panic!("Failed to run migrations on schema {} after {} attempts: {}", schema, max_attempts, e);
+                }
+                println!("[DEBUG] Failed to run migrations on schema {} on attempt {}: {}. Retrying...", schema, attempts, e);
+                tokio::time::sleep(tokio::time::Duration::from_millis(200 * attempts)).await;
+
+                // Get a fresh connection for retry
+                conn = pool.get().expect("Failed to get connection for migration retry");
+            }
+        }
+    }
 
     // Get the MySQL container's bridge IP
     let container = SHARED_CONTAINER

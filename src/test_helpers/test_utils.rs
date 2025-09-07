@@ -452,7 +452,7 @@ impl TestUtils {
             .collect()
     }
 
-    /// Get the default database pool and clean up the test database
+    /// Get the default database pool for testing
     /// This is a common pattern used in handler tests
     pub async fn setup_test_db_pool(
         state: &AppState,
@@ -463,10 +463,8 @@ impl TestUtils {
             .await
             .expect("Failed to get database pool");
 
-        // Import the cleanup function
-        use crate::test_helpers::common::cleanup_test_db;
-        cleanup_test_db(&pool);
-
+        // Don't clean up immediately - let the test use the database first
+        // The cleanup should happen after the test completes
         pool
     }
 }
