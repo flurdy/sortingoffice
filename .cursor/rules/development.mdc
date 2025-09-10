@@ -1,7 +1,7 @@
 ---
-description: when developing
+description: when developing, either adding features or changing code.
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 
 Please always check compilation with `cargo check` if any Rust code is changed.

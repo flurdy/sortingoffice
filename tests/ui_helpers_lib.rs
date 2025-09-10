@@ -7,7 +7,7 @@ use anyhow::Result;
 use diesel::RunQueryDsl;
 use diesel_migrations::MigrationHarness;
 use rand::RngCore;
-use crate::test_helpers::testcontainers_setup::MIGRATIONS;
+use sortingoffice::test_helpers::testcontainers_setup::MIGRATIONS;
 use std::net::TcpListener;
 use std::process::Command;
 use testcontainers::core::Mount;
@@ -1274,7 +1274,7 @@ pub async fn get_container_ip_on_network(
 // Per-schema helpers on the shared MySQL container
 #[allow(dead_code)]
 pub async fn create_schema(schema: &str) -> anyhow::Result<()> {
-    let port = crate::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
+    let port = sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
     let admin_url = format!("mysql://root@127.0.0.1:{}/mysql", port);
     let manager =
         diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&admin_url);
@@ -1289,7 +1289,7 @@ pub async fn create_schema(schema: &str) -> anyhow::Result<()> {
 
 #[allow(dead_code)]
 pub async fn run_migrations_for_schema(schema: &str) -> anyhow::Result<()> {
-    let port = crate::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
+    let port = sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_port().await;
     let url = format!("mysql://root@127.0.0.1:{}/{}", port, schema);
     let manager = diesel::r2d2::ConnectionManager::<diesel::mysql::MysqlConnection>::new(&url);
     let pool = diesel::r2d2::Pool::builder()
@@ -1314,7 +1314,7 @@ pub async fn setup_app_on_shared_network(
 
     // Ensure shared DB exists and is connected to network as alias 'db'
     let db_container_id: String =
-        crate::test_helpers::testcontainers_setup::get_shared_mysql_container_id().await;
+        sortingoffice::test_helpers::testcontainers_setup::get_shared_mysql_container_id().await;
     connect_container_to_network(&db_container_id, &network, "db").await?;
 
     let db_url = format!("mysql://root@db:3306/{}", schema);

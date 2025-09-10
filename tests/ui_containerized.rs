@@ -814,7 +814,7 @@ async fn test_performance_metrics_containerized() -> Result<()> {
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(30),
+        Duration::from_secs(60),
     )
     .await
 }

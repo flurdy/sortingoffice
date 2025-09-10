@@ -23,3 +23,5 @@ Once finished editing a test please run `cargo check --tests` to make sure it wi
 If needing to curl, check the scrips folder for helpers. There is one for log-in etc.
 
 If any runtime code changes needed for testing, make sure the docker image is rebuilt first.
+
+Prefer to use Makefile aliases for testing during development as well so proper cleanup happens.

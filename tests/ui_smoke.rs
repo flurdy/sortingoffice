@@ -64,7 +64,8 @@ mod common;
 use common::testcontainer_helpers::{
     cleanup_selenium_test_env, setup_selenium_with_custom_args, setup_selenium_with_default_args,
 };
-use common::ui_helpers::*;
+use common::ui_helpers::{*, wait_for_selenium_ready};
+
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
