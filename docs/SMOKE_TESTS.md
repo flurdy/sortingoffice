@@ -81,8 +81,8 @@ pub async fn run_smoke_test_with_testcontainers() -> Result<()>
 - **Use Case**: CI/CD and production-like testing
 
 ### Shared Infrastructure
-Both tests use the same helper functions from `tests/ui_helpers.rs`:
-- `setup_selenium_container_and_driver()`: Creates isolated Selenium containers
+Both tests use the same helper functions from `tests/ui_helpers.rs` and `tests/common/testcontainer_helpers.rs`:
+- `setup_selenium_with_default_args()`, `setup_selenium_with_custom_args()`: Creates isolated Selenium containers (from `testcontainer_helpers.rs`)
 - `authenticate_driver()`: Handles login workflow
 - `create_domain()`, `create_alias()`, `create_user()`: Resource creation
 - `cleanup_test_resources()`: Ensures test isolation

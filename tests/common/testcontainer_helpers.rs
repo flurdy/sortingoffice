@@ -63,7 +63,7 @@ async fn setup_selenium_core(
     let config = SeleniumOptimizationConfig::default();
 
     // Build optimized Selenium image
-    let mut selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
+    let mut selenium_image = GenericImage::new("selenium/standalone-chrome", "4.15.0")
         .with_env_var("SE_NODE_MAX_SESSIONS", "1")
         .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
         .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
@@ -118,9 +118,24 @@ async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Resu
     let mut caps = DesiredCapabilities::chrome();
 
     // Essential Chrome arguments for stability
+    caps.add_arg("--headless=new")?;
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     caps.add_arg("--disable-gpu")?;
+    caps.add_arg("--window-size=1920,1080")?;
+    caps.add_arg("--disable-web-security")?;
+    caps.add_arg("--allow-running-insecure-content")?;
+    caps.add_arg("--remote-debugging-port=9222")?;
+    caps.add_arg("--disable-background-timer-throttling")?;
+    caps.add_arg("--disable-backgrounding-occluded-windows")?;
+    caps.add_arg("--disable-renderer-backgrounding")?;
+    caps.add_arg("--whitelisted-ips=")?;
+    caps.add_arg("--disable-features=VizDisplayCompositor")?;
+    caps.add_arg("--ignore-ssl-errors")?;
+    caps.add_arg("--ignore-certificate-errors")?;
+    caps.add_arg("--allow-insecure-localhost")?;
+    caps.add_arg("--disable-extensions")?;
+    caps.add_arg("--disable-plugins")?;
 
     // Add extra arguments efficiently
     for arg in extra_args {

@@ -63,7 +63,7 @@ All UI test modules are in `tests/`:
 **Location**: `tests/ui_helpers.rs`
 
 **Purpose**: Eliminates code duplication between UI test files by providing shared functions:
-- **Selenium Setup**: `setup_selenium_container_and_driver()` - Creates isolated Selenium containers
+- **Selenium Setup**: `setup_selenium_with_default_args()`, `setup_selenium_with_custom_args()`, `setup_selenium_on_shared_network()` - Creates isolated Selenium containers (from `testcontainer_helpers.rs`)
 - **Authentication**: `authenticate_driver()` - Handles login workflow
 - **Resource Creation**: `create_domain()`, `create_alias()`, `create_user()` - Resource creation workflows
 - **Cleanup**: `cleanup_test_resources()` - Ensures test isolation

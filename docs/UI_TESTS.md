@@ -98,7 +98,7 @@ Comprehensive security tests to ensure the application is protected:
 
 All UI tests use shared helper functions to eliminate code duplication:
 
-- **Selenium Setup**: `setup_selenium_container_and_driver()` - Creates isolated Selenium containers
+- **Selenium Setup**: `setup_selenium_with_default_args()`, `setup_selenium_with_custom_args()`, `setup_selenium_on_shared_network()` - Creates isolated Selenium containers (from `testcontainer_helpers.rs`)
 - **Authentication**: `authenticate_driver()` - Handles login workflow
 - **Resource Creation**: `create_domain()`, `create_alias()`, `create_user()` - Resource creation workflows
 - **Cleanup**: `cleanup_test_resources()` - Ensures test isolation

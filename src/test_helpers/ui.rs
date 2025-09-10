@@ -74,77 +74,6 @@ pub async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()
     ))
 }
 
-/// Setup selenium container and driver
-#[allow(dead_code)]
-pub async fn setup_selenium_container_and_driver(
-) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_env_var("SE_NODE_SESSION_TIMEOUT", "300")
-        .with_env_var("SE_START_XVFB", "false")
-        .with_env_var("SE_SCREEN_WIDTH", "1920")
-        .with_env_var("SE_SCREEN_HEIGHT", "1080")
-        .with_env_var("SE_SCREEN_DEPTH", "24")
-        .with_env_var("SE_SCREEN_DPI", "96")
-        .with_env_var("SE_SCREEN_RESOLUTION", "1920x1080x24")
-        .with_env_var("SE_VNC_NO_PASSWORD", "1")
-        .with_env_var("SE_NODE_GRID_URL", "http://localhost:4444")
-        .with_env_var("SE_NODE_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_HOST", "localhost")
-        .with_env_var("SE_EVENT_BUS_PUBLISH_PORT", "4442")
-        .with_env_var("SE_EVENT_BUS_SUBSCRIBE_PORT", "4443")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"));
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-
-    // println!("[UI HELPERS] Selenium container started");
-    println!("[UI HELPERS] Selenium URL: http://localhost:{selenium_port}");
-    // println!(
-    //     "[UI HELPERS] Selenium VNC URL: vnc://localhost:{}",
-    //     selenium.get_host_port_ipv4(5900).await?
-    // );
-
-    // println!("[UI HELPERS] Waiting for Selenium to be ready...");
-    timeout90s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
-        "Wait for selenium ready"
-    )?;
-    println!("[UI HELPERS] ✅ Selenium is ready and responding");
-
-    // println!("[UI HELPERS] Setting up WebDriver capabilities...");
-    let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--allow-running-insecure-content")?;
-    caps.add_arg("--remote-debugging-port=9222")?;
-    caps.add_arg("--whitelisted-ips=")?;
-    caps.add_arg("--disable-features=VizDisplayCompositor")?;
-    // Add SSL/TLS configuration to handle protocol errors
-    caps.add_arg("--ignore-ssl-errors")?;
-    caps.add_arg("--ignore-certificate-errors")?;
-    caps.add_arg("--allow-insecure-localhost")?;
-    caps.add_arg("--disable-extensions")?;
-    caps.add_arg("--disable-plugins")?;
-
-    // println!("[UI HELPERS] Chrome configured with minimal settings to avoid conflicts");
-
-    // println!(
-    //     "[UI HELPERS] Connecting to WebDriver at http://localhost:{}",
-    //     selenium_port
-    // );
-    let driver = timeout(
-        Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
-    )
-    .await??;
-    println!("[UI HELPERS] ✅ WebDriver connected successfully");
-    Ok((selenium, driver, selenium_port))
-}
 
 /// Authenticate driver with admin credentials
 #[allow(dead_code)]
@@ -1455,50 +1384,6 @@ pub async fn setup_app_on_shared_network(
     Ok((app, app_port))
 }
 
-pub async fn setup_selenium_on_shared_network_with_args(
-    extra_chrome_args: &[String],
-) -> anyhow::Result<(ContainerAsync<GenericImage>, WebDriver, u16)> {
-    let network = ensure_shared_network().await?;
-
-    let selenium_image = GenericImage::new("selenium/standalone-chrome", "latest")
-        .with_env_var("SE_NODE_MAX_SESSIONS", "1")
-        .with_env_var("SE_NODE_OVERRIDE_MAX_SESSIONS", "true")
-        .with_mount(Mount::bind_mount("/dev/shm", "/dev/shm"))
-        .with_network(&network);
-
-    let selenium = AsyncRunner::start(selenium_image).await?;
-    let selenium_port = selenium.get_host_port_ipv4(4444).await?;
-    println!("[UI HELPERS] Selenium URL: http://localhost:{selenium_port}");
-
-    timeout90s!(
-        wait_for_selenium_ready(selenium_port, Duration::from_secs(90)),
-        "Wait for selenium ready"
-    )?;
-
-    let mut caps = DesiredCapabilities::chrome();
-    // Base args
-    caps.add_arg("--headless=new")?;
-    caps.add_arg("--no-sandbox")?;
-    caps.add_arg("--disable-dev-shm-usage")?;
-    caps.add_arg("--disable-gpu")?;
-    caps.add_arg("--window-size=1920,1080")?;
-    // Relax network/security for CI
-    caps.add_arg("--allow-insecure-localhost")?;
-    caps.add_arg("--disable-web-security")?;
-    caps.add_arg("--disable-http2")?;
-    caps.add_arg("--disable-quic")?;
-    caps.add_arg("--test-type")?;
-    for a in extra_chrome_args {
-        caps.add_arg(a)?;
-    }
-
-    let driver = timeout(
-        Duration::from_secs(20),
-        WebDriver::new(&format!("http://localhost:{selenium_port}"), caps),
-    )
-    .await??;
-    Ok((selenium, driver, selenium_port))
-}
 
 /// Wait until a page is ready by ensuring either the layout is present
 /// (identified by #main-content) or that an allowed plain-message appears.

@@ -68,7 +68,7 @@ use sortingoffice::test_helpers::ui_utils::UiTestUtils;
 async fn test_login_flow() -> Result<()> {
     // Setup Selenium
     let (selenium_container, driver, _port) = 
-        UiTestUtils::setup_selenium_container_and_driver().await?;
+        setup_selenium_with_default_args().await?;
     
     // Authenticate
     UiTestUtils::authenticate_driver(&driver, "http://localhost:3000").await?;

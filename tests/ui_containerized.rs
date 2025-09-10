@@ -78,7 +78,7 @@ struct TestEnv {
 impl TestEnv {
     /// Explicit cleanup method to be called at end of tests
     async fn cleanup(self) -> anyhow::Result<()> {
-        println!("[CLEANUP] Cleaning up test containers...");
+        println!("[CLEANUP] Cleaning up test containers (non-db)...");
 
         // Clean up the driver
         if let Err(e) = self.driver.quit().await {
@@ -97,7 +97,7 @@ impl TestEnv {
             eprintln!("[CLEANUP] Warning: Failed to stop app container: {}", e);
         }
 
-        println!("[CLEANUP] Test containers cleaned up successfully");
+        println!("[CLEANUP] Test containers (non-db) cleaned up successfully");
         Ok(())
     }
 }
