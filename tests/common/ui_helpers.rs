@@ -87,21 +87,21 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     println!("[AUTH] Starting authentication process...");
 
     // First logout to ensure clean state
-    println!("[AUTH] Logging out first...");
+    // println!("[AUTH] Logging out first...");
     timeout60s!(driver.get(&logout_url), "Navigate to logout page")?;
     tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
 
     // Navigate to login page
-    println!("[AUTH] Navigating to login page...");
+    // println!("[AUTH] Navigating to login page...");
     timeout60s!(driver.get(&login_url), "Navigate to login page")?;
     // If DB is warming up, the login route may render a plain error page.
     // Reload until the login form is present.
     let mut attempts: usize = 0;
-    println!("[AUTH] Waiting for login form to be ready...");
+    // println!("[AUTH] Waiting for login form to be ready...");
     loop {
         // Try to locate the username input; if found, proceed.
         if let Ok(_) = driver.find(By::Css("input[name='id']")).await {
-            println!("[AUTH] Login form found, proceeding with authentication...");
+            // println!("[AUTH] Login form found, proceeding with authentication...");
             break;
         }
         // Check page source for transient DB error and retry if seen
@@ -130,7 +130,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     }
 
     // Find and fill username field
-    println!("[AUTH] Filling username field...");
+    // println!("[AUTH] Filling username field...");
     let username_field = timeout60s!(
         driver.find(By::Css("input[name='id']")),
         "Find username field"
@@ -139,7 +139,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
     // Find and fill password field
-    println!("[AUTH] Filling password field...");
+    // println!("[AUTH] Filling password field...");
     let password_field = timeout60s!(
         driver.find(By::Css("input[name='password']")),
         "Find password field"
@@ -148,7 +148,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
     // Find and click submit button
-    println!("[AUTH] Finding submit button...");
+    // println!("[AUTH] Finding submit button...");
     let submit_button = timeout60s!(
         driver.find(By::XPath(
             "//button[@type='submit' and contains(text(), 'Sign in')]"
@@ -160,13 +160,13 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     let is_enabled = timeout60s!(submit_button.is_enabled(), "Check button enabled")?;
     let is_displayed = timeout60s!(submit_button.is_displayed(), "Check button displayed")?;
 
-    println!(
-        "[AUTH] Submit button - enabled: {}, displayed: {}",
-        is_enabled, is_displayed
-    );
+    // println!(
+    //     "[AUTH] Submit button - enabled: {}, displayed: {}",
+    //     is_enabled, is_displayed
+    // );
 
     if is_enabled && is_displayed {
-        println!("[AUTH] Clicking submit button...");
+        // println!("[AUTH] Clicking submit button...");
         timeout60s!(submit_button.click(), "Click submit button")?;
     } else {
         return Err(anyhow::anyhow!(
@@ -177,7 +177,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     }
 
     // Wait for redirect and verify authentication
-    println!("[AUTH] Waiting for redirect after login...");
+    // println!("[AUTH] Waiting for redirect after login...");
     tokio::time::sleep(tokio::time::Duration::from_millis(1500)).await;
 
     // Wait for redirect with retries
@@ -191,7 +191,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
                 let url_str = url.as_str().to_string();
                 current_url = Some(url);
                 if !url_str.contains("/login") {
-                    println!("[AUTH] Successfully redirected away from login page");
+                    // println!("[AUTH] Successfully redirected away from login page");
                     break;
                 }
             }
@@ -1191,9 +1191,19 @@ pub async fn check_item_in_paginated_list(
 
 /// Add shared-network helpers and per-schema helpers
 
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+
+// Global mutex to prevent race conditions in network creation
+static NETWORK_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+
 #[allow(dead_code)]
 pub async fn ensure_shared_network() -> anyhow::Result<String> {
     let network_name = "sortingoffice-e2e";
+    
+    // Use a mutex to prevent race conditions when multiple tests try to create the network
+    let _guard = NETWORK_MUTEX.lock().unwrap();
+    
     // Create network if missing (user-defined bridge gives DNS between containers)
     let check = Command::new("docker")
         .args(["network", "ls", "--format", "{{.Name}}"])
@@ -1201,17 +1211,27 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
     let exists = String::from_utf8_lossy(&check.stdout)
         .lines()
         .any(|n| n == network_name);
+    
     if !exists {
         let out = Command::new("docker")
             .args(["network", "create", network_name])
             .output()?;
         if !out.status.success() {
-            return Err(anyhow::anyhow!(
-                "Failed to create shared network: {}",
-                String::from_utf8_lossy(&out.stderr)
-            ));
+            let stderr = String::from_utf8_lossy(&out.stderr);
+            // If network already exists (race condition), that's okay
+            if stderr.contains("already exists") {
+                println!("[NETWORK] ✅ Network {} already exists (race condition handled)", network_name);
+            } else {
+                return Err(anyhow::anyhow!(
+                    "Failed to create shared network: {}",
+                    stderr
+                ));
+            }
+        } else {
+            println!("[NETWORK] ✅ Created shared network: {}", network_name);
         }
-        println!("[NETWORK] ✅ Created shared network: {}", network_name);
+    } else {
+        println!("[NETWORK] ✅ Using existing shared network: {}", network_name);
     }
     Ok(network_name.to_string())
 }
