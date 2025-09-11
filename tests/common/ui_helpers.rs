@@ -57,6 +57,7 @@ macro_rules! timeout90s {
 }
 
 /// Wait for selenium to be ready
+#[allow(dead_code)]
 pub async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()> {
     let client = reqwest::Client::new();
     let url = format!("http://localhost:{port}/status");
