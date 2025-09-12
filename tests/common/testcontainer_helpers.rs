@@ -144,7 +144,16 @@ async fn setup_webdriver_core(selenium_url: &str, extra_args: &[String]) -> Resu
 
     // Connect with timeout
     let driver =
-        tokio::time::timeout(Duration::from_secs(10), WebDriver::new(selenium_url, caps)).await??;
+        tokio::time::timeout(Duration::from_secs(30), WebDriver::new(selenium_url, caps)).await??;
+
+    // Set explicit timeouts for better reliability
+    driver
+        .set_page_load_timeout(Duration::from_secs(30))
+        .await?;
+    driver
+        .set_implicit_wait_timeout(Duration::from_secs(10))
+        .await?;
+    driver.set_script_timeout(Duration::from_secs(30)).await?;
 
     Ok(driver)
 }

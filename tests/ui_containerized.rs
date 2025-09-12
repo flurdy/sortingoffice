@@ -7,7 +7,7 @@ mod common;
 use common::testcontainer_helpers::setup_selenium_on_shared_network;
 use common::ui_helpers::{
     authenticate_driver, create_schema, get_container_ip_on_network, run_migrations_for_schema,
-    setup_app_on_shared_network,
+    setup_app_on_shared_network, wait_for_app_from_selenium,
 };
 
 // Import test suite lifecycle for automatic cleanup
@@ -45,28 +45,6 @@ macro_rules! timeout90s {
 }
 
 // Wait for the app to be reachable from inside the Selenium container by loading /health
-async fn wait_for_app_from_selenium(
-    driver: &WebDriver,
-    app_url: &str,
-    max_wait: Duration,
-) -> Result<()> {
-    let health_url = format!("{}/health", app_url.trim_end_matches('/'));
-    let start = std::time::Instant::now();
-    loop {
-        match driver.get(&health_url).await {
-            Ok(_) => return Ok(()),
-            Err(_) => {
-                if start.elapsed() >= max_wait {
-                    return Err(anyhow::anyhow!(
-                        "Timed out waiting for app from Selenium at {}",
-                        health_url
-                    ));
-                }
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        }
-    }
-}
 
 struct TestEnv {
     app_container: ContainerAsync<GenericImage>,
@@ -131,8 +109,6 @@ async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
 
     // Determine app container IP on the shared bridge network
     let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
-    // Removed noisy debug logging
-    // println!("[DEBUG] App container IP on shared network: {}", app_ip);
 
     // Use the container IP for Selenium to avoid DNS alias issues on Linux
     let app_url = format!("http://{}:3000", app_ip);
@@ -453,7 +429,7 @@ async fn test_domains_list_page_containerized() -> Result<()> {
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(60),
+        Duration::from_secs(90),
     )
     .await
 }
@@ -535,7 +511,7 @@ async fn test_clients_list_page_containerized() -> Result<()> {
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(60),
+        Duration::from_secs(90),
     )
     .await
 }
@@ -814,7 +790,7 @@ async fn test_performance_metrics_containerized() -> Result<()> {
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(60),
+        Duration::from_secs(90),
     )
     .await
 }

@@ -1,5 +1,5 @@
 # Multi-stage build for Rust application
-FROM rust:slim AS builder
+FROM rust:1.85-bookworm AS builder
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

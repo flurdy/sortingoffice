@@ -113,6 +113,13 @@ impl Config {
 
     /// Load configuration from the default config file
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
+        // Check if CONFIG_PATH environment variable is set
+        if let Ok(config_path) = std::env::var("CONFIG_PATH") {
+            if Path::new(&config_path).exists() {
+                return Self::from_file(&config_path);
+            }
+        }
+
         let config_paths = [
             // "config/required_aliases.toml",
             "config/config.toml",
@@ -164,9 +171,87 @@ impl Config {
     /// Load config with environment variable substitution
     pub fn load_config_with_env(path: &str) -> Result<Config, anyhow::Error> {
         let raw = fs::read_to_string(path)?;
-        let substituted = substitute(&raw, &std::env::vars().collect())?;
-        let config: Config = toml::from_str(&substituted)?;
-        Ok(config)
+
+        // Allow environment variables based on safe patterns, with content validation for others
+        // This prevents problematic environment variables from breaking the substitution
+        let mut allowed_env_vars = std::collections::HashMap::new();
+
+        // Patterns that are always safe to use in config substitution
+        let safe_patterns = [
+            "DATABASE_URL",
+            "MYSQL_",
+            "BACKUP",
+            "PRIMARY_DB_URL",
+            "APP_URL",
+            "BASE_URL",
+            "DEFAULT_LOCALE",
+            "TESTING",
+            "RUST_ENV",
+            "CONFIG_PATH",
+            "HOST",
+            "PORT",
+            "ADMIN_",
+            "theme_display_",
+            "RUST_",
+            "TEST_",
+        ];
+
+        // Helper function to check if a value is safe for substitution
+        fn is_value_safe(value: &str) -> bool {
+            !value.contains("${") && // Skip values that already contain substitution syntax
+            !value.contains("}") && // Skip values with closing braces that could break substitution
+            !value.contains("{") && // Skip values with opening braces that could break substitution
+            !value.contains("$(") && // Skip values with command substitution syntax
+            !value.contains("`") && // Skip values with backticks
+            !value.contains("\"") && // Skip values with quotes that could break TOML
+            !value.contains("'") && // Skip values with single quotes
+            !value.contains("\n") && // Skip multiline values
+            !value.contains("\r") && // Skip values with carriage returns
+            !value.contains("\t") && // Skip values with tabs
+            value.len() < 1000 // Skip very long values
+        }
+
+        // Process all environment variables
+        for (key, value) in std::env::vars() {
+            // Check if this key matches any safe pattern
+            let is_safe_pattern = safe_patterns.iter().any(|pattern| {
+                if pattern.ends_with('_') {
+                    key.starts_with(pattern)
+                } else {
+                    key == *pattern || key.starts_with(&format!("{}_", pattern))
+                }
+            });
+
+            if is_safe_pattern {
+                // For safe patterns, allow the value without additional validation
+                allowed_env_vars.insert(key, value);
+            } else {
+                // For other variables, check if the value is safe
+                if is_value_safe(&value) {
+                    allowed_env_vars.insert(key, value);
+                } else {
+                    eprintln!("Warning: Skipping environment variable {} due to potentially problematic content", key);
+                }
+            }
+        }
+
+        // Try substitution with filtered environment variables
+        match substitute(&raw, &allowed_env_vars) {
+            Ok(substituted) => {
+                let config: Config = toml::from_str(&substituted)?;
+                Ok(config)
+            }
+            Err(e) => {
+                // If substitution fails, try with the original content (no substitution)
+                // This provides a fallback for cases where substitution isn't needed
+                eprintln!(
+                    "Warning: Environment variable substitution failed: {}. Using original config.",
+                    e
+                );
+                let config: Config = toml::from_str(&raw)?;
+                Ok(config)
+            }
+        }
     }
 
     /// Get required aliases for a specific domain

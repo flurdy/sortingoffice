@@ -4,6 +4,8 @@ use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
+    // Always use environment variable substitution for consistency and flexibility
+    // This allows both local development and containerized environments to use env vars
     let config_path = ConfigUtils::get_default_config_path();
     let config = Config::load_config_with_env(&config_path)
         .unwrap_or_else(|e| panic!("Failed to load configuration from {config_path}: {e:?}"));

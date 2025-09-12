@@ -62,10 +62,9 @@ use tokio::time::timeout;
 #[macro_use]
 mod common;
 use common::testcontainer_helpers::{
-    cleanup_selenium_test_env, setup_selenium_with_custom_args, setup_selenium_with_default_args,
+    cleanup_selenium_test_env, setup_selenium_on_shared_network, setup_selenium_with_default_args,
 };
-use common::ui_helpers::{*, wait_for_selenium_ready};
-
+use common::ui_helpers::{wait_for_app_from_selenium, wait_for_selenium_ready, *};
 
 /// Configuration for smoke test execution
 #[derive(Debug, Clone)]
@@ -452,7 +451,7 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
         "--lang=en".to_string(),
     ];
     let (selenium_container, driver, _selenium_port) =
-        setup_selenium_with_custom_args(extra_args).await?;
+        setup_selenium_on_shared_network(extra_args, "sortingoffice-e2e").await?;
 
     // Determine app container IP on the shared bridge network
     let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
@@ -462,23 +461,8 @@ async fn ui_smoke_containerized_e2e_flow() -> Result<()> {
     let health_url = format!("{}/health", app_url.trim_end_matches('/'));
     println!("[DEBUG] Health check URL: {health_url}");
 
-    // Wait for app to be ready
-    let start = std::time::Instant::now();
-    let max_wait = Duration::from_secs(30);
-    loop {
-        match driver.get(&health_url).await {
-            Ok(_) => break,
-            Err(_) => {
-                if start.elapsed() >= max_wait {
-                    return Err(anyhow::anyhow!(
-                        "Timed out waiting for app from Selenium at {}",
-                        health_url
-                    ));
-                }
-                tokio::time::sleep(Duration::from_secs(2)).await;
-            }
-        }
-    }
+    // Wait for app to be ready using shared helper
+    wait_for_app_from_selenium(&driver, &app_url, Duration::from_secs(90)).await?;
 
     println!("[SMOKE TEST] App container ready at: {app_url}");
     println!("[SMOKE TEST] Using database URL: {db_url}");

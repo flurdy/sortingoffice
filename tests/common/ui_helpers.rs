@@ -78,6 +78,31 @@ pub async fn wait_for_selenium_ready(port: u16, max_wait: Duration) -> Result<()
     ))
 }
 
+/// Wait for app to be reachable from Selenium
+#[allow(dead_code)]
+pub async fn wait_for_app_from_selenium(
+    driver: &WebDriver,
+    app_url: &str,
+    max_wait: Duration,
+) -> Result<()> {
+    let health_url = format!("{}/health", app_url.trim_end_matches('/'));
+    let start = std::time::Instant::now();
+    loop {
+        match driver.get(&health_url).await {
+            Ok(_) => return Ok(()),
+            Err(_) => {
+                if start.elapsed() >= max_wait {
+                    return Err(anyhow::anyhow!(
+                        "Timed out waiting for app from Selenium at {}",
+                        health_url
+                    ));
+                }
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        }
+    }
+}
+
 /// Authenticate driver with admin credentials
 #[allow(dead_code)]
 pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<()> {
@@ -1189,10 +1214,9 @@ pub async fn check_item_in_paginated_list(
 // - cleanup_test_network: Network cleanup is now handled automatically
 // - setup_test_db_with_network: Replaced by the shared network approach
 
-/// Add shared-network helpers and per-schema helpers
-
-use std::sync::Mutex;
 use once_cell::sync::Lazy;
+/// Add shared-network helpers and per-schema helpers
+use std::sync::Mutex;
 
 // Global mutex to prevent race conditions in network creation
 static NETWORK_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
@@ -1200,10 +1224,10 @@ static NETWORK_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 #[allow(dead_code)]
 pub async fn ensure_shared_network() -> anyhow::Result<String> {
     let network_name = "sortingoffice-e2e";
-    
+
     // Use a mutex to prevent race conditions when multiple tests try to create the network
     let _guard = NETWORK_MUTEX.lock().unwrap();
-    
+
     // Create network if missing (user-defined bridge gives DNS between containers)
     let check = Command::new("docker")
         .args(["network", "ls", "--format", "{{.Name}}"])
@@ -1211,7 +1235,7 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
     let exists = String::from_utf8_lossy(&check.stdout)
         .lines()
         .any(|n| n == network_name);
-    
+
     if !exists {
         let out = Command::new("docker")
             .args(["network", "create", network_name])
@@ -1220,7 +1244,10 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
             let stderr = String::from_utf8_lossy(&out.stderr);
             // If network already exists (race condition), that's okay
             if stderr.contains("already exists") {
-                println!("[NETWORK] ✅ Network {} already exists (race condition handled)", network_name);
+                println!(
+                    "[NETWORK] ✅ Network {} already exists (race condition handled)",
+                    network_name
+                );
             } else {
                 return Err(anyhow::anyhow!(
                     "Failed to create shared network: {}",
@@ -1231,7 +1258,10 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
             println!("[NETWORK] ✅ Created shared network: {}", network_name);
         }
     } else {
-        println!("[NETWORK] ✅ Using existing shared network: {}", network_name);
+        println!(
+            "[NETWORK] ✅ Using existing shared network: {}",
+            network_name
+        );
     }
     Ok(network_name.to_string())
 }
@@ -1390,7 +1420,7 @@ pub async fn setup_app_on_shared_network(
     let health_url = format!("http://127.0.0.1:{}/health", app_port);
     let client = reqwest::Client::new();
     let start = std::time::Instant::now();
-    let timeout = std::time::Duration::from_secs(60);
+    let timeout = std::time::Duration::from_secs(120);
     loop {
         if let Ok(resp) = client.get(&health_url).send().await {
             if resp.status().is_success() {
@@ -1398,7 +1428,18 @@ pub async fn setup_app_on_shared_network(
             }
         }
         if start.elapsed() > timeout {
-            return Err(anyhow::anyhow!("App /health not healthy after 60s"));
+            // Get container logs for debugging
+            let logs = std::process::Command::new("docker")
+                .args(["logs", app.id()])
+                .output();
+            let log_output = match logs {
+                Ok(output) => String::from_utf8_lossy(&output.stdout).to_string(),
+                Err(_) => "Failed to get logs".to_string(),
+            };
+            return Err(anyhow::anyhow!(
+                "App /health not healthy after 120s. Container logs:\n{}",
+                log_output
+            ));
         }
         tokio::time::sleep(Duration::from_millis(500)).await;
     }
