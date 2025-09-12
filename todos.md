@@ -2,11 +2,11 @@
 
 ## ✅ COMPLETED TASKS
 
+- ✅ Fix UI tests
+
 ## 📋 PENDING TASKS
 
 ### High Priority
-
-- Fix UI tests
 
 ### Medium Priority
 
