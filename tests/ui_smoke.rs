@@ -41,7 +41,8 @@
 //!
 //! ### Environment Variables
 //!
-//! - `SMOKE_TEST_APP_URL`: URL of the running SortingOffice application (default: http://host.docker.internal:3000)
+//! - `SMOKE_TEST_APP_URL`: URL of the running SortingOffice application (default: auto-detect localhost:3000)
+//! - `SMOKE_TEST_APP_TIMEOUT`: Timeout in seconds to wait for app to start (default: 60)
 //!
 //! ### Notes
 //!
@@ -355,13 +356,24 @@ async fn find_app_url() -> anyhow::Result<String> {
     // Try to connect to localhost:3000 with retries (app might be restarting)
     let localhost_url = "http://localhost:3000";
     let client = reqwest::Client::new();
-    let timeout = std::time::Duration::from_secs(30);
+    let timeout_seconds = std::env::var("SMOKE_TEST_APP_TIMEOUT")
+        .unwrap_or_else(|_| "60".to_string())
+        .parse::<u64>()
+        .unwrap_or(60);
+    let timeout = std::time::Duration::from_secs(timeout_seconds);
+
+    println!(
+        "[SMOKE TEST] Will wait up to {} seconds for the application to start",
+        timeout_seconds
+    );
     let start = std::time::Instant::now();
 
     while start.elapsed() < timeout {
-        match client.get(localhost_url).send().await {
+        // First try the health endpoint for a more reliable check
+        let health_url = format!("{}/health", localhost_url);
+        match client.get(&health_url).send().await {
             Ok(resp) if resp.status().is_success() => {
-                println!("[SMOKE TEST] Found running application at {localhost_url}");
+                println!("[SMOKE TEST] Found running SortingOffice application at {localhost_url} (health check passed)");
 
                 // For Selenium container to reach host localhost, we need to use the host's bridge IP
                 // On Linux, host.docker.internal doesn't work, so we need to get the host's IP
@@ -374,25 +386,60 @@ async fn find_app_url() -> anyhow::Result<String> {
                 return Ok(app_url_for_selenium);
             }
             _ => {
-                // App not ready yet, wait a bit and retry
-                let elapsed = start.elapsed();
-                let remaining = timeout - elapsed;
-                println!(
-                    "[SMOKE TEST] Application not ready at {localhost_url} (elapsed: {elapsed:?}, remaining: {remaining:?})"
-                );
+                // If health check fails, try the main page
+                match client.get(localhost_url).send().await {
+                    Ok(resp) if resp.status().is_success() => {
+                        // Check if this is actually the SortingOffice application
+                        let body = resp.text().await.unwrap_or_default();
+                        if body.contains("Sorting Office")
+                            || body.contains("sortingoffice")
+                            || body.contains("login")
+                        {
+                            println!("[SMOKE TEST] Found running SortingOffice application at {localhost_url} (main page check passed)");
 
-                if remaining.as_secs() > 0 {
-                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                } else {
-                    break;
+                            // For Selenium container to reach host localhost, we need to use the host's bridge IP
+                            // On Linux, host.docker.internal doesn't work, so we need to get the host's IP
+                            let host_ip = get_host_ip_for_containers();
+                            let app_url_for_selenium = format!("http://{host_ip}:3000");
+                            println!(
+                                "[SMOKE TEST] Using {app_url_for_selenium} for Selenium container to reach host application"
+                            );
+
+                            return Ok(app_url_for_selenium);
+                        } else {
+                            println!("[SMOKE TEST] Found application at {localhost_url} but it doesn't appear to be SortingOffice");
+                        }
+                    }
+                    _ => {
+                        // App not ready yet, continue to retry
+                    }
                 }
             }
         }
+
+        // App not ready yet, wait a bit and retry
+        let elapsed = start.elapsed();
+        let remaining = timeout - elapsed;
+        println!(
+            "[SMOKE TEST] Application not ready at {localhost_url} (elapsed: {elapsed:?}, remaining: {remaining:?})"
+        );
+
+        if remaining.as_secs() > 0 {
+            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        } else {
+            break;
+        }
     }
 
-    println!("[SMOKE TEST] No application found at localhost:3000 after 30 seconds");
+    println!(
+        "[SMOKE TEST] No application found at localhost:3000 after {} seconds",
+        timeout_seconds
+    );
     println!(
         "[SMOKE TEST] Please start the application or set SMOKE_TEST_APP_URL environment variable"
+    );
+    println!(
+        "[SMOKE TEST] You can also increase the timeout with SMOKE_TEST_APP_TIMEOUT (default: 60 seconds)"
     );
     Err(anyhow::anyhow!(
         "No application found at localhost:3000 and no SMOKE_TEST_APP_URL provided"
