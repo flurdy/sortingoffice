@@ -128,9 +128,9 @@ use tower_http::trace::TraceLayer;
 
 use crate::AppState;
 
-pub fn create_app(app_state: AppState) -> Router<AppState> {
-    // Create read-only routes (require authentication but not edit permissions)
-    let read_only_routes = Router::new()
+/// Create read-only routes that require authentication but not edit permissions
+fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
+    Router::new()
         .route("/", axum::routing::get(dashboard_index))
         .route("/about", axum::routing::get(about_index))
         .route("/contact", axum::routing::get(contact_index))
@@ -228,10 +228,12 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
             require_auth,
-        ));
+        ))
+}
 
-    // Create edit routes (require edit permissions)
-    let edit_routes = Router::new()
+/// Create edit routes that require edit permissions
+fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
+    Router::new()
         // Domain edit operations
         .route("/domains", axum::routing::post(create_domain))
         .route("/domains/new", axum::routing::get(new_domain))
@@ -379,7 +381,15 @@ pub fn create_app(app_state: AppState) -> Router<AppState> {
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
             require_edit_permissions,
-        ));
+        ))
+}
+
+pub fn create_app(app_state: AppState) -> Router<AppState> {
+    // Create read-only routes (require authentication but not edit permissions)
+    let read_only_routes = create_read_only_routes(&app_state);
+
+    // Create edit routes (require edit permissions)
+    let edit_routes = create_edit_routes(&app_state);
 
     // Create the main app with public and protected routes
     Router::new()

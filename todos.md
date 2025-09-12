@@ -1,16 +1,5 @@
 # TODO List
 
-## ✅ COMPLETED TASKS
-
-- ✅ Fix UI tests
-- ✅ Extend unit and integration tests
-  - ✅ Added 20 comprehensive edge case tests covering unicode, special characters, extreme lengths, malformed data, concurrent requests, authentication edge cases, and database error handling
-- ✅ Update README
-  - ✅ Made README concise and current by removing outdated database schema and detailed project structure
-  - ✅ Now references /docs files instead of duplicating information
-
-## 📋 PENDING TASKS
-
 ### High Priority
 
 - ✅ Fix smoke test failure when run against local cargo run
@@ -23,14 +12,17 @@
 
 ### Low Priority
 
-- Tidy up code
-  -- Remove commented out code.
-  -- Remove unused functions. But checking all tests including ignored ones if they are used.
-  -- Remove orphaned white space.
-  -- Evaluate underscored / suppressed warnings if they should just be deleted. But fully test along the way.
-  -- Scan code for only partially implemented refactoring.
-  -- Scan code for long functions, and split them up.
-  -- Scan code for long files and see if more granular files is better.
+- ✅ Tidy up code
+  - ✅ Refactored long create_app function (272 lines) into smaller helper functions
+  - ✅ Split long wizard execute function (114 lines) into smaller, focused functions
+  - ✅ Fixed formatting issues and verified no compilation errors
+  - ✅ Improved code readability and maintainability
+  - ✅ No unused functions or commented code found
+  - ✅ All code properly formatted
+
+- Tidy up more code and tests
+  - Refactor long functions 
+  - Split long files
 
 ## 🐛 KNOWN ISSUES
 

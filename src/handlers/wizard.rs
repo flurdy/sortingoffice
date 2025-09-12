@@ -37,6 +37,111 @@ lazy_static! {
         Mutex::new(HashMap::new());
 }
 
+/// Create domains and aliases in the database
+async fn create_domains_and_aliases(
+    state: &AppState,
+    headers: &HeaderMap,
+    session: &DomainWizardSession,
+) -> (Vec<String>, i32, i32) {
+    let mut domains_created = 0;
+    let mut aliases_created = 0;
+    let mut successfully_created_domains = Vec::new();
+
+    for domain_data in &session.domains {
+        // Create domain
+        let pool = match crate::handlers::utils::get_current_db_pool(state, headers).await {
+            Ok(pool) => pool,
+            Err(_e) => {
+                continue;
+            }
+        };
+
+        let new_domain = crate::models::NewDomain {
+            domain: domain_data.domain.clone(),
+            transport: Some(session.transport.clone()),
+            enabled: session.enabled,
+        };
+
+        match db::create_domain(&pool, new_domain) {
+            Ok(_) => {
+                domains_created += 1;
+                successfully_created_domains.push(domain_data.domain.clone());
+            }
+            Err(_e) => {}
+        }
+
+        // Create aliases for this domain
+        let aliases_to_create = prepare_aliases_for_domain(domain_data, session);
+        let created_count =
+            create_aliases_for_domain(&pool, &aliases_to_create, &session.common_destination).await;
+        aliases_created += created_count;
+    }
+
+    (
+        successfully_created_domains,
+        domains_created,
+        aliases_created,
+    )
+}
+
+/// Prepare aliases for a domain
+fn prepare_aliases_for_domain(
+    domain_data: &DomainWizardData,
+    session: &DomainWizardSession,
+) -> Vec<String> {
+    let mut aliases_to_create = Vec::new();
+
+    // Add all selected aliases from session (including analytics-driven ones)
+    for alias in &session.common_aliases {
+        aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
+    }
+
+    // Add custom aliases
+    for alias in &session.custom_aliases {
+        if !alias.is_empty() {
+            aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
+        }
+    }
+
+    // Add catchall alias if enabled
+    if session.catchall_enabled {
+        aliases_to_create.push(format!("@{}", domain_data.domain));
+    }
+
+    // Remove duplicates
+    aliases_to_create.sort();
+    aliases_to_create.dedup();
+    aliases_to_create
+}
+
+/// Create aliases for a domain
+async fn create_aliases_for_domain(
+    pool: &DbPool,
+    aliases_to_create: &[String],
+    common_destination: &str,
+) -> i32 {
+    let mut created_count = 0;
+
+    for alias in aliases_to_create {
+        let alias_form = crate::models::AliasForm {
+            mail: alias.clone(),
+            destination: common_destination.to_string(),
+            enabled: true,
+            return_url: None,
+            redirect_to: None,
+        };
+
+        match db::create_alias(pool, alias_form) {
+            Ok(_) => {
+                created_count += 1;
+            }
+            Err(_e) => {}
+        }
+    }
+
+    created_count
+}
+
 // Helper function to get wizard translations
 async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
     crate::handlers::translations::get_translations_batch(
@@ -787,75 +892,8 @@ pub async fn execute(
     save_session(session.clone());
 
     // Actually create domains and aliases in database
-    let mut _domains_created = 0;
-    let mut _aliases_created = 0;
-    let mut successfully_created_domains = Vec::new();
-
-    for domain_data in &session.domains {
-        // Create domain
-        let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
-            Ok(pool) => pool,
-            Err(_e) => {
-                continue;
-            }
-        };
-
-        let new_domain = crate::models::NewDomain {
-            domain: domain_data.domain.clone(),
-            transport: Some(session.transport.clone()),
-            enabled: session.enabled,
-        };
-
-        match db::create_domain(&pool, new_domain) {
-            Ok(_) => {
-                _domains_created += 1;
-                successfully_created_domains.push(domain_data.domain.clone());
-            }
-            Err(_e) => {}
-        }
-
-        // Create aliases for this domain
-        let mut aliases_to_create = Vec::new();
-
-        // Add all selected aliases from session (including analytics-driven ones)
-        for alias in &session.common_aliases {
-            aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
-        }
-
-        // Add custom aliases
-        for alias in &session.custom_aliases {
-            if !alias.is_empty() {
-                aliases_to_create.push(format!("{}@{}", alias, domain_data.domain));
-            }
-        }
-
-        // Add catchall alias if enabled
-        if session.catchall_enabled {
-            aliases_to_create.push(format!("@{}", domain_data.domain));
-        }
-
-        // Remove duplicates
-        aliases_to_create.sort();
-        aliases_to_create.dedup();
-
-        // Create each alias
-        for alias in aliases_to_create {
-            let alias_form = crate::models::AliasForm {
-                mail: alias.clone(),
-                destination: session.common_destination.clone(),
-                enabled: true,
-                return_url: None,
-                redirect_to: None,
-            };
-
-            match db::create_alias(&pool, alias_form) {
-                Ok(_) => {
-                    _aliases_created += 1;
-                }
-                Err(_e) => {}
-            }
-        }
-    }
+    let (successfully_created_domains, _domains_created, _aliases_created) =
+        create_domains_and_aliases(&state, &headers, &session).await;
 
     // Update session to only contain successfully created domains
     session.step = WizardStep::Complete;
