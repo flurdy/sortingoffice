@@ -39,6 +39,32 @@ Before you begin, ensure you have the following installed:
 - **Docker** and **Docker Compose** (optional, for containerized setup)
 - **Make** (Optional, for using the provided Makefile commands)
 
+#### Rust
+
+- Install rustup
+
+      sudo dnf install rustup
+
+  or 
+      
+       brew install rustup
+
+- Initialise rustup
+       
+       rustup-init
+
+- Install *cargo binstall*
+
+       cargo install cargo-binstall
+
+- install Diesel CLI binary
+
+       cargo binstall diesel-cli
+
+  Or MySQL only 
+
+       cargo install diesel_cli --no-default-features --features mysql
+
 ## Getting the Code
 
 ### Option 1: Fork and Clone (Recommended for Development)
