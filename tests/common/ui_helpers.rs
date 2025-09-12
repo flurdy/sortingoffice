@@ -109,7 +109,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
     let logout_url = format!("{}/logout", base_url.trim_end_matches('/'));
     let login_url = format!("{}/login", base_url.trim_end_matches('/'));
 
-    println!("[AUTH] Starting authentication process...");
+    // println!("[AUTH] Starting authentication process...");
 
     // First logout to ensure clean state
     // println!("[AUTH] Logging out first...");
@@ -251,7 +251,7 @@ pub async fn authenticate_driver(driver: &WebDriver, base_url: &str) -> Result<(
         ));
     }
 
-    println!("[AUTH] Authentication successful!");
+    // println!("[AUTH] Authentication successful!");
     Ok(())
 }
 
@@ -1257,11 +1257,11 @@ pub async fn ensure_shared_network() -> anyhow::Result<String> {
         } else {
             println!("[NETWORK] ✅ Created shared network: {}", network_name);
         }
-    } else {
-        println!(
-            "[NETWORK] ✅ Using existing shared network: {}",
-            network_name
-        );
+        // } else {
+        //     println!(
+        //         "[NETWORK] ✅ Using existing shared network: {}",
+        //         network_name
+        //     );
     }
     Ok(network_name.to_string())
 }

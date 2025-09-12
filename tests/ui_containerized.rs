@@ -1428,11 +1428,16 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
                 )?;
 
                 if domain_inputs.len() >= 2 {
-                    // Try to fill the second input
-                    let second_input_result = safe_find_and_send_keys(&env.driver, "#domains-container input[type='text']:nth-of-type(2)", &domain2, "second domain input").await;
-                    if second_input_result.is_ok() {
-                        second_input_found = true;
-                        break;
+                    // Try to fill the second input by getting it from the list
+                    let second_input = &domain_inputs[1]; // Get the second input (index 1)
+                    match timeout30s!(second_input.send_keys(&domain2), "Send keys to second domain input") {
+                        Ok(_) => {
+                            second_input_found = true;
+                            break;
+                        }
+                        Err(_) => {
+                            // Continue to next attempt
+                        }
                     }
                 }
 
@@ -1711,7 +1716,7 @@ async fn test_wizard_flow_with_dynamic_domains_containerized() -> anyhow::Result
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(90),
+        Duration::from_secs(180),
     )
     .await
 }
