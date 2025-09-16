@@ -301,6 +301,29 @@ pub async fn render_domain_show_page(
     .await
 }
 
+/// Helper function to get filtered analytics aliases for domain show page
+/// Extracts the complex alias filtering logic from the show function
+async fn get_filtered_analytics_aliases(
+    state: &crate::AppState,
+    headers: &axum::http::HeaderMap,
+    existing_aliases: &[crate::models::Alias],
+) -> Vec<String> {
+    // Get analytics-driven common aliases
+    let analytics_common_aliases = find_database_common_aliases(state, headers, 10, 3).await;
+
+    // Use optimized helper to get config aliases without cloning
+    let (config_required, config_common) =
+        crate::handlers::performance::get_config_aliases_references(state);
+
+    // Use the existing filter_analytics_aliases function
+    filter_analytics_aliases(
+        &analytics_common_aliases,
+        existing_aliases,
+        &config_required,
+        &config_common,
+    )
+}
+
 pub async fn list(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -387,28 +410,9 @@ pub async fn show(
         crate::handlers::database_ops::get_domain_aliases_with_fallback(&pool, &domain.domain)
             .await;
 
-    // Get analytics-driven common aliases
-    let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
-
-    // Use optimized helper to get config aliases without cloning
-    let (config_required, config_common) =
-        crate::handlers::performance::get_config_aliases_references(&state);
-
-    // Optimize alias name extraction to avoid unnecessary cloning
-    let existing_alias_names: std::collections::HashSet<&str> = existing_aliases
-        .iter()
-        .filter_map(|alias| alias.mail.split('@').next())
-        .collect();
-
-    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
-        .iter()
-        .filter(|alias| {
-            !config_required.contains(alias)
-                && !config_common.contains(alias)
-                && !existing_alias_names.contains(alias.as_str())
-        })
-        .cloned()
-        .collect();
+    // Get filtered analytics aliases using helper function
+    let filtered_analytics_aliases =
+        get_filtered_analytics_aliases(&state, &headers, &existing_aliases).await;
 
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_domain_show_page(

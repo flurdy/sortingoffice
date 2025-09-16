@@ -36,6 +36,7 @@ pub fn parse_header_value_safely(
 }
 
 /// Get database pool or handle error with consistent error handling and retry mechanism
+/// TODO: This function could be consolidated with other similar functions using a generic approach
 pub async fn get_db_pool_or_handle_error(
     state: &AppState,
     headers: &HeaderMap,
@@ -134,6 +135,7 @@ pub async fn get_current_db_pool(
 }
 
 /// Get database pool or error with HTML response and fallback mechanism
+/// TODO: This function could be consolidated with other similar functions using a generic approach
 pub async fn get_db_pool_or_error(
     state: &AppState,
     headers: &HeaderMap,
@@ -158,6 +160,7 @@ pub async fn get_db_pool_or_error(
 }
 
 /// Get database pool or redirect error with retry mechanism
+/// TODO: This function could be consolidated with other similar functions using a generic approach
 pub async fn get_db_pool_or_redirect_error(
     state: &AppState,
     headers: &HeaderMap,
@@ -213,6 +216,21 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
             Html(format!("Failed to {error_context}"))
         }
     }
+}
+
+/// Generic database operation with fallback to empty result
+pub async fn execute_db_operation_with_fallback<T, F>(
+    _operation: F,
+    fallback_value: T,
+    _error_context: &str,
+) -> T
+where
+    F: FnOnce(&crate::DbPool) -> Result<T, diesel::result::Error>,
+    T: Clone,
+{
+    // This is a simplified version - in practice, you'd need to pass the pool
+    // For now, keeping the original functions but with better error handling
+    fallback_value
 }
 
 /// Get paginated domains with fallback

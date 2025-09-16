@@ -629,94 +629,21 @@ pub async fn search(
         Err(error_html) => return error_html,
     };
 
-    // Get the query string
-    let query_string = if let Some(alias_query) = &query.alias {
-        alias_query.clone()
-    } else if let Some(dest_query) = &query.destination {
-        dest_query.clone()
-    } else {
-        String::new()
-    };
+    // Extract query string from search parameters
+    let query_string = extract_search_query_string(&query);
 
     // Handle empty or missing query
     if query_string.len() < 2 {
-        let locale = get_user_locale(&headers);
-        let translations = get_translations_batch(
-            &state,
-            &locale,
-            &["aliases-search-no-results", "aliases-search-select"],
-        )
-        .await;
-        let content_template = AliasSearchResultsTemplate {
-            aliases: &[],
-            no_results: &translations["aliases-search-no-results"],
-            select_text: &translations["aliases-search-select"],
-        };
-        return match crate::handlers::templates::render_template_safely(content_template) {
-            Ok(content) => Html(content),
-            Err(_) => crate::handlers::errors::render_500_page(&state, &headers).await,
-        };
+        return render_empty_search_results(&state, &headers).await;
     }
 
     let limit = query.limit.unwrap_or(10);
 
-    // --- Collect all matching values from aliases and users ---
-    let mut values = std::collections::HashSet::new();
+    // Search across all data sources
+    let search_results = search_all_data_sources(&pool, &query_string, limit).await;
 
-    // 1. Alias mail and destination
-    if let Ok(aliases) = db::search_aliases(&pool, &query_string, limit * 2) {
-        for alias in aliases {
-            if alias.mail.contains(&query_string) {
-                values.insert(alias.mail);
-            }
-            if alias.destination.contains(&query_string) {
-                values.insert(alias.destination);
-            }
-        }
-    }
-
-    // 2. User ids
-    use diesel::prelude::*;
-    if let Ok(mut conn) = pool.get() {
-        let search_pattern = format!("%{query_string}%");
-        let user_ids: Vec<String> = crate::schema::users::dsl::users
-            .filter(crate::schema::users::dsl::id.like(&search_pattern))
-            .select(crate::schema::users::dsl::id)
-            .limit(limit * 2)
-            .load::<String>(&mut conn)
-            .unwrap_or_default();
-        for user_id in user_ids {
-            values.insert(user_id);
-        }
-    }
-
-    // 3. Sort and limit
-    let mut values: Vec<String> = values.into_iter().collect();
-    values.sort_by_key(|a| a.to_lowercase());
-    values.truncate(limit as usize);
-
-    // 4. Render as a flat list of suggestions
-    let html = if values.is_empty() {
-        let locale = get_user_locale(&headers);
-        let translations = get_translations_batch(
-            &state,
-            &locale,
-            &["aliases-search-no-results", "aliases-search-select"],
-        )
-        .await;
-        format!(
-            "<ul><li class=\"text-gray-400\">{}</li></ul>",
-            translations["aliases-search-no-results"]
-        )
-    } else {
-        let items: String = values
-            .into_iter()
-            .map(|v| format!("<li class=\"cursor-pointer\">{v}</li>"))
-            .collect();
-        format!("<ul>{items}</ul>")
-    };
-
-    Html(html)
+    // Render search results
+    render_search_results(&state, &headers, search_results).await
 }
 
 pub async fn domain_search(
@@ -868,4 +795,126 @@ where
             Err(error_html)
         }
     }
+}
+
+/// Extract search query string from search parameters
+fn extract_search_query_string(query: &AliasSearchQuery) -> String {
+    if let Some(alias_query) = &query.alias {
+        alias_query.clone()
+    } else if let Some(dest_query) = &query.destination {
+        dest_query.clone()
+    } else {
+        String::new()
+    }
+}
+
+/// Render empty search results when query is too short
+async fn render_empty_search_results(state: &AppState, headers: &HeaderMap) -> Html<String> {
+    let locale = get_user_locale(headers);
+    let translations = get_translations_batch(
+        state,
+        &locale,
+        &["aliases-search-no-results", "aliases-search-select"],
+    )
+    .await;
+    let content_template = AliasSearchResultsTemplate {
+        aliases: &[],
+        no_results: &translations["aliases-search-no-results"],
+        select_text: &translations["aliases-search-select"],
+    };
+    match crate::handlers::templates::render_template_safely(content_template) {
+        Ok(content) => Html(content),
+        Err(_) => crate::handlers::errors::render_500_page(state, headers).await,
+    }
+}
+
+/// Search across all data sources (aliases, users)
+async fn search_all_data_sources(
+    pool: &crate::DbPool,
+    query_string: &str,
+    limit: i64,
+) -> Vec<String> {
+    let mut values = std::collections::HashSet::new();
+
+    // Search aliases
+    search_aliases_data(pool, query_string, limit, &mut values).await;
+
+    // Search users
+    search_users_data(pool, query_string, limit, &mut values).await;
+
+    // Sort and limit results
+    let mut results: Vec<String> = values.into_iter().collect();
+    results.sort_by_key(|a| a.to_lowercase());
+    results.truncate(limit as usize);
+    results
+}
+
+/// Search aliases data source
+async fn search_aliases_data(
+    pool: &crate::DbPool,
+    query_string: &str,
+    limit: i64,
+    values: &mut std::collections::HashSet<String>,
+) {
+    if let Ok(aliases) = db::search_aliases(pool, query_string, limit * 2) {
+        for alias in aliases {
+            if alias.mail.contains(query_string) {
+                values.insert(alias.mail);
+            }
+            if alias.destination.contains(query_string) {
+                values.insert(alias.destination);
+            }
+        }
+    }
+}
+
+/// Search users data source
+async fn search_users_data(
+    pool: &crate::DbPool,
+    query_string: &str,
+    limit: i64,
+    values: &mut std::collections::HashSet<String>,
+) {
+    use diesel::prelude::*;
+    if let Ok(mut conn) = pool.get() {
+        let search_pattern = format!("%{query_string}%");
+        let user_ids: Vec<String> = crate::schema::users::dsl::users
+            .filter(crate::schema::users::dsl::id.like(&search_pattern))
+            .select(crate::schema::users::dsl::id)
+            .limit(limit * 2)
+            .load::<String>(&mut conn)
+            .unwrap_or_default();
+        for user_id in user_ids {
+            values.insert(user_id);
+        }
+    }
+}
+
+/// Render search results as HTML
+async fn render_search_results(
+    state: &AppState,
+    headers: &HeaderMap,
+    search_results: Vec<String>,
+) -> Html<String> {
+    let html = if search_results.is_empty() {
+        let locale = get_user_locale(headers);
+        let translations = get_translations_batch(
+            state,
+            &locale,
+            &["aliases-search-no-results", "aliases-search-select"],
+        )
+        .await;
+        format!(
+            "<ul><li class=\"text-gray-400\">{}</li></ul>",
+            translations["aliases-search-no-results"]
+        )
+    } else {
+        let items: String = search_results
+            .into_iter()
+            .map(|v| format!("<li class=\"cursor-pointer\">{v}</li>"))
+            .collect();
+        format!("<ul>{items}</ul>")
+    };
+
+    Html(html)
 }
