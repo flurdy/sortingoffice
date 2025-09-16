@@ -15,6 +15,7 @@ nav-config = Configuration
 nav-database-backup = Database Backup
 nav-database = Database Selection
 nav-wizard = Domain Wizard
+nav-duplicate-wizard = Duplicate Domain
 nav-about = About
 nav-contact = Contact
 nav-logout = Logout

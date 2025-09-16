@@ -481,7 +481,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
     // println!("[CREATE] Sending keys to focused domain input");
     timeout30s!(domain_input.clear(), "Clear domain input")?;
     timeout30s!(domain_input.send_keys(domain_name), "Type domain name")?;
-    
+
     // Debug: Verify the domain name was entered
     // let domain_value = timeout30s!(domain_input.prop("value"), "Get domain input value")?;
     // println!("[CREATE] Domain input value after typing: {:?}", domain_value);
@@ -490,11 +490,11 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         driver.find(By::Css("input[name='transport']")),
         "Find transport input"
     )?;
-    
+
     // Clear the transport field first
     timeout30s!(transport_input.clear(), "Clear transport input")?;
     timeout30s!(transport_input.send_keys("virtual"), "Type transport")?;
-    
+
     // Debug: Verify the transport was entered
     // let transport_value = timeout30s!(transport_input.prop("value"), "Get transport input value")?;
     // println!("[CREATE] Transport input value after typing: {:?}", transport_value);
@@ -503,12 +503,12 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         driver.find(By::Id("domain-submit-button")),
         "Find submit button"
     )?;
-    
+
     // Debug: Check submit button state
     // let is_enabled = timeout30s!(submit_button.is_enabled(), "Check submit button enabled")?;
     // let is_displayed = timeout30s!(submit_button.is_displayed(), "Check submit button displayed")?;
     // println!("[CREATE] Submit button - enabled: {}, displayed: {}", is_enabled, is_displayed);
-    
+
     timeout30s!(submit_button.click(), "Click submit button")?;
 
     // Wait for form submission and check for validation errors

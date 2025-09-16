@@ -1170,6 +1170,7 @@ hello = Hello
 login-error-empty-fields = Please enter both username and password.
 login-error-invalid-credentials = Invalid username or password. Please try again.
 nav-wizard = Domain Wizard
+nav-duplicate-wizard = Dupliquer Domaine
 nonexistent = Nonexistent
 relays-create-error = Failed to create relay
 relays-field-created = Created

@@ -2,11 +2,7 @@
 
 ### High Priority
 
-- ✅ Fix smoke test failure when run against local cargo run
-  - ✅ Increased timeout from 30s to 60s (configurable via SMOKE_TEST_APP_TIMEOUT)
-  - ✅ Added health check validation for more reliable app detection
-  - ✅ Improved error messages with helpful suggestions
-  - ✅ Added progress indicators showing elapsed/remaining time
+- Duplicate domain is not in the left menu.
 
 ### Medium Priority
 
@@ -50,5 +46,9 @@
   - if they should be split. A test should logically only test one logic.
 
 ## 🐛 KNOWN ISSUES
+
+- When adding a new domain, the domain list is not updated
+
+- In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 
 - **None currently**

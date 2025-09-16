@@ -820,6 +820,7 @@ form-update = Update
 form-update-domain = Update Domain
 hello = Hello
 nav-wizard = Domain Wizard
+nav-duplicate-wizard = Dupliser Domene
 nonexistent = Nonexistent
 relays-not-available = Relays table is not available for this database
 relays-update-error = Failed to update relay

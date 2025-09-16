@@ -23,6 +23,7 @@ pub struct ErrorTemplate {
     pub nav_database_backup: String,
     pub nav_database: String,
     pub nav_wizard: String,
+    pub nav_duplicate_wizard: String,
     pub nav_about: String,
     pub nav_contact: String,
     pub nav_logout: String,
@@ -80,6 +81,12 @@ impl ErrorTemplate {
                 .await,
             nav_database: crate::i18n::get_translation(state, locale, "nav-database").await,
             nav_wizard: crate::i18n::get_translation(state, locale, "nav-wizard").await,
+            nav_duplicate_wizard: crate::i18n::get_translation(
+                state,
+                locale,
+                "nav-duplicate-wizard",
+            )
+            .await,
             nav_about: crate::i18n::get_translation(state, locale, "nav-about").await,
             nav_contact: crate::i18n::get_translation(state, locale, "nav-contact").await,
             nav_logout: crate::i18n::get_translation(state, locale, "nav-logout").await,

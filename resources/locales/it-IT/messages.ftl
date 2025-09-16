@@ -19,6 +19,7 @@ nav-database = Selezione Database
 database-selection-title = Selezione Database
 database-selection-description = Seleziona il database che vuoi gestire. Ogni database rappresenta un server di posta diverso.
 nav-wizard = Wizard Dominio
+nav-duplicate-wizard = Duplica Dominio
 nav-about = Informazioni
 nav-contact = Contatto
 nav-logout = Disconnetti

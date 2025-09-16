@@ -781,6 +781,7 @@ hello = Hello
 login-error-empty-fields = Please enter both username and password.
 login-error-invalid-credentials = Invalid username or password. Please try again.
 nav-wizard = Domain Wizard
+nav-duplicate-wizard = Duplicar Dominio
 nonexistent = Nonexistent
 relays-create-error = Failed to create relay
 relays-not-available = Relays table is not available for this database

@@ -615,7 +615,7 @@ async fn test_responsive_design_containerized() -> Result<()> {
                             }
                         }
                     }
-                    
+
                     // Only fail if we have forms but none are visible
                     if forms.len() > 0 && visible_count == 0 {
                         panic!("All forms are hidden in {} viewport", name);
