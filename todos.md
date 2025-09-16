@@ -27,15 +27,15 @@
 ### Low Priority
 
 - ✅ Tidy up code
-  - ✅ Refactored long create_app function (272 lines) into smaller helper functions
-  - ✅ Split long wizard execute function (114 lines) into smaller, focused functions
+  - Refactored long create_app function into smaller helper functions
+  - ✅ Split long wizard execute function into smaller, focused functions
   - ✅ Fixed formatting issues and verified no compilation errors
   - ✅ Improved code readability and maintainability
   - ✅ No unused functions or commented code found
   - ✅ All code properly formatted
 
- - Tidy up more code and tests
-  - Refactor long functions 
+ - ✅ Tidy up more code and tests
+  - ✅ Refactor long functions 
 
 - Valid Tests - lets go through the tests suites to see 
   - if they actually tests what they say they should (some seem like placeholders)

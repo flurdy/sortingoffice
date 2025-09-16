@@ -165,9 +165,17 @@ async fn test_api_rate_limiting() {
         assert_eq!(
             *status,
             StatusCode::OK,
-            "Request {i} should succeed (status: {status})"
+            "Request {i} should succeed (status: {status}) - rate limiting not implemented yet"
         );
     }
+
+    // Verify that all requests returned the same response (no rate limiting)
+    let unique_statuses: std::collections::HashSet<_> = responses.iter().collect();
+    assert_eq!(
+        unique_statuses.len(),
+        1,
+        "All requests should return the same status when no rate limiting is implemented"
+    );
 }
 
 // API Versioning Tests

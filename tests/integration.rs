@@ -904,10 +904,14 @@ mod tests {
             .unwrap();
 
             // Should handle validation errors gracefully (422 is correct for validation errors)
-            assert!(matches!(
-                invalid_domain_response.status(),
-                StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
-            ));
+            assert!(
+                matches!(
+                    invalid_domain_response.status(),
+                    StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
+                ),
+                "Invalid domain should return validation error (422) or be accepted (200), got: {}",
+                invalid_domain_response.status()
+            );
 
             // Step 2: Test invalid user creation
             let invalid_user_form = "user_id=invalid-user&name=Test&enabled=on";
@@ -922,10 +926,14 @@ mod tests {
             .unwrap();
 
             // Should handle validation errors gracefully (422 is correct for validation errors)
-            assert!(matches!(
-                invalid_user_response.status(),
-                StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
-            ));
+            assert!(
+                matches!(
+                    invalid_user_response.status(),
+                    StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
+                ),
+                "Invalid user should return validation error (422) or be accepted (200), got: {}",
+                invalid_user_response.status()
+            );
 
             // Step 3: Test invalid alias creation
             let invalid_alias_form = "mail=invalid-alias&destination=invalid-dest&enabled=on";
@@ -940,10 +948,14 @@ mod tests {
             .unwrap();
 
             // Should handle validation errors gracefully (422 is correct for validation errors)
-            assert!(matches!(
-                invalid_alias_response.status(),
-                StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
-            ));
+            assert!(
+                matches!(
+                    invalid_alias_response.status(),
+                    StatusCode::UNPROCESSABLE_ENTITY | StatusCode::OK
+                ),
+                "Invalid alias should return validation error (422) or be accepted (200), got: {}",
+                invalid_alias_response.status()
+            );
 
             // Step 4: Test non-existent resource access
             let not_found_response = TestUtils::make_get_request(

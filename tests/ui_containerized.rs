@@ -518,62 +518,143 @@ async fn test_clients_list_page_containerized() -> Result<()> {
 
 #[tokio::test]
 async fn test_responsive_design_containerized() -> Result<()> {
-    let test_timeout = Duration::from_secs(90);
+    let test_timeout = Duration::from_secs(120);
     run_test_with_timeout(
         "test_responsive_design_containerized",
         async {
             let env = setup_ui_test_env().await?;
-            // Test desktop viewport
-            timeout60s!(
-                env.driver.set_window_rect(0, 0, 1920, 1080),
-                "set window rect to desktop"
-            )?;
-            timeout60s!(
-                env.driver.get(&env.app_url),
-                "navigate to homepage for desktop viewport"
-            )?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
 
-            // Test mobile viewport
-            timeout60s!(
-                env.driver.set_window_rect(0, 0, 375, 667),
-                "set window rect to mobile"
-            )?;
-            timeout60s!(
-                env.driver.get(&env.app_url),
-                "navigate to homepage for mobile viewport"
-            )?;
+            // Test different viewport sizes and verify responsive behavior
+            let viewports = [
+                (1920, 1080, "Desktop"),
+                (1366, 768, "Laptop"),
+                (1024, 768, "Tablet Landscape"),
+                (768, 1024, "Tablet Portrait"),
+                (375, 667, "Mobile"),
+                (320, 568, "Small Mobile"),
+            ];
 
-            // Both should load without errors
-            // Try to get current URL with retries
-            let mut attempts = 0;
-            let max_attempts = 3;
-            let mut current_url = None;
+            for (width, height, name) in viewports.iter() {
+                println!("[RESPONSIVE] Testing {} viewport ({}x{})", name, width, height);
 
-            while attempts < max_attempts {
-                match env.driver.current_url().await {
-                    Ok(url) => {
-                        current_url = Some(url);
-                        break;
-                    }
-                    Err(_) => {
-                        attempts += 1;
-                        if attempts < max_attempts {
-                            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                // Set viewport size
+                timeout60s!(
+                    env.driver.set_window_rect(0, 0, *width, *height),
+                    "Set viewport"
+                )?;
+
+                // Test homepage responsiveness
+                let home_url = format!("{}/", env.app_url);
+                timeout60s!(env.driver.get(&home_url), "Navigate to homepage")?;
+
+                // Wait for page to load and stabilize
+                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+                // Check if navigation menu is responsive
+                let nav_elements = timeout30s!(
+                    env.driver.find_all(By::Css("nav, .navbar, .navigation, [role='navigation']")),
+                    "Find navigation elements"
+                );
+
+                if let Ok(navs) = nav_elements {
+                    for nav in navs {
+                        let is_displayed = timeout30s!(nav.is_displayed(), "Check nav visibility");
+                        if let Ok(visible) = is_displayed {
+                            assert!(visible, "Navigation should be visible in {} viewport", name);
                         }
+                    }
+                }
+
+                // Check if main content is accessible
+                let main_content = timeout30s!(
+                    env.driver.find(By::Css("main, .main-content, .content, [role='main']")),
+                    "Find main content"
+                );
+
+                if let Ok(content) = main_content {
+                    let is_displayed = timeout30s!(content.is_displayed(), "Check content visibility");
+                    if let Ok(visible) = is_displayed {
+                        assert!(visible, "Main content should be visible in {} viewport", name);
+                    }
+                }
+
+                // Test domains page responsiveness
+                let domains_url = format!("{}/domains", env.app_url);
+                timeout60s!(env.driver.get(&domains_url), "Navigate to domains")?;
+
+                // Check if table/list is responsive (should not overflow)
+                let tables = timeout30s!(
+                    env.driver.find_all(By::Css("table, .table, .list, .grid")),
+                    "Find tables/lists"
+                );
+
+                if let Ok(tables) = tables {
+                    for table in tables {
+                        let is_displayed = timeout30s!(table.is_displayed(), "Check table visibility");
+                        if let Ok(visible) = is_displayed {
+                            assert!(visible, "Tables should be visible in {} viewport", name);
+                        }
+                    }
+                }
+
+                // Test form responsiveness
+                let forms = timeout30s!(
+                    env.driver.find_all(By::Css("form, .form")),
+                    "Find forms"
+                );
+
+                if let Ok(forms) = forms {
+                    for form in forms {
+                        let is_displayed = timeout30s!(form.is_displayed(), "Check form visibility");
+                        if let Ok(visible) = is_displayed {
+                            assert!(visible, "Forms should be visible in {} viewport", name);
+                        }
+                    }
+                }
+
+                // For mobile viewports, check for mobile-specific elements or behaviors
+                if *width <= 768 {
+                    // Check if there are mobile-friendly elements
+                    let mobile_elements = timeout30s!(
+                        env.driver.find_all(By::Css(".mobile, .mobile-only, [data-mobile], .responsive")),
+                        "Find mobile elements"
+                    );
+
+                    // This is optional - not all sites have explicit mobile classes
+                    if let Ok(elements) = mobile_elements {
+                        println!("[RESPONSIVE] Found {} mobile-specific elements in {} viewport", elements.len(), name);
+                    }
+                }
+
+                println!("[RESPONSIVE] {} viewport test completed successfully", name);
+            }
+
+            // Test horizontal scrolling (should not occur in responsive design)
+            timeout60s!(
+                env.driver.set_window_rect(0, 0, 320, 568),
+                "Set to smallest mobile viewport"
+            )?;
+
+            let home_url = format!("{}/", env.app_url);
+            timeout60s!(env.driver.get(&home_url), "Navigate to homepage for scroll test")?;
+
+            // Check if page width exceeds viewport (indicates horizontal scroll)
+            let body_width = timeout30s!(
+                env.driver.execute("return document.body.scrollWidth;", vec![]),
+                "Get body scroll width"
+            );
+
+            if let Ok(width) = body_width {
+                if let Ok(width_value) = width.convert::<f64>() {
+                    // Body width should not exceed viewport width significantly
+                    if width_value > 400.0 { // 320px viewport + some tolerance
+                        println!("[RESPONSIVE] Warning: Body width {}px may cause horizontal scroll in mobile viewport", width_value);
                     }
                 }
             }
 
-            let current_url = current_url.ok_or_else(|| {
-                anyhow::anyhow!("Failed to get current URL after {} attempts", max_attempts)
-            })?;
-
-            assert!(
-                current_url.as_str().starts_with("http"),
-                "Unexpected URL: {}",
-                current_url
-            );
-
+            println!("[RESPONSIVE] All responsive design tests completed successfully");
             env.cleanup().await?;
             Ok(())
         },
@@ -677,28 +758,122 @@ async fn test_page_titles_containerized() -> Result<()> {
         async {
             let env = setup_ui_test_env().await?;
             login_and_goto_dashboard(&env.driver, &env.app_url).await?;
-            // Skip asserting dashboard layout here; per-page checks follow
 
-            // Test main pages (except homepage) are reachable without DB error
-            // Skip "/domains" here (covered by its own test and flakes under DB warmup)
-            let pages = ["/users", "/aliases", "/clients"];
-            for page in pages.iter() {
-                let page_url = format!("{}{}", env.app_url, page);
-                let _layout_ok = common::ui_helpers::ensure_page_ready(
-                    &env.driver,
-                    &page_url,
-                    20,
-                    if *page == "/clients" {
-                        Some("Clients table is not available for this database")
-                    } else {
-                        None
-                    },
-                )
-                .await?;
-                // If we got here, page responded. No strict H1 assertion to reduce flakiness across pages.
+            // Test page titles for all main pages
+            let pages_to_test = [
+                ("/", "Dashboard", "Homepage"),
+                ("/domains", "Domains", "Domains page"),
+                ("/aliases", "Aliases", "Aliases page"),
+                ("/users", "Users", "Users page"),
+                ("/clients", "Clients", "Clients page"),
+            ];
+
+            for (path, expected_title_keyword, page_name) in pages_to_test.iter() {
+                let page_url = format!("{}{}", env.app_url, path);
+                timeout60s!(env.driver.get(&page_url), "Navigate to page")?;
+
+                // Wait for page to load
+                timeout30s!(
+                    env.driver.find(By::Css("h1, .page-title, .title")),
+                    "Wait for page to load"
+                )?;
+
+                // Get the page title
+                let page_title = timeout30s!(env.driver.title(), "Get page title")?;
+                println!("[PAGE TITLES] {} title: '{}'", page_name, page_title);
+
+                // Validate page title contains expected keyword
+                assert!(
+                    page_title
+                        .to_lowercase()
+                        .contains(expected_title_keyword.to_lowercase().as_str()),
+                    "{} title '{}' should contain '{}'",
+                    page_name,
+                    page_title,
+                    expected_title_keyword
+                );
+
+                // Check for HTML title tag content
+                let html_title = timeout30s!(
+                    env.driver.execute("return document.title;", vec![]),
+                    "Get HTML title"
+                );
+
+                if let Ok(title) = html_title {
+                    if let Ok(title_str) = title.convert::<String>() {
+                        assert!(
+                            !title_str.is_empty(),
+                            "HTML title should not be empty for {}",
+                            page_name
+                        );
+                        assert!(
+                            title_str
+                                .to_lowercase()
+                                .contains(&expected_title_keyword.to_lowercase()),
+                            "HTML title '{}' should contain '{}' for {}",
+                            title_str,
+                            expected_title_keyword,
+                            page_name
+                        );
+                    }
+                }
+
+                // Check for page heading (h1) content
+                let h1_elements =
+                    timeout30s!(env.driver.find_all(By::Css("h1")), "Find h1 elements");
+
+                if let Ok(h1s) = h1_elements {
+                    let mut found_expected_heading = false;
+                    for h1 in h1s {
+                        if let Ok(h1_text) = timeout30s!(h1.text(), "Get h1 text") {
+                            if h1_text
+                                .to_lowercase()
+                                .contains(&expected_title_keyword.to_lowercase())
+                            {
+                                found_expected_heading = true;
+                                break;
+                            }
+                        }
+                    }
+                    assert!(
+                        found_expected_heading,
+                        "Page heading should contain '{}' for {}",
+                        expected_title_keyword, page_name
+                    );
+                }
+
+                println!("[PAGE TITLES] {} title validation passed", page_name);
             }
 
-            // Skip homepage here; covered by dedicated test_homepage_loads_containerized
+            // Test error page titles
+            let error_pages = [
+                ("/nonexistent", "Not Found", "404 page"),
+                ("/invalid-route", "Not Found", "404 page"),
+            ];
+
+            for (path, expected_title_keyword, page_name) in error_pages.iter() {
+                let page_url = format!("{}{}", env.app_url, path);
+                timeout60s!(env.driver.get(&page_url), "Navigate to error page")?;
+
+                let page_title = timeout30s!(env.driver.title(), "Get error page title")?;
+                println!("[PAGE TITLES] {} title: '{}'", page_name, page_title);
+
+                // Error pages should contain error indicators
+                let has_error_indicator = page_title.to_lowercase().contains("not found")
+                    || page_title.to_lowercase().contains("error")
+                    || page_title.to_lowercase().contains("404")
+                    || page_title
+                        .to_lowercase()
+                        .contains(&expected_title_keyword.to_lowercase());
+
+                assert!(
+                    has_error_indicator,
+                    "{} title '{}' should contain error indicators like '{}'",
+                    page_name, page_title, expected_title_keyword
+                );
+            }
+
+            println!("[PAGE TITLES] All page title validations completed successfully");
             env.cleanup().await?;
             Ok(())
         },
@@ -713,62 +888,164 @@ async fn test_cross_browser_compatibility_containerized() -> Result<()> {
         "test_cross_browser_compatibility_containerized",
         async {
             let env = setup_ui_test_env().await?;
-            // Test different viewport sizes
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            // Test different viewport sizes (simulating different devices)
             let viewports = [
-                (1920, 1080),
-                (1366, 768),
-                (1024, 768),
-                (768, 1024),
-                (375, 667),
+                (1920, 1080, "Desktop"),
+                (1366, 768, "Laptop"),
+                (1024, 768, "Tablet Landscape"),
+                (768, 1024, "Tablet Portrait"),
+                (375, 667, "Mobile"),
             ];
-            for (width, height) in viewports.iter() {
+
+            for (width, height, device_name) in viewports.iter() {
+                println!("[CROSS-BROWSER] Testing {} viewport ({}x{})", device_name, width, height);
+
                 timeout60s!(
                     env.driver.set_window_rect(0, 0, *width, *height),
                     "Set viewport"
                 )?;
-                let home_url = format!("{}/", env.app_url);
-                timeout60s!(env.driver.get(&home_url), "Navigate to homepage")?;
 
-                // Wait for page to load and stabilize
-                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                // Test core functionality across different viewport sizes
+                let pages_to_test = ["/", "/domains", "/aliases", "/users"];
 
-                // Try to get current URL with retries
-                let mut attempts = 0;
-                let max_attempts = 3;
-                let mut current_url = None;
+                for page in pages_to_test.iter() {
+                    let page_url = format!("{}{}", env.app_url, page);
+                    timeout60s!(env.driver.get(&page_url), "Navigate to page")?;
 
-                while attempts < max_attempts {
-                    match env.driver.current_url().await {
-                        Ok(url) => {
-                            current_url = Some(url);
-                            break;
+                    // Wait for page to load and stabilize
+                    tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+
+                    // Verify page loaded correctly
+                    let current_url = timeout30s!(env.driver.current_url(), "Get current URL")?;
+                assert!(
+                        current_url.to_string().starts_with("http"),
+                        "Unexpected URL format on {}: {}",
+                        device_name,
+                        current_url
+                    );
+
+                    // Test JavaScript functionality (basic DOM manipulation)
+                    let js_result = timeout30s!(
+                        env.driver.execute("return document.readyState;", vec![]),
+                        "Check document ready state"
+                    );
+
+                    if let Ok(ready_state) = js_result {
+                        if let Ok(state) = ready_state.convert::<String>() {
+                            assert_eq!(
+                                state,
+                                "complete",
+                                "Document should be fully loaded on {}",
+                                device_name
+                            );
                         }
-                        Err(_) => {
-                            attempts += 1;
-                            if attempts < max_attempts {
-                                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                    }
+
+                    // Test form elements (if present)
+                    let forms = timeout30s!(
+                        env.driver.find_all(By::Css("form, input, button, select, textarea")),
+                        "Find form elements"
+                    );
+
+                    if let Ok(form_elements) = forms {
+                        for element in form_elements {
+                            let is_displayed = timeout30s!(element.is_displayed(), "Check element visibility");
+                            if let Ok(visible) = is_displayed {
+                                // Elements should be visible or properly hidden (not broken)
+                                assert!(visible, "Form elements should be visible on {}", device_name);
                             }
                         }
                     }
+
+                    // Test navigation elements
+                    let nav_elements = timeout30s!(
+                        env.driver.find_all(By::Css("nav, .navbar, .navigation, a[href]")),
+                        "Find navigation elements"
+                    );
+
+                    if let Ok(navs) = nav_elements {
+                        for nav in navs {
+                            let is_displayed = timeout30s!(nav.is_displayed(), "Check nav visibility");
+                            if let Ok(visible) = is_displayed {
+                                assert!(visible, "Navigation should be visible on {}", device_name);
+                            }
+                        }
+                    }
+
+                    println!("[CROSS-BROWSER] {} page tested successfully on {}", page, device_name);
                 }
 
-                let current_url = current_url.ok_or_else(|| {
-                    anyhow::anyhow!("Failed to get current URL after {} attempts", max_attempts)
-                })?;
+                // Test specific browser compatibility features
+                // Test localStorage/sessionStorage (if used)
+                let storage_test = timeout30s!(
+                    env.driver.execute("return typeof(Storage) !== 'undefined';", vec![]),
+                    "Test Storage API"
+                );
 
-                if !current_url.as_str().starts_with("http") {
-                    return Err(anyhow::anyhow!(
-                        "Page should load correctly at {}x{} viewport; got URL {}",
-                        width,
-                        height,
-                        current_url
-                    ));
+                if let Ok(has_storage) = storage_test {
+                    if let Ok(storage_available) = has_storage.convert::<bool>() {
+                        assert!(storage_available, "Storage API should be available on {}", device_name);
+                    }
+                }
+
+                // Test fetch/XMLHttpRequest (if used)
+                let fetch_test = timeout30s!(
+                    env.driver.execute("return typeof(fetch) !== 'undefined';", vec![]),
+                    "Test Fetch API"
+                );
+
+                if let Ok(has_fetch) = fetch_test {
+                    if let Ok(fetch_available) = has_fetch.convert::<bool>() {
+                        assert!(fetch_available, "Fetch API should be available on {}", device_name);
+                    }
+                }
+
+                println!("[CROSS-BROWSER] {} viewport compatibility test completed", device_name);
+            }
+
+            // Test specific browser features that might cause compatibility issues
+            // Test if the page handles missing JavaScript gracefully
+            let js_disabled_test = timeout30s!(
+                env.driver.execute("return document.querySelector('noscript') !== null;", vec![]),
+                "Check for noscript fallback"
+            );
+
+            if let Ok(has_noscript) = js_disabled_test {
+                if let Ok(has_noscript_bool) = has_noscript.convert::<bool>() {
+                    if has_noscript_bool {
+                        println!("[CROSS-BROWSER] Found noscript fallback - good for JavaScript-disabled browsers");
+                    }
                 }
             }
+
+            // Test if the page works with different user agents (simulated)
+            let user_agent = timeout30s!(
+                env.driver.execute("return navigator.userAgent;", vec![]),
+                "Get user agent"
+            );
+
+            if let Ok(ua) = user_agent {
+                if let Ok(ua_string) = ua.convert::<String>() {
+                    println!("[CROSS-BROWSER] Current user agent: {}", ua_string);
+
+                    // Check for common browser indicators
+                    if ua_string.contains("Chrome") {
+                        println!("[CROSS-BROWSER] Testing with Chrome-like browser");
+                    } else if ua_string.contains("Firefox") {
+                        println!("[CROSS-BROWSER] Testing with Firefox-like browser");
+                    } else if ua_string.contains("Safari") {
+                        println!("[CROSS-BROWSER] Testing with Safari-like browser");
+                    }
+                }
+            }
+
+            println!("[CROSS-BROWSER] All cross-browser compatibility tests completed successfully");
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(90),
+        Duration::from_secs(120),
     )
     .await
 }
@@ -779,18 +1056,92 @@ async fn test_performance_metrics_containerized() -> Result<()> {
         "test_performance_metrics_containerized",
         async {
             let env = setup_ui_test_env().await?;
-            let home_url = format!("{}/", env.app_url);
-            let start_time = std::time::Instant::now();
-            timeout60s!(env.driver.get(&home_url), "Navigate to homepage")?;
-            let load_time = start_time.elapsed();
-            // Basic performance check - page should load within 10 seconds
-            if load_time > Duration::from_secs(10) {
-                return Err(anyhow::anyhow!("Page load time too slow: {:?}", load_time));
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            // Test performance of multiple critical pages
+            let pages_to_test = [
+                ("/", "Homepage"),
+                ("/domains", "Domains page"),
+                ("/aliases", "Aliases page"),
+                ("/users", "Users page"),
+                ("/clients", "Clients page"),
+            ];
+
+            let mut performance_results = Vec::new();
+
+            for (path, name) in pages_to_test.iter() {
+                let page_url = format!("{}{}", env.app_url, path);
+                let start_time = std::time::Instant::now();
+
+                timeout60s!(env.driver.get(&page_url), "Navigate to page")?;
+
+                // Wait for page to be fully loaded (wait for body to be present)
+                timeout30s!(env.driver.find(By::Css("body")), "Wait for page to load")?;
+
+                let load_time = start_time.elapsed();
+                performance_results.push((name, load_time));
+
+                println!("[PERFORMANCE] {} loaded in {:?}", name, load_time);
+
+                // Each page should load within 8 seconds
+                if load_time > Duration::from_secs(8) {
+                    return Err(anyhow::anyhow!(
+                        "{} load time too slow: {:?} (max: 8s)",
+                        name,
+                        load_time
+                    ));
+                }
             }
+
+            // Test form submission performance
+            let form_start = std::time::Instant::now();
+            let domains_url = format!("{}/domains", env.app_url);
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains for form test"
+            )?;
+
+            // Try to find and interact with a form element (if available)
+            if let Ok(_form) = timeout30s!(env.driver.find(By::Css("form")), "Find form element") {
+                let form_interaction_time = form_start.elapsed();
+                println!(
+                    "[PERFORMANCE] Form interaction ready in {:?}",
+                    form_interaction_time
+                );
+
+                if form_interaction_time > Duration::from_secs(5) {
+                    return Err(anyhow::anyhow!(
+                        "Form interaction too slow: {:?} (max: 5s)",
+                        form_interaction_time
+                    ));
+                }
+            }
+
+            // Test navigation performance
+            let nav_start = std::time::Instant::now();
+            let dashboard_url = format!("{}/", env.app_url);
+            timeout60s!(env.driver.get(&dashboard_url), "Navigate back to dashboard")?;
+            let nav_time = nav_start.elapsed();
+
+            println!("[PERFORMANCE] Navigation completed in {:?}", nav_time);
+
+            if nav_time > Duration::from_secs(3) {
+                return Err(anyhow::anyhow!(
+                    "Navigation too slow: {:?} (max: 3s)",
+                    nav_time
+                ));
+            }
+
+            // Print performance summary
+            println!("[PERFORMANCE] Performance test completed successfully:");
+            for (name, time) in performance_results {
+                println!("  - {}: {:?}", name, time);
+            }
+
             env.cleanup().await?;
             Ok(())
         },
-        Duration::from_secs(90),
+        Duration::from_secs(120),
     )
     .await
 }
@@ -872,7 +1223,7 @@ async fn test_database_dropdown_selection_containerized() -> Result<()> {
                     anyhow::anyhow!("Failed to get new URL after {} attempts", max_attempts)
                 })?;
 
-                if !new_url.as_str().starts_with("http") {
+                if !new_url.to_string().starts_with("http") {
                     return Err(anyhow::anyhow!(
                         "Unexpected URL after database selection: {}",
                         new_url
