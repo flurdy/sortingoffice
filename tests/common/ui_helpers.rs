@@ -479,22 +479,51 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
 
     // Now try send_keys after focusing
     // println!("[CREATE] Sending keys to focused domain input");
+    timeout30s!(domain_input.clear(), "Clear domain input")?;
     timeout30s!(domain_input.send_keys(domain_name), "Type domain name")?;
+    
+    // Debug: Verify the domain name was entered
+    // let domain_value = timeout30s!(domain_input.prop("value"), "Get domain input value")?;
+    // println!("[CREATE] Domain input value after typing: {:?}", domain_value);
 
     let transport_input = timeout60s!(
         driver.find(By::Css("input[name='transport']")),
         "Find transport input"
     )?;
+    
+    // Clear the transport field first
+    timeout30s!(transport_input.clear(), "Clear transport input")?;
     timeout30s!(transport_input.send_keys("virtual"), "Type transport")?;
+    
+    // Debug: Verify the transport was entered
+    // let transport_value = timeout30s!(transport_input.prop("value"), "Get transport input value")?;
+    // println!("[CREATE] Transport input value after typing: {:?}", transport_value);
 
     let submit_button = timeout60s!(
         driver.find(By::Id("domain-submit-button")),
         "Find submit button"
     )?;
+    
+    // Debug: Check submit button state
+    // let is_enabled = timeout30s!(submit_button.is_enabled(), "Check submit button enabled")?;
+    // let is_displayed = timeout30s!(submit_button.is_displayed(), "Check submit button displayed")?;
+    // println!("[CREATE] Submit button - enabled: {}, displayed: {}", is_enabled, is_displayed);
+    
     timeout30s!(submit_button.click(), "Click submit button")?;
 
     // Wait for form submission and check for validation errors
     tokio::time::sleep(Duration::from_millis(1000)).await;
+
+    // Debug: Check for validation errors or success messages
+    // let page_source = timeout60s!(driver.source(), "Get page source after form submission")?;
+    // if page_source.contains("error") || page_source.contains("Error") || page_source.contains("validation") {
+    //     println!("[CREATE] Potential error found in page source after form submission");
+    //     // Extract error message if possible
+    //     if let Some(error_start) = page_source.find("error") {
+    //         let error_snippet = &page_source[error_start..std::cmp::min(error_start + 200, page_source.len())];
+    //         println!("[CREATE] Error snippet: {}", error_snippet);
+    //     }
+    // }
 
     // Check if we're still on the form page (indicating validation errors)
     let current_url = timeout60s!(
@@ -508,7 +537,7 @@ pub async fn create_domain(driver: &WebDriver, app_url: &str, domain_name: &str)
         "Find main content area"
     )?;
     let main_content_text = timeout60s!(main_content.text(), "Get main content text")?;
-    // println!("[CREATE] 1. Main content text: {}", main_content_text);
+    // println!("[CREATE] Main content after form submission: {}", main_content_text);
 
     // Check for validation error messages on the page
     // let page_source = timeout60s!(driver.source(), "Get page source")?;

@@ -319,16 +319,34 @@ run_ui_tests() {
 run_smoke_test() {
     print_status "Running end-to-end smoke test for sortingoffice..."
 
-    # Set environment variables
-    export RUST_LOG=info
-    export RUST_BACKTRACE=0
+    # Check if application is running on localhost:3000
+    if curl -s http://localhost:3000/health > /dev/null 2>&1; then
+        print_status "Found running application at localhost:3000, using environment-based smoke test..."
+        
+        # Set environment variables
+        export RUST_LOG=info
+        export RUST_BACKTRACE=0
 
-    # Run the smoke test (uses testcontainers for Selenium)
-    print_status "Running smoke test with testcontainers Selenium..."
-    if cargo test ui_smoke_e2e_flow -- --ignored --nocapture; then
-        print_success "Smoke test passed!"
+        # Run the environment-based smoke test (uses testcontainers for Selenium only)
+        print_status "Running smoke test with testcontainers Selenium..."
+        if cargo test ui_smoke_e2e_flow -- --ignored --nocapture; then
+            print_success "Smoke test passed!"
+        else
+            print_error "Smoke test failed!"
+            exit 1
+        fi
     else
-        print_error "Smoke test failed!"
+        print_error "No application found at localhost:3000!"
+        print_error "The smoke test requires a running SortingOffice application to test against."
+        echo ""
+        print_status "To fix this:"
+        print_status "  1. Start the application: cargo run"
+        print_status "  2. Or use: make run"
+        print_status "  3. Ensure the application is accessible at http://localhost:3000"
+        echo ""
+        print_status "Alternative: Use 'make test-smoke-containerized' to test with containers"
+        echo ""
+        print_error "Smoke test failed - no application to test against!"
         exit 1
     fi
 
