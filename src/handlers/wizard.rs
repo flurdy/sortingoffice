@@ -344,6 +344,53 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
     )
 }
 
+// Helper function to parse domains from form input
+fn parse_domains_from_form(domains_input: &str) -> Vec<String> {
+    domains_input
+        .split(',')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect()
+}
+
+// Helper function to create domain config error template
+fn create_domain_config_error_template<'a>(
+    form: &'a DomainConfigForm,
+    error_msg: &'a str,
+    translations: &'a HashMap<String, String>,
+) -> WizardDomainConfigTemplate<'a> {
+    WizardDomainConfigTemplate {
+        title: &translations["wizard-step-1-title"],
+        description: &translations["wizard-step-1-description"],
+        form,
+        error: error_msg,
+        domains_label: &translations["wizard-domains-label"],
+        domains_description: &translations["wizard-domains-description"],
+        domains_placeholder: &translations["wizard-domains-placeholder"],
+        transport_label: &translations["wizard-transport-label"],
+        transport_description: &translations["wizard-transport-description"],
+        transport_placeholder: &translations["wizard-transport-placeholder"],
+        enabled_description: &translations["wizard-enabled-description"],
+        domain_status_label: &translations["wizard-domain-status-label"],
+        enabled_label: &translations["wizard-enabled-label"],
+        disabled_label: &translations["wizard-disabled-label"],
+        next_button: &translations["wizard-next"],
+        cancel_button: &translations["wizard-cancel"],
+    }
+}
+
+// Helper function to validate domains and return error if any are invalid
+fn validate_domains(domains: &[String]) -> Result<(), String> {
+    for domain in domains {
+        match crate::validation::validate_domain(domain) {
+            Ok(_) => {}
+            Err(e) => return Err(format!("Invalid domain '{domain}': {e}")),
+        }
+    }
+    Ok(())
+}
+
 // Handle domain configuration form submission
 pub async fn domain_config_post(
     State(state): State<AppState>,
@@ -354,35 +401,11 @@ pub async fn domain_config_post(
     let translations = get_wizard_translations(&state, &locale).await;
 
     // Parse domains from comma-separated string
-    let domains: Vec<String> = form
-        .domains
-        .split(',')
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-        .collect();
+    let domains = parse_domains_from_form(&form.domains);
 
     if domains.is_empty() {
         let error_msg = "Please enter at least one domain";
-        let content_template = WizardDomainConfigTemplate {
-            title: &translations["wizard-step-1-title"],
-            description: &translations["wizard-step-1-description"],
-            form: &form,
-            error: error_msg,
-            domains_label: &translations["wizard-domains-label"],
-            domains_description: &translations["wizard-domains-description"],
-            domains_placeholder: &translations["wizard-domains-placeholder"],
-            transport_label: &translations["wizard-transport-label"],
-            transport_description: &translations["wizard-transport-description"],
-            transport_placeholder: &translations["wizard-transport-placeholder"],
-            enabled_description: &translations["wizard-enabled-description"],
-            domain_status_label: &translations["wizard-domain-status-label"],
-            enabled_label: &translations["wizard-enabled-label"],
-            disabled_label: &translations["wizard-disabled-label"],
-            next_button: &translations["wizard-next"],
-            cancel_button: &translations["wizard-cancel"],
-        };
-
+        let content_template = create_domain_config_error_template(&form, error_msg, &translations);
         return render_template_with_title!(
             content_template,
             content_template.title,
@@ -393,39 +416,15 @@ pub async fn domain_config_post(
     }
 
     // Comprehensive domain validation
-    for domain in &domains {
-        match crate::validation::validate_domain(domain) {
-            Ok(_) => {}
-            Err(e) => {
-                let error_msg = format!("Invalid domain '{domain}': {e}");
-                let content_template = WizardDomainConfigTemplate {
-                    title: &translations["wizard-step-1-title"],
-                    description: &translations["wizard-step-1-description"],
-                    form: &form,
-                    error: &error_msg,
-                    domains_label: &translations["wizard-domains-label"],
-                    domains_description: &translations["wizard-domains-description"],
-                    domains_placeholder: &translations["wizard-domains-placeholder"],
-                    transport_label: &translations["wizard-transport-label"],
-                    transport_description: &translations["wizard-transport-description"],
-                    transport_placeholder: &translations["wizard-transport-placeholder"],
-                    enabled_description: &translations["wizard-enabled-description"],
-                    domain_status_label: &translations["wizard-domain-status-label"],
-                    enabled_label: &translations["wizard-enabled-label"],
-                    disabled_label: &translations["wizard-disabled-label"],
-                    next_button: &translations["wizard-next"],
-                    cancel_button: &translations["wizard-cancel"],
-                };
-
-                return render_template_with_title!(
-                    content_template,
-                    content_template.title,
-                    &state,
-                    &locale,
-                    &headers
-                );
-            }
-        }
+    if let Err(e) = validate_domains(&domains) {
+        let content_template = create_domain_config_error_template(&form, &e, &translations);
+        return render_template_with_title!(
+            content_template,
+            content_template.title,
+            &state,
+            &locale,
+            &headers
+        );
     }
 
     // Create wizard session with domain data
@@ -568,13 +567,8 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
     )
 }
 
-// Step 2: Alias configuration POST handler
-pub async fn alias_config_post(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    request: axum::extract::Request,
-) -> Result<Html<String>, Redirect> {
-    // Parse form data manually to handle duplicate field names
+// Helper function to parse form data from request body
+async fn parse_alias_config_form(request: axum::extract::Request) -> AliasConfigForm {
     let body_bytes = axum::body::to_bytes(request.into_body(), usize::MAX)
         .await
         .unwrap_or_default();
@@ -612,16 +606,126 @@ pub async fn alias_config_post(
         }
     }
 
-    let form = AliasConfigForm {
+    AliasConfigForm {
         required_aliases,
         common_aliases,
         custom_aliases,
         common_destination,
         alias_destinations: HashMap::new(),
         catchall_enabled,
+    }
+}
+
+// Helper function to create error template for alias config
+async fn create_alias_config_error_template(
+    state: &AppState,
+    headers: &HeaderMap,
+    form: &AliasConfigForm,
+    error_msg: &str,
+    session: &DomainWizardSession,
+    translations: &HashMap<String, String>,
+) -> Html<String> {
+    let locale = get_user_locale(headers);
+    let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
+
+    // Get analytics-driven common aliases for error template
+    let analytics_common_aliases = find_database_common_aliases(state, headers, 10, 3).await;
+    let config_common_aliases = state.config.common_aliases.clone();
+
+    // Filter out analytics aliases that are already in required or config common aliases
+    let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
+        .iter()
+        .filter(|alias| {
+            !state.config.required_aliases.contains(alias) && !config_common_aliases.contains(alias)
+        })
+        .cloned()
+        .collect();
+
+    let content_template = WizardAliasConfigTemplate {
+        title: &translations["wizard-step-2-title"],
+        description: &translations["wizard-step-2-description"],
+        domains: &domains,
+        form,
+        error: error_msg,
+        required_aliases: &state.config.required_aliases,
+        common_aliases: &state.config.common_aliases,
+        analytics_common_aliases: &filtered_analytics_aliases,
+        config_common_aliases: &config_common_aliases,
+        required_aliases_label: &translations["wizard-required-aliases"],
+        common_aliases_label: &translations["wizard-common-aliases"],
+        analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
+        config_common_aliases_label: &translations["wizard-config-common-aliases"],
+        custom_aliases_label: &translations["wizard-custom-aliases"],
+        custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
+        custom_aliases_description: &translations["wizard-custom-aliases-description"],
+        catchall_title: &translations["wizard-catchall-title"],
+        catchall_description: &translations["wizard-catchall-description"],
+        destination_title: &translations["wizard-destination-title"],
+        destination_description: &translations["wizard-destination-description"],
+        destination_placeholder: &translations["wizard-destination-placeholder"],
+        domains_to_configure_label: &translations["wizard-domains-to-configure"],
+        next_button: &translations["wizard-next"],
+        back_button: &translations["wizard-back"],
     };
 
-    // Debug logging
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!("Failed to render template: {:?}", e);
+            return Html("Error rendering template".to_string());
+        }
+    };
+
+    if crate::handlers::http_helpers::is_htmx_request(headers) {
+        Html(content)
+    } else {
+        // Get current database id from session/cookie or default
+        let current_db_id = crate::handlers::auth::get_selected_database(headers)
+            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+        // Get current database label from db_manager
+        let current_db_label = state
+            .db_manager
+            .get_configs()
+            .iter()
+            .find(|db| db.id == current_db_id)
+            .map(|db| db.label.clone())
+            .unwrap_or_else(|| current_db_id.clone());
+
+        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
+            content_template.title.to_string(),
+            content,
+            state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await
+        {
+            Ok(template) => template,
+            Err(e) => {
+                tracing::error!("Failed to create base template: {:?}", e);
+                return Html("Error creating template".to_string());
+            }
+        };
+
+        match base_template.render() {
+            Ok(content) => Html(content),
+            Err(e) => {
+                tracing::error!("Failed to render base template: {:?}", e);
+                Html("Error rendering template".to_string())
+            }
+        }
+    }
+}
+
+// Step 2: Alias configuration POST handler
+pub async fn alias_config_post(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    request: axum::extract::Request,
+) -> Result<Html<String>, Redirect> {
+    // Parse form data
+    let form = parse_alias_config_form(request).await;
 
     let locale = get_user_locale(&headers);
     let translations = get_wizard_translations(&state, &locale).await;
@@ -632,98 +736,15 @@ pub async fn alias_config_post(
     // Validate form data
     if form.common_destination.is_empty() {
         let error_msg = "Please enter a valid destination";
-        let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
-        // Get analytics-driven common aliases for error template
-        let analytics_common_aliases = find_database_common_aliases(&state, &headers, 10, 3).await;
-        let config_common_aliases = state.config.common_aliases.clone();
-
-        // Filter out analytics aliases that are already in required or config common aliases
-        let filtered_analytics_aliases: Vec<String> = analytics_common_aliases
-            .iter()
-            .filter(|alias| {
-                !state.config.required_aliases.contains(alias)
-                    && !config_common_aliases.contains(alias)
-            })
-            .cloned()
-            .collect();
-
-        let content_template = WizardAliasConfigTemplate {
-            title: &translations["wizard-step-2-title"],
-            description: &translations["wizard-step-2-description"],
-            domains: &domains,
-            form: &form,
-            error: error_msg,
-            required_aliases: &state.config.required_aliases,
-            common_aliases: &state.config.common_aliases,
-            analytics_common_aliases: &filtered_analytics_aliases,
-            config_common_aliases: &config_common_aliases,
-            required_aliases_label: &translations["wizard-required-aliases"],
-            common_aliases_label: &translations["wizard-common-aliases"],
-            analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
-            config_common_aliases_label: &translations["wizard-config-common-aliases"],
-            custom_aliases_label: &translations["wizard-custom-aliases"],
-            custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
-            custom_aliases_description: &translations["wizard-custom-aliases-description"],
-            catchall_title: &translations["wizard-catchall-title"],
-            catchall_description: &translations["wizard-catchall-description"],
-            destination_title: &translations["wizard-destination-title"],
-            destination_description: &translations["wizard-destination-description"],
-            destination_placeholder: &translations["wizard-destination-placeholder"],
-            domains_to_configure_label: &translations["wizard-domains-to-configure"],
-            next_button: &translations["wizard-next"],
-            back_button: &translations["wizard-back"],
-        };
-
-        return {
-            let content = match content_template.render() {
-                Ok(content) => content,
-                Err(e) => {
-                    tracing::error!("Failed to render template: {:?}", e);
-                    return Ok(Html("Error rendering template".to_string()));
-                }
-            };
-
-            if crate::handlers::http_helpers::is_htmx_request(&headers) {
-                Ok(Html(content))
-            } else {
-                // Get current database id from session/cookie or default
-                let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-                    .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-                // Get current database label from db_manager
-                let current_db_label = state
-                    .db_manager
-                    .get_configs()
-                    .iter()
-                    .find(|db| db.id == current_db_id)
-                    .map(|db| db.label.clone())
-                    .unwrap_or_else(|| current_db_id.clone());
-
-                let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-                    content_template.title.to_string(),
-                    content,
-                    &state,
-                    &locale,
-                    current_db_label,
-                    current_db_id,
-                )
-                .await
-                {
-                    Ok(template) => template,
-                    Err(e) => {
-                        tracing::error!("Failed to create base template: {:?}", e);
-                        return Ok(Html("Error creating template".to_string()));
-                    }
-                };
-
-                match base_template.render() {
-                    Ok(content) => Ok(Html(content)),
-                    Err(e) => {
-                        tracing::error!("Failed to render base template: {:?}", e);
-                        Ok(Html("Error rendering template".to_string()))
-                    }
-                }
-            }
-        };
+        return Ok(create_alias_config_error_template(
+            &state,
+            &headers,
+            &form,
+            error_msg,
+            &session,
+            &translations,
+        )
+        .await);
     }
 
     // Update session with form data

@@ -1,5 +1,5 @@
 ---
-description: when developing, either adding features or changing code.
+description: when developing, either adding features, changing code, refactoring code and tests.
 globs:
 alwaysApply: true
 ---
@@ -40,3 +40,5 @@ Do not repeat yourself, use helper functions.
 Prefer more domain based logic.
 
 Avoid very big files. 
+
+Make small changes, format code, pass tests, iteratively.

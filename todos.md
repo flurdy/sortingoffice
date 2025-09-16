@@ -20,9 +20,14 @@
   - ✅ No unused functions or commented code found
   - ✅ All code properly formatted
 
-- Tidy up more code and tests
+ - Tidy up more code and tests
   - Refactor long functions 
-  - Split long files
+
+- Valid Tests - lets go through the tests suites to see 
+  - if they actually tests what they say they should (some seem like placeholders)
+  - if they will fail if conditions are not met (some seem to pass even if conditions are not met)
+  - if they actually are needed. Some tests are not important.
+  - if they should be split. A test should logically only test one logic.
 
 ## 🐛 KNOWN ISSUES
 
