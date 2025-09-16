@@ -10,6 +10,20 @@
 
 ### Medium Priority
 
+- Add a duplicate domain wizard
+  - It takes searchable domain or backup domain
+  - It duplicates its aliases and destinations if not a backup domain
+  - It duplicates its relays
+  - It does not duplicate users
+  - Add tests
+
+- Add a remove domain wizard
+  - Delete all users
+  - Delete relays and relocated
+  - Delete all aliases with it in the mail field
+  - Delete from domains or backup table.
+  - Add tests
+
 ### Low Priority
 
 - ✅ Tidy up code
