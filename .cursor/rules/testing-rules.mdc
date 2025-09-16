@@ -25,3 +25,5 @@ If needing to curl, check the scrips folder for helpers. There is one for log-in
 If any runtime code changes needed for testing, make sure the docker image is rebuilt first.
 
 Prefer to use Makefile aliases for testing during development as well so proper cleanup happens.
+
+There are single test makefile aliases that also cleans up resources.
