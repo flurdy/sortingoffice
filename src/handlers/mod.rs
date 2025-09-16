@@ -10,6 +10,7 @@ pub mod database_backup;
 pub mod database_ops;
 pub mod domain_backup;
 pub mod domains;
+pub mod duplicate_wizard;
 pub mod errors;
 pub mod health; // Add health module
 pub mod http_helpers;
@@ -56,6 +57,10 @@ pub use domains::{
     edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
     toggle_enabled as toggle_domain_enabled, toggle_enabled_list as toggle_domain_enabled_list,
     toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
+};
+pub use duplicate_wizard::{
+    domain_selection, domain_selection_post, execute as duplicate_wizard_execute,
+    index as duplicate_wizard_index, review as duplicate_wizard_review,
 };
 pub use health::*;
 pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
@@ -224,6 +229,19 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
             "/wizard/destination-search",
             axum::routing::get(destination_search),
         )
+        // Duplicate wizard routes (read-only access)
+        .route(
+            "/duplicate-wizard",
+            axum::routing::get(duplicate_wizard_index),
+        )
+        .route(
+            "/duplicate-wizard/domain-selection",
+            axum::routing::get(domain_selection),
+        )
+        .route(
+            "/duplicate-wizard/review",
+            axum::routing::get(duplicate_wizard_review),
+        )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
@@ -372,6 +390,15 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/wizard/alias-config",
             axum::routing::post(alias_config_post),
+        )
+        // Duplicate wizard edit operations (require edit permissions)
+        .route(
+            "/duplicate-wizard/domain-selection",
+            axum::routing::post(domain_selection_post),
+        )
+        .route(
+            "/duplicate-wizard/execute",
+            axum::routing::post(duplicate_wizard_execute),
         )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(

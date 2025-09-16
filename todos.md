@@ -10,12 +10,12 @@
 
 ### Medium Priority
 
-- Add a duplicate domain wizard
-  - It takes searchable domain or backup domain
-  - It duplicates its aliases and destinations if not a backup domain
-  - It duplicates its relays
-  - It does not duplicate users
-  - Add tests
+- ✅ Add a duplicate domain wizard
+  - ✅ It takes searchable domain or backup domain
+  - ✅ It duplicates its aliases and destinations if not a backup domain
+  - ✅ It duplicates its relays
+  - ✅ It does not duplicate users
+  - ✅ Add tests
 
 - Add a remove domain wizard
   - Delete all users
@@ -36,6 +36,12 @@
 
  - ✅ Tidy up more code and tests
   - ✅ Refactor long functions 
+
+- Refactor database helper functions for better maintainability
+  - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
+  - Create generic functions to reduce code duplication
+  - Improve error handling consistency across database operations
+  - Add comprehensive documentation for database operation patterns
 
 - Valid Tests - lets go through the tests suites to see 
   - if they actually tests what they say they should (some seem like placeholders)

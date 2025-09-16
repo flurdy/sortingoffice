@@ -267,7 +267,7 @@ pub struct BackupForm {
 }
 
 // Relay models
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = relays)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -1421,4 +1421,46 @@ mod tests {
         assert_eq!(db_config.field("domains.enabled"), "is_enabled");
         assert_eq!(db_config.field("unknown"), "unknown");
     }
+}
+
+// Duplicate Domain Wizard Models
+#[derive(Debug, Deserialize)]
+pub struct DuplicateDomainForm {
+    pub source_domain: String,
+    pub new_domain: String,
+    pub transport: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub enabled: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub duplicate_aliases: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub duplicate_relays: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub confirmed: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DuplicateDomainSession {
+    pub step: DuplicateWizardStep,
+    pub source_domain: Option<Domain>,
+    pub new_domain: String,
+    pub transport: String,
+    pub enabled: bool,
+    pub duplicate_aliases: bool,
+    pub duplicate_relays: bool,
+    pub aliases_to_duplicate: Vec<Alias>,
+    pub relays_to_duplicate: Vec<Relay>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum DuplicateWizardStep {
+    DomainSelection,
+    Configuration,
+    Review,
+    Executing,
+    Complete,
 }
