@@ -92,7 +92,7 @@
                     </div>
                     {% if duplicate_aliases %}
                         {% if aliases_to_duplicate.len() > 0 %}
-                        <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 max-h-48 overflow-y-auto">
+                        <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
                             <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                                 {% for alias in aliases_to_duplicate %}
                                 <li class="px-4 py-3">
@@ -144,7 +144,7 @@
                     </div>
                     {% if duplicate_relays %}
                         {% if relays_to_duplicate.len() > 0 %}
-                        <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 max-h-48 overflow-y-auto">
+                        <div class="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
                             <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                                 {% for relay in relays_to_duplicate %}
                                 <li class="px-4 py-3">

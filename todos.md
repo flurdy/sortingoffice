@@ -71,7 +71,7 @@
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
 
-- Duplicate domain - On the review page, 
+- ✅ Duplicate domain - On the review page, 
   - shorten the message value for `aliases_label` to: Duplicate aliases 
   - And its translations
   - And the count seems wrong?
