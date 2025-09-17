@@ -9,13 +9,16 @@
 - ✅ Final step in duplicate domain shows an error: Failed to deserialize form body: missing field `source_domain`
 
 - Duplicate domain - List aliases and relays about to be created in the review step.
-  - Maybe with a checkbox if to be created?
 
 - Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
 
 - Duplicate domain - verify backup domains are also listed.
 
 - Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
+
+- Duplicate domain - for the domain, aliases and relays:
+  - Do not show enabled as a text column
+  - Instead for all entries show a toggle to change enabled/disabled
 
 ### Medium Priority
 
@@ -35,7 +38,12 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
+- The status in Relays is only OK or REJECT. Lets default to OK.
+  Similar to what is in Clients.
+
 ### Low 
+
+- Duplicate domain - in the review page, clicking back does not retain any fields.
 
 - Duplicate domain - add tests
   - Many unit tests, for a lot of scenarios, happy and sad.
@@ -71,4 +79,8 @@
 
 - In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 
-- Add relocated - Save button does nothing
+- Add relocated 
+  - Save button does nothing
+  - Title missing translation
+
+- Add client - missing title translation
