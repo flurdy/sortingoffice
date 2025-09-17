@@ -1,4 +1,5 @@
 use sortingoffice::models::DuplicateDomainForm;
+use sortingoffice::validation::{self, ValidationError};
 
 #[tokio::test]
 async fn test_duplicate_wizard_form_submission() -> Result<(), Box<dyn std::error::Error>> {
@@ -261,5 +262,80 @@ async fn test_duplicate_wizard_form_boolean_handling() -> Result<(), Box<dyn std
     assert_eq!(mixed_form.duplicate_relays, true);
     assert_eq!(mixed_form.confirmed, false); // Not provided
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_duplicate_wizard_domain_validation() -> Result<(), Box<dyn std::error::Error>> {
+    // Test domain validation with various invalid domain names
+    
+    // Test uppercase letters (should fail)
+    let uppercase_form_data = "source_domain=example.com&new_domain=INVALID-DOMAIN.com&transport=virtual";
+    let uppercase_form: DuplicateDomainForm = serde_urlencoded::from_str(uppercase_form_data)?;
+    
+    // Validate the domain
+    let validation_result = validation::validate_domain(&uppercase_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("uppercase"));
+    }
+    
+    // Test consecutive dots (should fail)
+    let consecutive_dots_form_data = "source_domain=example.com&new_domain=test..domain.com&transport=virtual";
+    let consecutive_dots_form: DuplicateDomainForm = serde_urlencoded::from_str(consecutive_dots_form_data)?;
+    
+    let validation_result = validation::validate_domain(&consecutive_dots_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("consecutive"));
+    }
+    
+    // Test invalid characters (should fail)
+    let invalid_chars_form_data = "source_domain=example.com&new_domain=test@domain.com&transport=virtual";
+    let invalid_chars_form: DuplicateDomainForm = serde_urlencoded::from_str(invalid_chars_form_data)?;
+    
+    let validation_result = validation::validate_domain(&invalid_chars_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("lowercase letters, numbers, dots, and hyphens"));
+    }
+    
+    // Test valid domain (should pass)
+    let valid_form_data = "source_domain=example.com&new_domain=valid-domain.com&transport=virtual";
+    let valid_form: DuplicateDomainForm = serde_urlencoded::from_str(valid_form_data)?;
+    
+    let validation_result = validation::validate_domain(&valid_form.new_domain);
+    assert!(validation_result.is_ok());
+    
+    // Test domain starting with hyphen (should fail)
+    let start_hyphen_form_data = "source_domain=example.com&new_domain=-invalid.com&transport=virtual";
+    let start_hyphen_form: DuplicateDomainForm = serde_urlencoded::from_str(start_hyphen_form_data)?;
+    
+    let validation_result = validation::validate_domain(&start_hyphen_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("start with dot or hyphen"));
+    }
+    
+    // Test domain ending with hyphen (should fail)
+    let end_hyphen_form_data = "source_domain=example.com&new_domain=invalid-&transport=virtual";
+    let end_hyphen_form: DuplicateDomainForm = serde_urlencoded::from_str(end_hyphen_form_data)?;
+    
+    let validation_result = validation::validate_domain(&end_hyphen_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("end with dot or hyphen"));
+    }
+    
+    // Test empty domain (should fail)
+    let empty_form_data = "source_domain=example.com&new_domain=&transport=virtual";
+    let empty_form: DuplicateDomainForm = serde_urlencoded::from_str(empty_form_data)?;
+    
+    let validation_result = validation::validate_domain(&empty_form.new_domain);
+    assert!(validation_result.is_err());
+    if let Err(ValidationError::DomainInvalid(msg)) = validation_result {
+        assert!(msg.contains("empty"));
+    }
+    
     Ok(())
 }

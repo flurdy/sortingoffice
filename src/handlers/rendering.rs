@@ -1651,6 +1651,18 @@ pub async fn render_duplicate_domain_selection_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    render_duplicate_domain_selection_page_with_error(domains, session, "", state, locale, headers).await
+}
+
+/// Render duplicate domain selection page with error message
+pub async fn render_duplicate_domain_selection_page_with_error(
+    domains: Vec<crate::models::Domain>,
+    session: Option<&crate::models::DuplicateDomainSession>,
+    error_message: &str,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
     // Fetch all required translations for duplicate domain selection
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-title").await;
     let description =
@@ -1690,7 +1702,7 @@ pub async fn render_duplicate_domain_selection_page(
     let content_template = crate::templates::wizard::DuplicateDomainSelectionTemplate {
         title: &title,
         description: &description,
-        error: "",
+        error: error_message,
         domains: &domains,
         source_domain_label: &source_domain_label,
         source_domain_placeholder: &source_domain_placeholder,

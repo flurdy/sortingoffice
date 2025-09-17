@@ -4,7 +4,7 @@ use crate::{
         http_helpers::get_user_locale,
         rendering::{
             render_duplicate_domain_complete_page, render_duplicate_domain_review_page,
-            render_duplicate_domain_selection_page,
+            render_duplicate_domain_selection_page, render_duplicate_domain_selection_page_with_error,
         },
     },
     models::{Domain, DuplicateDomainForm, DuplicateDomainSession, DuplicateWizardStep, Relay},
@@ -137,6 +137,86 @@ pub async fn domain_selection_post(
     headers: HeaderMap,
     Form(form): Form<DuplicateDomainForm>,
 ) -> Result<Html<String>, Redirect> {
+    let locale = get_user_locale(&headers);
+    
+    // Validate new domain name
+    if let Err(validation_error) = crate::validation::validate_domain(&form.new_domain) {
+        error!("Domain validation failed: {:?}", validation_error);
+        
+        // Get available domains for the form
+        let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+            Ok(pool) => pool,
+            Err(e) => {
+                error!("Failed to get database pool: {:?}", e);
+                return Ok(Html("Database connection error".to_string()));
+            }
+        };
+        
+        let mut domains = match db::get_domains(&pool) {
+            Ok(domains) => domains,
+            Err(e) => {
+                error!("Failed to get domains: {:?}", e);
+                vec![]
+            }
+        };
+        
+        // Get backup domains and add them to the list
+        let backups = match db::get_backups(&pool) {
+            Ok(backups) => backups,
+            Err(e) => {
+                error!("Failed to get backup domains: {:?}", e);
+                vec![]
+            }
+        };
+        
+        // Convert backup domains to regular domains for display
+        for backup in backups {
+            let backup_domain = Domain {
+                pkid: backup.pkid,
+                domain: backup.domain,
+                transport: backup.transport.or_else(|| Some("virtual".to_string())),
+                created: backup.created,
+                modified: backup.modified,
+                enabled: backup.enabled,
+            };
+            domains.push(backup_domain);
+        }
+        
+        // Sort domains alphabetically
+        domains.sort_by(|a, b| a.domain.cmp(&b.domain));
+        
+        // Create session with form data for restoration
+        let session = DuplicateDomainSession {
+            step: DuplicateWizardStep::DomainSelection,
+            source_domain: None,
+            source_is_backup: false,
+            new_domain: form.new_domain.clone(),
+            transport: "virtual".to_string(),
+            enabled: true,
+            duplicate_aliases: true,
+            duplicate_relays: true,
+            aliases_to_duplicate: vec![],
+            relays_to_duplicate: vec![],
+            target_is_backup: None,
+        };
+        save_session(session.clone());
+        
+        // Render form with error
+        let error_message = match validation_error {
+            crate::validation::ValidationError::DomainInvalid(msg) => msg,
+            _ => "Invalid domain format".to_string(),
+        };
+        
+        return Ok(render_duplicate_domain_selection_page_with_error(
+            domains, 
+            Some(&session), 
+            &error_message,
+            &state, 
+            &locale, 
+            &headers
+        ).await);
+    }
+    
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
         Ok(pool) => pool,
         Err(e) => {

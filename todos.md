@@ -60,9 +60,9 @@
   - A few integration tests
   - One or two UI tests
 
-- Duplicate domain - Please ensure domain field is validated as valid text like in other forms, e.g lowercase only. No symbols apart from dot, hyphen and underscore
+- ✅ Duplicate domain - Please ensure domain field is validated as valid text like in other forms, e.g lowercase only. No symbols apart from dot, hyphen and underscore
 
-- Duplicate domain - Can on the review page the source and new domain box be 3 columns wide by default. To avoid the 2nd row for the enabled text/toggle. 
+- ✅ Duplicate domain - Can on the review page the source and new domain box be 3 columns wide by default. To avoid the 2nd row for the enabled text/toggle. 
 
 
 - Refactor database helper functions for better maintainability. Postponed for now.
@@ -70,6 +70,11 @@
   - Create generic functions to reduce code duplication
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
+
+- Duplicate domain - On the review page, 
+  - shorten the message value for `aliases_label` to: Duplicate aliases 
+  - And its translations
+  - And the count seems wrong?
 
 ## 🐛 Bugs and KNOWN ISSUES
 
