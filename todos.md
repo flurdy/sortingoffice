@@ -14,7 +14,7 @@
 
 - ✅ Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
 
-- Duplicate domain - verify backup domains are also listed.
+- ✅ Duplicate domain - verify backup domains are also listed.
 
 - ✅ Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
 

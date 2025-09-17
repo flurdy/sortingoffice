@@ -90,3 +90,65 @@ async fn test_duplicate_wizard_step_enum() -> Result<(), Box<dyn std::error::Err
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_backup_domain_session_handling() -> Result<(), Box<dyn std::error::Error>> {
+    // Test session creation for backup domain duplication
+    let backup_session = DuplicateDomainSession {
+        step: DuplicateWizardStep::Configuration,
+        source_domain: None,
+        source_is_backup: true, // Source is a backup domain
+        new_domain: "new-backup.com".to_string(),
+        transport: "smtp:mail.backup.com".to_string(),
+        enabled: true,
+        duplicate_aliases: true,
+        duplicate_relays: true,
+        aliases_to_duplicate: vec![],
+        relays_to_duplicate: vec![],
+        target_is_backup: Some(true), // Target should also be backup
+    };
+
+    // Test backup domain properties
+    assert_eq!(backup_session.source_is_backup, true);
+    assert_eq!(backup_session.target_is_backup, Some(true));
+    assert_eq!(backup_session.new_domain, "new-backup.com");
+    assert_eq!(backup_session.transport, "smtp:mail.backup.com");
+
+    // Test session with backup source but normal target
+    let mixed_session = DuplicateDomainSession {
+        step: DuplicateWizardStep::Configuration,
+        source_domain: None,
+        source_is_backup: true, // Source is backup
+        new_domain: "new-normal.com".to_string(),
+        transport: "virtual".to_string(),
+        enabled: true,
+        duplicate_aliases: true,
+        duplicate_relays: true,
+        aliases_to_duplicate: vec![],
+        relays_to_duplicate: vec![],
+        target_is_backup: Some(false), // Target is normal
+    };
+
+    assert_eq!(mixed_session.source_is_backup, true);
+    assert_eq!(mixed_session.target_is_backup, Some(false));
+
+    // Test session with normal source but backup target
+    let reverse_mixed_session = DuplicateDomainSession {
+        step: DuplicateWizardStep::Configuration,
+        source_domain: None,
+        source_is_backup: false, // Source is normal
+        new_domain: "new-backup-from-normal.com".to_string(),
+        transport: "virtual".to_string(),
+        enabled: true,
+        duplicate_aliases: true,
+        duplicate_relays: true,
+        aliases_to_duplicate: vec![],
+        relays_to_duplicate: vec![],
+        target_is_backup: Some(true), // Target is backup
+    };
+
+    assert_eq!(reverse_mixed_session.source_is_backup, false);
+    assert_eq!(reverse_mixed_session.target_is_backup, Some(true));
+
+    Ok(())
+}
