@@ -61,6 +61,7 @@ pub use domains::{
 pub use duplicate_wizard::{
     domain_selection, domain_selection_post, execute as duplicate_wizard_execute,
     index as duplicate_wizard_index, review as duplicate_wizard_review,
+    toggle_alias_enabled, toggle_new_domain_enabled, toggle_relay_enabled,
 };
 pub use health::*;
 pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
@@ -68,7 +69,7 @@ pub use language::{get_user_locale, set_language};
 pub use not_found::not_found;
 pub use relays::{
     create_form as create_relay_form, create_relay, delete_relay, edit_form as edit_relay_form,
-    list_relays, show_relay, toggle_enabled as toggle_relay_enabled, update_relay,
+    list_relays, show_relay, toggle_enabled as toggle_relay_enabled_original, update_relay,
 };
 pub use relocated::{
     create_form as create_relocated_form, create_relocated, delete_relocated,
@@ -399,6 +400,18 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/duplicate-wizard/execute",
             axum::routing::post(duplicate_wizard_execute),
+        )
+        .route(
+            "/duplicate-wizard/toggle-new-domain-enabled",
+            axum::routing::post(toggle_new_domain_enabled),
+        )
+        .route(
+            "/duplicate-wizard/toggle-alias-enabled",
+            axum::routing::post(toggle_alias_enabled),
+        )
+        .route(
+            "/duplicate-wizard/toggle-relay-enabled",
+            axum::routing::post(toggle_relay_enabled),
         )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(

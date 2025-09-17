@@ -56,16 +56,26 @@
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ enabled_label }}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                            {% if new_enabled %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
-                                    {{ enabled_status }}
-                                </span>
-                            {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                                    {{ disabled_status }}
-                                </span>
-                            {% endif %}
+                        <dd class="mt-1">
+                            <div id="new-domain-enabled-toggle" class="radio-toggle-container">
+                                <div class="radio-toggle">
+                                    <input type="radio" id="new_enabled_true" name="new_enabled" value="true" {% if new_enabled %}checked{% endif %} class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-new-domain-enabled" hx-vals='{"enabled": "true"}' hx-target="#new-domain-enabled-toggle">
+                                    <label for="new_enabled_true" class="radio-toggle-label radio-toggle-label-left">
+                                        <span class="radio-toggle-icon">✓</span>
+                                        <span class="radio-toggle-text">{{ enabled_status }}</span>
+                                    </label>
+                                    {% if new_enabled %}
+                                    <input type="radio" id="new_enabled_false" name="new_enabled" value="false" class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-new-domain-enabled" hx-vals='{"enabled": "false"}' hx-target="#new-domain-enabled-toggle">
+                                    {% else %}
+                                    <input type="radio" id="new_enabled_false" name="new_enabled" value="false" checked class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-new-domain-enabled" hx-vals='{"enabled": "false"}' hx-target="#new-domain-enabled-toggle">
+                                    {% endif %}
+                                    <label for="new_enabled_false" class="radio-toggle-label radio-toggle-label-right">
+                                        <span class="radio-toggle-icon">✗</span>
+                                        <span class="radio-toggle-text">{{ disabled_status }}</span>
+                                    </label>
+                                    <div class="radio-toggle-slider"></div>
+                                </div>
+                            </div>
                         </dd>
                     </div>
                 </dl>
@@ -105,15 +115,25 @@
                                             </p>
                                         </div>
                                         <div class="ml-4 flex-shrink-0">
-                                            {% if alias.enabled %}
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
-                                                    {{ enabled_status }}
-                                                </span>
-                                            {% else %}
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                                                    {{ disabled_status }}
-                                                </span>
-                                            {% endif %}
+                                            <div id="alias-enabled-toggle-{{ alias.pkid }}" class="radio-toggle-container">
+                                                <div class="radio-toggle">
+                                                    <input type="radio" id="alias_enabled_{{ alias.pkid }}_true" name="alias_enabled_{{ alias.pkid }}" value="true" {% if alias.enabled %}checked{% endif %} class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-alias-enabled" hx-vals='{"alias_id": "{{ alias.pkid }}", "enabled": "true"}' hx-target="#alias-enabled-toggle-{{ alias.pkid }}">
+                                                    <label for="alias_enabled_{{ alias.pkid }}_true" class="radio-toggle-label radio-toggle-label-left">
+                                                        <span class="radio-toggle-icon">✓</span>
+                                                        <span class="radio-toggle-text">{{ enabled_status }}</span>
+                                                    </label>
+                                                    {% if alias.enabled %}
+                                                    <input type="radio" id="alias_enabled_{{ alias.pkid }}_false" name="alias_enabled_{{ alias.pkid }}" value="false" class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-alias-enabled" hx-vals='{"alias_id": "{{ alias.pkid }}", "enabled": "false"}' hx-target="#alias-enabled-toggle-{{ alias.pkid }}">
+                                                    {% else %}
+                                                    <input type="radio" id="alias_enabled_{{ alias.pkid }}_false" name="alias_enabled_{{ alias.pkid }}" value="false" checked class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-alias-enabled" hx-vals='{"alias_id": "{{ alias.pkid }}", "enabled": "false"}' hx-target="#alias-enabled-toggle-{{ alias.pkid }}">
+                                                    {% endif %}
+                                                    <label for="alias_enabled_{{ alias.pkid }}_false" class="radio-toggle-label radio-toggle-label-right">
+                                                        <span class="radio-toggle-icon">✗</span>
+                                                        <span class="radio-toggle-text">{{ disabled_status }}</span>
+                                                    </label>
+                                                    <div class="radio-toggle-slider"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </li>
@@ -156,15 +176,25 @@
                                             </p>
                                         </div>
                                         <div class="ml-4 flex-shrink-0">
-                                            {% if relay.enabled %}
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
-                                                    {{ enabled_status }}
-                                                </span>
-                                            {% else %}
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
-                                                    {{ disabled_status }}
-                                                </span>
-                                            {% endif %}
+                                            <div id="relay-enabled-toggle-{{ relay.pkid }}" class="radio-toggle-container">
+                                                <div class="radio-toggle">
+                                                    <input type="radio" id="relay_enabled_{{ relay.pkid }}_true" name="relay_enabled_{{ relay.pkid }}" value="true" {% if relay.enabled %}checked{% endif %} class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-relay-enabled" hx-vals='{"relay_id": "{{ relay.pkid }}", "enabled": "true"}' hx-target="#relay-enabled-toggle-{{ relay.pkid }}">
+                                                    <label for="relay_enabled_{{ relay.pkid }}_true" class="radio-toggle-label radio-toggle-label-left">
+                                                        <span class="radio-toggle-icon">✓</span>
+                                                        <span class="radio-toggle-text">{{ enabled_status }}</span>
+                                                    </label>
+                                                    {% if relay.enabled %}
+                                                    <input type="radio" id="relay_enabled_{{ relay.pkid }}_false" name="relay_enabled_{{ relay.pkid }}" value="false" class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-relay-enabled" hx-vals='{"relay_id": "{{ relay.pkid }}", "enabled": "false"}' hx-target="#relay-enabled-toggle-{{ relay.pkid }}">
+                                                    {% else %}
+                                                    <input type="radio" id="relay_enabled_{{ relay.pkid }}_false" name="relay_enabled_{{ relay.pkid }}" value="false" checked class="radio-toggle-input" hx-post="/duplicate-wizard/toggle-relay-enabled" hx-vals='{"relay_id": "{{ relay.pkid }}", "enabled": "false"}' hx-target="#relay-enabled-toggle-{{ relay.pkid }}">
+                                                    {% endif %}
+                                                    <label for="relay_enabled_{{ relay.pkid }}_false" class="radio-toggle-label radio-toggle-label-right">
+                                                        <span class="radio-toggle-icon">✗</span>
+                                                        <span class="radio-toggle-text">{{ disabled_status }}</span>
+                                                    </label>
+                                                    <div class="radio-toggle-slider"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </li>

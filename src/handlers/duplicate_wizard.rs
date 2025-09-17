@@ -27,6 +27,23 @@ pub struct DomainSearchQuery {
     pub limit: Option<i64>,
 }
 
+#[derive(Deserialize)]
+pub struct ToggleEnabledForm {
+    pub enabled: String,
+}
+
+#[derive(Deserialize)]
+pub struct ToggleAliasEnabledForm {
+    pub alias_id: i32,
+    pub enabled: String,
+}
+
+#[derive(Deserialize)]
+pub struct ToggleRelayEnabledForm {
+    pub relay_id: i32,
+    pub enabled: String,
+}
+
 // Simple session storage using static HashMap
 lazy_static! {
     static ref DUPLICATE_WIZARD_SESSIONS: Mutex<HashMap<String, DuplicateDomainSession>> =
@@ -412,6 +429,170 @@ fn save_session(session: DuplicateDomainSession) {
         .lock()
         .unwrap()
         .insert("admin".to_string(), session);
+}
+
+/// HTMX handler to toggle new domain enabled state
+pub async fn toggle_new_domain_enabled(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): Form<ToggleEnabledForm>,
+) -> Result<Html<String>, Redirect> {
+    let mut session = match get_session() {
+        Some(session) => session,
+        None => {
+            return Ok(Html("No session found".to_string()));
+        }
+    };
+
+    // Update the new domain enabled state
+    session.enabled = form.enabled == "true";
+
+    // Save the updated session
+    save_session(session);
+
+    // Return the updated toggle HTML
+    let enabled = form.enabled == "true";
+    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+
+    let checked_true = if enabled { "checked" } else { "" };
+    let checked_false = if !enabled { "checked" } else { "" };
+    
+    let html = format!(
+        "<div class=\"radio-toggle-container\">\
+            <div class=\"radio-toggle\">\
+                <input type=\"radio\" id=\"new_enabled_true\" name=\"new_enabled\" value=\"true\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-new-domain-enabled\" hx-vals='{{\"enabled\": \"true\"}}' hx-target=\"#new-domain-enabled-toggle\">\
+                <label for=\"new_enabled_true\" class=\"radio-toggle-label radio-toggle-label-left\">\
+                    <span class=\"radio-toggle-icon\">✓</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <input type=\"radio\" id=\"new_enabled_false\" name=\"new_enabled\" value=\"false\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-new-domain-enabled\" hx-vals='{{\"enabled\": \"false\"}}' hx-target=\"#new-domain-enabled-toggle\">\
+                <label for=\"new_enabled_false\" class=\"radio-toggle-label radio-toggle-label-right\">\
+                    <span class=\"radio-toggle-icon\">✗</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <div class=\"radio-toggle-slider\"></div>\
+            </div>\
+        </div>",
+        checked_true,
+        enabled_status,
+        checked_false,
+        disabled_status
+    );
+
+    Ok(Html(html))
+}
+
+/// HTMX handler to toggle alias enabled state
+pub async fn toggle_alias_enabled(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): Form<ToggleAliasEnabledForm>,
+) -> Result<Html<String>, Redirect> {
+    let mut session = match get_session() {
+        Some(session) => session,
+        None => {
+            return Ok(Html("No session found".to_string()));
+        }
+    };
+
+    // Find and update the alias in the session
+    if let Some(alias) = session.aliases_to_duplicate.iter_mut().find(|a| a.pkid == form.alias_id) {
+        alias.enabled = form.enabled == "true";
+    }
+
+    // Save the updated session
+    save_session(session);
+
+    // Return the updated toggle HTML
+    let enabled = form.enabled == "true";
+    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+
+    let checked_true = if enabled { "checked" } else { "" };
+    let checked_false = if !enabled { "checked" } else { "" };
+    
+    let html = format!(
+        "<div class=\"radio-toggle-container\">\
+            <div class=\"radio-toggle\">\
+                <input type=\"radio\" id=\"alias_enabled_{}_true\" name=\"alias_enabled_{}\" value=\"true\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-alias-enabled\" hx-vals='{{\"alias_id\": \"{}\", \"enabled\": \"true\"}}' hx-target=\"#alias-enabled-toggle-{}\">\
+                <label for=\"alias_enabled_{}_true\" class=\"radio-toggle-label radio-toggle-label-left\">\
+                    <span class=\"radio-toggle-icon\">✓</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <input type=\"radio\" id=\"alias_enabled_{}_false\" name=\"alias_enabled_{}\" value=\"false\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-alias-enabled\" hx-vals='{{\"alias_id\": \"{}\", \"enabled\": \"false\"}}' hx-target=\"#alias-enabled-toggle-{}\">\
+                <label for=\"alias_enabled_{}_false\" class=\"radio-toggle-label radio-toggle-label-right\">\
+                    <span class=\"radio-toggle-icon\">✗</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <div class=\"radio-toggle-slider\"></div>\
+            </div>\
+        </div>",
+        form.alias_id, form.alias_id, checked_true,
+        form.alias_id, form.alias_id,
+        form.alias_id, enabled_status,
+        form.alias_id, form.alias_id, checked_false,
+        form.alias_id, form.alias_id,
+        form.alias_id, disabled_status
+    );
+
+    Ok(Html(html))
+}
+
+/// HTMX handler to toggle relay enabled state
+pub async fn toggle_relay_enabled(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(form): Form<ToggleRelayEnabledForm>,
+) -> Result<Html<String>, Redirect> {
+    let mut session = match get_session() {
+        Some(session) => session,
+        None => {
+            return Ok(Html("No session found".to_string()));
+        }
+    };
+
+    // Find and update the relay in the session
+    if let Some(relay) = session.relays_to_duplicate.iter_mut().find(|r| r.pkid == form.relay_id) {
+        relay.enabled = form.enabled == "true";
+    }
+
+    // Save the updated session
+    save_session(session);
+
+    // Return the updated toggle HTML
+    let enabled = form.enabled == "true";
+    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+
+    let checked_true = if enabled { "checked" } else { "" };
+    let checked_false = if !enabled { "checked" } else { "" };
+    
+    let html = format!(
+        "<div class=\"radio-toggle-container\">\
+            <div class=\"radio-toggle\">\
+                <input type=\"radio\" id=\"relay_enabled_{}_true\" name=\"relay_enabled_{}\" value=\"true\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-relay-enabled\" hx-vals='{{\"relay_id\": \"{}\", \"enabled\": \"true\"}}' hx-target=\"#relay-enabled-toggle-{}\">\
+                <label for=\"relay_enabled_{}_true\" class=\"radio-toggle-label radio-toggle-label-left\">\
+                    <span class=\"radio-toggle-icon\">✓</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <input type=\"radio\" id=\"relay_enabled_{}_false\" name=\"relay_enabled_{}\" value=\"false\" {} class=\"radio-toggle-input\" hx-post=\"/duplicate-wizard/toggle-relay-enabled\" hx-vals='{{\"relay_id\": \"{}\", \"enabled\": \"false\"}}' hx-target=\"#relay-enabled-toggle-{}\">\
+                <label for=\"relay_enabled_{}_false\" class=\"radio-toggle-label radio-toggle-label-right\">\
+                    <span class=\"radio-toggle-icon\">✗</span>\
+                    <span class=\"radio-toggle-text\">{}</span>\
+                </label>\
+                <div class=\"radio-toggle-slider\"></div>\
+            </div>\
+        </div>",
+        form.relay_id, form.relay_id, checked_true,
+        form.relay_id, form.relay_id,
+        form.relay_id, enabled_status,
+        form.relay_id, form.relay_id, checked_false,
+        form.relay_id, form.relay_id,
+        form.relay_id, disabled_status
+    );
+
+    Ok(Html(html))
 }
 
 /// Helper function to clear session

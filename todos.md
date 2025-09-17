@@ -18,9 +18,9 @@
 
 - ✅ Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
 
-- Duplicate domain - Relays to be copied seems to include other domains relays? It should not
+- ✅ Duplicate domain - Relays to be copied seems to include other domains relays? It should not
 
-- Duplicate domain - for the domain, aliases and relays:
+- ✅ Duplicate domain - for the domain, aliases and relays:
   - Do not show enabled as a text column
   - Instead for all entries show a toggle to change enabled/disabled
 
@@ -35,7 +35,7 @@
   - ✅ It does not duplicate users
   - ✅ Add tests
 
-- Add a remove domain wizard. Confirm before starting this todo.
+- Add a remove domain wizard. Confirm before starting this todo. Currently this is postponed till later.
   - Delete or disable?
   - Delete all users
   - Delete relays and relocated
@@ -56,16 +56,10 @@
   - A few integration tests
   - One or two UI tests
 
-- ✅ Tidy up code
-  - Refactored long create_app function into smaller helper functions
-  - ✅ Split long wizard execute function into smaller, focused functions
-  - ✅ Fixed formatting issues and verified no compilation errors
-  - ✅ Improved code readability and maintainability
-  - ✅ No unused functions or commented code found
-  - ✅ All code properly formatted
+- Duplicate domain - Please ensure domain field is validated as valid text like in other forms, e.g lowercase only. No symbols apart from dot, hyphen and underscore
 
- - ✅ Tidy up more code and tests
-  - ✅ Refactor long functions 
+- Duplicate domain - Can on the review page the source and new domain box be 3 columns wide by default. To avoid the 2nd row for the enabled text/toggle. 
+
 
 - Refactor database helper functions for better maintainability
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
@@ -79,7 +73,7 @@
   - if they actually are needed. Some tests are not important.
   - if they should be split. A test should logically only test one logic.
 
-## 🐛 KNOWN ISSUES
+## 🐛 Bugs and KNOWN ISSUES
 
 - When adding a new domain, the domain list is not updated
 
