@@ -222,7 +222,7 @@ pub async fn domain_selection_post(
     session.transport = source_domain
         .transport
         .unwrap_or_else(|| "virtual".to_string()); // Always copy source domain's transport
-    session.enabled = form.enabled;
+    session.enabled = true; // Default to enabled, can be changed via toggles on review page
     session.duplicate_aliases = true; // Always duplicate aliases
     session.duplicate_relays = true; // Always duplicate relays
     session.aliases_to_duplicate = aliases_to_duplicate;

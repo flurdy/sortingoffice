@@ -49,7 +49,7 @@
 
 ### Low 
 
-- Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
+- ✅ Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
 
 - Duplicate domain - in the review page, clicking back does not retain any fields.
 
