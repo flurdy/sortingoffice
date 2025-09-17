@@ -88,16 +88,7 @@
                 <!-- Aliases Section -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-3">
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ aliases_label }}</dt>
-                        {% if duplicate_aliases %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
-                                {{ yes_status }} ({{ aliases_count }} {{ items_label }})
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                                {{ no_status }}
-                            </span>
-                        {% endif %}
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ aliases_label }} ({{ aliases_count }} {{ items_label }})</dt>
                     </div>
                     {% if duplicate_aliases %}
                         {% if aliases_to_duplicate.len() > 0 %}
@@ -149,16 +140,7 @@
                 <!-- Relays Section -->
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ relays_label }}</dt>
-                        {% if duplicate_relays %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
-                                {{ yes_status }} ({{ relays_count }} {{ items_label }})
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                                {{ no_status }}
-                            </span>
-                        {% endif %}
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ relays_label }} ({{ relays_count }} {{ items_label }})</dt>
                     </div>
                     {% if duplicate_relays %}
                         {% if relays_to_duplicate.len() > 0 %}

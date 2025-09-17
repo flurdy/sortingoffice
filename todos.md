@@ -24,7 +24,7 @@
   - Do not show enabled as a text column
   - Instead for all entries show a toggle to change enabled/disabled
 
-- Duplicate domain - on the review page, showing the Yes in green on the right for aliases and relays does not make sense since it is not optional.
+- ✅ Duplicate domain - on the review page, showing the Yes in green on the right for aliases and relays does not make sense since it is not optional.
 
 ### Medium Priority
 
@@ -48,6 +48,8 @@
   Similar to what is in Clients.
 
 ### Low 
+
+- Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
 
 - Duplicate domain - in the review page, clicking back does not retain any fields.
 

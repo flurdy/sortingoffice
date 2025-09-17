@@ -1724,9 +1724,6 @@ pub async fn render_duplicate_domain_review_page(
         crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
     let relays_label =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
-    let yes_status =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-yes-status").await;
-    let no_status = crate::i18n::get_translation(state, locale, "duplicate-wizard-no-status").await;
     let items_label =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-items-label").await;
     let back_button = crate::i18n::get_translation(state, locale, "wizard-back").await;
@@ -1774,8 +1771,6 @@ pub async fn render_duplicate_domain_review_page(
         disabled_status: &disabled_status,
         aliases_label: &aliases_label,
         relays_label: &relays_label,
-        yes_status: &yes_status,
-        no_status: &no_status,
         items_label: &items_label,
         back_button: &back_button,
         cancel_button: &cancel_button,

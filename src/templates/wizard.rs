@@ -164,8 +164,6 @@ pub struct DuplicateReviewTemplate<'a> {
     pub disabled_status: &'a str,
     pub aliases_label: &'a str,
     pub relays_label: &'a str,
-    pub yes_status: &'a str,
-    pub no_status: &'a str,
     pub items_label: &'a str,
     pub back_button: &'a str,
     pub cancel_button: &'a str,
