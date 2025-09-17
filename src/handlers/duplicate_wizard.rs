@@ -55,13 +55,39 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
         }
     };
 
-    let domains = match db::get_domains(&pool) {
+    // Get regular domains
+    let mut domains = match db::get_domains(&pool) {
         Ok(domains) => domains,
         Err(e) => {
             error!("Failed to get domains: {:?}", e);
             vec![]
         }
     };
+
+    // Get backup domains and add them to the list
+    let backups = match db::get_backups(&pool) {
+        Ok(backups) => backups,
+        Err(e) => {
+            error!("Failed to get backup domains: {:?}", e);
+            vec![]
+        }
+    };
+
+    // Convert backup domains to regular domains for display
+    for backup in backups {
+        let backup_domain = Domain {
+            pkid: backup.pkid,
+            domain: backup.domain,
+            transport: backup.transport.or_else(|| Some("virtual".to_string())),
+            created: backup.created,
+            modified: backup.modified,
+            enabled: backup.enabled,
+        };
+        domains.push(backup_domain);
+    }
+
+    // Sort domains alphabetically
+    domains.sort_by(|a, b| a.domain.cmp(&b.domain));
 
     // Create session
     let session = DuplicateDomainSession {
@@ -115,29 +141,40 @@ pub async fn domain_selection_post(
         }
     };
 
-    // Get aliases and relays to duplicate
-    let aliases_to_duplicate = if form.duplicate_aliases {
-        match db::get_aliases_for_domain(&pool, &source_domain.domain) {
-            Ok(aliases) => aliases,
-            Err(e) => {
-                error!("Failed to get aliases: {:?}", e);
-                vec![]
-            }
+    // Get aliases and relays to duplicate (always duplicate both)
+    let aliases_to_duplicate = match db::get_aliases_for_domain(&pool, &source_domain.domain) {
+        Ok(aliases) => {
+            // Transform aliases to show what they will look like after duplication
+            aliases
+                .into_iter()
+                .map(|alias| {
+                    let new_mail = alias.mail.replace(
+                        &format!("@{}", source_domain.domain),
+                        &format!("@{}", form.new_domain),
+                    );
+                    crate::models::Alias {
+                        pkid: alias.pkid,
+                        mail: new_mail,
+                        destination: alias.destination,
+                        created: alias.created,
+                        modified: alias.modified,
+                        enabled: alias.enabled,
+                    }
+                })
+                .collect()
         }
-    } else {
-        vec![]
+        Err(e) => {
+            error!("Failed to get aliases: {:?}", e);
+            vec![]
+        }
     };
 
-    let relays_to_duplicate = if form.duplicate_relays {
-        match get_relays_for_domain(&pool, &source_domain.domain).await {
-            Ok(relays) => relays,
-            Err(e) => {
-                error!("Failed to get relays: {:?}", e);
-                vec![]
-            }
+    let relays_to_duplicate = match get_relays_for_domain(&pool, &source_domain.domain).await {
+        Ok(relays) => relays,
+        Err(e) => {
+            error!("Failed to get relays: {:?}", e);
+            vec![]
         }
-    } else {
-        vec![]
     };
 
     // Update session
@@ -154,12 +191,14 @@ pub async fn domain_selection_post(
     });
 
     session.step = DuplicateWizardStep::Configuration;
-    session.source_domain = Some(source_domain);
+    session.source_domain = Some(source_domain.clone());
     session.new_domain = form.new_domain;
-    session.transport = form.transport;
+    session.transport = source_domain
+        .transport
+        .unwrap_or_else(|| "virtual".to_string()); // Always copy source domain's transport
     session.enabled = form.enabled;
-    session.duplicate_aliases = form.duplicate_aliases;
-    session.duplicate_relays = form.duplicate_relays;
+    session.duplicate_aliases = true; // Always duplicate aliases
+    session.duplicate_relays = true; // Always duplicate relays
     session.aliases_to_duplicate = aliases_to_duplicate;
     session.relays_to_duplicate = relays_to_duplicate;
 
@@ -246,12 +285,15 @@ pub async fn execute(
 /// Helper function to get relays for a domain
 pub async fn get_relays_for_domain(
     pool: &DbPool,
-    _domain: &str,
+    domain: &str,
 ) -> Result<Vec<Relay>, diesel::result::Error> {
-    // This is a simplified implementation
-    // In practice, you'd need to determine how relays are associated with domains
-    // For now, return all relays
-    db::get_relays(pool)
+    // Get all relays and filter by domain (relays are domain-specific through recipient field)
+    let all_relays = db::get_relays(pool)?;
+    let domain_relays: Vec<Relay> = all_relays
+        .into_iter()
+        .filter(|relay| relay.recipient.ends_with(&format!("@{}", domain)))
+        .collect();
+    Ok(domain_relays)
 }
 
 /// Helper function to create duplicated domain

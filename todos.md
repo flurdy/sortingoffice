@@ -8,15 +8,17 @@
 
 - ✅ Final step in duplicate domain shows an error: Failed to deserialize form body: missing field `source_domain`
 
-- Duplicate domain - List aliases and relays about to be created in the review step.
+- ✅ Duplicate domain - List aliases and relays about to be created in the review step.
 
-- Duplicate domain - ALiases listed on the review page should be for aliases to be created, not the one copied.
+- ✅ Duplicate domain - ALiases listed on the review page should be for aliases to be created, not the one copied.
 
-- Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
+- ✅ Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
 
 - Duplicate domain - verify backup domains are also listed.
 
-- Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
+- ✅ Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
+
+- Duplicate domain - Relays to be copied seems to include other domains relays? It should not
 
 - Duplicate domain - for the domain, aliases and relays:
   - Do not show enabled as a text column

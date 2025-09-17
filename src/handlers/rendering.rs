@@ -1673,20 +1673,7 @@ pub async fn render_duplicate_domain_selection_page(
     let new_domain_description =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-description")
             .await;
-    let transport_label = crate::i18n::get_translation(state, locale, "form-transport").await;
-    let transport_description =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-description").await;
-    let transport_virtual =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-virtual").await;
-    let transport_smtp =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-smtp").await;
     let enabled_label = crate::i18n::get_translation(state, locale, "form-enabled").await;
-    let duplicate_section_title =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-section-title").await;
-    let duplicate_aliases_label =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
-    let duplicate_relays_label =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
     let next_button = crate::i18n::get_translation(state, locale, "wizard-next").await;
     let cancel_button = crate::i18n::get_translation(state, locale, "form-cancel").await;
 
@@ -1702,14 +1689,7 @@ pub async fn render_duplicate_domain_selection_page(
         new_domain_label: &new_domain_label,
         new_domain_placeholder: &new_domain_placeholder,
         new_domain_description: &new_domain_description,
-        transport_label: &transport_label,
-        transport_description: &transport_description,
-        transport_virtual: &transport_virtual,
-        transport_smtp: &transport_smtp,
         enabled_label: &enabled_label,
-        duplicate_section_title: &duplicate_section_title,
-        duplicate_aliases_label: &duplicate_aliases_label,
-        duplicate_relays_label: &duplicate_relays_label,
         next_button: &next_button,
         cancel_button: &cancel_button,
     };
