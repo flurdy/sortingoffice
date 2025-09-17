@@ -1450,6 +1450,7 @@ pub struct DuplicateDomainForm {
 pub struct DuplicateDomainSession {
     pub step: DuplicateWizardStep,
     pub source_domain: Option<Domain>,
+    pub source_is_backup: bool, // Track if source domain is a backup domain
     pub new_domain: String,
     pub transport: String,
     pub enabled: bool,
@@ -1457,6 +1458,7 @@ pub struct DuplicateDomainSession {
     pub duplicate_relays: bool,
     pub aliases_to_duplicate: Vec<Alias>,
     pub relays_to_duplicate: Vec<Relay>,
+    pub target_is_backup: Option<bool>, // Future: allow user to choose target domain type
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

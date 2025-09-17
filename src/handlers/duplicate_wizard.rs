@@ -93,6 +93,7 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
     let session = DuplicateDomainSession {
         step: DuplicateWizardStep::DomainSelection,
         source_domain: None,
+        source_is_backup: false,
         new_domain: String::new(),
         transport: "virtual".to_string(),
         enabled: true,
@@ -100,6 +101,7 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
         duplicate_relays: true,
         aliases_to_duplicate: vec![],
         relays_to_duplicate: vec![],
+        target_is_backup: None,
     };
     save_session(session);
 
@@ -120,20 +122,24 @@ pub async fn domain_selection_post(
         }
     };
 
-    // Get source domain
-    let source_domain = match db::get_domain_by_name(&pool, &form.source_domain) {
-        Ok(domain) => domain,
+    // Get source domain and determine if it's a backup domain
+    let (source_domain, source_is_backup) = match db::get_domain_by_name(&pool, &form.source_domain)
+    {
+        Ok(domain) => (domain, false), // Normal domain
         Err(_) => {
             // Try backup domains
             match db::get_backup_by_name(&pool, &form.source_domain) {
-                Ok(backup) => Domain {
-                    pkid: backup.pkid,
-                    domain: backup.domain,
-                    transport: backup.transport,
-                    created: backup.created,
-                    modified: backup.modified,
-                    enabled: backup.enabled,
-                },
+                Ok(backup) => {
+                    let domain = Domain {
+                        pkid: backup.pkid,
+                        domain: backup.domain,
+                        transport: backup.transport,
+                        created: backup.created,
+                        modified: backup.modified,
+                        enabled: backup.enabled,
+                    };
+                    (domain, true) // Backup domain
+                }
                 Err(_) => {
                     return Ok(Html("Source domain not found".to_string()));
                 }
@@ -181,6 +187,7 @@ pub async fn domain_selection_post(
     let mut session = get_session().unwrap_or_else(|| DuplicateDomainSession {
         step: DuplicateWizardStep::DomainSelection,
         source_domain: None,
+        source_is_backup: false,
         new_domain: String::new(),
         transport: "virtual".to_string(),
         enabled: true,
@@ -188,10 +195,12 @@ pub async fn domain_selection_post(
         duplicate_relays: true,
         aliases_to_duplicate: vec![],
         relays_to_duplicate: vec![],
+        target_is_backup: None,
     });
 
     session.step = DuplicateWizardStep::Configuration;
     session.source_domain = Some(source_domain.clone());
+    session.source_is_backup = source_is_backup;
     session.new_domain = form.new_domain;
     session.transport = source_domain
         .transport
@@ -201,6 +210,8 @@ pub async fn domain_selection_post(
     session.duplicate_relays = true; // Always duplicate relays
     session.aliases_to_duplicate = aliases_to_duplicate;
     session.relays_to_duplicate = relays_to_duplicate;
+    // Set target domain type to match source domain type (for now)
+    session.target_is_backup = Some(source_is_backup);
 
     save_session(session);
 
@@ -301,16 +312,39 @@ pub async fn create_duplicated_domain(
     pool: &DbPool,
     session: &DuplicateDomainSession,
 ) -> Result<Domain, diesel::result::Error> {
-    use crate::models::NewDomain;
+    use crate::models::{NewBackup, NewDomain};
 
-    // Create the new domain
-    let new_domain = NewDomain {
-        domain: session.new_domain.clone(),
-        transport: Some(session.transport.clone()),
-        enabled: session.enabled,
+    // Determine if we should create a backup domain or normal domain
+    let should_create_backup = session.target_is_backup.unwrap_or(session.source_is_backup);
+
+    let created_domain = if should_create_backup {
+        // Create backup domain
+        let new_backup = NewBackup {
+            domain: session.new_domain.clone(),
+            transport: Some(session.transport.clone()),
+            enabled: session.enabled,
+        };
+
+        let backup = db::create_backup(pool, new_backup)?;
+        // Convert backup to Domain for return type compatibility
+        Domain {
+            pkid: backup.pkid,
+            domain: backup.domain,
+            transport: backup.transport,
+            created: backup.created,
+            modified: backup.modified,
+            enabled: backup.enabled,
+        }
+    } else {
+        // Create normal domain
+        let new_domain = NewDomain {
+            domain: session.new_domain.clone(),
+            transport: Some(session.transport.clone()),
+            enabled: session.enabled,
+        };
+
+        db::create_domain(pool, new_domain)?
     };
-
-    let created_domain = db::create_domain(pool, new_domain)?;
 
     // Duplicate aliases if requested
     if session.duplicate_aliases {

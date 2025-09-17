@@ -6,6 +6,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
     let session1 = DuplicateDomainSession {
         step: DuplicateWizardStep::DomainSelection,
         source_domain: None,
+        source_is_backup: false,
         new_domain: "test.com".to_string(),
         transport: "virtual".to_string(),
         enabled: true,
@@ -13,6 +14,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
         duplicate_relays: true,
         aliases_to_duplicate: vec![],
         relays_to_duplicate: vec![],
+        target_is_backup: None,
     };
 
     // Test basic session properties
@@ -26,6 +28,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
     let session2 = DuplicateDomainSession {
         step: DuplicateWizardStep::Review,
         source_domain: None,
+        source_is_backup: false,
         new_domain: "another.com".to_string(),
         transport: "smtp:mail.another.com".to_string(),
         enabled: false,
@@ -33,6 +36,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
         duplicate_relays: false,
         aliases_to_duplicate: vec![],
         relays_to_duplicate: vec![],
+        target_is_backup: None,
     };
 
     assert_eq!(session2.new_domain, "another.com");

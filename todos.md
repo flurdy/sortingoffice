@@ -24,6 +24,8 @@
   - Do not show enabled as a text column
   - Instead for all entries show a toggle to change enabled/disabled
 
+- Duplicate domain - on the review page, showing the Yes in green on the right for aliases and relays does not make sense since it is not optional.
+
 ### Medium Priority
 
 - ✅ Add a duplicate domain wizard
