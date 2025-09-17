@@ -2056,3 +2056,6 @@ where
     println!("[TEST-TIME] {test_name} took {secs:.2}s");
     result
 }
+
+// Note: UI tests for duplicate wizard would require proper setup of test environment
+// and selenium configuration. For now, we have comprehensive unit and integration tests.

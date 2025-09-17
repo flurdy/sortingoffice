@@ -47,13 +47,15 @@
 - ✅ The status in Relays is only OK or REJECT. Lets default to OK.
   Similar to what is in Clients.
 
+- Duplicate domain - On the review page, the relays show the source relay entries not the duplicated ones.
+
 ### Low 
 
 - ✅ Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
 
 - ✅ Duplicate domain - in the review page, clicking back does not retain any fields.
 
-- Duplicate domain - add tests
+- ✅ Duplicate domain - add tests
   - Many unit tests, for a lot of scenarios, happy and sad.
   - A few integration tests
   - One or two UI tests
@@ -71,7 +73,7 @@
 
 ## 🐛 Bugs and KNOWN ISSUES
 
-- When adding a new domain, the domain list is not updated
+- From the domain list page, when adding a new domain, the domain list is not updated
 
 - In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 

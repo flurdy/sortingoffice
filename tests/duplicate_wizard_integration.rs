@@ -142,3 +142,124 @@ async fn test_duplicate_wizard_translations() {
 
     println!("✅ All duplicate wizard translations are working correctly!");
 }
+
+#[tokio::test]
+async fn test_duplicate_wizard_form_validation() -> Result<(), Box<dyn std::error::Error>> {
+    // Test form validation with various input scenarios
+    
+    // Test valid form data
+    let valid_form_data = "source_domain=example.com&new_domain=test-example.com&transport=virtual&enabled=on&duplicate_aliases=on&duplicate_relays=on";
+    let valid_form: DuplicateDomainForm = serde_urlencoded::from_str(valid_form_data)?;
+    
+    assert_eq!(valid_form.source_domain, "example.com");
+    assert_eq!(valid_form.new_domain, "test-example.com");
+    assert_eq!(valid_form.transport, "virtual");
+    assert_eq!(valid_form.enabled, true);
+    assert_eq!(valid_form.duplicate_aliases, true);
+    assert_eq!(valid_form.duplicate_relays, true);
+
+    // Test form with SMTP transport
+    let smtp_form_data = "source_domain=example.com&new_domain=test-example.com&transport=smtp:mail.example.com&enabled=on&duplicate_aliases=on&duplicate_relays=on";
+    let smtp_form: DuplicateDomainForm = serde_urlencoded::from_str(smtp_form_data)?;
+    
+    assert_eq!(smtp_form.transport, "smtp:mail.example.com");
+
+    // Test form with empty optional fields
+    let minimal_form_data = "source_domain=example.com&new_domain=test-example.com&transport=virtual";
+    let minimal_form: DuplicateDomainForm = serde_urlencoded::from_str(minimal_form_data)?;
+    
+    assert_eq!(minimal_form.source_domain, "example.com");
+    assert_eq!(minimal_form.new_domain, "test-example.com");
+    assert_eq!(minimal_form.enabled, false); // Default value
+    assert_eq!(minimal_form.duplicate_aliases, false); // Default value
+    assert_eq!(minimal_form.duplicate_relays, false); // Default value
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_duplicate_wizard_form_edge_cases() -> Result<(), Box<dyn std::error::Error>> {
+    // Test edge cases and boundary conditions
+    
+    // Test form with very long domain names
+    let long_domain = "a".repeat(100);
+    let long_form_data = format!("source_domain=example.com&new_domain={}.com&transport=virtual", long_domain);
+    let long_form: DuplicateDomainForm = serde_urlencoded::from_str(&long_form_data)?;
+    
+    assert_eq!(long_form.new_domain, format!("{}.com", long_domain));
+
+    // Test form with special characters in transport
+    let special_transport_form_data = "source_domain=example.com&new_domain=test.com&transport=smtp:[2001:db8::1]:587&enabled=on";
+    let special_form: DuplicateDomainForm = serde_urlencoded::from_str(special_transport_form_data)?;
+    
+    assert_eq!(special_form.transport, "smtp:[2001:db8::1]:587");
+
+    // Test form with unicode characters
+    let unicode_form_data = "source_domain=example.com&new_domain=测试.com&transport=virtual";
+    let unicode_form: DuplicateDomainForm = serde_urlencoded::from_str(unicode_form_data)?;
+    
+    assert_eq!(unicode_form.new_domain, "测试.com");
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_duplicate_wizard_form_confirmation_scenarios() -> Result<(), Box<dyn std::error::Error>> {
+    // Test different confirmation scenarios
+    
+    // Test confirmation form
+    let confirm_form_data = "source_domain=example.com&new_domain=test.com&transport=virtual&confirmed=true";
+    let confirm_form: DuplicateDomainForm = serde_urlencoded::from_str(confirm_form_data)?;
+    
+    assert_eq!(confirm_form.confirmed, true);
+    assert_eq!(confirm_form.source_domain, "example.com");
+    assert_eq!(confirm_form.new_domain, "test.com");
+
+    // Test cancellation form
+    let cancel_form_data = "source_domain=example.com&new_domain=test.com&transport=virtual&confirmed=false";
+    let cancel_form: DuplicateDomainForm = serde_urlencoded::from_str(cancel_form_data)?;
+    
+    assert_eq!(cancel_form.confirmed, false);
+
+    // Test form without confirmation (default)
+    let no_confirm_form_data = "source_domain=example.com&new_domain=test.com&transport=virtual";
+    let no_confirm_form: DuplicateDomainForm = serde_urlencoded::from_str(no_confirm_form_data)?;
+    
+    assert_eq!(no_confirm_form.confirmed, false); // Default value
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_duplicate_wizard_form_boolean_handling() -> Result<(), Box<dyn std::error::Error>> {
+    // Test boolean field handling in forms
+    
+    // Test all boolean fields enabled
+    let all_enabled_data = "source_domain=example.com&new_domain=test.com&transport=virtual&enabled=on&duplicate_aliases=on&duplicate_relays=on&confirmed=true";
+    let all_enabled_form: DuplicateDomainForm = serde_urlencoded::from_str(all_enabled_data)?;
+    
+    assert_eq!(all_enabled_form.enabled, true);
+    assert_eq!(all_enabled_form.duplicate_aliases, true);
+    assert_eq!(all_enabled_form.duplicate_relays, true);
+    assert_eq!(all_enabled_form.confirmed, true);
+
+    // Test all boolean fields disabled
+    let all_disabled_data = "source_domain=example.com&new_domain=test.com&transport=virtual";
+    let all_disabled_form: DuplicateDomainForm = serde_urlencoded::from_str(all_disabled_data)?;
+    
+    assert_eq!(all_disabled_form.enabled, false);
+    assert_eq!(all_disabled_form.duplicate_aliases, false);
+    assert_eq!(all_disabled_form.duplicate_relays, false);
+    assert_eq!(all_disabled_form.confirmed, false);
+
+    // Test mixed boolean fields
+    let mixed_data = "source_domain=example.com&new_domain=test.com&transport=virtual&enabled=on&duplicate_relays=on";
+    let mixed_form: DuplicateDomainForm = serde_urlencoded::from_str(mixed_data)?;
+    
+    assert_eq!(mixed_form.enabled, true);
+    assert_eq!(mixed_form.duplicate_aliases, false); // Not provided
+    assert_eq!(mixed_form.duplicate_relays, true);
+    assert_eq!(mixed_form.confirmed, false); // Not provided
+
+    Ok(())
+}
