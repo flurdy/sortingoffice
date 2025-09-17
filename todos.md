@@ -10,6 +10,8 @@
 
 - Duplicate domain - List aliases and relays about to be created in the review step.
 
+- Duplicate domain - ALiases listed on the review page should be for aliases to be created, not the one copied.
+
 - Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
 
 - Duplicate domain - verify backup domains are also listed.

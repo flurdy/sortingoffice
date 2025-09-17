@@ -220,11 +220,7 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
     };
 
     crate::handlers::rendering::render_wizard_domain_config_page(
-        &form,
-        "",
-        &state,
-        &locale,
-        &headers,
+        &form, "", &state, &locale, &headers,
     )
     .await
 }
@@ -264,11 +260,7 @@ pub async fn domain_config_post(
     if domains.is_empty() {
         let error_msg = "Please enter at least one domain";
         return crate::handlers::rendering::render_wizard_domain_config_page(
-            &form,
-            error_msg,
-            &state,
-            &locale,
-            &headers,
+            &form, error_msg, &state, &locale, &headers,
         )
         .await;
     }
@@ -276,11 +268,7 @@ pub async fn domain_config_post(
     // Comprehensive domain validation
     if let Err(e) = validate_domains(&domains) {
         return crate::handlers::rendering::render_wizard_domain_config_page(
-            &form,
-            &e,
-            &state,
-            &locale,
-            &headers,
+            &form, &e, &state, &locale, &headers,
         )
         .await;
     }
@@ -590,11 +578,7 @@ pub async fn review(
     };
 
     let html = crate::handlers::rendering::render_wizard_review_page(
-        &session,
-        &summary,
-        &state,
-        &locale,
-        &headers,
+        &session, &summary, &state, &locale, &headers,
     )
     .await;
 
@@ -726,7 +710,7 @@ pub async fn complete(
     let html = crate::handlers::rendering::render_wizard_complete_page(
         total_aliases,
         total_aliases, // aliases_created - using total_aliases as placeholder
-        false, // has_errors - assuming no errors for now
+        false,         // has_errors - assuming no errors for now
         &created_domains,
         &created_domain_ids,
         &state,

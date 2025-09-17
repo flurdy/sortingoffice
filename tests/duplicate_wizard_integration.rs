@@ -133,7 +133,8 @@ async fn test_duplicate_wizard_translations() {
         "Select a domain to duplicate and configure the new domain settings."
     );
 
-    let source_label = i18n::get_translation(&state, locale, "duplicate-wizard-source-domain-label").await;
+    let source_label =
+        i18n::get_translation(&state, locale, "duplicate-wizard-source-domain-label").await;
     assert_eq!(source_label, "Source Domain");
 
     let next_button = i18n::get_translation(&state, locale, "wizard-next").await;

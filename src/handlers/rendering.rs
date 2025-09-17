@@ -1657,21 +1657,29 @@ pub async fn render_duplicate_domain_selection_page(
     let source_domain_label =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-label").await;
     let source_domain_placeholder =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-placeholder").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-placeholder")
+            .await;
     let source_domain_description =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-description").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-description")
+            .await;
     let new_domain_section_title =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-section-title").await;
-    let new_domain_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-label").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-section-title")
+            .await;
+    let new_domain_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-label").await;
     let new_domain_placeholder =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-placeholder").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-placeholder")
+            .await;
     let new_domain_description =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-description").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-description")
+            .await;
     let transport_label = crate::i18n::get_translation(state, locale, "form-transport").await;
     let transport_description =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-description").await;
-    let transport_virtual = crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-virtual").await;
-    let transport_smtp = crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-smtp").await;
+    let transport_virtual =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-virtual").await;
+    let transport_smtp =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-smtp").await;
     let enabled_label = crate::i18n::get_translation(state, locale, "form-enabled").await;
     let duplicate_section_title =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-section-title").await;
@@ -1718,22 +1726,29 @@ pub async fn render_duplicate_domain_review_page(
 ) -> Html<String> {
     // Fetch all required translations for duplicate domain review
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-title").await;
-    let description = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-description").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-review-description").await;
     let source_domain_title =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-title").await;
-    let new_domain_title = crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-title").await;
+    let new_domain_title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-title").await;
     let items_to_duplicate_title =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-items-to-duplicate-title").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-items-to-duplicate-title")
+            .await;
     let domain_label = crate::i18n::get_translation(state, locale, "form-domain").await;
     let transport_label = crate::i18n::get_translation(state, locale, "form-transport").await;
     let enabled_label = crate::i18n::get_translation(state, locale, "form-enabled").await;
     let enabled_status = crate::i18n::get_translation(state, locale, "status-enabled").await;
     let disabled_status = crate::i18n::get_translation(state, locale, "status-disabled").await;
-    let aliases_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
-    let relays_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
-    let yes_status = crate::i18n::get_translation(state, locale, "duplicate-wizard-yes-status").await;
+    let aliases_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
+    let relays_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
+    let yes_status =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-yes-status").await;
     let no_status = crate::i18n::get_translation(state, locale, "duplicate-wizard-no-status").await;
-    let items_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-items-label").await;
+    let items_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-items-label").await;
     let back_button = crate::i18n::get_translation(state, locale, "wizard-back").await;
     let cancel_button = crate::i18n::get_translation(state, locale, "form-cancel").await;
     let confirm_button = crate::i18n::get_translation(state, locale, "wizard-confirm").await;
@@ -1800,17 +1815,24 @@ pub async fn render_duplicate_domain_complete_page(
     headers: &HeaderMap,
 ) -> Html<String> {
     // Fetch all required translations for duplicate domain complete
-    let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-title").await;
-    let description = crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-description").await;
-    let success_message = crate::i18n::get_translation(state, locale, "duplicate-wizard-success-message").await;
-    let source_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-source-label").await;
-    let destination_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-destination-label").await;
+    let title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-description").await;
+    let success_message =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-success-message").await;
+    let source_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-label").await;
+    let destination_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-destination-label").await;
     let view_domain_button =
         crate::i18n::get_translation(state, locale, "duplicate-wizard-view-domain-button").await;
     let back_to_domains_button =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-back-to-domains-button").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-back-to-domains-button")
+            .await;
     let duplicate_another_button =
-        crate::i18n::get_translation(state, locale, "duplicate-wizard-duplicate-another-button").await;
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-duplicate-another-button")
+            .await;
 
     let content_template = crate::templates::wizard::DuplicateCompleteTemplate {
         title: &title,
@@ -1843,15 +1865,23 @@ pub async fn render_wizard_domain_config_page(
 ) -> Html<String> {
     // Fetch all required translations for wizard domain config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-1-title").await;
-    let description = crate::i18n::get_translation(state, locale, "wizard-step-1-description").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "wizard-step-1-description").await;
     let domains_label = crate::i18n::get_translation(state, locale, "wizard-domains-label").await;
-    let domains_description = crate::i18n::get_translation(state, locale, "wizard-domains-description").await;
-    let domains_placeholder = crate::i18n::get_translation(state, locale, "wizard-domains-placeholder").await;
-    let transport_label = crate::i18n::get_translation(state, locale, "wizard-transport-label").await;
-    let transport_description = crate::i18n::get_translation(state, locale, "wizard-transport-description").await;
-    let transport_placeholder = crate::i18n::get_translation(state, locale, "wizard-transport-placeholder").await;
-    let enabled_description = crate::i18n::get_translation(state, locale, "wizard-enabled-description").await;
-    let domain_status_label = crate::i18n::get_translation(state, locale, "wizard-domain-status-label").await;
+    let domains_description =
+        crate::i18n::get_translation(state, locale, "wizard-domains-description").await;
+    let domains_placeholder =
+        crate::i18n::get_translation(state, locale, "wizard-domains-placeholder").await;
+    let transport_label =
+        crate::i18n::get_translation(state, locale, "wizard-transport-label").await;
+    let transport_description =
+        crate::i18n::get_translation(state, locale, "wizard-transport-description").await;
+    let transport_placeholder =
+        crate::i18n::get_translation(state, locale, "wizard-transport-placeholder").await;
+    let enabled_description =
+        crate::i18n::get_translation(state, locale, "wizard-enabled-description").await;
+    let domain_status_label =
+        crate::i18n::get_translation(state, locale, "wizard-domain-status-label").await;
     let enabled_label = crate::i18n::get_translation(state, locale, "wizard-enabled-label").await;
     let disabled_label = crate::i18n::get_translation(state, locale, "wizard-disabled-label").await;
     let next_button = crate::i18n::get_translation(state, locale, "wizard-next").await;
@@ -1894,20 +1924,33 @@ pub async fn render_wizard_alias_config_page(
 ) -> Html<String> {
     // Fetch all required translations for wizard alias config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-2-title").await;
-    let description = crate::i18n::get_translation(state, locale, "wizard-step-2-description").await;
-    let required_aliases_label = crate::i18n::get_translation(state, locale, "wizard-required-aliases").await;
-    let common_aliases_label = crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
-    let analytics_common_aliases_label = crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
-    let config_common_aliases_label = crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
-    let custom_aliases_label = crate::i18n::get_translation(state, locale, "wizard-custom-aliases").await;
-    let custom_aliases_placeholder = crate::i18n::get_translation(state, locale, "wizard-custom-aliases-placeholder").await;
-    let custom_aliases_description = crate::i18n::get_translation(state, locale, "wizard-custom-aliases-description").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "wizard-step-2-description").await;
+    let required_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-required-aliases").await;
+    let common_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
+    let analytics_common_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
+    let config_common_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-common-aliases").await;
+    let custom_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-custom-aliases").await;
+    let custom_aliases_placeholder =
+        crate::i18n::get_translation(state, locale, "wizard-custom-aliases-placeholder").await;
+    let custom_aliases_description =
+        crate::i18n::get_translation(state, locale, "wizard-custom-aliases-description").await;
     let catchall_title = crate::i18n::get_translation(state, locale, "wizard-catchall-title").await;
-    let catchall_description = crate::i18n::get_translation(state, locale, "wizard-catchall-description").await;
-    let destination_title = crate::i18n::get_translation(state, locale, "wizard-destination-title").await;
-    let destination_description = crate::i18n::get_translation(state, locale, "wizard-destination-description").await;
-    let destination_placeholder = crate::i18n::get_translation(state, locale, "wizard-destination-placeholder").await;
-    let domains_to_configure_label = crate::i18n::get_translation(state, locale, "wizard-domains-to-configure").await;
+    let catchall_description =
+        crate::i18n::get_translation(state, locale, "wizard-catchall-description").await;
+    let destination_title =
+        crate::i18n::get_translation(state, locale, "wizard-destination-title").await;
+    let destination_description =
+        crate::i18n::get_translation(state, locale, "wizard-destination-description").await;
+    let destination_placeholder =
+        crate::i18n::get_translation(state, locale, "wizard-destination-placeholder").await;
+    let domains_to_configure_label =
+        crate::i18n::get_translation(state, locale, "wizard-domains-to-configure").await;
     let next_button = crate::i18n::get_translation(state, locale, "wizard-next").await;
     let back_button = crate::i18n::get_translation(state, locale, "wizard-back").await;
 
@@ -1951,12 +1994,18 @@ pub async fn render_wizard_review_page(
 ) -> Html<String> {
     // Fetch all required translations for wizard review
     let title = crate::i18n::get_translation(state, locale, "wizard-step-3-title").await;
-    let description = crate::i18n::get_translation(state, locale, "wizard-step-3-description").await;
-    let configuration_summary_title = crate::i18n::get_translation(state, locale, "wizard-configuration-summary-title").await;
-    let summary_domains_label = crate::i18n::get_translation(state, locale, "wizard-summary-domains").await;
-    let summary_aliases_label = crate::i18n::get_translation(state, locale, "wizard-summary-aliases").await;
-    let summary_total_label = crate::i18n::get_translation(state, locale, "wizard-summary-total").await;
-    let destination_label = crate::i18n::get_translation(state, locale, "wizard-summary-destination").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "wizard-step-3-description").await;
+    let configuration_summary_title =
+        crate::i18n::get_translation(state, locale, "wizard-configuration-summary-title").await;
+    let summary_domains_label =
+        crate::i18n::get_translation(state, locale, "wizard-summary-domains").await;
+    let summary_aliases_label =
+        crate::i18n::get_translation(state, locale, "wizard-summary-aliases").await;
+    let summary_total_label =
+        crate::i18n::get_translation(state, locale, "wizard-summary-total").await;
+    let destination_label =
+        crate::i18n::get_translation(state, locale, "wizard-summary-destination").await;
     let domains_plural = crate::i18n::get_translation(state, locale, "wizard-domains-plural").await;
     let aliases_plural = crate::i18n::get_translation(state, locale, "wizard-aliases-plural").await;
     let new_badge = crate::i18n::get_translation(state, locale, "wizard-new-badge").await;
@@ -1996,15 +2045,22 @@ pub async fn render_wizard_complete_page(
 ) -> Html<String> {
     // Fetch all required translations for wizard complete
     let title = crate::i18n::get_translation(state, locale, "wizard-step-5-title").await;
-    let description = crate::i18n::get_translation(state, locale, "wizard-step-5-description").await;
-    let setup_results_title = crate::i18n::get_translation(state, locale, "wizard-setup-results").await;
-    let domains_created_label = crate::i18n::get_translation(state, locale, "wizard-domains-created").await;
-    let aliases_created_label = crate::i18n::get_translation(state, locale, "wizard-aliases-created").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "wizard-step-5-description").await;
+    let setup_results_title =
+        crate::i18n::get_translation(state, locale, "wizard-setup-results").await;
+    let domains_created_label =
+        crate::i18n::get_translation(state, locale, "wizard-domains-created").await;
+    let aliases_created_label =
+        crate::i18n::get_translation(state, locale, "wizard-aliases-created").await;
     let domains_plural = crate::i18n::get_translation(state, locale, "wizard-domains-plural").await;
-    let created_domains_title = crate::i18n::get_translation(state, locale, "wizard-created-domains-title").await;
+    let created_domains_title =
+        crate::i18n::get_translation(state, locale, "wizard-created-domains-title").await;
     let errors_title = crate::i18n::get_translation(state, locale, "wizard-errors-title").await;
-    let errors_description = crate::i18n::get_translation(state, locale, "wizard-errors-description").await;
-    let view_domains_button = crate::i18n::get_translation(state, locale, "wizard-view-domains").await;
+    let errors_description =
+        crate::i18n::get_translation(state, locale, "wizard-errors-description").await;
+    let view_domains_button =
+        crate::i18n::get_translation(state, locale, "wizard-view-domains").await;
     let new_wizard_button = crate::i18n::get_translation(state, locale, "wizard-new-wizard").await;
 
     let content_template = crate::templates::wizard::WizardCompleteTemplate {
