@@ -525,7 +525,7 @@ pub async fn render_relay_list_page(
     let content_template = crate::templates::relays::RelayListTemplate {
         title: &title,
         relays_list_description: &relays_list_description,
-        add_relay: &add_relay,
+        relays_add: &add_relay,
         table_header_recipient: &table_header_recipient,
         table_header_status: &table_header_status,
         table_header_enabled: &table_header_enabled,
@@ -610,6 +610,7 @@ pub async fn render_relay_form_page(
     form: crate::models::RelayForm,
     title_key: &str,
     action_key: &str,
+    relay_id: Option<i32>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -632,11 +633,18 @@ pub async fn render_relay_form_page(
         crate::i18n::get_translation(state, locale, "relays-placeholder-recipient").await;
     let placeholder_status =
         crate::i18n::get_translation(state, locale, "relays-placeholder-status").await;
+    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+    let relays_create_relay =
+        crate::i18n::get_translation(state, locale, "relays-create-relay").await;
+    let relays_update_relay =
+        crate::i18n::get_translation(state, locale, "relays-update-relay").await;
 
     let content_template = crate::templates::relays::RelayFormTemplate {
         title: &title.clone(),
         action: &action,
         form,
+        relay_id,
         field_recipient: &field_recipient,
         field_status: &field_status,
         field_enabled: &field_enabled,
@@ -647,6 +655,10 @@ pub async fn render_relay_form_page(
         back_to_list: &back_to_list,
         placeholder_recipient: &placeholder_recipient,
         placeholder_status: &placeholder_status,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        relays_create_relay: &relays_create_relay,
+        relays_update_relay: &relays_update_relay,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -1330,7 +1342,7 @@ pub async fn render_client_list_page(
     let content_template = crate::templates::clients::ClientsListTemplate {
         title: &title,
         description: &description,
-        add_client: &add_client,
+        clients_add: &add_client,
         table_header_client: &table_header_client,
         table_header_status: &table_header_status,
         table_header_enabled: &table_header_enabled,
@@ -1511,7 +1523,7 @@ pub async fn render_relocated_list_page(
     let content_template = crate::templates::relocated::RelocatedListTemplate {
         title: &title,
         relocated_list_description: &relocated_list_description,
-        add_relocated: &add_relocated,
+        relocated_add: &add_relocated,
         table_header_old_address: &table_header_old_address,
         table_header_new_address: &table_header_new_address,
         table_header_enabled: &table_header_enabled,
@@ -1597,6 +1609,7 @@ pub async fn render_relocated_form_page(
     form: crate::models::RelocatedForm,
     title_key: &str,
     action_key: &str,
+    relocated_id: Option<i32>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -1626,6 +1639,7 @@ pub async fn render_relocated_form_page(
         title: &title.clone(),
         action: &action,
         form,
+        relocated_id,
         field_old_address: &field_old_address,
         field_new_address: &field_new_address,
         field_enabled: &field_enabled,

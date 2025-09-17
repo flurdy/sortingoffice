@@ -88,6 +88,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
         form,
         "relocated-add-title",
         "relocated-add-action",
+        None, // No ID for new form
         &state,
         &locale,
         &headers,
@@ -157,6 +158,7 @@ pub async fn edit_form(
         form,
         "relocated-edit-title",
         "relocated-edit-action",
+        Some(relocated_id), // Pass the ID for edit form
         &state,
         &locale,
         &headers,

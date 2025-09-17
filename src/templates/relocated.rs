@@ -6,7 +6,7 @@ use askama::Template;
 pub struct RelocatedListTemplate<'a> {
     pub title: &'a str,
     pub relocated_list_description: &'a str,
-    pub add_relocated: &'a str,
+    pub relocated_add: &'a str,
     pub table_header_old_address: &'a str,
     pub table_header_new_address: &'a str,
     pub table_header_enabled: &'a str,
@@ -53,6 +53,7 @@ pub struct RelocatedFormTemplate<'a> {
     pub title: &'a str,
     pub action: &'a str,
     pub form: crate::models::RelocatedForm,
+    pub relocated_id: Option<i32>,
     pub field_old_address: &'a str,
     pub field_new_address: &'a str,
     pub field_enabled: &'a str,

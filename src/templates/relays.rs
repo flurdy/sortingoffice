@@ -6,7 +6,7 @@ use askama::Template;
 pub struct RelayListTemplate<'a> {
     pub title: &'a str,
     pub relays_list_description: &'a str,
-    pub add_relay: &'a str,
+    pub relays_add: &'a str,
     pub table_header_recipient: &'a str,
     pub table_header_status: &'a str,
     pub table_header_enabled: &'a str,
@@ -57,6 +57,7 @@ pub struct RelayFormTemplate<'a> {
     pub title: &'a str,
     pub action: &'a str,
     pub form: RelayForm,
+    pub relay_id: Option<i32>,
     pub field_recipient: &'a str,
     pub field_status: &'a str,
     pub field_enabled: &'a str,
@@ -67,4 +68,8 @@ pub struct RelayFormTemplate<'a> {
     pub back_to_list: &'a str,
     pub placeholder_recipient: &'a str,
     pub placeholder_status: &'a str,
+    pub status_enabled: &'a str,
+    pub status_disabled: &'a str,
+    pub relays_create_relay: &'a str,
+    pub relays_update_relay: &'a str,
 }

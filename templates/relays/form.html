@@ -1,7 +1,7 @@
 <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{{ title }}</h1>
 
-    <form {% if form.recipient != "" %}hx-put="{{ action }}"{% else %}hx-post="{{ action }}"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <form {% if relay_id.is_some() %}hx-put="/relays/{{ relay_id.unwrap() }}"{% else %}hx-post="/relays"{% endif %} hx-target="#main-content" enctype="application/x-www-form-urlencoded" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
                 <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold" for="recipient">
@@ -44,13 +44,13 @@
                     <input type="radio" id="enabled_true" name="enabled" value="true" checked class="radio-toggle-input">
                     <label for="enabled_true" class="radio-toggle-label radio-toggle-label-left">
                         <span class="radio-toggle-icon">✓</span>
-                        <span class="radio-toggle-text">Enabled</span>
+                        <span class="radio-toggle-text">{{ status_enabled }}</span>
                     </label>
                     
                     <input type="radio" id="enabled_false" name="enabled" value="false" class="radio-toggle-input">
                     <label for="enabled_false" class="radio-toggle-label radio-toggle-label-right">
                         <span class="radio-toggle-icon">✗</span>
-                        <span class="radio-toggle-text">Disabled</span>
+                        <span class="radio-toggle-text">{{ status_disabled }}</span>
                     </label>
                     
                     <div class="radio-toggle-slider"></div>
@@ -63,7 +63,7 @@
                 {{ action_cancel }}
             </a>
             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                {{ action_save }}
+                {% if relay_id.is_some() %}{{ relays_update_relay }}{% else %}{{ relays_create_relay }}{% endif %}
             </button>
         </div>
     </form>

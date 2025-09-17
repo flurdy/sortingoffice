@@ -101,8 +101,9 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_relay_form_page(
         form,
-        "relays-add-relay",
-        "relays-add-relay",
+        "relays-add-title",
+        "relays-add-title",
+        None, // No ID for new form
         &state,
         &locale,
         &headers,
@@ -176,8 +177,9 @@ pub async fn edit_form(
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_relay_form_page(
         form,
-        "relays-edit-relay",
-        "relays-edit-relay",
+        "relays-edit-title",
+        "relays-edit-title",
+        Some(relay_id), // Pass the ID for edit form
         &state,
         &locale,
         &headers,

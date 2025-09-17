@@ -6,7 +6,7 @@ use askama::Template;
 pub struct ClientsListTemplate<'a> {
     pub title: &'a str,
     pub description: &'a str,
-    pub add_client: &'a str,
+    pub clients_add: &'a str,
     pub table_header_client: &'a str,
     pub table_header_status: &'a str,
     pub table_header_enabled: &'a str,

@@ -47,7 +47,7 @@
 - ✅ The status in Relays is only OK or REJECT. Lets default to OK.
   Similar to what is in Clients.
 
-- Duplicate domain - On the review page, the relays show the source relay entries not the duplicated ones.
+- ✅ Duplicate domain - On the review page, the relays show the source relay entries not the duplicated ones.
 
 ### Low 
 
@@ -80,10 +80,17 @@
 
 - ✅ From the domain list page, when adding a new domain, the domain list is not updated
 
-- In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
+- ✅ In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 
-- Add relocated 
-  - Save button does nothing
-  - Title missing translation
+- ✅ Add relocated 
+  - ✅ Save button does nothing
+  - ✅ Title missing translation
 
-- Add client - missing title translation
+- ✅ Add relay 
+  - ✅ save button does not work
+  - ✅ Title missing translation
+  - ✅ UI translations missing (Enabled/Disabled hardcoded)
+  - ✅ Save button naming inconsistent (now uses Create/Update like other forms)
+  - ✅ Title translation keys fixed (was using wrong keys)
+
+- ✅ Add client - missing title translation
