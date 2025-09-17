@@ -1522,4 +1522,59 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_catch_all_alias_prefill_fix() -> Result<(), Box<dyn std::error::Error>> {
+        // Test that the catch-all alias prefill doesn't create double @ symbols
+        let (app, state, container) = create_test_app().await;
+
+        // Create test domain
+        let unique_id = unique_test_id();
+        let domain = format!("catchall-test-{unique_id}.com");
+        let new_domain = NewDomain {
+            domain: domain.clone(),
+            transport: Some("virtual:".to_string()),
+            enabled: true,
+        };
+        let pool = container.get_pool();
+        let _domain = db::create_domain(pool, new_domain).unwrap();
+
+        // Test the catch-all alias prefill by making a request with alias=@ and domain
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/aliases/new?domain={}&alias=%40", domain),
+            Some(create_auth_cookie(AdminRole::Edit)),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        // Parse the response body to check the form field
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8_lossy(&body);
+
+        // The form should contain the correct catch-all alias format: @domain.com
+        // and NOT @@domain.com (double @)
+        let expected_catch_all = format!("@{domain}");
+        assert!(
+            body_str.contains(&expected_catch_all),
+            "Expected to find '{}' in response body, but found: {}",
+            expected_catch_all,
+            body_str
+        );
+
+        // Make sure it doesn't contain the double @ symbol
+        let double_at = format!("@@{domain}");
+        assert!(
+            !body_str.contains(&double_at),
+            "Found double @ symbol '{}' in response body: {}",
+            double_at,
+            body_str
+        );
+
+        Ok(())
+    }
 }

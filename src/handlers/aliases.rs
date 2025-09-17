@@ -90,7 +90,14 @@ pub async fn new(
         return_url
     );
     let mail = match (&prefill.alias, &prefill.domain) {
-        (Some(alias), Some(domain)) => format!("{alias}@{domain}"),
+        (Some(alias), Some(domain)) => {
+            // Special case: if alias is "@", don't add another "@" for catch-all
+            if alias == "@" {
+                format!("@{domain}")
+            } else {
+                format!("{alias}@{domain}")
+            }
+        }
         (Some(alias), None) => alias.clone(),
         (None, Some(domain)) => domain.to_string(),
         (None, None) => "".to_string(),
