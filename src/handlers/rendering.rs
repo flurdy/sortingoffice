@@ -487,7 +487,7 @@ pub async fn render_alias_form_page(
         create_alias: &create_alias,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 /// Relay-specific rendering functions
@@ -649,7 +649,7 @@ pub async fn render_relay_form_page(
         placeholder_status: &placeholder_status,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 /// Backup-specific rendering functions
@@ -761,7 +761,7 @@ pub async fn render_backup_form_page(
         error: None, // Will be set by validation functions if needed
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_backup_form_page_with_error(
@@ -819,7 +819,7 @@ pub async fn render_backup_form_page_with_error(
         error: Some(error_message),
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_domain_show_page(
@@ -1033,7 +1033,7 @@ pub async fn render_domain_form_page(
         form_disabled: &form_disabled,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 /// User-specific rendering functions
@@ -1270,7 +1270,7 @@ pub async fn render_user_form_page(
         users_placeholder_home,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 /// Client-specific rendering functions
@@ -1474,7 +1474,7 @@ pub async fn render_client_form_page(
         enabled_no: &enabled_no,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 /// Relocated-specific rendering functions
@@ -1638,5 +1638,191 @@ pub async fn render_relocated_form_page(
         placeholder_new_address: &placeholder_new_address,
     };
 
-    render_form_template(content_template, state, locale, headers, title).await
+    render_form_template(content_template, state, locale, headers, title.clone()).await
+}
+
+// Duplicate Wizard rendering functions
+
+/// Render duplicate domain selection page
+pub async fn render_duplicate_domain_selection_page(
+    domains: Vec<crate::models::Domain>,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for duplicate domain selection
+    let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-description").await;
+    let source_domain_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-label").await;
+    let source_domain_placeholder =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-placeholder").await;
+    let source_domain_description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-description").await;
+    let new_domain_section_title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-section-title").await;
+    let new_domain_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-label").await;
+    let new_domain_placeholder =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-placeholder").await;
+    let new_domain_description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-description").await;
+    let transport_label = crate::i18n::get_translation(state, locale, "form-transport").await;
+    let transport_description =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-description").await;
+    let transport_virtual = crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-virtual").await;
+    let transport_smtp = crate::i18n::get_translation(state, locale, "duplicate-wizard-transport-smtp").await;
+    let enabled_label = crate::i18n::get_translation(state, locale, "form-enabled").await;
+    let duplicate_section_title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-section-title").await;
+    let duplicate_aliases_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
+    let duplicate_relays_label =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
+    let next_button = crate::i18n::get_translation(state, locale, "wizard-next").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "form-cancel").await;
+
+    let content_template = crate::templates::wizard::DuplicateDomainSelectionTemplate {
+        title: &title,
+        description: &description,
+        error: "",
+        domains: &domains,
+        source_domain_label: &source_domain_label,
+        source_domain_placeholder: &source_domain_placeholder,
+        source_domain_description: &source_domain_description,
+        new_domain_section_title: &new_domain_section_title,
+        new_domain_label: &new_domain_label,
+        new_domain_placeholder: &new_domain_placeholder,
+        new_domain_description: &new_domain_description,
+        transport_label: &transport_label,
+        transport_description: &transport_description,
+        transport_virtual: &transport_virtual,
+        transport_smtp: &transport_smtp,
+        enabled_label: &enabled_label,
+        duplicate_section_title: &duplicate_section_title,
+        duplicate_aliases_label: &duplicate_aliases_label,
+        duplicate_relays_label: &duplicate_relays_label,
+        next_button: &next_button,
+        cancel_button: &cancel_button,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
+}
+
+/// Render duplicate domain review page
+pub async fn render_duplicate_domain_review_page(
+    session: &crate::models::DuplicateDomainSession,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for duplicate domain review
+    let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-title").await;
+    let description = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-description").await;
+    let source_domain_title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-source-domain-title").await;
+    let new_domain_title = crate::i18n::get_translation(state, locale, "duplicate-wizard-new-domain-title").await;
+    let items_to_duplicate_title =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-items-to-duplicate-title").await;
+    let domain_label = crate::i18n::get_translation(state, locale, "form-domain").await;
+    let transport_label = crate::i18n::get_translation(state, locale, "form-transport").await;
+    let enabled_label = crate::i18n::get_translation(state, locale, "form-enabled").await;
+    let enabled_status = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let disabled_status = crate::i18n::get_translation(state, locale, "status-disabled").await;
+    let aliases_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-aliases-label").await;
+    let relays_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-relays-label").await;
+    let yes_status = crate::i18n::get_translation(state, locale, "duplicate-wizard-yes-status").await;
+    let no_status = crate::i18n::get_translation(state, locale, "duplicate-wizard-no-status").await;
+    let items_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-items-label").await;
+    let back_button = crate::i18n::get_translation(state, locale, "wizard-back").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "form-cancel").await;
+    let confirm_button = crate::i18n::get_translation(state, locale, "wizard-confirm").await;
+
+    // Get source domain info
+    let source_domain = session
+        .source_domain
+        .as_ref()
+        .map(|d| d.domain.as_str())
+        .unwrap_or("None");
+    let source_transport = session
+        .source_domain
+        .as_ref()
+        .map(|d| d.transport_display())
+        .unwrap_or("None".to_string());
+
+    let content_template = crate::templates::wizard::DuplicateReviewTemplate {
+        title: &title,
+        description: &description,
+        source_domain_title: &source_domain_title,
+        source_domain,
+        source_transport: &source_transport,
+        source_enabled: session
+            .source_domain
+            .as_ref()
+            .map(|d| d.enabled)
+            .unwrap_or(false),
+        new_domain_title: &new_domain_title,
+        new_domain: &session.new_domain,
+        new_transport: &session.transport,
+        new_enabled: session.enabled,
+        items_to_duplicate_title: &items_to_duplicate_title,
+        duplicate_aliases: session.duplicate_aliases,
+        aliases_count: session.aliases_to_duplicate.len(),
+        duplicate_relays: session.duplicate_relays,
+        relays_count: session.relays_to_duplicate.len(),
+        domain_label: &domain_label,
+        transport_label: &transport_label,
+        enabled_label: &enabled_label,
+        enabled_status: &enabled_status,
+        disabled_status: &disabled_status,
+        aliases_label: &aliases_label,
+        relays_label: &relays_label,
+        yes_status: &yes_status,
+        no_status: &no_status,
+        items_label: &items_label,
+        back_button: &back_button,
+        cancel_button: &cancel_button,
+        confirm_button: &confirm_button,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
+}
+
+/// Render duplicate domain complete page
+pub async fn render_duplicate_domain_complete_page(
+    source_domain: &str,
+    new_domain: &str,
+    new_domain_id: i32,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String> {
+    // Fetch all required translations for duplicate domain complete
+    let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-title").await;
+    let description = crate::i18n::get_translation(state, locale, "duplicate-wizard-complete-description").await;
+    let success_message = crate::i18n::get_translation(state, locale, "duplicate-wizard-success-message").await;
+    let source_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-source-label").await;
+    let destination_label = crate::i18n::get_translation(state, locale, "duplicate-wizard-destination-label").await;
+    let view_domain_button =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-view-domain-button").await;
+    let back_to_domains_button =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-back-to-domains-button").await;
+    let duplicate_another_button =
+        crate::i18n::get_translation(state, locale, "duplicate-wizard-duplicate-another-button").await;
+
+    let content_template = crate::templates::wizard::DuplicateCompleteTemplate {
+        title: &title,
+        description: &description,
+        success_message: &success_message,
+        source_domain,
+        new_domain,
+        new_domain_id,
+        source_label: &source_label,
+        destination_label: &destination_label,
+        view_domain_button: &view_domain_button,
+        back_to_domains_button: &back_to_domains_button,
+        duplicate_another_button: &duplicate_another_button,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }

@@ -2,7 +2,20 @@
 
 ### High Priority
 
-- Duplicate domain is not in the left menu.
+- ✅ Duplicate domain is not in the left menu.
+
+- ✅ Duplicate domain wizard seems not styled like the rest
+
+- ✅ Final step in duplicate domain shows an error: Failed to deserialize form body: missing field `source_domain`
+
+- Duplicate domain - List aliases and relays about to be created in the review step.
+  - Maybe with a checkbox if to be created?
+
+- Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
+
+- Duplicate domain - verify backup domains are also listed.
+
+- Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
 
 ### Medium Priority
 
@@ -13,14 +26,21 @@
   - ✅ It does not duplicate users
   - ✅ Add tests
 
-- Add a remove domain wizard
+- Add a remove domain wizard. Confirm before starting this todo.
+  - Delete or disable?
   - Delete all users
   - Delete relays and relocated
   - Delete all aliases with it in the mail field
   - Delete from domains or backup table.
+  - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
-### Low Priority
+### Low 
+
+- Duplicate domain - add tests
+  - Many unit tests, for a lot of scenarios, happy and sad.
+  - A few integration tests
+  - One or two UI tests
 
 - ✅ Tidy up code
   - Refactored long create_app function into smaller helper functions
@@ -51,4 +71,4 @@
 
 - In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 
-- **None currently**
+- Add relocated - Save button does nothing

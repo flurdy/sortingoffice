@@ -1,0 +1,126 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-full mr-3">
+                    <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">2</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Review Content -->
+        <div class="space-y-6">
+            <!-- Source Domain Information -->
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ source_domain_title }}</h3>
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ domain_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ source_domain }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ transport_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ source_transport }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ enabled_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {% if source_enabled %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
+                                    {{ enabled_status }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
+                                    {{ disabled_status }}
+                                </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- New Domain Configuration -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ new_domain_title }}</h3>
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ domain_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ new_domain }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ transport_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ new_transport }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ enabled_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {% if new_enabled %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
+                                    {{ enabled_status }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400">
+                                    {{ disabled_status }}
+                                </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Items to Duplicate -->
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ items_to_duplicate_title }}</h3>
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ aliases_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {% if duplicate_aliases %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
+                                    {{ yes_status }} ({{ aliases_count }} {{ items_label }})
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+                                    {{ no_status }}
+                                </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ relays_label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                            {% if duplicate_relays %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400">
+                                    {{ yes_status }} ({{ relays_count }} {{ items_label }})
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+                                    {{ no_status }}
+                                </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-8 flex justify-between">
+            <a href="/duplicate-wizard/domain-selection" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {{ back_button }}
+            </a>
+            
+            <form method="post" action="/duplicate-wizard/execute" class="flex space-x-3">
+                <button type="submit" name="confirmed" value="false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {{ cancel_button }}
+                </button>
+                <button type="submit" name="confirmed" value="true" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md">
+                    {{ confirm_button }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

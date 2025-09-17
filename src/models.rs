@@ -1426,8 +1426,11 @@ mod tests {
 // Duplicate Domain Wizard Models
 #[derive(Debug, Deserialize)]
 pub struct DuplicateDomainForm {
+    #[serde(default)]
     pub source_domain: String,
+    #[serde(default)]
     pub new_domain: String,
+    #[serde(default)]
     pub transport: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]

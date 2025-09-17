@@ -1,4 +1,4 @@
-use crate::models::{DomainWizardSession, WizardProgress, WizardSummary};
+use crate::models::{Domain, DomainWizardSession, WizardProgress, WizardSummary};
 use askama::Template;
 
 #[derive(Template)]
@@ -114,4 +114,81 @@ pub struct WizardCompleteTemplate<'a> {
     pub errors_description: &'a str,
     pub view_domains_button: &'a str,
     pub new_wizard_button: &'a str,
+}
+
+// Duplicate Wizard Templates
+
+#[derive(Template)]
+#[template(path = "wizard/duplicate_domain_selection.html")]
+pub struct DuplicateDomainSelectionTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub error: &'a str,
+    pub domains: &'a [Domain],
+    pub source_domain_label: &'a str,
+    pub source_domain_placeholder: &'a str,
+    pub source_domain_description: &'a str,
+    pub new_domain_section_title: &'a str,
+    pub new_domain_label: &'a str,
+    pub new_domain_placeholder: &'a str,
+    pub new_domain_description: &'a str,
+    pub transport_label: &'a str,
+    pub transport_description: &'a str,
+    pub transport_virtual: &'a str,
+    pub transport_smtp: &'a str,
+    pub enabled_label: &'a str,
+    pub duplicate_section_title: &'a str,
+    pub duplicate_aliases_label: &'a str,
+    pub duplicate_relays_label: &'a str,
+    pub next_button: &'a str,
+    pub cancel_button: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/duplicate_review.html")]
+pub struct DuplicateReviewTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub source_domain_title: &'a str,
+    pub source_domain: &'a str,
+    pub source_transport: &'a str,
+    pub source_enabled: bool,
+    pub new_domain_title: &'a str,
+    pub new_domain: &'a str,
+    pub new_transport: &'a str,
+    pub new_enabled: bool,
+    pub items_to_duplicate_title: &'a str,
+    pub duplicate_aliases: bool,
+    pub aliases_count: usize,
+    pub duplicate_relays: bool,
+    pub relays_count: usize,
+    pub domain_label: &'a str,
+    pub transport_label: &'a str,
+    pub enabled_label: &'a str,
+    pub enabled_status: &'a str,
+    pub disabled_status: &'a str,
+    pub aliases_label: &'a str,
+    pub relays_label: &'a str,
+    pub yes_status: &'a str,
+    pub no_status: &'a str,
+    pub items_label: &'a str,
+    pub back_button: &'a str,
+    pub cancel_button: &'a str,
+    pub confirm_button: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/duplicate_complete.html")]
+pub struct DuplicateCompleteTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub success_message: &'a str,
+    pub source_domain: &'a str,
+    pub new_domain: &'a str,
+    pub new_domain_id: i32,
+    pub source_label: &'a str,
+    pub destination_label: &'a str,
+    pub view_domain_button: &'a str,
+    pub back_to_domains_button: &'a str,
+    pub duplicate_another_button: &'a str,
 }

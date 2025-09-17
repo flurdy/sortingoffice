@@ -1,6 +1,12 @@
 use crate::{
     db,
-    handlers::http_helpers::get_user_locale,
+    handlers::{
+        http_helpers::get_user_locale,
+        rendering::{
+            render_duplicate_domain_complete_page, render_duplicate_domain_review_page,
+            render_duplicate_domain_selection_page,
+        },
+    },
     models::{Domain, DuplicateDomainForm, DuplicateDomainSession, DuplicateWizardStep, Relay},
     AppState, DbPool,
 };
@@ -38,8 +44,7 @@ pub async fn index(State(_state): State<AppState>, _headers: HeaderMap) -> Redir
 
 /// Step 1: Domain selection
 pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
-    let _locale = get_user_locale(&headers);
-    let _translations = get_duplicate_wizard_translations(&state, &_locale).await;
+    let locale = get_user_locale(&headers);
 
     // Get available domains for selection
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
@@ -58,14 +63,6 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
         }
     };
 
-    let _backups = match db::get_backups(&pool) {
-        Ok(backups) => backups,
-        Err(e) => {
-            error!("Failed to get backups: {:?}", e);
-            vec![]
-        }
-    };
-
     // Create session
     let session = DuplicateDomainSession {
         step: DuplicateWizardStep::DomainSelection,
@@ -80,67 +77,7 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
     };
     save_session(session);
 
-    // For now, return a simple HTML form
-    // TODO: Create proper template
-    let html = format!(
-        r#"
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Duplicate Domain Wizard</title>
-        </head>
-        <body>
-            <h1>Duplicate Domain Wizard</h1>
-            <form method="post" action="/duplicate-wizard/domain-selection">
-                <h2>Select Source Domain</h2>
-                <select name="source_domain" required>
-                    <option value="">Choose a domain to duplicate...</option>
-                    {}
-                </select>
-                
-                <h2>New Domain Configuration</h2>
-                <label>
-                    New Domain Name:
-                    <input type="text" name="new_domain" required placeholder="new-domain.com" />
-                </label>
-                
-                <label>
-                    Transport:
-                    <select name="transport">
-                        <option value="virtual">Virtual</option>
-                        <option value="smtp:mail.example.com">SMTP</option>
-                    </select>
-                </label>
-                
-                <label>
-                    <input type="checkbox" name="enabled" checked />
-                    Enable domain
-                </label>
-                
-                <h2>What to Duplicate</h2>
-                <label>
-                    <input type="checkbox" name="duplicate_aliases" checked />
-                    Duplicate aliases and destinations
-                </label>
-                
-                <label>
-                    <input type="checkbox" name="duplicate_relays" checked />
-                    Duplicate relays
-                </label>
-                
-                <button type="submit">Next: Review</button>
-            </form>
-        </body>
-        </html>
-        "#,
-        domains
-            .iter()
-            .map(|d| format!("<option value=\"{}\">{}</option>", d.domain, d.domain))
-            .collect::<Vec<_>>()
-            .join("\n")
-    );
-
-    Html(html)
+    render_duplicate_domain_selection_page(domains, &state, &locale, &headers).await
 }
 
 /// Handle domain selection form submission
@@ -235,7 +172,6 @@ pub async fn domain_selection_post(
 /// Step 2: Review configuration
 pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = get_user_locale(&headers);
-    let _translations = get_duplicate_wizard_translations(&state, &locale).await;
 
     let session = match get_session() {
         Some(session) => session,
@@ -244,64 +180,7 @@ pub async fn review(State(state): State<AppState>, headers: HeaderMap) -> Html<S
         }
     };
 
-    // For now, return a simple HTML review page
-    // TODO: Create proper template
-    let html = format!(
-        r#"
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Review Duplication</title>
-        </head>
-        <body>
-            <h1>Review Domain Duplication</h1>
-            
-            <h2>Source Domain</h2>
-            <p><strong>Domain:</strong> {}</p>
-            <p><strong>Transport:</strong> {}</p>
-            <p><strong>Enabled:</strong> {}</p>
-            
-            <h2>New Domain Configuration</h2>
-            <p><strong>Domain:</strong> {}</p>
-            <p><strong>Transport:</strong> {}</p>
-            <p><strong>Enabled:</strong> {}</p>
-            
-            <h2>Items to Duplicate</h2>
-            <p><strong>Aliases:</strong> {} ({} items)</p>
-            <p><strong>Relays:</strong> {} ({} items)</p>
-            
-            <form method="post" action="/duplicate-wizard/execute">
-                <button type="submit" name="confirmed" value="true">Confirm and Duplicate</button>
-                <button type="submit" name="confirmed" value="false">Cancel</button>
-            </form>
-        </body>
-        </html>
-        "#,
-        session
-            .source_domain
-            .as_ref()
-            .map(|d| d.domain.as_str())
-            .unwrap_or("None"),
-        session
-            .source_domain
-            .as_ref()
-            .map(|d| d.transport_display())
-            .unwrap_or("None".to_string()),
-        session
-            .source_domain
-            .as_ref()
-            .map(|d| d.enabled)
-            .unwrap_or(false),
-        session.new_domain,
-        session.transport,
-        session.enabled,
-        session.duplicate_aliases,
-        session.aliases_to_duplicate.len(),
-        session.duplicate_relays,
-        session.relays_to_duplicate.len(),
-    );
-
-    Html(html)
+    render_duplicate_domain_review_page(&session, &state, &locale, &headers).await
 }
 
 /// Step 3: Execute duplication
@@ -348,28 +227,20 @@ pub async fn execute(
     // Clear session
     clear_session();
 
-    // Return success page
-    let html = format!(
-        r#"
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Duplication Complete</title>
-        </head>
-        <body>
-            <h1>Domain Duplication Complete!</h1>
-            <p>Successfully duplicated domain <strong>{}</strong> to <strong>{}</strong></p>
-            <p><a href="/domains/{}">View New Domain</a></p>
-            <p><a href="/domains">Back to Domains</a></p>
-        </body>
-        </html>
-        "#,
-        session.source_domain.as_ref().unwrap().domain,
-        new_domain.domain,
-        new_domain.pkid
-    );
+    // Get translations for success page
+    let locale = get_user_locale(&headers);
 
-    Ok(Html(html))
+    let html = render_duplicate_domain_complete_page(
+        &session.source_domain.as_ref().unwrap().domain,
+        &new_domain.domain,
+        new_domain.pkid,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await;
+
+    Ok(html)
 }
 
 /// Helper function to get relays for a domain
@@ -448,36 +319,6 @@ pub async fn create_duplicated_domain(
     }
 
     Ok(created_domain)
-}
-
-/// Helper function to get duplicate wizard translations
-async fn get_duplicate_wizard_translations(
-    _state: &AppState,
-    _locale: &str,
-) -> HashMap<String, String> {
-    // TODO: Implement proper translation system
-    let mut translations = HashMap::new();
-    translations.insert(
-        "duplicate-wizard-title".to_string(),
-        "Duplicate Domain Wizard".to_string(),
-    );
-    translations.insert(
-        "select-source-domain".to_string(),
-        "Select Source Domain".to_string(),
-    );
-    translations.insert(
-        "new-domain-configuration".to_string(),
-        "New Domain Configuration".to_string(),
-    );
-    translations.insert(
-        "what-to-duplicate".to_string(),
-        "What to Duplicate".to_string(),
-    );
-    translations.insert(
-        "review-duplication".to_string(),
-        "Review Duplication".to_string(),
-    );
-    translations
 }
 
 /// Helper function to get session for a user (simplified - using admin as key)
