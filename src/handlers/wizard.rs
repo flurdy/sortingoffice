@@ -6,14 +6,8 @@ use crate::{
         AliasConfigForm, DomainConfigForm, DomainWizardData, DomainWizardSession,
         WizardConfirmForm, WizardStep, WizardSummary,
     },
-    render_template_with_title,
-    templates::wizard::{
-        WizardAliasConfigTemplate, WizardCompleteTemplate, WizardDomainConfigTemplate,
-        WizardReviewTemplate,
-    },
     AppState, DbPool,
 };
-use askama::Template;
 use axum::{
     extract::{Form, Query, State},
     http::HeaderMap,
@@ -142,96 +136,6 @@ async fn create_aliases_for_domain(
     created_count
 }
 
-// Helper function to get wizard translations
-async fn get_wizard_translations(state: &AppState, locale: &str) -> HashMap<String, String> {
-    crate::handlers::translations::get_translations_batch(
-        state,
-        locale,
-        &[
-            "wizard-title",
-            "wizard-description",
-            "wizard-start",
-            "wizard-next",
-            "wizard-back",
-            "wizard-cancel",
-            "wizard-confirm",
-            "wizard-complete",
-            "wizard-step-1-title",
-            "wizard-step-1-description",
-            "wizard-domains-label",
-            "wizard-domains-placeholder",
-            "wizard-transport-label",
-            "wizard-transport-placeholder",
-            "wizard-enabled-label",
-            "wizard-step-2-title",
-            "wizard-step-2-description",
-            "wizard-required-aliases",
-            "wizard-common-aliases",
-            "wizard-custom-aliases",
-            "wizard-custom-aliases-placeholder",
-            "wizard-destination-label",
-            "wizard-destination-placeholder",
-            "wizard-step-3-title",
-            "wizard-step-3-description",
-            "wizard-summary-domains",
-            "wizard-summary-aliases",
-            "wizard-summary-total",
-            "wizard-summary-destination",
-            "wizard-step-4-title",
-            "wizard-step-4-description",
-            "wizard-progress-domains",
-            "wizard-progress-aliases",
-            "wizard-progress-complete",
-            "wizard-step-5-title",
-            "wizard-step-5-description",
-            "wizard-results-success",
-            "wizard-results-failed",
-            "wizard-view-domains",
-            "wizard-new-wizard",
-            // Additional wizard translation keys
-            "wizard-step-1-box-title",
-            "wizard-step-1-box-description",
-            "wizard-step-2-box-title",
-            "wizard-step-2-box-description",
-            "wizard-step-3-box-title",
-            "wizard-step-3-box-description",
-            "wizard-domains-to-configure",
-            "wizard-custom-aliases-description",
-            "wizard-catchall-title",
-            "wizard-catchall-description",
-            "wizard-destination-title",
-            "wizard-destination-description",
-            "wizard-setup-results",
-            "wizard-domains-created",
-            "wizard-aliases-created",
-            "wizard-errors-title",
-            "wizard-errors-description",
-            "wizard-new-badge",
-            // Additional domain config translations
-            "wizard-domains-label",
-            "wizard-domains-description",
-            "wizard-transport-label",
-            "wizard-transport-description",
-            "wizard-enabled-description",
-            "wizard-domain-status-label",
-            "wizard-enabled-label",
-            "wizard-disabled-label",
-            // Additional review translations
-            "wizard-configuration-summary-title",
-            "wizard-domains-plural",
-            "wizard-aliases-plural",
-            "wizard-created-domains-title",
-            // Additional executing translations
-            "wizard-creating-domains-text",
-            "wizard-creating-aliases-text",
-            // Additional analytics-driven common aliases translations
-            "wizard-analytics-common-aliases",
-            "wizard-config-common-aliases",
-        ],
-    )
-    .await
-}
-
 // Helper function to generate aliases from config
 #[allow(dead_code)]
 fn generate_aliases_from_config(config: &crate::Config) -> Vec<String> {
@@ -290,7 +194,6 @@ pub async fn index(State(_state): State<AppState>, _headers: HeaderMap) -> Redir
 // Step 1: Domain configuration
 pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
 
     // Get existing session to restore form data
     let session = get_session();
@@ -316,32 +219,14 @@ pub async fn domain_config(State(state): State<AppState>, headers: HeaderMap) ->
         }
     };
 
-    let content_template = WizardDomainConfigTemplate {
-        title: &translations["wizard-step-1-title"],
-        description: &translations["wizard-step-1-description"],
-        form: &form,
-        error: "",
-        domains_label: &translations["wizard-domains-label"],
-        domains_description: &translations["wizard-domains-description"],
-        domains_placeholder: &translations["wizard-domains-placeholder"],
-        transport_label: &translations["wizard-transport-label"],
-        transport_description: &translations["wizard-transport-description"],
-        transport_placeholder: &translations["wizard-transport-placeholder"],
-        enabled_description: &translations["wizard-enabled-description"],
-        domain_status_label: &translations["wizard-domain-status-label"],
-        enabled_label: &translations["wizard-enabled-label"],
-        disabled_label: &translations["wizard-disabled-label"],
-        next_button: &translations["wizard-next"],
-        cancel_button: &translations["wizard-cancel"],
-    };
-
-    render_template_with_title!(
-        content_template,
-        content_template.title,
+    crate::handlers::rendering::render_wizard_domain_config_page(
+        &form,
+        "",
         &state,
         &locale,
-        &headers
+        &headers,
     )
+    .await
 }
 
 // Helper function to parse domains from form input
@@ -352,32 +237,6 @@ fn parse_domains_from_form(domains_input: &str) -> Vec<String> {
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
         .collect()
-}
-
-// Helper function to create domain config error template
-fn create_domain_config_error_template<'a>(
-    form: &'a DomainConfigForm,
-    error_msg: &'a str,
-    translations: &'a HashMap<String, String>,
-) -> WizardDomainConfigTemplate<'a> {
-    WizardDomainConfigTemplate {
-        title: &translations["wizard-step-1-title"],
-        description: &translations["wizard-step-1-description"],
-        form,
-        error: error_msg,
-        domains_label: &translations["wizard-domains-label"],
-        domains_description: &translations["wizard-domains-description"],
-        domains_placeholder: &translations["wizard-domains-placeholder"],
-        transport_label: &translations["wizard-transport-label"],
-        transport_description: &translations["wizard-transport-description"],
-        transport_placeholder: &translations["wizard-transport-placeholder"],
-        enabled_description: &translations["wizard-enabled-description"],
-        domain_status_label: &translations["wizard-domain-status-label"],
-        enabled_label: &translations["wizard-enabled-label"],
-        disabled_label: &translations["wizard-disabled-label"],
-        next_button: &translations["wizard-next"],
-        cancel_button: &translations["wizard-cancel"],
-    }
 }
 
 // Helper function to validate domains and return error if any are invalid
@@ -398,33 +257,32 @@ pub async fn domain_config_post(
     Form(form): Form<DomainConfigForm>,
 ) -> Html<String> {
     let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
 
     // Parse domains from comma-separated string
     let domains = parse_domains_from_form(&form.domains);
 
     if domains.is_empty() {
         let error_msg = "Please enter at least one domain";
-        let content_template = create_domain_config_error_template(&form, error_msg, &translations);
-        return render_template_with_title!(
-            content_template,
-            content_template.title,
+        return crate::handlers::rendering::render_wizard_domain_config_page(
+            &form,
+            error_msg,
             &state,
             &locale,
-            &headers
-        );
+            &headers,
+        )
+        .await;
     }
 
     // Comprehensive domain validation
     if let Err(e) = validate_domains(&domains) {
-        let content_template = create_domain_config_error_template(&form, &e, &translations);
-        return render_template_with_title!(
-            content_template,
-            content_template.title,
+        return crate::handlers::rendering::render_wizard_domain_config_page(
+            &form,
+            &e,
             &state,
             &locale,
-            &headers
-        );
+            &headers,
+        )
+        .await;
     }
 
     // Create wizard session with domain data
@@ -459,7 +317,6 @@ pub async fn domain_config_post(
 // Step 2: Alias configuration
 pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session or create default
     let session = if let Some(session) = get_session() {
@@ -531,40 +388,19 @@ pub async fn alias_config(State(state): State<AppState>, headers: HeaderMap) -> 
         catchall_enabled: session.catchall_enabled,
     };
 
-    let content_template = WizardAliasConfigTemplate {
-        title: &translations["wizard-step-2-title"],
-        description: &translations["wizard-step-2-description"],
-        domains: &domains,
-        form: &form,
-        error: "",
-        required_aliases: &required_aliases,
-        common_aliases: &common_aliases,
-        analytics_common_aliases: &filtered_analytics_aliases,
-        config_common_aliases: &config_common_aliases,
-        required_aliases_label: &translations["wizard-required-aliases"],
-        common_aliases_label: &translations["wizard-common-aliases"],
-        analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
-        config_common_aliases_label: &translations["wizard-config-common-aliases"],
-        custom_aliases_label: &translations["wizard-custom-aliases"],
-        custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
-        custom_aliases_description: &translations["wizard-custom-aliases-description"],
-        catchall_title: &translations["wizard-catchall-title"],
-        catchall_description: &translations["wizard-catchall-description"],
-        destination_title: &translations["wizard-destination-title"],
-        destination_description: &translations["wizard-destination-description"],
-        destination_placeholder: &translations["wizard-destination-placeholder"],
-        domains_to_configure_label: &translations["wizard-domains-to-configure"],
-        next_button: &translations["wizard-next"],
-        back_button: &translations["wizard-back"],
-    };
-
-    render_template_with_title!(
-        content_template,
-        content_template.title,
+    crate::handlers::rendering::render_wizard_alias_config_page(
+        &domains,
+        &form,
+        "",
+        &required_aliases,
+        &common_aliases,
+        &filtered_analytics_aliases,
+        &config_common_aliases,
         &state,
         &locale,
-        &headers
+        &headers,
     )
+    .await
 }
 
 // Helper function to parse form data from request body
@@ -623,7 +459,7 @@ async fn create_alias_config_error_template(
     form: &AliasConfigForm,
     error_msg: &str,
     session: &DomainWizardSession,
-    translations: &HashMap<String, String>,
+    _translations: &HashMap<String, String>,
 ) -> Html<String> {
     let locale = get_user_locale(headers);
     let domains: Vec<String> = session.domains.iter().map(|d| d.domain.clone()).collect();
@@ -641,81 +477,19 @@ async fn create_alias_config_error_template(
         .cloned()
         .collect();
 
-    let content_template = WizardAliasConfigTemplate {
-        title: &translations["wizard-step-2-title"],
-        description: &translations["wizard-step-2-description"],
-        domains: &domains,
+    crate::handlers::rendering::render_wizard_alias_config_page(
+        &domains,
         form,
-        error: error_msg,
-        required_aliases: &state.config.required_aliases,
-        common_aliases: &state.config.common_aliases,
-        analytics_common_aliases: &filtered_analytics_aliases,
-        config_common_aliases: &config_common_aliases,
-        required_aliases_label: &translations["wizard-required-aliases"],
-        common_aliases_label: &translations["wizard-common-aliases"],
-        analytics_common_aliases_label: &translations["wizard-analytics-common-aliases"],
-        config_common_aliases_label: &translations["wizard-config-common-aliases"],
-        custom_aliases_label: &translations["wizard-custom-aliases"],
-        custom_aliases_placeholder: &translations["wizard-custom-aliases-placeholder"],
-        custom_aliases_description: &translations["wizard-custom-aliases-description"],
-        catchall_title: &translations["wizard-catchall-title"],
-        catchall_description: &translations["wizard-catchall-description"],
-        destination_title: &translations["wizard-destination-title"],
-        destination_description: &translations["wizard-destination-description"],
-        destination_placeholder: &translations["wizard-destination-placeholder"],
-        domains_to_configure_label: &translations["wizard-domains-to-configure"],
-        next_button: &translations["wizard-next"],
-        back_button: &translations["wizard-back"],
-    };
-
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            tracing::error!("Failed to render template: {:?}", e);
-            return Html("Error rendering template".to_string());
-        }
-    };
-
-    if crate::handlers::http_helpers::is_htmx_request(headers) {
-        Html(content)
-    } else {
-        // Get current database id from session/cookie or default
-        let current_db_id = crate::handlers::auth::get_selected_database(headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        // Get current database label from db_manager
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-
-        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-            content_template.title.to_string(),
-            content,
-            state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        {
-            Ok(template) => template,
-            Err(e) => {
-                tracing::error!("Failed to create base template: {:?}", e);
-                return Html("Error creating template".to_string());
-            }
-        };
-
-        match base_template.render() {
-            Ok(content) => Html(content),
-            Err(e) => {
-                tracing::error!("Failed to render base template: {:?}", e);
-                Html("Error rendering template".to_string())
-            }
-        }
-    }
+        error_msg,
+        &state.config.required_aliases,
+        &state.config.common_aliases,
+        &filtered_analytics_aliases,
+        &config_common_aliases,
+        state,
+        &locale,
+        headers,
+    )
+    .await
 }
 
 // Step 2: Alias configuration POST handler
@@ -727,8 +501,7 @@ pub async fn alias_config_post(
     // Parse form data
     let form = parse_alias_config_form(request).await;
 
-    let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
+    let _locale = get_user_locale(&headers);
 
     // Get current session
     let mut session = get_session().unwrap_or_else(create_wizard_session);
@@ -742,7 +515,7 @@ pub async fn alias_config_post(
             &form,
             error_msg,
             &session,
-            &translations,
+            &HashMap::new(),
         )
         .await);
     }
@@ -773,7 +546,6 @@ pub async fn review(
     headers: HeaderMap,
 ) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session
     let session = match get_session() {
@@ -817,71 +589,16 @@ pub async fn review(
         aliases_list,
     };
 
-    let content_template = WizardReviewTemplate {
-        title: &translations["wizard-step-3-title"],
-        description: &translations["wizard-step-3-description"],
-        session: &session,
-        summary: &summary,
-        configuration_summary_title: &translations["wizard-configuration-summary-title"],
-        summary_domains_label: &translations["wizard-summary-domains"],
-        summary_aliases_label: &translations["wizard-summary-aliases"],
-        summary_total_label: &translations["wizard-summary-total"],
-        destination_label: &translations["wizard-summary-destination"],
-        domains_plural: &translations["wizard-domains-plural"],
-        aliases_plural: &translations["wizard-aliases-plural"],
-        new_badge: &translations["wizard-new-badge"],
-        confirm_button: &translations["wizard-confirm"],
-        back_button: &translations["wizard-back"],
-    };
+    let html = crate::handlers::rendering::render_wizard_review_page(
+        &session,
+        &summary,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await;
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            tracing::error!("Failed to render template: {:?}", e);
-            return Ok(Html("Error rendering template".to_string()));
-        }
-    };
-
-    if crate::handlers::http_helpers::is_htmx_request(&headers) {
-        Ok(Html(content))
-    } else {
-        // Get current database id from session/cookie or default
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        // Get current database label from db_manager
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-
-        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-            content_template.title.to_string(),
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        {
-            Ok(template) => template,
-            Err(e) => {
-                tracing::error!("Failed to create base template: {:?}", e);
-                return Ok(Html("Error creating template".to_string()));
-            }
-        };
-
-        match base_template.render() {
-            Ok(content) => Ok(Html(content)),
-            Err(e) => {
-                tracing::error!("Failed to render base template: {:?}", e);
-                Ok(Html("Error rendering template".to_string()))
-            }
-        }
-    }
+    Ok(html)
 }
 
 // Step 4: Execute wizard
@@ -890,8 +607,7 @@ pub async fn execute(
     headers: HeaderMap,
     Form(form): Form<WizardConfirmForm>,
 ) -> Result<Html<String>, Redirect> {
-    let locale = get_user_locale(&headers);
-    let _translations = get_wizard_translations(&state, &locale).await;
+    let _locale = get_user_locale(&headers);
 
     if !form.confirmed {
         // User didn't confirm, go back to review
@@ -970,41 +686,12 @@ async fn get_domain_ids_from_names(pool: &DbPool, domain_names: &[String]) -> Ve
     domain_ids
 }
 
-// Helper function to create wizard complete template
-fn create_wizard_complete_template<'a>(
-    session: &DomainWizardSession,
-    translations: &'a HashMap<String, String>,
-    total_aliases: i32,
-    created_domains: &'a Vec<String>,
-    created_domain_ids: &'a Vec<i32>,
-) -> WizardCompleteTemplate<'a> {
-    WizardCompleteTemplate {
-        title: &translations["wizard-step-5-title"],
-        description: &translations["wizard-step-5-description"],
-        domains_created: session.domains.len() as i32,
-        aliases_created: total_aliases,
-        has_errors: false,
-        created_domains,
-        created_domain_ids,
-        setup_results_title: &translations["wizard-setup-results"],
-        domains_created_label: &translations["wizard-domains-created"],
-        aliases_created_label: &translations["wizard-aliases-created"],
-        domains_plural: &translations["wizard-domains-plural"],
-        created_domains_title: &translations["wizard-created-domains-title"],
-        errors_title: &translations["wizard-errors-title"],
-        errors_description: &translations["wizard-errors-description"],
-        view_domains_button: &translations["wizard-view-domains"],
-        new_wizard_button: &translations["wizard-new-wizard"],
-    }
-}
-
 // Step 5: Complete
 pub async fn complete(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
-    let translations = get_wizard_translations(&state, &locale).await;
 
     // Get session
     let session = match get_session() {
@@ -1033,65 +720,22 @@ pub async fn complete(
 
     let created_domain_ids = get_domain_ids_from_names(&pool, &created_domains).await;
 
-    let content_template = create_wizard_complete_template(
-        &session,
-        &translations,
-        total_aliases,
-        &created_domains,
-        &created_domain_ids,
-    );
-
     // Clear session after completion
     clear_session();
 
-    let content = match content_template.render() {
-        Ok(content) => content,
-        Err(e) => {
-            tracing::error!("Failed to render template: {:?}", e);
-            return Ok(Html("Error rendering template".to_string()));
-        }
-    };
+    let html = crate::handlers::rendering::render_wizard_complete_page(
+        total_aliases,
+        total_aliases, // aliases_created - using total_aliases as placeholder
+        false, // has_errors - assuming no errors for now
+        &created_domains,
+        &created_domain_ids,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await;
 
-    if crate::handlers::http_helpers::is_htmx_request(&headers) {
-        Ok(Html(content))
-    } else {
-        // Get current database id from session/cookie or default
-        let current_db_id = crate::handlers::auth::get_selected_database(&headers)
-            .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-        // Get current database label from db_manager
-        let current_db_label = state
-            .db_manager
-            .get_configs()
-            .iter()
-            .find(|db| db.id == current_db_id)
-            .map(|db| db.label.clone())
-            .unwrap_or_else(|| current_db_id.clone());
-
-        let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-            content_template.title.to_string(),
-            content,
-            &state,
-            &locale,
-            current_db_label,
-            current_db_id,
-        )
-        .await
-        {
-            Ok(template) => template,
-            Err(e) => {
-                tracing::error!("Failed to create base template: {:?}", e);
-                return Ok(Html("Error creating template".to_string()));
-            }
-        };
-
-        match base_template.render() {
-            Ok(content) => Ok(Html(content)),
-            Err(e) => {
-                tracing::error!("Failed to render base template: {:?}", e);
-                Ok(Html("Error rendering template".to_string()))
-            }
-        }
-    }
+    Ok(html)
 }
 
 // Wizard destination search endpoint
