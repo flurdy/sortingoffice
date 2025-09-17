@@ -49,6 +49,20 @@ where
     Ok(s == "true")
 }
 
+fn deserialize_transport<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+
+    // Normalize "virtual" to "virtual:" since "virtual" is not a valid transport format
+    if s == "virtual" {
+        Ok("virtual:".to_string())
+    } else {
+        Ok(s)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SystemStats {
     pub total_domains: i64,
@@ -1431,6 +1445,7 @@ pub struct DuplicateDomainForm {
     #[serde(default)]
     pub new_domain: String,
     #[serde(default)]
+    #[serde(deserialize_with = "deserialize_transport")]
     pub transport: String,
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_checkbox")]

@@ -78,7 +78,7 @@
 
 ## 🐛 Bugs and KNOWN ISSUES
 
-- From the domain list page, when adding a new domain, the domain list is not updated
+- ✅ From the domain list page, when adding a new domain, the domain list is not updated
 
 - In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
 

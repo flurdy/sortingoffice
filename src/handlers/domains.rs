@@ -364,7 +364,7 @@ pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<Stri
     let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let form = DomainForm {
         domain: "".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
     };
 
@@ -494,18 +494,23 @@ pub async fn create(
     // Use optimized helper to create new domain without cloning
     let new_domain = crate::handlers::performance::create_new_domain_from_form(&form);
 
-    // Use functional error handling pattern - prepare success response first
-    let success_response =
-        render_domain_list_after_creation(&pool, &state, &locale, &headers).await;
+    // Create the domain
+    match db::create_domain(&pool, new_domain) {
+        Ok(_created_domain) => {
+            info!("Successfully created domain: {}", form.domain);
 
-    crate::handlers::utils::execute_db_operation_with_standard_error_handling(
-        &pool,
-        |pool| db::create_domain(pool, new_domain),
-        success_response,
-        "create domain",
-        &form.domain,
-    )
-    .await
+            // Redirect to domain list page to show updated list
+            let redirect_url = "/domains";
+            Html(format!(
+                "<script>window.location.href = '{redirect_url}';</script>"
+            ))
+        }
+        Err(e) => {
+            error!("Failed to create domain {}: {:?}", form.domain, e);
+            let error_msg = get_translation(&state, &locale, "domains-error-creating").await;
+            Html(error_msg)
+        }
+    }
 }
 
 pub async fn update(
@@ -580,7 +585,7 @@ pub async fn update(
             // Recreate the form for error display
             let error_form = DomainForm {
                 domain: domain_name,
-                transport: "virtual".to_string(),
+                transport: "virtual:".to_string(),
                 enabled: true,
             };
 

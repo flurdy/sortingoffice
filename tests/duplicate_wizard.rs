@@ -8,7 +8,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
         source_domain: None,
         source_is_backup: false,
         new_domain: "test.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -22,7 +22,7 @@ async fn test_duplicate_domain_session_creation() -> Result<(), Box<dyn std::err
     assert_eq!(session1.duplicate_aliases, true);
     assert_eq!(session1.duplicate_relays, true);
     assert_eq!(session1.enabled, true);
-    assert_eq!(session1.transport, "virtual");
+    assert_eq!(session1.transport, "virtual:");
 
     // Test session with different settings
     let session2 = DuplicateDomainSession {
@@ -120,7 +120,7 @@ async fn test_backup_domain_session_handling() -> Result<(), Box<dyn std::error:
         source_domain: None,
         source_is_backup: true, // Source is backup
         new_domain: "new-normal.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -138,7 +138,7 @@ async fn test_backup_domain_session_handling() -> Result<(), Box<dyn std::error:
         source_domain: None,
         source_is_backup: false, // Source is normal
         new_domain: "new-backup-from-normal.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -154,7 +154,8 @@ async fn test_backup_domain_session_handling() -> Result<(), Box<dyn std::error:
 }
 
 #[tokio::test]
-async fn test_duplicate_domain_session_form_restoration() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_duplicate_domain_session_form_restoration() -> Result<(), Box<dyn std::error::Error>>
+{
     // Test that session data can be properly restored for form fields
     let session = DuplicateDomainSession {
         step: DuplicateWizardStep::DomainSelection,
@@ -168,7 +169,7 @@ async fn test_duplicate_domain_session_form_restoration() -> Result<(), Box<dyn 
         }),
         source_is_backup: false,
         new_domain: "test-example.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -193,7 +194,8 @@ async fn test_duplicate_domain_session_form_restoration() -> Result<(), Box<dyn 
 }
 
 #[tokio::test]
-async fn test_duplicate_domain_session_with_aliases_and_relays() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_duplicate_domain_session_with_aliases_and_relays(
+) -> Result<(), Box<dyn std::error::Error>> {
     // Test session with aliases and relays to duplicate
     let aliases = vec![
         sortingoffice::models::Alias {
@@ -214,23 +216,21 @@ async fn test_duplicate_domain_session_with_aliases_and_relays() -> Result<(), B
         },
     ];
 
-    let relays = vec![
-        sortingoffice::models::Relay {
-            pkid: 1,
-            recipient: "example.com".to_string(),
-            status: "OK".to_string(),
-            enabled: true,
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
-        },
-    ];
+    let relays = vec![sortingoffice::models::Relay {
+        pkid: 1,
+        recipient: "example.com".to_string(),
+        status: "OK".to_string(),
+        enabled: true,
+        created: chrono::Utc::now().naive_utc(),
+        modified: chrono::Utc::now().naive_utc(),
+    }];
 
     let session = DuplicateDomainSession {
         step: DuplicateWizardStep::Review,
         source_domain: None,
         source_is_backup: false,
         new_domain: "test.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -249,7 +249,10 @@ async fn test_duplicate_domain_session_with_aliases_and_relays() -> Result<(), B
 
     // Test alias properties
     assert_eq!(session.aliases_to_duplicate[0].mail, "admin@example.com");
-    assert_eq!(session.aliases_to_duplicate[1].mail, "postmaster@example.com");
+    assert_eq!(
+        session.aliases_to_duplicate[1].mail,
+        "postmaster@example.com"
+    );
 
     // Test relay properties
     assert_eq!(session.relays_to_duplicate[0].recipient, "example.com");
@@ -266,30 +269,26 @@ async fn test_duplicate_domain_session_enabled_toggles() -> Result<(), Box<dyn s
         source_domain: None,
         source_is_backup: false,
         new_domain: "test.com".to_string(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: false, // New domain disabled
         duplicate_aliases: true,
         duplicate_relays: true,
-        aliases_to_duplicate: vec![
-            sortingoffice::models::Alias {
-                pkid: 1,
-                mail: "admin@example.com".to_string(),
-                destination: "admin@test.com".to_string(),
-                enabled: false, // Alias disabled
-                created: chrono::Utc::now().naive_utc(),
-                modified: chrono::Utc::now().naive_utc(),
-            },
-        ],
-        relays_to_duplicate: vec![
-            sortingoffice::models::Relay {
-                pkid: 1,
-                recipient: "example.com".to_string(),
-                status: "OK".to_string(),
-                enabled: true, // Relay enabled
-                created: chrono::Utc::now().naive_utc(),
-                modified: chrono::Utc::now().naive_utc(),
-            },
-        ],
+        aliases_to_duplicate: vec![sortingoffice::models::Alias {
+            pkid: 1,
+            mail: "admin@example.com".to_string(),
+            destination: "admin@test.com".to_string(),
+            enabled: false, // Alias disabled
+            created: chrono::Utc::now().naive_utc(),
+            modified: chrono::Utc::now().naive_utc(),
+        }],
+        relays_to_duplicate: vec![sortingoffice::models::Relay {
+            pkid: 1,
+            recipient: "example.com".to_string(),
+            status: "OK".to_string(),
+            enabled: true, // Relay enabled
+            created: chrono::Utc::now().naive_utc(),
+            modified: chrono::Utc::now().naive_utc(),
+        }],
         target_is_backup: None,
     };
 
@@ -306,7 +305,8 @@ async fn test_duplicate_domain_session_enabled_toggles() -> Result<(), Box<dyn s
 }
 
 #[tokio::test]
-async fn test_duplicate_domain_session_backup_domain_handling() -> Result<(), Box<dyn std::error::Error>> {
+async fn test_duplicate_domain_session_backup_domain_handling(
+) -> Result<(), Box<dyn std::error::Error>> {
     // Test session handling for backup domains
     let session = DuplicateDomainSession {
         step: DuplicateWizardStep::Review,

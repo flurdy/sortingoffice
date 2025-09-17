@@ -15,7 +15,7 @@ async fn test_duplicate_wizard_form_submission() -> Result<(), Box<dyn std::erro
     // Verify all fields are correctly parsed
     assert_eq!(form.source_domain, "example.com");
     assert_eq!(form.new_domain, "new-example.com");
-    assert_eq!(form.transport, "virtual");
+    assert_eq!(form.transport, "virtual:");
     assert_eq!(form.enabled, true);
     assert_eq!(form.duplicate_aliases, true);
     assert_eq!(form.duplicate_relays, true);
@@ -36,7 +36,7 @@ async fn test_duplicate_wizard_form_without_optional_fields(
     // Verify required fields are correctly parsed
     assert_eq!(form.source_domain, "example.com");
     assert_eq!(form.new_domain, "new-example.com");
-    assert_eq!(form.transport, "virtual");
+    assert_eq!(form.transport, "virtual:");
 
     // Verify optional fields have default values
     assert_eq!(form.enabled, false);
@@ -154,7 +154,7 @@ async fn test_duplicate_wizard_form_validation() -> Result<(), Box<dyn std::erro
     
     assert_eq!(valid_form.source_domain, "example.com");
     assert_eq!(valid_form.new_domain, "test-example.com");
-    assert_eq!(valid_form.transport, "virtual");
+    assert_eq!(valid_form.transport, "virtual:");
     assert_eq!(valid_form.enabled, true);
     assert_eq!(valid_form.duplicate_aliases, true);
     assert_eq!(valid_form.duplicate_relays, true);

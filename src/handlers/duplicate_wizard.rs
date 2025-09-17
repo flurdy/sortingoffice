@@ -4,7 +4,8 @@ use crate::{
         http_helpers::get_user_locale,
         rendering::{
             render_duplicate_domain_complete_page, render_duplicate_domain_review_page,
-            render_duplicate_domain_selection_page, render_duplicate_domain_selection_page_with_error,
+            render_duplicate_domain_selection_page,
+            render_duplicate_domain_selection_page_with_error,
         },
     },
     models::{Domain, DuplicateDomainForm, DuplicateDomainSession, DuplicateWizardStep, Relay},
@@ -95,7 +96,7 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
         let backup_domain = Domain {
             pkid: backup.pkid,
             domain: backup.domain,
-            transport: backup.transport.or_else(|| Some("virtual".to_string())),
+            transport: backup.transport.or_else(|| Some("virtual:".to_string())),
             created: backup.created,
             modified: backup.modified,
             enabled: backup.enabled,
@@ -117,7 +118,7 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
             source_domain: None,
             source_is_backup: false,
             new_domain: String::new(),
-            transport: "virtual".to_string(),
+            transport: "virtual:".to_string(),
             enabled: true,
             duplicate_aliases: true,
             duplicate_relays: true,
@@ -138,11 +139,11 @@ pub async fn domain_selection_post(
     Form(form): Form<DuplicateDomainForm>,
 ) -> Result<Html<String>, Redirect> {
     let locale = get_user_locale(&headers);
-    
+
     // Validate new domain name
     if let Err(validation_error) = crate::validation::validate_domain(&form.new_domain) {
         error!("Domain validation failed: {:?}", validation_error);
-        
+
         // Get available domains for the form
         let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
             Ok(pool) => pool,
@@ -151,7 +152,7 @@ pub async fn domain_selection_post(
                 return Ok(Html("Database connection error".to_string()));
             }
         };
-        
+
         let mut domains = match db::get_domains(&pool) {
             Ok(domains) => domains,
             Err(e) => {
@@ -159,7 +160,7 @@ pub async fn domain_selection_post(
                 vec![]
             }
         };
-        
+
         // Get backup domains and add them to the list
         let backups = match db::get_backups(&pool) {
             Ok(backups) => backups,
@@ -168,7 +169,7 @@ pub async fn domain_selection_post(
                 vec![]
             }
         };
-        
+
         // Convert backup domains to regular domains for display
         for backup in backups {
             let backup_domain = Domain {
@@ -181,17 +182,17 @@ pub async fn domain_selection_post(
             };
             domains.push(backup_domain);
         }
-        
+
         // Sort domains alphabetically
         domains.sort_by(|a, b| a.domain.cmp(&b.domain));
-        
+
         // Create session with form data for restoration
         let session = DuplicateDomainSession {
             step: DuplicateWizardStep::DomainSelection,
             source_domain: None,
             source_is_backup: false,
             new_domain: form.new_domain.clone(),
-            transport: "virtual".to_string(),
+            transport: "virtual:".to_string(),
             enabled: true,
             duplicate_aliases: true,
             duplicate_relays: true,
@@ -200,23 +201,24 @@ pub async fn domain_selection_post(
             target_is_backup: None,
         };
         save_session(session.clone());
-        
+
         // Render form with error
         let error_message = match validation_error {
             crate::validation::ValidationError::DomainInvalid(msg) => msg,
             _ => "Invalid domain format".to_string(),
         };
-        
+
         return Ok(render_duplicate_domain_selection_page_with_error(
-            domains, 
-            Some(&session), 
+            domains,
+            Some(&session),
             &error_message,
-            &state, 
-            &locale, 
-            &headers
-        ).await);
+            &state,
+            &locale,
+            &headers,
+        )
+        .await);
     }
-    
+
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
         Ok(pool) => pool,
         Err(e) => {
@@ -279,7 +281,26 @@ pub async fn domain_selection_post(
     };
 
     let relays_to_duplicate = match get_relays_for_domain(&pool, &source_domain.domain).await {
-        Ok(relays) => relays,
+        Ok(relays) => {
+            // Transform relays to show what they will look like after duplication
+            relays
+                .into_iter()
+                .map(|relay| {
+                    let new_recipient = relay.recipient.replace(
+                        &format!("@{}", source_domain.domain),
+                        &format!("@{}", form.new_domain),
+                    );
+                    crate::models::Relay {
+                        pkid: relay.pkid,
+                        recipient: new_recipient,
+                        status: relay.status,
+                        created: relay.created,
+                        modified: relay.modified,
+                        enabled: relay.enabled,
+                    }
+                })
+                .collect()
+        }
         Err(e) => {
             error!("Failed to get relays: {:?}", e);
             vec![]
@@ -292,7 +313,7 @@ pub async fn domain_selection_post(
         source_domain: None,
         source_is_backup: false,
         new_domain: String::new(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         duplicate_aliases: true,
         duplicate_relays: true,
@@ -307,7 +328,7 @@ pub async fn domain_selection_post(
     session.new_domain = form.new_domain;
     session.transport = source_domain
         .transport
-        .unwrap_or_else(|| "virtual".to_string()); // Always copy source domain's transport
+        .unwrap_or_else(|| "virtual:".to_string()); // Always copy source domain's transport
     session.enabled = true; // Default to enabled, can be changed via toggles on review page
     session.duplicate_aliases = true; // Always duplicate aliases
     session.duplicate_relays = true; // Always duplicate relays
@@ -538,12 +559,14 @@ pub async fn toggle_new_domain_enabled(
 
     // Return the updated toggle HTML
     let enabled = form.enabled == "true";
-    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
-    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+    let enabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
 
     let checked_true = if enabled { "checked" } else { "" };
     let checked_false = if !enabled { "checked" } else { "" };
-    
+
     let html = format!(
         "<div class=\"radio-toggle-container\">\
             <div class=\"radio-toggle\">\
@@ -583,7 +606,11 @@ pub async fn toggle_alias_enabled(
     };
 
     // Find and update the alias in the session
-    if let Some(alias) = session.aliases_to_duplicate.iter_mut().find(|a| a.pkid == form.alias_id) {
+    if let Some(alias) = session
+        .aliases_to_duplicate
+        .iter_mut()
+        .find(|a| a.pkid == form.alias_id)
+    {
         alias.enabled = form.enabled == "true";
     }
 
@@ -592,12 +619,14 @@ pub async fn toggle_alias_enabled(
 
     // Return the updated toggle HTML
     let enabled = form.enabled == "true";
-    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
-    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+    let enabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
 
     let checked_true = if enabled { "checked" } else { "" };
     let checked_false = if !enabled { "checked" } else { "" };
-    
+
     let html = format!(
         "<div class=\"radio-toggle-container\">\
             <div class=\"radio-toggle\">\
@@ -639,7 +668,11 @@ pub async fn toggle_relay_enabled(
     };
 
     // Find and update the relay in the session
-    if let Some(relay) = session.relays_to_duplicate.iter_mut().find(|r| r.pkid == form.relay_id) {
+    if let Some(relay) = session
+        .relays_to_duplicate
+        .iter_mut()
+        .find(|r| r.pkid == form.relay_id)
+    {
         relay.enabled = form.enabled == "true";
     }
 
@@ -648,12 +681,14 @@ pub async fn toggle_relay_enabled(
 
     // Return the updated toggle HTML
     let enabled = form.enabled == "true";
-    let enabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
-    let disabled_status = crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
+    let enabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-enabled").await;
+    let disabled_status =
+        crate::i18n::get_translation(&state, &get_user_locale(&headers), "status-disabled").await;
 
     let checked_true = if enabled { "checked" } else { "" };
     let checked_false = if !enabled { "checked" } else { "" };
-    
+
     let html = format!(
         "<div class=\"radio-toggle-container\">\
             <div class=\"radio-toggle\">\

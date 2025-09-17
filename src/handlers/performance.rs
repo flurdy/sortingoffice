@@ -11,7 +11,11 @@ pub fn get_config_aliases_references(state: &AppState) -> (&[String], &[String])
 pub fn create_domain_form_from_domain(domain: &crate::models::Domain) -> crate::models::DomainForm {
     crate::models::DomainForm {
         domain: domain.domain.as_str().to_string(),
-        transport: domain.transport.as_deref().unwrap_or("virtual").to_string(),
+        transport: domain
+            .transport
+            .as_deref()
+            .unwrap_or("virtual:")
+            .to_string(),
         enabled: domain.enabled,
     }
 }
@@ -57,7 +61,11 @@ pub fn create_user_form_from_user(user: &crate::models::User) -> crate::models::
 pub fn create_backup_form_from_backup(backup: &crate::models::Backup) -> crate::models::BackupForm {
     crate::models::BackupForm {
         domain: backup.domain.as_str().to_string(),
-        transport: backup.transport.as_deref().unwrap_or("virtual").to_string(),
+        transport: backup
+            .transport
+            .as_deref()
+            .unwrap_or("virtual:")
+            .to_string(),
         enabled: backup.enabled,
     }
 }

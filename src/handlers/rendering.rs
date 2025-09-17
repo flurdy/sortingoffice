@@ -1651,7 +1651,8 @@ pub async fn render_duplicate_domain_selection_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
-    render_duplicate_domain_selection_page_with_error(domains, session, "", state, locale, headers).await
+    render_duplicate_domain_selection_page_with_error(domains, session, "", state, locale, headers)
+        .await
 }
 
 /// Render duplicate domain selection page with error message
@@ -1695,9 +1696,7 @@ pub async fn render_duplicate_domain_selection_page_with_error(
         .and_then(|s| s.source_domain.as_ref())
         .map(|d| d.domain.as_str())
         .unwrap_or("");
-    let new_domain_value = session
-        .map(|s| s.new_domain.as_str())
-        .unwrap_or("");
+    let new_domain_value = session.map(|s| s.new_domain.as_str()).unwrap_or("");
 
     let content_template = crate::templates::wizard::DuplicateDomainSelectionTemplate {
         title: &title,

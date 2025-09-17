@@ -60,8 +60,8 @@ pub use domains::{
 };
 pub use duplicate_wizard::{
     domain_selection, domain_selection_post, execute as duplicate_wizard_execute,
-    index as duplicate_wizard_index, review as duplicate_wizard_review,
-    toggle_alias_enabled, toggle_new_domain_enabled, toggle_relay_enabled,
+    index as duplicate_wizard_index, review as duplicate_wizard_review, toggle_alias_enabled,
+    toggle_new_domain_enabled, toggle_relay_enabled,
 };
 pub use health::*;
 pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers

@@ -158,7 +158,7 @@ fn create_wizard_session() -> DomainWizardSession {
         common_aliases: Vec::new(),
         custom_aliases: Vec::new(),
         common_destination: String::new(),
-        transport: "virtual".to_string(),
+        transport: "virtual:".to_string(),
         enabled: true,
         catchall_enabled: false,
     }
