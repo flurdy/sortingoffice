@@ -38,7 +38,7 @@
                 <select name="source_domain" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
                     <option value="">{{ source_domain_placeholder }}</option>
                     {% for domain in domains %}
-                    <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                    <option value="{{ domain.domain }}" {% if domain.domain == source_domain_value %}selected{% endif %}>{{ domain.domain }}</option>
                     {% endfor %}
                 </select>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -60,6 +60,7 @@
                             type="text" 
                             name="new_domain" 
                             required 
+                            value="{{ new_domain_value }}"
                             placeholder="{{ new_domain_placeholder }}"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                         />

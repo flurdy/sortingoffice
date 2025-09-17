@@ -51,7 +51,7 @@
 
 - ✅ Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
 
-- Duplicate domain - in the review page, clicking back does not retain any fields.
+- ✅ Duplicate domain - in the review page, clicking back does not retain any fields.
 
 - Duplicate domain - add tests
   - Many unit tests, for a lot of scenarios, happy and sad.
@@ -63,17 +63,11 @@
 - Duplicate domain - Can on the review page the source and new domain box be 3 columns wide by default. To avoid the 2nd row for the enabled text/toggle. 
 
 
-- Refactor database helper functions for better maintainability
+- Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
   - Create generic functions to reduce code duplication
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
-
-- Valid Tests - lets go through the tests suites to see 
-  - if they actually tests what they say they should (some seem like placeholders)
-  - if they will fail if conditions are not met (some seem to pass even if conditions are not met)
-  - if they actually are needed. Some tests are not important.
-  - if they should be split. A test should logically only test one logic.
 
 ## 🐛 Bugs and KNOWN ISSUES
 

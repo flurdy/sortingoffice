@@ -106,23 +106,29 @@ pub async fn domain_selection(State(state): State<AppState>, headers: HeaderMap)
     // Sort domains alphabetically
     domains.sort_by(|a, b| a.domain.cmp(&b.domain));
 
-    // Create session
-    let session = DuplicateDomainSession {
-        step: DuplicateWizardStep::DomainSelection,
-        source_domain: None,
-        source_is_backup: false,
-        new_domain: String::new(),
-        transport: "virtual".to_string(),
-        enabled: true,
-        duplicate_aliases: true,
-        duplicate_relays: true,
-        aliases_to_duplicate: vec![],
-        relays_to_duplicate: vec![],
-        target_is_backup: None,
+    // Get existing session or create new one
+    let session = if let Some(existing_session) = get_session() {
+        // Restore existing session data
+        existing_session
+    } else {
+        // Create new session
+        DuplicateDomainSession {
+            step: DuplicateWizardStep::DomainSelection,
+            source_domain: None,
+            source_is_backup: false,
+            new_domain: String::new(),
+            transport: "virtual".to_string(),
+            enabled: true,
+            duplicate_aliases: true,
+            duplicate_relays: true,
+            aliases_to_duplicate: vec![],
+            relays_to_duplicate: vec![],
+            target_is_backup: None,
+        }
     };
-    save_session(session);
+    save_session(session.clone());
 
-    render_duplicate_domain_selection_page(domains, &state, &locale, &headers).await
+    render_duplicate_domain_selection_page(domains, Some(&session), &state, &locale, &headers).await
 }
 
 /// Handle domain selection form submission

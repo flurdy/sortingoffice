@@ -1646,6 +1646,7 @@ pub async fn render_relocated_form_page(
 /// Render duplicate domain selection page
 pub async fn render_duplicate_domain_selection_page(
     domains: Vec<crate::models::Domain>,
+    session: Option<&crate::models::DuplicateDomainSession>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -1677,6 +1678,15 @@ pub async fn render_duplicate_domain_selection_page(
     let next_button = crate::i18n::get_translation(state, locale, "wizard-next").await;
     let cancel_button = crate::i18n::get_translation(state, locale, "form-cancel").await;
 
+    // Get form values from session if available
+    let source_domain_value = session
+        .and_then(|s| s.source_domain.as_ref())
+        .map(|d| d.domain.as_str())
+        .unwrap_or("");
+    let new_domain_value = session
+        .map(|s| s.new_domain.as_str())
+        .unwrap_or("");
+
     let content_template = crate::templates::wizard::DuplicateDomainSelectionTemplate {
         title: &title,
         description: &description,
@@ -1685,10 +1695,12 @@ pub async fn render_duplicate_domain_selection_page(
         source_domain_label: &source_domain_label,
         source_domain_placeholder: &source_domain_placeholder,
         source_domain_description: &source_domain_description,
+        source_domain_value,
         new_domain_section_title: &new_domain_section_title,
         new_domain_label: &new_domain_label,
         new_domain_placeholder: &new_domain_placeholder,
         new_domain_description: &new_domain_description,
+        new_domain_value,
         enabled_label: &enabled_label,
         next_button: &next_button,
         cancel_button: &cancel_button,
