@@ -842,6 +842,38 @@ wizard-created-domains-title = Erstellte Domains
 # Additional executing translations
 wizard-creating-domains-text = Domains werden erstellt...
 wizard-creating-aliases-text = Aliase werden erstellt...
+# Duplicate Domain Wizard
+duplicate-wizard-title = Domain-Duplikations-Assistent
+duplicate-wizard-description = Wählen Sie eine Domain zum Duplizieren und konfigurieren Sie die Einstellungen der neuen Domain.
+duplicate-wizard-source-domain-label = Quell-Domain
+duplicate-wizard-source-domain-placeholder = Wählen Sie eine Domain zum Duplizieren...
+duplicate-wizard-source-domain-description = Wählen Sie die Domain aus, die Sie duplizieren möchten.
+duplicate-wizard-new-domain-section-title = Neue Domain-Konfiguration
+duplicate-wizard-new-domain-label = Neuer Domain-Name
+duplicate-wizard-new-domain-placeholder = neue-domain.com
+duplicate-wizard-new-domain-description = Geben Sie den Namen für die neue Domain ein.
+duplicate-wizard-transport-description = Wählen Sie die Transport-Methode für die neue Domain.
+duplicate-wizard-transport-virtual = Virtual
+duplicate-wizard-transport-smtp = SMTP
+duplicate-wizard-section-title = Was duplizieren
+duplicate-wizard-aliases-label = Aliase und Ziele duplizieren
+duplicate-wizard-relays-label = Relays duplizieren
+duplicate-wizard-review-title = Domain-Duplikation überprüfen
+duplicate-wizard-review-description = Bitte überprüfen Sie die Konfiguration, bevor Sie mit der Duplikation fortfahren.
+duplicate-wizard-source-domain-title = Quell-Domain
+duplicate-wizard-new-domain-title = Neue Domain-Konfiguration
+duplicate-wizard-items-to-duplicate-title = Zu duplizierende Elemente
+duplicate-wizard-yes-status = Ja
+duplicate-wizard-no-status = Nein
+duplicate-wizard-items-label = Elemente
+duplicate-wizard-complete-title = Domain-Duplikation abgeschlossen!
+duplicate-wizard-complete-description = Die Domain wurde erfolgreich mit allen ausgewählten Elementen dupliziert.
+duplicate-wizard-success-message = Domain erfolgreich dupliziert
+duplicate-wizard-source-label = Quelle
+duplicate-wizard-destination-label = Ziel
+duplicate-wizard-view-domain-button = Neue Domain anzeigen
+duplicate-wizard-back-to-domains-button = Zurück zu Domains
+duplicate-wizard-duplicate-another-button = Weitere duplizieren
 # Error Messages
 error-duplicate-domain = Eine Domain mit diesem Namen existiert bereits
 # Miscellaneous
