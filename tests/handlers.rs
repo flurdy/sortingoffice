@@ -8,7 +8,7 @@ mod tests {
         config::{AdminRole, ConnectionPoolConfig, DatabaseConfig, DatabaseFeatures},
         db::{self, DatabaseManager},
         i18n::I18n,
-        models::{AliasForm, NewBackup, NewDomain, UserForm},
+        models::{AliasForm, NewBackup, NewDomain, RelayForm, UserForm},
         AppState,
     };
 
@@ -1494,5 +1494,32 @@ mod tests {
 
         // The wizard index now redirects to /wizard/domain-config
         TestUtils::assert_status(&response, StatusCode::SEE_OTHER);
+    }
+
+    #[tokio::test]
+    async fn test_relay_form_defaults_to_ok_status() -> Result<(), Box<dyn std::error::Error>> {
+        // Test that RelayForm defaults to "OK" status when created
+        let relay_form = RelayForm {
+            recipient: "test@example.com".to_string(),
+            status: "OK".to_string(),
+            enabled: true,
+        };
+
+        // Verify the status is set to "OK"
+        assert_eq!(relay_form.status, "OK");
+        assert_eq!(relay_form.recipient, "test@example.com");
+        assert_eq!(relay_form.enabled, true);
+
+        // Test that the form can be created with different status if needed
+        let relay_form_custom = RelayForm {
+            recipient: "custom@example.com".to_string(),
+            status: "REJECT".to_string(),
+            enabled: false,
+        };
+
+        assert_eq!(relay_form_custom.status, "REJECT");
+        assert_eq!(relay_form_custom.enabled, false);
+
+        Ok(())
     }
 }

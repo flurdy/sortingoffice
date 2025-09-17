@@ -44,7 +44,7 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
-- The status in Relays is only OK or REJECT. Lets default to OK.
+- ✅ The status in Relays is only OK or REJECT. Lets default to OK.
   Similar to what is in Clients.
 
 ### Low 

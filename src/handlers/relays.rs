@@ -94,7 +94,7 @@ pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> H
 
     let form = RelayForm {
         recipient: "".to_string(),
-        status: "".to_string(),
+        status: "OK".to_string(),
         enabled: true,
     };
 
