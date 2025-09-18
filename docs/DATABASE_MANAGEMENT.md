@@ -2,6 +2,19 @@
 
 This guide explains how to manage databases for different environments in Sorting Office.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Quick Start](#quick-start)
+3. [Environment Configuration](#environment-configuration)
+4. [Database Commands](#database-commands)
+5. [Seed Data Management](#seed-data-management)
+6. [Test Database Isolation](#test-database-isolation)
+7. [Troubleshooting](#troubleshooting)
+8. [Best Practices](#best-practices)
+9. [Migration Management](#migration-management)
+10. [Adding Remote Production Databases](#adding-remote-production-databases)
+
 ## Overview
 
 Sorting Office supports multiple database environments:

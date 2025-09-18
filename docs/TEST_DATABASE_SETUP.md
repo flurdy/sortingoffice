@@ -2,6 +2,21 @@
 
 This document describes the test database setup for Sorting Office using Testcontainers, which provides isolated, real MySQL instances for each test.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [How It Works](#how-it-works)
+4. [Usage Examples](#usage-examples)
+5. [Configuration](#configuration)
+6. [Migration from Old Test Setup](#migration-from-old-test-setup)
+7. [Benefits](#benefits)
+8. [Troubleshooting](#troubleshooting)
+9. [Integration with CI/CD](#integration-with-cicd)
+10. [Best Practices](#best-practices)
+11. [Future Enhancements](#future-enhancements)
+12. [Conclusion](#conclusion)
+
 ## Overview
 
 The project uses [Testcontainers](https://testcontainers.com/) to spin up isolated MySQL containers for unit tests. This approach provides:

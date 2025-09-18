@@ -2,6 +2,19 @@
 
 This document explains how to use the table-qualified field mapping system to support different database schemas across multiple databases.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Configuration Format](#configuration-format)
+3. [Field Mapping Syntax](#field-mapping-syntax)
+4. [Usage in Code](#usage-in-code)
+5. [Field Mapping Resolution](#field-mapping-resolution)
+6. [Example Configurations](#example-configurations)
+7. [Supported Tables](#supported-tables)
+8. [Best Practices](#best-practices)
+9. [Migration from Simple Field Names](#migration-from-simple-field-names)
+10. [Troubleshooting](#troubleshooting)
+
 ## Overview
 
 The field mapping system allows you to map logical field names to actual database field names for each database configuration. This is useful when different databases have different schema field names but you want to use consistent logical names in your application code.

@@ -2,6 +2,21 @@
 
 Sorting Office implements a secure, role-based authentication system with support for multiple admin users and different permission levels.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Roles and Permissions](#roles-and-permissions)
+3. [Configuration](#configuration)
+4. [Password Management](#password-management)
+5. [Session Management](#session-management)
+6. [Security Considerations](#security-considerations)
+7. [Error Handling](#error-handling)
+8. [Testing Authentication](#testing-authentication)
+9. [Troubleshooting](#troubleshooting)
+10. [Migration from Legacy System](#migration-from-legacy-system)
+11. [API Reference](#api-reference)
+12. [Related Documentation](#related-documentation)
+
 ## Overview
 
 The authentication system provides:

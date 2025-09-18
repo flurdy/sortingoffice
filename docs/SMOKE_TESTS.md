@@ -2,6 +2,22 @@
 
 This document provides detailed information about the smoke tests in SortingOffice, which are comprehensive end-to-end tests that validate complete user workflows.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [What Smoke Tests Validate](#what-smoke-tests-validate)
+3. [Test Implementation](#test-implementation)
+4. [Test Architecture](#test-architecture)
+5. [Configuration](#configuration)
+6. [Running Smoke Tests](#running-smoke-tests)
+7. [Test Data Generation](#test-data-generation)
+8. [Error Handling](#error-handling)
+9. [Debugging](#debugging)
+10. [Performance Considerations](#performance-considerations)
+11. [Integration with CI/CD](#integration-with-cicd)
+12. [Best Practices](#best-practices)
+13. [Related Documentation](#related-documentation)
+
 ## Overview
 
 Smoke tests are the highest-level tests in the SortingOffice test suite. They validate complete user workflows from authentication through resource creation and cleanup, ensuring that the entire application works correctly from a user's perspective.

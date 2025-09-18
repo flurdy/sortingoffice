@@ -2,6 +2,20 @@
 
 The Sorting Office application includes a comprehensive database backup feature that allows administrators to create, download, and manage database backups directly through the web interface.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Accessing the Backup Feature](#accessing-the-backup-feature)
+3. [Features](#features)
+4. [Technical Details](#technical-details)
+5. [Configuration](#configuration)
+6. [Internationalization](#internationalization)
+7. [API Endpoints](#api-endpoints)
+8. [Troubleshooting](#troubleshooting)
+9. [Best Practices](#best-practices)
+10. [Integration with Existing Features](#integration-with-existing-features)
+11. [Future Enhancements](#future-enhancements)
+
 ## Overview
 
 The Database Backup feature provides:

@@ -2,6 +2,17 @@
 
 This guide covers common issues encountered when running tests and their solutions.
 
+## Table of Contents
+
+1. [🚨 Critical Issues](#-critical-issues)
+2. [🔧 Common Issues](#-common-issues)
+3. [🐛 Test-Specific Issues](#-test-specific-issues)
+4. [🚀 Performance Optimization](#-performance-optimization)
+5. [📋 Debugging Commands](#-debugging-commands)
+6. [🔍 Common Error Messages](#-common-error-messages)
+7. [📞 Getting Help](#-getting-help)
+8. [✅ Recent Fixes](#-recent-fixes)
+
 ## 🚨 Critical Issues
 
 ### Database Connection Failures

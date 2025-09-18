@@ -38,4 +38,6 @@
   - ✅ In run_test.sh the run_smoke_test function seem to check for localhost, even it that is not the environment to smoke test.
   - ✅ Instead can the makefile alias `test-smoke` take one argument which is the URL to test, instead of the env var.
 
+- ✅ Some of the readme and docs in /docs lack a Table of Contents
+
 ## 🐛 Bugs and KNOWN ISSUES

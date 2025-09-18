@@ -2,6 +2,20 @@
 
 This document provides comprehensive contact information for the Sorting Office project, including how to get support, report issues, contribute, and contact the maintainers.
 
+## Table of Contents
+
+1. [🆘 Support & Help](#-support--help)
+2. [🐛 Bug Reports](#-bug-reports)
+3. [🔒 Security Issues](#-security-issues)
+4. [💡 Feature Requests](#-feature-requests)
+5. [📚 Documentation](#-documentation)
+6. [🤝 Contributing](#-contributing)
+7. [💰 Sponsorship](#-sponsorship)
+8. [📞 Direct Contact](#-direct-contact)
+9. [🏢 Enterprise Support](#-enterprise-support)
+10. [📋 Response Times](#-response-times)
+11. [🔗 Quick Links](#-quick-links)
+
 ## 🆘 Support & Help
 
 ### Getting Started

@@ -4,6 +4,17 @@
 
 I've cleaned up and organized the test infrastructure to eliminate confusion and reduce code duplication. Here's what changed:
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Before (Confusing)](#before-confusing)
+3. [After (Clear and Organized)](#after-clear-and-organized)
+4. [Quick Start](#quick-start)
+5. [Test Architecture](#test-architecture)
+6. [What Was Removed](#what-was-removed)
+7. [What Was Updated](#what-was-updated)
+8. [Benefits](#benefits)
+
 ## Before (Confusing)
 - Multiple test scripts in root directory
 - Multiple documentation files scattered around

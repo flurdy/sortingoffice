@@ -2,6 +2,20 @@
 
 This document describes the functional UI tests for the SortingOffice application, which test the web interface using Selenium WebDriver and headless browser testing.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Test Structure](#test-structure)
+3. [Shared Test Infrastructure](#shared-test-infrastructure)
+4. [CI/CD Integration](#cicd-integration)
+5. [Infrastructure Changes](#infrastructure-changes)
+6. [Prerequisites](#prerequisites)
+7. [Setup](#setup)
+8. [Running the Tests](#running-the-tests)
+9. [Smoke Test Workflow](#smoke-test-workflow)
+10. [Debugging](#debugging)
+11. [Performance Considerations](#performance-considerations)
+
 ## Overview
 
 The UI tests are designed to verify that the web interface works correctly from a user's perspective. They test:

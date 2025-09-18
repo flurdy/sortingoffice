@@ -1,5 +1,14 @@
 # I18N Implementation Status
 
+## Table of Contents
+
+1. [✅ Completed](#-completed)
+2. [🔄 In Progress](#-in-progress)
+3. [❌ Remaining Tasks](#-remaining-tasks)
+4. [🔧 Technical Issues to Resolve](#-technical-issues-to-resolve)
+5. [📝 Next Steps](#-next-steps)
+6. [🎯 Success Criteria](#-success-criteria)
+
 ## ✅ Completed
 
 ### Core I18N System

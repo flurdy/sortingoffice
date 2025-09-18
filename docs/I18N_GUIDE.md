@@ -2,6 +2,21 @@
 
 This guide explains how to use the internationalization system in the Sorting Office application.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Resource Bundle Structure](#resource-bundle-structure)
+3. [Resource File Format](#resource-file-format)
+4. [Adding a New Language](#adding-a-new-language)
+5. [Using i18n in Handlers](#using-i18n-in-handlers)
+6. [Using i18n in Templates](#using-i18n-in-templates)
+7. [Locale Detection](#locale-detection)
+8. [Adding New Translation Keys](#adding-new-translation-keys)
+9. [Best Practices](#best-practices)
+10. [Current Supported Languages](#current-supported-languages)
+11. [Adding More Languages](#adding-more-languages)
+12. [Technical Details](#technical-details)
+
 ## Overview
 
 The application now supports multiple languages through a simple resource bundle system. Text that was previously hardcoded in templates has been moved to resource files that can be easily translated.
