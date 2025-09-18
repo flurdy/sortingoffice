@@ -40,4 +40,6 @@
 
 - ✅ Some of the readme and docs in /docs lack a Table of Contents
 
+- ✅ In the /docs there are some md files that seem like status of then ongoing implementation tasks and not actual documentation. Can this be cleaned up
+
 ## 🐛 Bugs and KNOWN ISSUES

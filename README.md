@@ -77,7 +77,7 @@ make db-help
 - `docs/` - Detailed documentation
 - `tests/` - Test suites
 
-For detailed development information, see [TEST_ORGANIZATION.md](docs/TEST_ORGANIZATION.md).
+For detailed development information, see the documentation in the [docs/](docs/) directory.
 
 ## Documentation
 

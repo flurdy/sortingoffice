@@ -399,5 +399,3 @@ jobs:
 
 - [UI_TESTS.md](UI_TESTS.md): General UI testing documentation
 - [TEST_DATABASE_SETUP.md](TEST_DATABASE_SETUP.md): Test database setup
-- [TEST_IMPLEMENTATION_SUMMARY.md](TEST_IMPLEMENTATION_SUMMARY.md): Test implementation overview
-- [TEST_ORGANIZATION.md](TEST_ORGANIZATION.md): Test organization and structure 
