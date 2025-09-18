@@ -39,3 +39,5 @@ backups/*.sql
 todo-tasks-comments.md
 
 resources/locales/*/*.bak.*
+
+config/config.prod.toml

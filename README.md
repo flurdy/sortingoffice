@@ -1,6 +1,24 @@
 # Sorting Office
 
 A modern web-based admin tool for managing mail server data based on [flurdy's "How to set up a mail server on a GNU / Linux system"](https://flurdy.com/docs/postfix/).
+
+## Table of Contents
+
+- [Versions](#versions)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Prerequisites](#prerequisites)
+- [Development](#development)
+  - [Quick Commands](#quick-commands)
+  - [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Security](#security)
+- [Production Deployment](#production-deployment)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
 ## Versions
 - v3: The current Rust based setup
 - v1: The original Play Framework with Scala based setup,
