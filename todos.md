@@ -20,7 +20,7 @@
 
 - ✅ Duplicate domain - add tests
 
-- The status in Add/Edit Relays and Client since it can only be OK or REJECT, it should probably be radio buttons. Or a better toggle?
+- ✅ The status in Add/Edit Relays and Client since it can only be OK or REJECT, it should probably be radio buttons. Or a better toggle?
 
 - ✅ UI tests 
   - ✅ Does the run_single_ui_test function in the run_tests.sh also allow running a test in thewizard_tests.rs?

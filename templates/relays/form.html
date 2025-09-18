@@ -17,9 +17,10 @@
             <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ field_recipient_help }}</p>
         </div>
         
+        <!-- Fancy radio toggle for status (OK/REJECT) -->
         <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
-                <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold" for="status">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold">
                     {{ field_status }}
                 </label>
                 <button type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" title="{{ field_status_help }}">
@@ -28,7 +29,23 @@
                     </svg>
                 </button>
             </div>
-            <input class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-white bg-white dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status" name="status" type="text" placeholder="{{ placeholder_status }}" value="{{ form.status }}" maxlength="10" required>
+            <div class="radio-toggle-container">
+                <div class="radio-toggle">
+                    <input type="radio" id="status_ok" name="status" value="OK" {% if form.status == "OK" %}checked{% endif %} class="radio-toggle-input">
+                    <label for="status_ok" class="radio-toggle-label radio-toggle-label-left">
+                        <span class="radio-toggle-icon">✓</span>
+                        <span class="radio-toggle-text">{{ status_ok }}</span>
+                    </label>
+                    
+                    <input type="radio" id="status_reject" name="status" value="REJECT" {% if form.status == "REJECT" %}checked{% endif %} class="radio-toggle-input">
+                    <label for="status_reject" class="radio-toggle-label radio-toggle-label-right">
+                        <span class="radio-toggle-icon">✗</span>
+                        <span class="radio-toggle-text">{{ status_reject }}</span>
+                    </label>
+                    
+                    <div class="radio-toggle-slider"></div>
+                </div>
+            </div>
             <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ field_status_help }}</p>
         </div>
         

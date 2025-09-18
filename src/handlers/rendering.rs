@@ -635,6 +635,8 @@ pub async fn render_relay_form_page(
         crate::i18n::get_translation(state, locale, "relays-placeholder-status").await;
     let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
     let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+    let status_ok = crate::i18n::get_translation(state, locale, "status-ok").await;
+    let status_reject = crate::i18n::get_translation(state, locale, "status-reject").await;
     let relays_create_relay =
         crate::i18n::get_translation(state, locale, "relays-create-relay").await;
     let relays_update_relay =
@@ -657,6 +659,8 @@ pub async fn render_relay_form_page(
         placeholder_status: &placeholder_status,
         status_enabled: &status_enabled,
         status_disabled: &status_disabled,
+        status_ok: &status_ok,
+        status_reject: &status_reject,
         relays_create_relay: &relays_create_relay,
         relays_update_relay: &relays_update_relay,
     };

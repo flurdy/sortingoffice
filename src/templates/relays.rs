@@ -70,6 +70,8 @@ pub struct RelayFormTemplate<'a> {
     pub placeholder_status: &'a str,
     pub status_enabled: &'a str,
     pub status_disabled: &'a str,
+    pub status_ok: &'a str,
+    pub status_reject: &'a str,
     pub relays_create_relay: &'a str,
     pub relays_update_relay: &'a str,
 }

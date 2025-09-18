@@ -521,7 +521,7 @@ relays-delete-confirm = ¿Está seguro de que desea eliminar este relé?
 relays-placeholder-recipient = Ingrese dirección de destinatario
 relays-placeholder-status = Ingrese código de estado
 relays-field-recipient-help = La dirección de destinatario para este relé (ej., usuario@ejemplo.com)
-relays-field-status-help = El código de estado para este relé (ej., activo, deshabilitado, etc.)
+relays-field-status-help = Establecer el estado del relé: OK para permitir el correo a través de este relé, o REJECT para bloquear el correo de este relé
 relays-back-to-list = Volver a Relés
 # Relocated
 relocated-title = Reubicados
@@ -749,7 +749,7 @@ clients-form-placeholder-client = Enter client name or IP
 clients-form-status = Status
 clients-form-tooltip-client = The client name, IP address, or identifier for access control
 clients-form-tooltip-enabled = Whether this client is allowed or blocked
-clients-form-tooltip-status = The status of this client
+clients-form-tooltip-status = Establecer el estado del cliente: OK para permitir que este cliente envíe correo, o REJECT para bloquear este cliente
 clients-form-update-client = Update Client
 clients-not-available = Clients table is not available for this database
 clients-status = Status
