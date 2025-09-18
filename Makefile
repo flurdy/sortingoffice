@@ -49,7 +49,7 @@ help:
 	@echo "  make test-security - Run security tests (SQL injection, auth bypass, etc.)"
 	@echo "  make test-api    - Run API tests (authentication, authorization, etc.)"
 	@echo "  make test-ui    - Run containerized UI tests (app + db in containers)"
-	@echo "  make test-smoke - Run end-to-end smoke test against running app"
+	@echo "  make test-smoke [URL] - Run end-to-end smoke test against running app (default: localhost:3000)"
 	@echo "  make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "  make test-all   - Run all tests (unit + integration + security + api + UI)"
 	@echo ""
@@ -98,7 +98,7 @@ test-help:
 	@echo "    cargo test --test ui_containerized  - Alternative: run directly"
 	@echo ""
 	@echo "  Smoke Tests:"
-	@echo "    make test-smoke         - Run end-to-end smoke test"
+	@echo "    make test-smoke [URL]   - Run end-to-end smoke test (default: localhost:3000)"
 	@echo "    make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "    cargo test ui_smoke_e2e_flow -- --ignored  - Alternative: run directly"
 	@echo "    cargo test ui_smoke_e2e_flow_testcontainers -- --ignored  - Alternative: run testcontainers directly"
@@ -206,12 +206,13 @@ test-ui:
 .PHONY: test-smoke
 test-smoke:
 	@echo "Running end-to-end smoke test..."
+	@echo "Usage: make test-smoke [URL=http://localhost:3000]"
 	@echo "Prerequisites:"
 	@echo "  1. Start app: cargo run (in another terminal)"
-	@echo "  2. Ensure app is running on http://localhost:3000"
+	@echo "  2. Ensure app is running on the specified URL (default: http://localhost:3000)"
 	@echo "  (Selenium is automatically managed by testcontainers)"
 	@echo ""
-	@tests/run_tests.sh smoke
+	@tests/run_tests.sh smoke $(URL)
 
 .PHONY: test-smoke-containerized
 test-smoke-containerized:

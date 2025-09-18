@@ -299,11 +299,33 @@ run_ui_tests() {
 
     # Run the containerized UI tests (uses testcontainers for database and Selenium)
     print_status "Running containerized UI tests with testcontainers..."
+    
+    # Run ui_containerized tests
+    print_status "Running ui_containerized tests..."
     if cargo test --test ui_containerized -- --nocapture --test-threads=$RUST_TEST_THREADS; then
-        print_success "Containerized UI tests passed!"
+        print_success "ui_containerized tests passed!"
     else
-        print_error "Containerized UI tests failed!"
-        # Clean up resources even if tests fail
+        print_error "ui_containerized tests failed!"
+        cleanup_test_resources
+        exit 1
+    fi
+    
+    # Run duplicate_wizard_ui_tests
+    print_status "Running duplicate_wizard_ui_tests..."
+    if cargo test --test duplicate_wizard_ui_tests -- --nocapture --test-threads=$RUST_TEST_THREADS; then
+        print_success "duplicate_wizard_ui_tests passed!"
+    else
+        print_error "duplicate_wizard_ui_tests failed!"
+        cleanup_test_resources
+        exit 1
+    fi
+    
+    # Run wizard_tests
+    print_status "Running wizard_tests..."
+    if cargo test --test wizard_tests -- --nocapture --test-threads=$RUST_TEST_THREADS; then
+        print_success "wizard_tests passed!"
+    else
+        print_error "wizard_tests failed!"
         cleanup_test_resources
         exit 1
     fi
@@ -317,11 +339,12 @@ run_ui_tests() {
 
 # Function to run smoke test
 run_smoke_test() {
-    print_status "Running end-to-end smoke test for sortingoffice..."
+    local test_url="${1:-http://localhost:3000}"
+    print_status "Running end-to-end smoke test for sortingoffice against $test_url..."
 
-    # Check if application is running on localhost:3000
-    if curl -s http://localhost:3000/health > /dev/null 2>&1; then
-        print_status "Found running application at localhost:3000, using environment-based smoke test..."
+    # Check if application is running on the specified URL
+    if curl -s "$test_url/health" > /dev/null 2>&1; then
+        print_status "Found running application at $test_url, using environment-based smoke test..."
         
         # Set environment variables
         export RUST_LOG=info
@@ -336,13 +359,13 @@ run_smoke_test() {
             exit 1
         fi
     else
-        print_error "No application found at localhost:3000!"
+        print_error "No application found at $test_url!"
         print_error "The smoke test requires a running SortingOffice application to test against."
         echo ""
         print_status "To fix this:"
         print_status "  1. Start the application: cargo run"
         print_status "  2. Or use: make run"
-        print_status "  3. Ensure the application is accessible at http://localhost:3000"
+        print_status "  3. Ensure the application is accessible at $test_url"
         echo ""
         print_status "Alternative: Use 'make test-smoke-containerized' to test with containers"
         echo ""
@@ -466,7 +489,17 @@ run_single_ui_test() {
 
     # Run the individual UI test
     start_time=$(date +%s)
-    if cargo test --test ui_containerized "$test_name" -- --nocapture; then
+    
+    # Try to run from ui_containerized first, then duplicate_wizard_ui_tests, then wizard_tests
+    if cargo test --test ui_containerized "$test_name" -- --nocapture 2>/dev/null; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Individual UI test '$test_name' passed in ${duration}s!"
+    elif cargo test --test duplicate_wizard_ui_tests "$test_name" -- --nocapture 2>/dev/null; then
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        print_success "Individual UI test '$test_name' passed in ${duration}s!"
+    elif cargo test --test wizard_tests "$test_name" -- --nocapture 2>/dev/null; then
         end_time=$(date +%s)
         duration=$((end_time - start_time))
         print_success "Individual UI test '$test_name' passed in ${duration}s!"
@@ -474,6 +507,7 @@ run_single_ui_test() {
         end_time=$(date +%s)
         duration=$((end_time - start_time))
         print_error "Individual UI test '$test_name' failed in ${duration}s!"
+        print_error "Test not found in ui_containerized, duplicate_wizard_ui_tests, or wizard_tests"
     fi
 
     # Always clean up after individual test
@@ -501,7 +535,7 @@ case "${1:-unit}" in
         run_ui_tests
         ;;
     "smoke")
-        run_smoke_test
+        run_smoke_test "$2"
         ;;
     "smoke-containerized")
         run_smoke_test_containerized

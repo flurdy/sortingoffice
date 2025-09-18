@@ -18,6 +18,27 @@ use testcontainers::ImageExt;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 
+// Import the selenium setup function
+use crate::common::testcontainer_helpers::setup_selenium_on_shared_network;
+
+/// Test environment structure
+pub struct TestEnv {
+    pub app_container: ContainerAsync<GenericImage>,
+    pub selenium_container: ContainerAsync<GenericImage>,
+    pub driver: WebDriver,
+    pub app_url: String,
+}
+
+impl TestEnv {
+    /// Explicit cleanup method to be called at end of tests
+    pub async fn cleanup(self) -> anyhow::Result<()> {
+        println!("[CLEANUP] Cleaning up test containers (non-db)...");
+        drop(self.app_container);
+        drop(self.selenium_container);
+        Ok(())
+    }
+}
+
 /// Find a free port for the application
 #[allow(dead_code)]
 pub fn find_free_port() -> u16 {
@@ -1521,4 +1542,185 @@ pub async fn ensure_page_ready(
             ));
         }
     }
+}
+
+/// Login and navigate to dashboard
+pub async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<()> {
+    // Go to login page (or homepage, which should redirect to login if not authenticated)
+    let login_url = format!("{}/login", app_url.trim_end_matches('/'));
+    timeout60s!(driver.get(&login_url), "Navigate to login page")?;
+    authenticate_driver(driver, app_url).await?;
+    // After login, go to dashboard/homepage and ensure layout is ready
+    let app_url = format!("{}/", app_url.trim_end_matches('/'));
+    timeout60s!(driver.get(&app_url), "Navigate to dashboard after login")?;
+    Ok(())
+}
+
+/// Run test with timeout
+pub async fn run_test_with_timeout<F, T>(
+    test_name: &str,
+    test_fn: F,
+    timeout_duration: Duration,
+) -> Result<T>
+where
+    F: std::future::Future<Output = Result<T>>,
+{
+    let start = std::time::Instant::now();
+    let result = timeout(timeout_duration, test_fn).await.map_err(|_| {
+        anyhow::anyhow!(
+            "Test '{}' timed out after {:?}",
+            test_name,
+            timeout_duration
+        )
+    })?;
+    let elapsed = start.elapsed();
+    println!("[TEST] {} completed in {:?}", test_name, elapsed);
+    result
+}
+
+/// Safe find and click with retries
+pub async fn safe_find_and_click(
+    driver: &WebDriver,
+    selector: &str,
+    description: &str,
+) -> Result<()> {
+    let max_attempts = 3;
+    for attempt in 1..=max_attempts {
+        match timeout30s!(driver.find(By::Css(selector)), "Find element for clicking") {
+            Ok(element) => match timeout30s!(element.click(), "Click element") {
+                Ok(_) => return Ok(()),
+                Err(_) => {
+                    if attempt == max_attempts {
+                        return Err(anyhow::anyhow!(
+                            "Failed to click {} after {} attempts",
+                            description,
+                            max_attempts
+                        ));
+                    }
+                    tokio::time::sleep(Duration::from_millis(500)).await;
+                }
+            },
+            Err(_) => {
+                if attempt == max_attempts {
+                    return Err(anyhow::anyhow!(
+                        "Failed to find {} after {} attempts",
+                        description,
+                        max_attempts
+                    ));
+                }
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+        }
+    }
+    unreachable!()
+}
+
+/// Safe find and send keys with retries
+pub async fn safe_find_and_send_keys(
+    driver: &WebDriver,
+    selector: &str,
+    text: &str,
+    description: &str,
+) -> Result<()> {
+    let max_attempts = 3;
+    for attempt in 1..=max_attempts {
+        match timeout30s!(
+            driver.find(By::Css(selector)),
+            "Find element for sending keys"
+        ) {
+            Ok(element) => {
+                // Clear the field first
+                let _ = element.clear().await;
+                match timeout30s!(element.send_keys(text), "Send keys to element") {
+                    Ok(_) => return Ok(()),
+                    Err(_) => {
+                        if attempt == max_attempts {
+                            return Err(anyhow::anyhow!(
+                                "Failed to send keys to {} after {} attempts",
+                                description,
+                                max_attempts
+                            ));
+                        }
+                        tokio::time::sleep(Duration::from_millis(500)).await;
+                    }
+                }
+            }
+            Err(_) => {
+                if attempt == max_attempts {
+                    return Err(anyhow::anyhow!(
+                        "Failed to find {} after {} attempts",
+                        description,
+                        max_attempts
+                    ));
+                }
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+        }
+    }
+    unreachable!()
+}
+
+/// Test 404 page functionality
+pub async fn test_404_page(
+    driver: &WebDriver,
+    app_url: &str,
+    path: &str,
+    context: &str,
+) -> Result<()> {
+    let error_url = format!("{app_url}{path}");
+    timeout60s!(driver.get(&error_url), "Navigate to 404 page")?;
+    let page_source = timeout30s!(driver.source(), "Get 404 page source")?;
+    let title = timeout30s!(driver.title(), "Get 404 page title")?;
+    assert!(
+        page_source.contains("404")
+            || page_source.contains("Not Found")
+            || page_source.contains("Error"),
+        "404 page does not contain expected error content. Context: {context}, Title: {title}"
+    );
+    Ok(())
+}
+
+/// Setup UI test environment with containers
+pub async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
+    use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
+    let schema = unique_test_id();
+
+    // Per-test schema: create and migrate; seed only when needed by the test
+    create_schema(&schema).await?;
+    run_migrations_for_schema(&schema).await?;
+
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.toml");
+    let config_path_str_owned = config_path.to_str().unwrap().to_string();
+    let extra_env: Vec<(&str, &str)> = vec![("TESTING", "true"), ("RUST_ENV", "test")];
+    let (app_container, _) =
+        setup_app_on_shared_network(&schema, None, &config_path_str_owned, &extra_env).await?;
+
+    // Start selenium on shared network with extra args
+    let extra_args = vec![
+        "--disable-http2".to_string(),
+        "--disable-quic".to_string(),
+        "--proxy-server=direct://".to_string(),
+        "--proxy-bypass-list=*".to_string(),
+        "--lang=en".to_string(),
+    ];
+    let (selenium_container, driver, _selenium_port) =
+        setup_selenium_on_shared_network(extra_args, "sortingoffice-e2e").await?;
+
+    // Determine app container IP on the shared bridge network
+    let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
+
+    // Use the container IP for Selenium to avoid DNS alias issues on Linux
+    let app_url = format!("http://{}:3000", app_ip);
+
+    // Ensure app is reachable from Selenium before proceeding
+    let _ = wait_for_app_from_selenium(&driver, &app_url, Duration::from_secs(30)).await?;
+
+    Ok(TestEnv {
+        app_container,
+        selenium_container,
+        driver,
+        app_url,
+    })
 }

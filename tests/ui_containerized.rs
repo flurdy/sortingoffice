@@ -1,13 +1,9 @@
 use anyhow::Result;
-use testcontainers::ContainerAsync;
-use testcontainers::GenericImage;
 use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 mod common;
-use common::testcontainer_helpers::setup_selenium_on_shared_network;
 use common::ui_helpers::{
-    authenticate_driver, create_schema, get_container_ip_on_network, run_migrations_for_schema,
-    setup_app_on_shared_network, wait_for_app_from_selenium,
+    login_and_goto_dashboard, run_test_with_timeout, setup_ui_test_env, test_404_page,
 };
 
 // Import test suite lifecycle for automatic cleanup
@@ -45,98 +41,6 @@ macro_rules! timeout90s {
 }
 
 // Wait for the app to be reachable from inside the Selenium container by loading /health
-
-struct TestEnv {
-    app_container: ContainerAsync<GenericImage>,
-    selenium_container: ContainerAsync<GenericImage>,
-    driver: WebDriver,
-    app_url: String,
-}
-
-impl TestEnv {
-    /// Explicit cleanup method to be called at end of tests
-    async fn cleanup(self) -> anyhow::Result<()> {
-        println!("[CLEANUP] Cleaning up test containers (non-db)...");
-
-        // Clean up the driver
-        if let Err(e) = self.driver.quit().await {
-            eprintln!("[CLEANUP] Warning: Failed to quit driver: {}", e);
-        }
-
-        // Stop containers explicitly
-        if let Err(e) = self.selenium_container.stop().await {
-            eprintln!(
-                "[CLEANUP] Warning: Failed to stop Selenium container: {}",
-                e
-            );
-        }
-
-        if let Err(e) = self.app_container.stop().await {
-            eprintln!("[CLEANUP] Warning: Failed to stop app container: {}", e);
-        }
-
-        println!("[CLEANUP] Test containers (non-db) cleaned up successfully");
-        Ok(())
-    }
-}
-
-async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
-    use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
-    let schema = unique_test_id();
-
-    // Per-test schema: create and migrate; seed only when needed by the test
-    create_schema(&schema).await?;
-    run_migrations_for_schema(&schema).await?;
-
-    let config_path = std::env::current_dir()
-        .unwrap()
-        .join("config/config.docker.toml");
-    let config_path_str_owned = config_path.to_str().unwrap().to_string();
-    let extra_env: Vec<(&str, &str)> = vec![("TESTING", "true"), ("RUST_ENV", "test")];
-    let (app_container, _) =
-        setup_app_on_shared_network(&schema, None, &config_path_str_owned, &extra_env).await?;
-
-    // Start selenium on shared network with extra args
-    let extra_args = vec![
-        "--disable-http2".to_string(),
-        "--disable-quic".to_string(),
-        "--proxy-server=direct://".to_string(),
-        "--proxy-bypass-list=*".to_string(),
-        "--lang=en".to_string(),
-    ];
-    let (selenium_container, driver, _selenium_port) =
-        setup_selenium_on_shared_network(extra_args, "sortingoffice-e2e").await?;
-
-    // Determine app container IP on the shared bridge network
-    let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
-
-    // Use the container IP for Selenium to avoid DNS alias issues on Linux
-    let app_url = format!("http://{}:3000", app_ip);
-
-    // Ensure app is reachable from Selenium before proceeding
-    let _ = wait_for_app_from_selenium(&driver, &app_url, Duration::from_secs(30)).await?;
-
-    Ok(TestEnv {
-        app_container,
-        selenium_container,
-        driver,
-        app_url,
-    })
-}
-
-async fn test_404_page(driver: &WebDriver, app_url: &str, path: &str, context: &str) -> Result<()> {
-    let error_url = format!("{app_url}{path}");
-    timeout60s!(driver.get(&error_url), "Navigate to 404 page")?;
-    let page_source = timeout30s!(driver.source(), "Get 404 page source")?;
-    let title = timeout30s!(driver.title(), "Get 404 page title")?;
-    assert!(
-        page_source.contains("404")
-            || page_source.contains("Not Found")
-            || page_source.contains("Error"),
-        "404 page does not contain expected error content. Context: {context}, Title: {title}"
-    );
-    Ok(())
-}
 
 #[tokio::test]
 async fn test_homepage_loads_containerized() -> Result<()> {
@@ -2004,57 +1908,6 @@ async fn test_database_error_handling_with_theme(driver: &WebDriver, app_url: &s
 
     println!("[ERROR TEST] ✅ Database error handling with shared theme test passed");
     Ok(())
-}
-
-/// Helper to login and land on the dashboard
-async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<()> {
-    // Go to login page (or homepage, which should redirect to login if not authenticated)
-    let login_url = format!("{}/login", app_url.trim_end_matches('/'));
-    // Removed noisy debug logging
-    // println!("[DEBUG] Navigating to login: {}", login_url);
-    // println!("[DEBUG] App URL: {}", app_url);
-    timeout60s!(driver.get(&login_url), "Navigate to login page")?;
-    authenticate_driver(driver, app_url).await?;
-    // After login, go to dashboard/homepage and ensure layout is ready
-    let app_url = format!("{}/", app_url.trim_end_matches('/'));
-    timeout60s!(driver.get(&app_url), "Navigate to dashboard after login")?;
-    // Warmup loop: reload until main-content is present and no DB error
-    let mut attempts = 0;
-    loop {
-        let src = driver.source().await.unwrap_or_default();
-        if src.contains("main-content") && !src.contains("Database connection error") {
-            break;
-        }
-        attempts += 1;
-        if attempts >= 10 {
-            return Err(anyhow::anyhow!(
-                "Dashboard not ready after login; snippet: {}",
-                &src.chars().take(500).collect::<String>()
-            ));
-        }
-        tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
-        timeout60s!(driver.get(&app_url), "Reload dashboard after login")?;
-    }
-    Ok(())
-}
-
-// Helper function to run a test with timeout
-async fn run_test_with_timeout<F, T>(
-    test_name: &str,
-    test_fn: F,
-    timeout_duration: Duration,
-) -> Result<T>
-where
-    F: std::future::Future<Output = Result<T>>,
-{
-    let start = std::time::Instant::now();
-    let result = timeout(timeout_duration, test_fn)
-        .await
-        .map_err(|_| anyhow::anyhow!("Test timed out after {:?}", timeout_duration))?;
-    let duration = start.elapsed();
-    let secs = duration.as_secs_f64();
-    println!("[TEST-TIME] {test_name} took {secs:.2}s");
-    result
 }
 
 // Note: UI tests for duplicate wizard would require proper setup of test environment

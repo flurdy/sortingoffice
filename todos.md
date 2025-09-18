@@ -2,38 +2,9 @@
 
 ### High Priority
 
-- ✅ Duplicate domain is not in the left menu.
-
-- ✅ Duplicate domain wizard seems not styled like the rest
-
-- ✅ Final step in duplicate domain shows an error: Failed to deserialize form body: missing field `source_domain`
-
-- ✅ Duplicate domain - List aliases and relays about to be created in the review step.
-
-- ✅ Duplicate domain - ALiases listed on the review page should be for aliases to be created, not the one copied.
-
-- ✅ Duplicate domain - Remove the checkboxes under "What to duplicate" in the first step.
-
-- ✅ Duplicate domain - verify backup domains are also listed.
-
-- ✅ Duplicate domain - Remove Transport as a field. Always copy the source domain's transport.
-
-- ✅ Duplicate domain - Relays to be copied seems to include other domains relays? It should not
-
-- ✅ Duplicate domain - for the domain, aliases and relays:
-  - Do not show enabled as a text column
-  - Instead for all entries show a toggle to change enabled/disabled
-
-- ✅ Duplicate domain - on the review page, showing the Yes in green on the right for aliases and relays does not make sense since it is not optional.
+- 
 
 ### Medium Priority
-
-- ✅ Add a duplicate domain wizard
-  - ✅ It takes searchable domain or backup domain
-  - ✅ It duplicates its aliases and destinations if not a backup domain
-  - ✅ It duplicates its relays
-  - ✅ It does not duplicate users
-  - ✅ Add tests
 
 - Add a remove domain wizard. Confirm before starting this todo. Currently this is postponed till later.
   - Delete or disable?
@@ -44,26 +15,18 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
-- ✅ The status in Relays is only OK or REJECT. Lets default to OK.
-  Similar to what is in Clients.
-
-- ✅ Duplicate domain - On the review page, the relays show the source relay entries not the duplicated ones.
 
 ### Low 
 
-- ✅ Duplicate domain - Remove the enabled checkbox for the domain on the first page. 
-
-- ✅ Duplicate domain - in the review page, clicking back does not retain any fields.
-
 - ✅ Duplicate domain - add tests
-  - Many unit tests, for a lot of scenarios, happy and sad.
-  - A few integration tests
-  - One or two UI tests
 
-- ✅ Duplicate domain - Please ensure domain field is validated as valid text like in other forms, e.g lowercase only. No symbols apart from dot, hyphen and underscore
+- The status in Add/Edit Relays and Client since it can only be OK or REJECT, it should probably be radio buttons. Or a better toggle?
 
-- ✅ Duplicate domain - Can on the review page the source and new domain box be 3 columns wide by default. To avoid the 2nd row for the enabled text/toggle. 
+- ✅ UI tests 
+  - ✅ Does the run_single_ui_test function in the run_tests.sh also allow running a test in thewizard_tests.rs?
+  - ✅ Does the run_ui_test function in the run_tests.sh include the wizard tests
 
+- ✅ DRY UI tests - Make sure the two wizard UI test files uses the shared helper functions, and not duplicating their own functions that does the same.
 
 - Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
@@ -71,26 +34,8 @@
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
 
-- ✅ Duplicate domain - On the review page, 
-  - shorten the message value for `aliases_label` to: Duplicate aliases 
-  - And its translations
-  - And the count seems wrong?
+- ✅ Smoke test
+  - ✅ In run_test.sh the run_smoke_test function seem to check for localhost, even it that is not the environment to smoke test.
+  - ✅ Instead can the makefile alias `test-smoke` take one argument which is the URL to test, instead of the env var.
 
 ## 🐛 Bugs and KNOWN ISSUES
-
-- ✅ From the domain list page, when adding a new domain, the domain list is not updated
-
-- ✅ In show domain page, when clicking add catch-call the field in the add alias form has 2 @s.
-
-- ✅ Add relocated 
-  - ✅ Save button does nothing
-  - ✅ Title missing translation
-
-- ✅ Add relay 
-  - ✅ save button does not work
-  - ✅ Title missing translation
-  - ✅ UI translations missing (Enabled/Disabled hardcoded)
-  - ✅ Save button naming inconsistent (now uses Create/Update like other forms)
-  - ✅ Title translation keys fixed (was using wrong keys)
-
-- ✅ Add client - missing title translation
