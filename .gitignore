@@ -26,18 +26,16 @@ dist
 app.log
 
 config/config.toml
+config/config.prod.toml
 
 cookies.txt
-
 orphaned_keys.txt
 
 *.bak
 
 backups/*.sql
 
-
-todo-tasks-comments.md
-
 resources/locales/*/*.bak.*
 
-config/config.prod.toml
+/.env
+/.envrc
