@@ -234,6 +234,14 @@ Edit `.env` to set:
 
 The application expects certain fields in your database tables. If your existing database doesn't have these fields, you'll need to add them:
 
+> **Note for MySQL 5.5 and earlier**: If you're using MySQL 5.5 or earlier, the `CURRENT_TIMESTAMP` default values won't work. Use `DATETIME` with explicit defaults instead:
+> ```sql
+> ALTER TABLE backups 
+> ADD COLUMN created DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
+> ADD COLUMN modified DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01';
+> ```
+> Apply the same pattern to all other tables below.
+
 #### Users Table
 ```sql
 ALTER TABLE users 
@@ -248,9 +256,37 @@ ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ```
 
+#### Backups Table
+```sql
+ALTER TABLE backups 
+ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+```
+
 #### Aliases Table
 ```sql
 ALTER TABLE aliases 
+ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+```
+
+#### Relays Table
+```sql
+ALTER TABLE relays
+ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+```
+
+#### Clients Table
+```sql
+ALTER TABLE clients
+ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+```
+
+#### Relocated Table
+```sql
+ALTER TABLE relocated
 ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ```

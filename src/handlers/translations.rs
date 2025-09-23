@@ -387,6 +387,7 @@ pub async fn get_reports_translations(state: &AppState, locale: &str) -> HashMap
     let mut translations = HashMap::new();
 
     let reports_keys = vec![
+        // Generic reports keys
         "reports-title",
         "reports-description",
         "reports-generate",
@@ -421,8 +422,67 @@ pub async fn get_reports_translations(state: &AppState, locale: &str) -> HashMap
         "reports-trending",
         "reports-emerging",
         "reports-declining",
-        "reports-stable",
-        "reports-volatile",
+        // Cross-database matrix specific keys
+        "reports-cross-db-matrix-title",
+        "reports-cross-db-matrix-description",
+        "reports-domain-header",
+        "reports-database-header",
+        "reports-primary-domain",
+        "reports-backup-domain",
+        "reports-not-present",
+        "reports-legend-title",
+        "reports-no-domains",
+        "reports-no-domains-description",
+        // Matrix report keys
+        "reports-matrix-title",
+        "reports-matrix-description",
+        "reports-catch-all-header",
+        "reports-required-aliases-header",
+        "reports-status-present",
+        "reports-status-missing",
+        "reports-status-disabled",
+        // Reports list keys
+        "reports-list-title",
+        "reports-list-description",
+        // Orphaned aliases keys
+        "reports-orphaned-aliases-title",
+        "reports-orphaned-aliases-description",
+        // External forwarders keys
+        "reports-external-forwarders-title",
+        "reports-external-forwarders-description",
+        // Alias cross domain keys
+        "reports-alias-cross-domain-title",
+        "reports-alias-cross-domain-description",
+        // Cross-database user distribution keys
+        "reports-cross-db-user-distribution-title",
+        "reports-cross-db-user-distribution-description",
+        "reports-user-header",
+        "reports-present",
+        "reports-no-users",
+        "reports-no-users-description",
+        // Cross-database feature toggle keys
+        "reports-cross-db-feature-toggle-title",
+        "reports-cross-db-feature-toggle-description",
+        "reports-read-only",
+        "reports-no-new-users",
+        "reports-no-new-domains",
+        "reports-no-password-updates",
+        // Cross-database migration keys
+        "reports-cross-db-migration-title",
+        "reports-cross-db-migration-description",
+        "reports-status-header",
+        "reports-last-migration-header",
+        "reports-migration-count-header",
+        "reports-required-aliases-header",
+        "reports-missing-aliases-header",
+        "reports-missing-required-aliases-header",
+        "reports-missing-common-aliases-header",
+        "reports-add-missing-required-alias-button",
+        "reports-add-common-alias-button",
+        "reports-add-catch-all-button",
+        "reports-mail-header",
+        "reports-enabled-header",
+        "reports-disabled",
     ];
 
     for key in reports_keys {

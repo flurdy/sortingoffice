@@ -765,6 +765,8 @@ reports-database-header = Database
 reports-primary-domain = Domain
 reports-backup-domain = Backup
 reports-not-present = Not Present
+reports-no-domains = No domains found
+reports-no-domains-description = No domains are configured in the system
 # Cross-Database User Distribution Report
 reports-cross-db-user-distribution-title = Cross-Database User Distribution
 reports-cross-db-user-distribution-description = Shows how users are distributed across databases, highlighting duplicates and single-database users

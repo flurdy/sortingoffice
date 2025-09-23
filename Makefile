@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch run
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch run prod-run
 
 # Default target
 help:
@@ -27,6 +27,7 @@ help:
 	@echo "  make dev        - Start development environment"
 	@echo "  make dev-down   - Stop development environment"
 	@echo "  make run        - Run application with cargo"
+	@echo "  make prod-run   - Run application with production config"
 	@echo "  make run-watch  - Run application with cargo watch"
 	@echo ""
 	@echo "Shell Access:"
@@ -236,6 +237,9 @@ run-watch:
 
 run:
 	cargo run
+
+prod-run:
+	CONFIG_PATH=config/config.prod.toml cargo run
 
 # Utility commands
 fmt:
