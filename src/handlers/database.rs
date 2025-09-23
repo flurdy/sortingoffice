@@ -12,11 +12,19 @@ pub struct DatabaseSelectionForm {
 
 /// Show the database selection page
 pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap) -> Html<String> {
-    let databases = state.db_manager.get_configs();
+    let databases = state.db_manager.get_enabled_configs();
 
     // Get the currently selected database from the session, or fall back to default
     let current_db = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check if the currently selected database is disabled
+    let current_db = if state.config.is_database_disabled(&current_db) {
+        // If current database is disabled, fall back to default or first available
+        state.db_manager.get_default_db_id().to_string()
+    } else {
+        current_db
+    };
 
     let locale = crate::handlers::language::get_user_locale(&headers);
 
@@ -33,7 +41,7 @@ pub async fn index(State(state): State<AppState>, headers: axum::http::HeaderMap
     .await;
 
     let content_template = crate::templates::database::DatabaseSelectionTemplate {
-        databases,
+        databases: &databases,
         current_db: &current_db,
         title: &translations["database-selection-title"],
         description: &translations["database-selection-description"],
@@ -107,7 +115,7 @@ pub async fn select(
 pub async fn list_databases(
     State(state): State<AppState>,
 ) -> Result<axum::Json<Vec<crate::config::DatabaseConfig>>, StatusCode> {
-    let configs = state.db_manager.get_configs().to_vec();
+    let configs = state.db_manager.get_enabled_configs();
     Ok(axum::Json(configs))
 }
 
@@ -116,16 +124,25 @@ pub async fn dropdown(
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
 ) -> Html<String> {
-    let databases = state.db_manager.get_configs();
+    let databases = state.db_manager.get_enabled_configs();
     let current_db = crate::handlers::auth::get_selected_database(&headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    // Check if the currently selected database is disabled
+    let current_db = if state.config.is_database_disabled(&current_db) {
+        // If current database is disabled, fall back to default or first available
+        state.db_manager.get_default_db_id().to_string()
+    } else {
+        current_db
+    };
+
     // Try to get the current URL from Referer header, fallback to "/"
     let current_url = headers
         .get("Referer")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("/");
     let content_template = crate::templates::database::DatabaseDropdownTemplate {
-        databases,
+        databases: &databases,
         current_db: &current_db,
         current_url,
     };

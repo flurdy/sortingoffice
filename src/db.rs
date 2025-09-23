@@ -149,6 +149,15 @@ impl DatabaseManager {
         &self.configs
     }
 
+    /// Get only enabled database configurations (not disabled)
+    pub fn get_enabled_configs(&self) -> Vec<DatabaseConfig> {
+        self.configs
+            .iter()
+            .filter(|config| !config.features.disabled)
+            .cloned()
+            .collect()
+    }
+
     /// Get the default database ID
     pub fn get_default_db_id(&self) -> &str {
         &self.default_db
