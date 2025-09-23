@@ -270,11 +270,16 @@ pub async fn create(
                             let analytics_common_aliases =
                                 find_database_common_aliases(&state, &headers, 10, 3).await;
 
+                            // Get relays for this domain
+                            let domain_relays = db::get_relays_for_domain(&pool, &domain.domain)
+                                .unwrap_or_default();
+
                             crate::handlers::rendering::render_domain_show_page(
                                 domain,
                                 alias_report,
                                 existing_aliases,
                                 analytics_common_aliases,
+                                domain_relays,
                                 &state,
                                 &locale,
                                 &headers,
@@ -611,11 +616,16 @@ pub async fn toggle_enabled_domain_show(
             let analytics_common_aliases =
                 find_database_common_aliases(&state, &headers, 10, 3).await;
 
+            // Get relays for this domain
+            let domain_relays =
+                db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
+
             crate::handlers::rendering::render_domain_show_page(
                 domain,
                 alias_report,
                 existing_aliases,
                 analytics_common_aliases,
+                domain_relays,
                 &state,
                 &locale,
                 &headers,

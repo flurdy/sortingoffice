@@ -13,6 +13,8 @@
   - Currently it seems to still show the db.
   - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
 
+- Are clients listed? I have a db with clients  but none are shown in the app.
+
 ## Medium Priority Epics
 
 - Add a remove domain wizard. Postponed for now.
@@ -24,6 +26,12 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
+- Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain
+   - Initially just research and suggest how to
+   - Leave actual implementation to another TODO
+
+- ✅ List relays for a domain on the show domain page.
+
 ## Medium Priority Minor and bugs
 
 ## Low Priority Epics
@@ -33,6 +41,9 @@
 
 - Recent changes report
   - list most recent added and updated resources
+
+- If a db's feature is read only, add and edit buttons should be disabled. 
+  - or other relevant feature toggles as well
 
 ## Low Priority Minor and bugs
 
@@ -57,7 +68,7 @@
 
 - On the Orphaned alias and users report
   - The domain names should be clickable, if the domain exists, even if not enabled 
-  - The alias should be clickable and go to theat alias' page
+  - The alias should be clickable and go to that alias' page
   - The users should be clickable and go to that user's page
   - The created column seems wrong. Most of these have no created value at the moment. And not needed.
   - Can they be ordered by domain and then mail?
@@ -72,5 +83,18 @@
 
 - On the Cross database user distribution report
   - The users should be clickable and go to that user's page, if present on this db.
+  
+- On the Alias across domains report
+  - The alias should be clickable and go to that alias' page.
+
+- "Database connection error"
+  - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck
+
+- On the show user page, the not-available key for created and modified is not translated
+- On the show alias page, the not-available key for created and modified is not translated
+- On the show domain page, the not-available key for created and modified is not translated
+- On the show relay page, the not-available key for created and modified is not translated
 
 ## 🐛 Other Bugs and KNOWN ISSUES
+
+- Requests can be slow.

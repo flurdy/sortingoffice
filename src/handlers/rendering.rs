@@ -847,6 +847,7 @@ pub async fn render_domain_show_page(
     alias_report: Option<crate::models::DomainAliasReport>,
     existing_aliases: Vec<crate::models::Alias>,
     analytics_common_aliases: Vec<String>,
+    domain_relays: Vec<crate::models::Relay>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -940,6 +941,15 @@ pub async fn render_domain_show_page(
     let analytics_common_aliases_description =
         crate::i18n::get_translation(state, locale, "analytics-common-aliases-description").await;
 
+    // Relay-related translations
+    let relays_header = crate::i18n::get_translation(state, locale, "relays-header").await;
+    let relays_description =
+        crate::i18n::get_translation(state, locale, "relays-description").await;
+    let recipient_header = crate::i18n::get_translation(state, locale, "recipient-header").await;
+    let status_header_relay = crate::i18n::get_translation(state, locale, "status-header").await;
+    let no_relays_message = crate::i18n::get_translation(state, locale, "no-relays-message").await;
+    let add_relay_button = crate::i18n::get_translation(state, locale, "add-relay-button").await;
+
     let content_template = crate::templates::domains::DomainShowTemplate {
         title: &title,
         domain,
@@ -995,6 +1005,13 @@ pub async fn render_domain_show_page(
         domains_missing_aliases_header: &domains_missing_aliases_header,
         domains_catch_all_header: &domains_catch_all_header,
         not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
+        domain_relays: &domain_relays,
+        relays_header: &relays_header,
+        relays_description: &relays_description,
+        recipient_header: &recipient_header,
+        status_header_relay: &status_header_relay,
+        no_relays_message: &no_relays_message,
+        add_relay_button: &add_relay_button,
     };
 
     render_show_template(content_template, state, locale, headers).await

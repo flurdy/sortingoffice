@@ -1082,6 +1082,15 @@ pub fn get_relay_by_recipient(pool: &DbPool, recipient: &str) -> Result<Relay, E
         .first::<Relay>(&mut conn)
 }
 
+pub fn get_relays_for_domain(pool: &DbPool, domain: &str) -> Result<Vec<Relay>, Error> {
+    let mut conn = pool.get().unwrap();
+    relays::table
+        .filter(relays::recipient.like(format!("%@{}", domain)))
+        .select(Relay::as_select())
+        .order(relays::recipient.asc())
+        .load::<Relay>(&mut conn)
+}
+
 pub fn create_relay(pool: &DbPool, relay_data: RelayForm) -> Result<Relay, Error> {
     let mut conn = pool.get().unwrap();
     let now = Utc::now().naive_utc();

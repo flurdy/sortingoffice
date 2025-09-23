@@ -277,6 +277,9 @@ pub async fn render_domain_show_page(
     let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
     let existing_aliases = db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
 
+    // Get relays for this domain
+    let domain_relays = db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
+
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(state, headers, 10, 3).await;
 
@@ -294,6 +297,7 @@ pub async fn render_domain_show_page(
         alias_report,
         existing_aliases,
         filtered_analytics_aliases,
+        domain_relays,
         state,
         &locale,
         headers,
@@ -410,6 +414,9 @@ pub async fn show(
         crate::handlers::database_ops::get_domain_aliases_with_fallback(&pool, &domain.domain)
             .await;
 
+    // Get relays for this domain
+    let domain_relays = db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
+
     // Get filtered analytics aliases using helper function
     let filtered_analytics_aliases =
         get_filtered_analytics_aliases(&state, &headers, &existing_aliases).await;
@@ -420,6 +427,7 @@ pub async fn show(
         alias_report,
         existing_aliases,
         filtered_analytics_aliases,
+        domain_relays,
         &state,
         &locale,
         &headers,

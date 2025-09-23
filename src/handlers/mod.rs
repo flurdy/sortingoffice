@@ -69,7 +69,8 @@ pub use language::{get_user_locale, set_language};
 pub use not_found::not_found;
 pub use relays::{
     create_form as create_relay_form, create_relay, delete_relay, edit_form as edit_relay_form,
-    list_relays, show_relay, toggle_enabled as toggle_relay_enabled_original, update_relay,
+    list_relays, show_relay, toggle_enabled as toggle_relay_enabled_original,
+    toggle_enabled_domain_show as toggle_relay_enabled_domain_show, update_relay,
 };
 pub use relocated::{
     create_form as create_relocated_form, create_relocated, delete_relocated,
@@ -357,6 +358,10 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/relays/{id}/toggle-enabled",
             axum::routing::post(toggle_relay_enabled),
+        )
+        .route(
+            "/relays/{id}/toggle-domain-show",
+            axum::routing::post(toggle_relay_enabled_domain_show),
         )
         // Relocated edit operations
         .route("/relocated", axum::routing::post(create_relocated))

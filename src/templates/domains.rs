@@ -102,6 +102,14 @@ pub struct DomainShowTemplate<'a> {
     pub domains_actions_header: &'a str,
     pub domains_missing_aliases_header: &'a str,
     pub domains_catch_all_header: &'a str,
+    // Relay-related fields
+    pub domain_relays: &'a [crate::models::Relay],
+    pub relays_header: &'a str,
+    pub relays_description: &'a str,
+    pub recipient_header: &'a str,
+    pub status_header_relay: &'a str,
+    pub no_relays_message: &'a str,
+    pub add_relay_button: &'a str,
 }
 
 #[derive(Template)]

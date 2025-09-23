@@ -384,7 +384,7 @@ domains-missing-aliases-header = Missing Aliases
 domains-catch-all-header = Catch-All
 domains-add-missing-required-aliases-button = Add alias
 domains-add-catch-all-button = Add alias
-domains-add-alias-button = Add new alias
+domains-add-alias-button = Add Alias
 domains-no-catch-all-message = No catch-all alias configured for this domain
 domains-analytics-common-aliases-header = Analytics-Driven Common Aliases
 domains-analytics-common-aliases-description = Based on your database usage patterns
@@ -619,6 +619,12 @@ relays-back-to-list = Back to Relays
 relays-create-error = Failed to create relay
 relays-not-found = Relay not found
 relays-update-error = Failed to update relay
+# Domain show page relay section
+relays-header = Relays
+relays-description = Relay recipients configured for this domain
+recipient-header = Recipient
+no-relays-message = No relays configured for this domain
+add-relay-button = Add Relay
 status-ok = OK
 status-reject = REJECT
 # Relocated

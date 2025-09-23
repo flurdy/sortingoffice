@@ -337,3 +337,63 @@ pub async fn toggle_enabled(
         Err(error) => error,
     }
 }
+
+// Toggle relay enabled status for domain show page
+pub async fn toggle_enabled_domain_show(
+    State(state): State<AppState>,
+    Path(relay_id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(error_html) => return error_html,
+    };
+
+    match db::toggle_relay_enabled(&pool, relay_id) {
+        Ok(_) => {
+            let relay = match db::get_relay(&pool, relay_id) {
+                Ok(relay) => relay,
+                Err(_) => {
+                    return crate::handlers::errors::render_relay_not_found_page(&state, &headers)
+                        .await
+                }
+            };
+
+            // Extract domain from relay recipient and look it up
+            let domain_name = relay.recipient.split('@').next_back().unwrap_or("");
+            let domain = match db::get_domain_by_name(&pool, domain_name) {
+                Ok(domain) => domain,
+                Err(_) => {
+                    return crate::handlers::errors::render_domain_not_found_page(&state, &headers)
+                        .await
+                }
+            };
+
+            let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+
+            // Use resource-specific helper for domain show page with proper relay data
+            let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();
+            let existing_aliases =
+                db::get_aliases_for_domain(&pool, &domain.domain).unwrap_or_default();
+            let analytics_common_aliases =
+                crate::analytics::find_database_common_aliases(&state, &headers, 10, 3).await;
+
+            // Get relays for this domain
+            let domain_relays =
+                db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
+
+            crate::handlers::rendering::render_domain_show_page(
+                domain,
+                alias_report,
+                existing_aliases,
+                analytics_common_aliases,
+                domain_relays,
+                &state,
+                &locale,
+                &headers,
+            )
+            .await
+        }
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
+    }
+}
