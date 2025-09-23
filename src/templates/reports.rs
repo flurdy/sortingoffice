@@ -18,6 +18,7 @@ pub struct MatrixReportTemplate<'a> {
     pub legend_title: &'a str,
     pub no_domains: &'a str,
     pub no_domains_description: &'a str,
+    pub back_to_reports: &'a str,
     pub report: &'a crate::models::DomainAliasMatrixReport,
 }
 
@@ -65,6 +66,7 @@ pub struct ExternalForwarderReportTemplate<'a> {
 #[template(path = "reports/alias_cross_domain.html", escape = "html")]
 pub struct AliasCrossDomainReportTemplate<'a> {
     pub title: &'a str,
+    pub alias_placeholder: &'a str,
     pub report: &'a crate::models::AliasCrossDomainReport,
 }
 
@@ -81,6 +83,9 @@ pub struct CrossDatabaseMatrixReportTemplate<'a> {
     pub legend_title: &'a str,
     pub no_domains: &'a str,
     pub no_domains_description: &'a str,
+    pub matrix_enabled: &'a str,
+    pub matrix_disabled: &'a str,
+    pub back_to_reports: &'a str,
     pub report: &'a crate::models::CrossDatabaseDomainMatrixReport,
 }
 
@@ -100,6 +105,11 @@ pub struct CrossDatabaseUserDistributionReportTemplate<'a> {
     pub no_users: &'a str,
     pub no_users_description: &'a str,
     pub disabled: &'a str,
+    pub total_users: &'a str,
+    pub in_multiple_dbs: &'a str,
+    pub in_single_db: &'a str,
+    pub enabled: &'a str,
+    pub back_to_reports: &'a str,
     pub report: &'a crate::models::CrossDatabaseUserDistributionReport,
 }
 
@@ -116,6 +126,12 @@ pub struct CrossDatabaseFeatureToggleReportTemplate<'a> {
     pub no_password_updates: &'a str,
     pub enabled: &'a str,
     pub disabled: &'a str,
+    pub total_databases: &'a str,
+    pub fully_restricted: &'a str,
+    pub feature_toggle_legend: &'a str,
+    pub feature_enabled: &'a str,
+    pub feature_disabled: &'a str,
+    pub back_to_reports: &'a str,
     pub report: &'a crate::models::CrossDatabaseFeatureToggleReport,
 }
 
@@ -128,6 +144,17 @@ pub struct CrossDatabaseMigrationReportTemplate<'a> {
     pub status_header: &'a str,
     pub last_migration_header: &'a str,
     pub migration_count_header: &'a str,
+    pub total_databases: &'a str,
+    pub up_to_date: &'a str,
+    pub behind: &'a str,
+    pub errors: &'a str,
+    pub unknown: &'a str,
+    pub latest_migration: &'a str,
+    pub migration_status_legend: &'a str,
+    pub behind_on_migrations: &'a str,
+    pub migration_error: &'a str,
+    pub unknown_status: &'a str,
+    pub back_to_reports: &'a str,
     pub report: &'a crate::models::CrossDatabaseMigrationReport,
 }
 

@@ -35,8 +35,14 @@
 
 ## Medium Priority Minor and bugs
 
-- /reports are mostly not translated
-  - and most reports are also not translated
+- ✅ /reports are mostly not translated - COMPLETED
+  - ✅ Fixed hardcoded titles in Orphaned Aliases, External Forwarders, and Alias Cross-Domain reports
+  - ✅ Completely translated Cross-Database Feature Toggle report
+  - ✅ Completely translated Cross-Database Migration report
+  - ✅ Completely translated Cross-Database User Distribution report
+  - ✅ Completely translated Cross-Database Matrix report
+  - ✅ Completely translated Matrix report
+  - ✅ All 8 reports now have proper translation support with no hardcoded strings remaining
 
 ## Low Priority Epics
 

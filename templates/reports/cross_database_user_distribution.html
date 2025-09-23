@@ -7,7 +7,7 @@
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="/reports" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-                Back to Reports
+                {{ back_to_reports }}
             </a>
         </div>
     </div>
@@ -22,23 +22,23 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ report.summary.total_users }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Total Users</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ total_users }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ report.summary.users_in_multiple_dbs }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">In Multiple DBs</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ in_multiple_dbs }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ report.summary.users_in_single_db }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">In Single DB</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ in_single_db }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ report.summary.enabled_users }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Enabled</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ enabled }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ report.summary.disabled_users }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Disabled</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ disabled }}</div>
         </div>
     </div>
 

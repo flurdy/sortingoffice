@@ -36,6 +36,7 @@ pub async fn matrix_report(
             "reports-legend-title",
             "reports-no-domains",
             "reports-no-domains-description",
+            "reports-back-to-reports",
         ],
     )
     .await;
@@ -66,6 +67,7 @@ pub async fn matrix_report(
         legend_title: &form_translations["reports-legend-title"],
         no_domains: &form_translations["reports-no-domains"],
         no_domains_description: &form_translations["reports-no-domains-description"],
+        back_to_reports: &form_translations["reports-back-to-reports"],
         report: &report,
     };
 
@@ -125,6 +127,11 @@ pub async fn cross_database_domain_matrix_report(
     // Get all reports translations using consolidated helper function
     let translations =
         crate::handlers::translations::get_reports_translations(&state, &locale).await;
+    
+    // Get additional translations not in the consolidated helper
+    let matrix_enabled = get_translation(&state, &locale, "reports-matrix-enabled").await;
+    let matrix_disabled = get_translation(&state, &locale, "reports-matrix-disabled").await;
+    let back_to_reports = get_translation(&state, &locale, "reports-back-to-reports").await;
 
     // Get cross-database domain matrix report data
     let report = match db::get_cross_database_domain_matrix_report(&state.db_manager).await {
@@ -150,6 +157,9 @@ pub async fn cross_database_domain_matrix_report(
         legend_title: &translations["reports-legend-title"],
         no_domains: &translations["reports-no-domains"],
         no_domains_description: &translations["reports-no-domains-description"],
+        matrix_enabled: &matrix_enabled,
+        matrix_disabled: &matrix_disabled,
+        back_to_reports: &back_to_reports,
         report: &report,
     };
 
@@ -350,8 +360,11 @@ pub async fn orphaned_report(
         }
     };
 
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-orphaned-aliases-title").await;
+
     let content_template = OrphanedReportTemplate {
-        title: "Orphaned Aliases & Users",
+        title: &title,
         report: &report,
     };
 
@@ -377,7 +390,7 @@ pub async fn orphaned_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        "Orphaned Aliases & Users".to_string(),
+        title.clone(),
         content,
         &state,
         &locale,
@@ -420,8 +433,11 @@ pub async fn external_forwarders_report(
         }
     };
 
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-external-forwarders-title").await;
+
     let content_template = ExternalForwarderReportTemplate {
-        title: "External Forwarders",
+        title: &title,
         report: &report,
     };
 
@@ -450,7 +466,7 @@ pub async fn external_forwarders_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        "External Forwarders".to_string(),
+        title.clone(),
         content,
         &state,
         &locale,
@@ -495,8 +511,14 @@ pub async fn alias_cross_domain_report(
         }
     };
 
+    // Get translations
+    let title_template = get_translation(&state, &locale, "reports-alias-cross-domain-title").await;
+    let title = title_template.replace("{alias}", &alias);
+    let alias_placeholder = get_translation(&state, &locale, "reports-alias-placeholder").await;
+
     let content_template = AliasCrossDomainReportTemplate {
-        title: &format!("Alias '{alias}' Across Domains"),
+        title: &title,
+        alias_placeholder: &alias_placeholder,
         report: &report,
     };
 
@@ -525,7 +547,7 @@ pub async fn alias_cross_domain_report(
         .unwrap_or_else(|| current_db_id.clone());
 
     let template = match BaseTemplate::with_i18n(
-        format!("Alias '{alias}' Across Domains"),
+        title.clone(),
         content,
         &state,
         &locale,
@@ -574,6 +596,11 @@ pub async fn cross_database_user_distribution_report(
     let no_users_description =
         get_translation(&state, &locale, "reports-no-users-description").await;
     let disabled = get_translation(&state, &locale, "reports-disabled").await;
+    let total_users = get_translation(&state, &locale, "reports-total-users").await;
+    let in_multiple_dbs = get_translation(&state, &locale, "reports-in-multiple-dbs").await;
+    let in_single_db = get_translation(&state, &locale, "reports-in-single-db").await;
+    let enabled = get_translation(&state, &locale, "reports-enabled").await;
+    let back_to_reports = get_translation(&state, &locale, "reports-back-to-reports").await;
 
     // Get cross-database user distribution report data
     let report = match db::get_cross_database_user_distribution_report(&state.db_manager).await {
@@ -599,6 +626,11 @@ pub async fn cross_database_user_distribution_report(
         no_users: &no_users,
         no_users_description: &no_users_description,
         disabled: &disabled,
+        total_users: &total_users,
+        in_multiple_dbs: &in_multiple_dbs,
+        in_single_db: &in_single_db,
+        enabled: &enabled,
+        back_to_reports: &back_to_reports,
         report: &report,
     };
 
@@ -674,6 +706,12 @@ pub async fn cross_database_feature_toggle_report(
     let no_password_updates = get_translation(&state, &locale, "reports-no-password-updates").await;
     let enabled = get_translation(&state, &locale, "reports-enabled").await;
     let disabled = get_translation(&state, &locale, "reports-disabled").await;
+    let total_databases = get_translation(&state, &locale, "reports-total-databases").await;
+    let fully_restricted = get_translation(&state, &locale, "reports-fully-restricted").await;
+    let feature_toggle_legend = get_translation(&state, &locale, "reports-feature-toggle-legend").await;
+    let feature_enabled = get_translation(&state, &locale, "reports-feature-enabled").await;
+    let feature_disabled = get_translation(&state, &locale, "reports-feature-disabled").await;
+    let back_to_reports = get_translation(&state, &locale, "reports-back-to-reports").await;
 
     // Get cross-database feature toggle report data
     let report = match db::get_cross_database_feature_toggle_report(&state.db_manager).await {
@@ -699,6 +737,12 @@ pub async fn cross_database_feature_toggle_report(
         no_password_updates: &no_password_updates,
         enabled: &enabled,
         disabled: &disabled,
+        total_databases: &total_databases,
+        fully_restricted: &fully_restricted,
+        feature_toggle_legend: &feature_toggle_legend,
+        feature_enabled: &feature_enabled,
+        feature_disabled: &feature_disabled,
+        back_to_reports: &back_to_reports,
         report: &report,
     };
 
@@ -767,6 +811,17 @@ pub async fn cross_database_migration_report(
         get_translation(&state, &locale, "reports-last-migration-header").await;
     let migration_count_header =
         get_translation(&state, &locale, "reports-migration-count-header").await;
+    let total_databases = get_translation(&state, &locale, "reports-total-databases").await;
+    let up_to_date = get_translation(&state, &locale, "reports-up-to-date").await;
+    let behind = get_translation(&state, &locale, "reports-behind").await;
+    let errors = get_translation(&state, &locale, "reports-errors").await;
+    let unknown = get_translation(&state, &locale, "reports-unknown").await;
+    let latest_migration = get_translation(&state, &locale, "reports-latest-migration").await;
+    let migration_status_legend = get_translation(&state, &locale, "reports-migration-status-legend").await;
+    let behind_on_migrations = get_translation(&state, &locale, "reports-behind-on-migrations").await;
+    let migration_error = get_translation(&state, &locale, "reports-migration-error").await;
+    let unknown_status = get_translation(&state, &locale, "reports-unknown-status").await;
+    let back_to_reports = get_translation(&state, &locale, "reports-back-to-reports").await;
 
     // Get cross-database migration report data
     let report = match db::get_cross_database_migration_report(&state.db_manager).await {
@@ -785,6 +840,17 @@ pub async fn cross_database_migration_report(
         status_header: &status_header,
         last_migration_header: &last_migration_header,
         migration_count_header: &migration_count_header,
+        total_databases: &total_databases,
+        up_to_date: &up_to_date,
+        behind: &behind,
+        errors: &errors,
+        unknown: &unknown,
+        latest_migration: &latest_migration,
+        migration_status_legend: &migration_status_legend,
+        behind_on_migrations: &behind_on_migrations,
+        migration_error: &migration_error,
+        unknown_status: &unknown_status,
+        back_to_reports: &back_to_reports,
         report: &report,
     };
 

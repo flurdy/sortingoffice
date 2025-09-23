@@ -7,7 +7,7 @@
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="/reports" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-                Back to Reports
+                {{ back_to_reports }}
             </a>
         </div>
     </div>
@@ -16,23 +16,23 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ report.migration_summary.total_databases }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Total Databases</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ total_databases }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ report.migration_summary.up_to_date }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Up to Date</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ up_to_date }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ report.migration_summary.behind }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Behind</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ behind }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ report.migration_summary.errors }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Errors</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ errors }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-gray-600 dark:text-gray-400">{{ report.migration_summary.unknown }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Unknown</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ unknown }}</div>
         </div>
     </div>
 
@@ -45,7 +45,7 @@
                 </svg>
             </div>
             <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Latest Migration</h3>
+                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">{{ latest_migration }}</h3>
                 <div class="mt-1 text-sm text-blue-700 dark:text-blue-300">
                     {{ report.migration_summary.latest_migration }}
                 </div>
@@ -128,23 +128,23 @@
 
     <!-- Legend -->
     <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Migration Status Legend</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">{{ migration_status_legend }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="flex items-center">
                 <span class="text-lg text-green-600 dark:text-green-400 mr-2">✓</span>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Up to Date</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ up_to_date }}</span>
             </div>
             <div class="flex items-center">
                 <span class="text-lg text-yellow-600 dark:text-yellow-400 mr-2">⚠</span>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Behind on Migrations</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ behind_on_migrations }}</span>
             </div>
             <div class="flex items-center">
                 <span class="text-lg text-red-600 dark:text-red-400 mr-2">✗</span>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Migration Error</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ migration_error }}</span>
             </div>
             <div class="flex items-center">
                 <span class="text-lg text-gray-400 dark:text-gray-500 mr-2">?</span>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Unknown Status</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ unknown_status }}</span>
             </div>
         </div>
     </div>

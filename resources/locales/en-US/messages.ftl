@@ -748,6 +748,7 @@ stats-recent-clients = Recent Clients
 reports-list-title = Reports
 reports-list-description = View and analyze mail server data with comprehensive reports
 reports-view-report = View Report
+reports-back-to-reports = Back to Reports
 # Matrix Report
 reports-matrix-title = Domain Alias Matrix Report
 reports-matrix-description = Comprehensive overview of all domains and their alias status with visual indicators
@@ -762,7 +763,7 @@ reports-orphaned-aliases-description = Find aliases that reference non-existent 
 reports-external-forwarders-title = External Forwarders Report
 reports-external-forwarders-description = Find aliases that forward to external domains
 # Alias Cross-Domain Search Report
-reports-alias-cross-domain-title = Alias Cross-Domain Search
+reports-alias-cross-domain-title = Alias '{alias}' Across Domains
 reports-alias-cross-domain-description = Search for aliases across all domains
 # Cross-Database Domain Matrix Report
 reports-cross-db-matrix-title = Cross-Database Domain Matrix
@@ -801,6 +802,37 @@ reports-domain-statistics-title = Domain Statistics Report
 reports-domain-statistics-description = Detailed statistics for all domains including user counts, alias counts, and quota usage
 reports-domain-statistics-empty-title = No Domain Statistics Available
 reports-domain-statistics-empty-description = No domain statistics are available at this time
+# Cross-Database Feature Toggle Report - Summary Labels
+reports-total-databases = Total Databases
+reports-read-only = Read Only
+reports-no-new-users = No New Users
+reports-no-new-domains = No New Domains
+reports-no-password-updates = No Password Updates
+reports-fully-restricted = Fully Restricted
+reports-feature-toggle-legend = Feature Toggle Legend
+reports-feature-enabled = Feature Enabled (Restricted)
+reports-feature-disabled = Feature Disabled (Normal)
+# Cross-Database Migration Report - Summary Labels
+reports-up-to-date = Up to Date
+reports-behind = Behind
+reports-errors = Errors
+reports-unknown = Unknown
+reports-latest-migration = Latest Migration
+reports-migration-status-legend = Migration Status Legend
+reports-behind-on-migrations = Behind on Migrations
+reports-migration-error = Migration Error
+reports-unknown-status = Unknown Status
+# Cross-Database User Distribution Report - Summary Labels
+reports-total-users = Total Users
+reports-in-multiple-dbs = In Multiple DBs
+reports-in-single-db = In Single DB
+reports-enabled = Enabled
+reports-disabled = Disabled
+# Cross-Database Matrix Report - Legend
+reports-matrix-enabled = Enabled
+reports-matrix-disabled = Disabled
+# Alias Cross-Domain Report
+reports-alias-placeholder = Enter alias name (e.g., admin, postmaster)
 # Domain Alias Report
 domains-alias-report-title = Alias Report
 domains-alias-report-description = Overview of all aliases for this domain, including catch-all, required, and common aliases

@@ -7,7 +7,7 @@
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
             <a href="/reports" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
-                Back to Reports
+                {{ back_to_reports }}
             </a>
         </div>
     </div>
@@ -16,27 +16,27 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ report.compliance_summary.total_databases }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Total Databases</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ total_databases }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ report.compliance_summary.databases_with_read_only }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Read Only</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ read_only }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ report.compliance_summary.databases_with_no_new_users }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">No New Users</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ no_new_users }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ report.compliance_summary.databases_with_no_new_domains }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">No New Domains</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ no_new_domains }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ report.compliance_summary.databases_with_no_password_updates }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">No Password Updates</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ no_password_updates }}</div>
         </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="text-2xl font-bold text-gray-600 dark:text-gray-400">{{ report.compliance_summary.fully_restricted_databases }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Fully Restricted</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">{{ fully_restricted }}</div>
         </div>
     </div>
 
@@ -124,15 +124,15 @@
 
     <!-- Legend -->
     <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Feature Toggle Legend</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">{{ feature_toggle_legend }}</h3>
         <div class="flex flex-wrap gap-4">
             <div class="flex items-center">
                 <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Feature Enabled (Restricted)</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ feature_enabled }}</span>
             </div>
             <div class="flex items-center">
                 <div class="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Feature Disabled (Normal)</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ feature_disabled }}</span>
             </div>
         </div>
     </div>
