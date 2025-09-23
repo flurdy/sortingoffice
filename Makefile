@@ -26,9 +26,9 @@ help:
 	@echo "Development:"
 	@echo "  make dev        - Start development environment"
 	@echo "  make dev-down   - Stop development environment"
-	@echo "  make run        - Run application with cargo"
-	@echo "  make prod-run   - Run application with production config"
-	@echo "  make run-watch  - Run application with cargo watch"
+	@echo "  make run [PORT=3001] - Run application with cargo (optionally on different port)"
+	@echo "  make prod-run [PROD_PORT=8080] [PORT=3001] - Run application with production config (PROD_PORT takes precedence over PORT)"
+	@echo "  make run-watch [PORT=3001] - Run application with cargo watch (optionally on different port)"
 	@echo ""
 	@echo "Shell Access:"
 	@echo "  make shell      - Open shell in application container"
@@ -233,13 +233,13 @@ test-all: test-unit test-integration test-security test-api test-ui
 	@echo "All tests completed!"
 
 run-watch:
-	cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
+	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
 
 run:
-	cargo run
+	PORT=$(PORT) cargo run
 
 prod-run:
-	CONFIG_PATH=config/config.prod.toml cargo run
+	CONFIG_PATH=config/config.prod.toml PORT=$${PROD_PORT:-$(PORT)} cargo run
 
 # Utility commands
 fmt:

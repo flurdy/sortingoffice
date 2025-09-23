@@ -9,13 +9,13 @@
 
 ## High Priority Minor and bugs
 
-- What does the `disabled` feature toggle for a database actually do? 
+- ✅ What does the `disabled` feature toggle for a database actually do? 
   - Currently it seems to still show the db.
   - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
 
 ## Medium Priority Epics
 
-- Add a remove domain wizard. Confirm before starting this todo. 
+- Add a remove domain wizard. Postponed for now.
   - Delete or disable?
   - Delete all users
   - Delete relays and relocated
