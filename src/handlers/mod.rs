@@ -80,8 +80,8 @@ pub use relocated::{
 pub use reports::{
     alias_cross_domain_report, cross_database_domain_matrix_report,
     cross_database_feature_toggle_report, cross_database_migration_report,
-    cross_database_user_distribution_report, external_forwarders_report, matrix_report,
-    orphaned_report, reports_list,
+    cross_database_user_distribution_report, domain_statistics_report, external_forwarders_report,
+    matrix_report, orphaned_report, reports_list,
 };
 pub use stats::index as stats_index;
 pub use theme::toggle_theme;
@@ -194,6 +194,10 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/reports/cross-database-migration",
             axum::routing::get(cross_database_migration_report),
+        )
+        .route(
+            "/reports/domain-statistics",
+            axum::routing::get(domain_statistics_report),
         )
         // Configuration
         .route("/config", axum::routing::get(view_config))

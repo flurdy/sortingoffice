@@ -2,8 +2,9 @@ use crate::templates::layout::BaseTemplate;
 use crate::templates::reports::{
     AliasCrossDomainReportTemplate, CrossDatabaseFeatureToggleReportTemplate,
     CrossDatabaseMatrixReportTemplate, CrossDatabaseMigrationReportTemplate,
-    CrossDatabaseUserDistributionReportTemplate, ExternalForwarderReportTemplate,
-    MatrixReportTemplate, OrphanedReportTemplate, ReportsListTemplate,
+    CrossDatabaseUserDistributionReportTemplate, DomainStatisticsReportTemplate,
+    ExternalForwarderReportTemplate, MatrixReportTemplate, OrphanedReportTemplate,
+    ReportsListTemplate,
 };
 use crate::{db, i18n::get_translation, AppState};
 use askama::Template;
@@ -250,6 +251,10 @@ pub async fn reports_list(
         get_translation(&state, &locale, "reports-cross-db-migration-title").await;
     let cross_database_migration_report_description =
         get_translation(&state, &locale, "reports-cross-db-migration-description").await;
+    let domain_statistics_report_title =
+        get_translation(&state, &locale, "reports-domain-statistics-title").await;
+    let domain_statistics_report_description =
+        get_translation(&state, &locale, "reports-domain-statistics-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -275,6 +280,8 @@ pub async fn reports_list(
             &cross_database_feature_toggle_report_description,
         cross_database_migration_report_title: &cross_database_migration_report_title,
         cross_database_migration_report_description: &cross_database_migration_report_description,
+        domain_statistics_report_title: &domain_statistics_report_title,
+        domain_statistics_report_description: &domain_statistics_report_description,
         view_report: &view_report,
     };
 
@@ -805,6 +812,105 @@ pub async fn cross_database_migration_report(
 
     let template = match BaseTemplate::with_i18n(
         title,
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+pub async fn domain_statistics_report(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
+
+    // Get domain statistics data
+    let domain_stats = match db::get_domain_stats(&pool) {
+        Ok(stats) => stats,
+        Err(e) => {
+            tracing::error!("Error generating domain statistics report: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-domain-statistics-title").await;
+    let description =
+        get_translation(&state, &locale, "reports-domain-statistics-description").await;
+    let domain_statistics = get_translation(&state, &locale, "stats-domain-statistics").await;
+    let table_header_domain = get_translation(&state, &locale, "stats-table-header-domain").await;
+    let table_header_users = get_translation(&state, &locale, "stats-table-header-users").await;
+    let table_header_aliases = get_translation(&state, &locale, "stats-table-header-aliases").await;
+    let table_header_total_quota =
+        get_translation(&state, &locale, "stats-table-header-total-quota").await;
+    let table_header_used_quota =
+        get_translation(&state, &locale, "stats-table-header-used-quota").await;
+    let empty_title =
+        get_translation(&state, &locale, "reports-domain-statistics-empty-title").await;
+    let empty_description = get_translation(
+        &state,
+        &locale,
+        "reports-domain-statistics-empty-description",
+    )
+    .await;
+
+    let content_template = DomainStatisticsReportTemplate {
+        title: &title,
+        description: &description,
+        domain_statistics: &domain_statistics,
+        table_header_domain: &table_header_domain,
+        table_header_users: &table_header_users,
+        table_header_aliases: &table_header_aliases,
+        table_header_total_quota: &table_header_total_quota,
+        table_header_used_quota: &table_header_used_quota,
+        empty_title: &empty_title,
+        empty_description: &empty_description,
+        domain_stats: &domain_stats,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!("Error rendering domain statistics report template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title.clone(),
         content,
         &state,
         &locale,

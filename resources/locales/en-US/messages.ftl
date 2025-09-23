@@ -796,6 +796,11 @@ reports-cross-db-migration-description = Tracks migration status across all data
 reports-status-header = Status
 reports-last-migration-header = Last Migration
 reports-migration-count-header = Migration Count
+# Domain Statistics Report
+reports-domain-statistics-title = Domain Statistics Report
+reports-domain-statistics-description = Detailed statistics for all domains including user counts, alias counts, and quota usage
+reports-domain-statistics-empty-title = No Domain Statistics Available
+reports-domain-statistics-empty-description = No domain statistics are available at this time
 # Domain Alias Report
 domains-alias-report-title = Alias Report
 domains-alias-report-description = Overview of all aliases for this domain, including catch-all, required, and common aliases

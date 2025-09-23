@@ -1,5 +1,7 @@
-use crate::models::DomainPresenceType::{Backup, Primary};
-use crate::models::MigrationStatus;
+use crate::models::{
+    DomainPresenceType::{Backup, Primary},
+    DomainStats, MigrationStatus,
+};
 use askama::Template;
 
 #[derive(Template)]
@@ -40,6 +42,8 @@ pub struct ReportsListTemplate<'a> {
     pub cross_database_feature_toggle_report_description: &'a str,
     pub cross_database_migration_report_title: &'a str,
     pub cross_database_migration_report_description: &'a str,
+    pub domain_statistics_report_title: &'a str,
+    pub domain_statistics_report_description: &'a str,
     pub view_report: &'a str,
 }
 
@@ -125,4 +129,20 @@ pub struct CrossDatabaseMigrationReportTemplate<'a> {
     pub last_migration_header: &'a str,
     pub migration_count_header: &'a str,
     pub report: &'a crate::models::CrossDatabaseMigrationReport,
+}
+
+#[derive(Template)]
+#[template(path = "reports/domain_statistics.html", escape = "html")]
+pub struct DomainStatisticsReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub domain_statistics: &'a str,
+    pub table_header_domain: &'a str,
+    pub table_header_users: &'a str,
+    pub table_header_aliases: &'a str,
+    pub table_header_total_quota: &'a str,
+    pub table_header_used_quota: &'a str,
+    pub empty_title: &'a str,
+    pub empty_description: &'a str,
+    pub domain_stats: &'a [DomainStats],
 }

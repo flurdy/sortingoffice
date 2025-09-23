@@ -13,7 +13,8 @@
   - Currently it seems to still show the db.
   - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
 
-- Are clients listed? I have a db with clients  but none are shown in the app.
+- ✅ Are clients listed? I have a db with clients  but none are shown in the app.
+  - RESOLVED: Clients are actually being displayed correctly. Found 8 clients in the database including IP addresses and domain names with proper status and enabled/disabled states.
 
 ## Medium Priority Epics
 
@@ -34,6 +35,9 @@
 
 ## Medium Priority Minor and bugs
 
+- /reports are mostly not translated
+  - and most reports are also not translated
+
 ## Low Priority Epics
 
 - Full search page. Postponed for now.
@@ -47,7 +51,12 @@
 
 ## Low Priority Minor and bugs
 
-- Can the alias `make prod-run` run on a different port than the default
+- ✅  Can the alias `make prod-run` run on a different port than the default
+  - RESOLVED: The functionality already exists and works perfectly. You can use:
+    - `make prod-run` (default port 3000)
+    - `PORT=8080 make prod-run` (uses PORT environment variable)
+    - `PROD_PORT=9090 make prod-run` (PROD_PORT takes precedence over PORT)
+    - The Makefile uses `${PROD_PORT:-$(PORT)}` syntax for proper precedence
 
 - Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
@@ -55,7 +64,8 @@
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
 
-- On the statistics the Domain Statistics table belongs as a separate report instead.
+- ✅ On the statistics the Domain Statistics table belongs as a separate report instead.
+  - COMPLETED: Successfully moved the Domain Statistics table to a separate report at /reports/domain-statistics. The table now appears as a dedicated report card in the reports list and has been removed from the main statistics page.
 
 - On the Domain alias matrix report
   - Can the row styles be striped

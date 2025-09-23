@@ -13,8 +13,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     // Use the new macro for SystemStats retrieval
     let system_stats = get_system_stats_or_default!(db::get_system_stats(&pool));
 
-    let domain_stats = db::get_domain_stats(&pool).unwrap_or_default();
-
     // Use the batch translation fetcher for all statistics translations
     let translations = crate::handlers::translations::get_translations_batch(
         &state,
@@ -31,12 +29,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
             "stats-total-relays",
             "stats-total-relocated",
             "stats-total-clients",
-            "stats-domain-statistics",
-            "stats-table-header-domain",
-            "stats-table-header-users",
-            "stats-table-header-aliases",
-            "stats-table-header-total-quota",
-            "stats-table-header-used-quota",
             "stats-quota-usage-title",
             "stats-quota-usage-overview",
             "stats-quota-usage-description",
@@ -67,12 +59,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         total_relays: &translations["stats-total-relays"],
         total_relocated: &translations["stats-total-relocated"],
         total_clients: &translations["stats-total-clients"],
-        domain_statistics: &translations["stats-domain-statistics"],
-        table_header_domain: &translations["stats-table-header-domain"],
-        table_header_users: &translations["stats-table-header-users"],
-        table_header_aliases: &translations["stats-table-header-aliases"],
-        table_header_total_quota: &translations["stats-table-header-total-quota"],
-        table_header_used_quota: &translations["stats-table-header-used-quota"],
         quota_usage_title: &translations["stats-quota-usage-title"],
         quota_usage_overview: &translations["stats-quota-usage-overview"],
         quota_usage_description: &translations["stats-quota-usage-description"],
@@ -88,7 +74,6 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         recent_relocated: &translations["stats-recent-relocated"],
         recent_clients: &translations["stats-recent-clients"],
         system_stats,
-        domain_stats,
     };
 
     // Use the new render template macro
