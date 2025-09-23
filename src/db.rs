@@ -561,6 +561,7 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
                 change_password.eq(user_data.change_password),
+                modified.eq(Utc::now().naive_utc()), 
             ))
             .execute(&mut conn)?;
     } else {
@@ -569,6 +570,7 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
                 change_password.eq(user_data.change_password),
+                modified.eq(Utc::now().naive_utc()), 
             ))
             .execute(&mut conn)?;
     }
@@ -600,7 +602,10 @@ pub fn update_user_password(
 
     // Update the password
     diesel::update(users.filter(id.eq(user_id)))
-        .set(crypt.eq(hashed_password))
+        .set((
+            crypt.eq(hashed_password),
+            modified.eq(Utc::now().naive_utc()),
+        ))
         .execute(&mut conn)?;
 
     Ok(())
@@ -696,7 +701,10 @@ pub fn toggle_user_enabled(pool: &DbPool, user_id: String) -> Result<User, Error
 
     // Toggle the enabled status
     diesel::update(users.filter(id.eq(user_id.clone())))
-        .set(enabled.eq(!current_user.enabled))
+        .set((
+            enabled.eq(!current_user.enabled),
+            modified.eq(Utc::now().naive_utc()),
+        ))
         .execute(&mut conn)?;
 
     // Return the updated user

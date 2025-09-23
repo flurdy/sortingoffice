@@ -234,62 +234,23 @@ Edit `.env` to set:
 
 The application expects certain fields in your database tables. If your existing database doesn't have these fields, you'll need to add them:
 
-> **Note for MySQL 5.5 and earlier**: If you're using MySQL 5.5 or earlier, the `CURRENT_TIMESTAMP` default values won't work. Use `DATETIME` with explicit defaults instead:
-> ```sql
-> ALTER TABLE backups 
-> ADD COLUMN created DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
-> ADD COLUMN modified DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01';
-> ```
-> Apply the same pattern to all other tables below.
-
-#### Users Table
+#### Created and Modified Columns
 ```sql
 ALTER TABLE users 
 ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ```
 
-#### Domains Table
-```sql
-ALTER TABLE domains 
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
+Apply the same to the other relevant tables: `domains`, `backups`, `aliases`, `relays`, `clients` and `relocated` if present.
 
-#### Backups Table
-```sql
-ALTER TABLE backups 
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
+> **Note for MySQL 5.5 and earlier**: If you're using MySQL 5.5 or earlier, the `CURRENT_TIMESTAMP` default values won't work. Use `DATETIME` with NULL defaults instead:
+> ```sql
+> ALTER TABLE backups 
+> ADD COLUMN created DATETIME NULL,
+> ADD COLUMN modified DATETIME NULL;
+> ```
+> Apply the same pattern to all other tables as above. The application will automatically set these timestamps when creating and updating records.
 
-#### Aliases Table
-```sql
-ALTER TABLE aliases 
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
-
-#### Relays Table
-```sql
-ALTER TABLE relays
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
-
-#### Clients Table
-```sql
-ALTER TABLE clients
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
-
-#### Relocated Table
-```sql
-ALTER TABLE relocated
-ADD COLUMN created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-```
 
 ### Run Migrations (Development Only)
 
