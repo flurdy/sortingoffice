@@ -561,7 +561,7 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
                 change_password.eq(user_data.change_password),
-                modified.eq(Utc::now().naive_utc()), 
+                modified.eq(Utc::now().naive_utc()),
             ))
             .execute(&mut conn)?;
     } else {
@@ -570,7 +570,7 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
                 name.eq(user_data.name),
                 enabled.eq(user_data.enabled),
                 change_password.eq(user_data.change_password),
-                modified.eq(Utc::now().naive_utc()), 
+                modified.eq(Utc::now().naive_utc()),
             ))
             .execute(&mut conn)?;
     }
@@ -732,12 +732,24 @@ pub fn toggle_alias_enabled(pool: &DbPool, alias_id: i32) -> Result<Alias, Error
 pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     use chrono::Duration;
     use chrono::Utc;
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {e:?}")),
+        )
+    })?;
     let now = Utc::now().naive_utc();
     let week_ago = now - Duration::days(7);
 
+    tracing::info!(
+        "Getting system stats - now: {}, week_ago: {}",
+        now,
+        week_ago
+    );
+
     // Domains
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
+    tracing::info!("Total domains: {}", total_domains);
     let enabled_domains: i64 = domains::table
         .filter(domains::enabled.eq(true))
         .count()
@@ -747,9 +759,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         .count()
         .get_result(&mut conn)?;
     let recent_domains: i64 = domains::table
-        .filter(domains::created.ge(week_ago))
+        .filter(domains::created.is_not_null())
+        .filter(domains::created.gt(Some(week_ago)))
         .count()
-        .get_result(&mut conn)?;
+        .get_result(&mut conn)
+        .unwrap_or(0);
 
     // Users
     let total_users: i64 = users::table.count().get_result(&mut conn)?;
@@ -762,9 +776,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         .count()
         .get_result(&mut conn)?;
     let recent_users: i64 = users::table
-        .filter(users::created.ge(week_ago))
+        .filter(users::created.is_not_null())
+        .filter(users::created.gt(Some(week_ago)))
         .count()
-        .get_result(&mut conn)?;
+        .get_result(&mut conn)
+        .unwrap_or(0);
 
     // Aliases
     let total_aliases: i64 = aliases::table.count().get_result(&mut conn)?;
@@ -777,9 +793,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         .count()
         .get_result(&mut conn)?;
     let recent_aliases: i64 = aliases::table
-        .filter(aliases::created.ge(week_ago))
+        .filter(aliases::created.is_not_null())
+        .filter(aliases::created.gt(Some(week_ago)))
         .count()
-        .get_result(&mut conn)?;
+        .get_result(&mut conn)
+        .unwrap_or(0);
 
     // Backups
     let total_backups: i64 = backups::table.count().get_result(&mut conn)?;
@@ -792,9 +810,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
         .count()
         .get_result(&mut conn)?;
     let recent_backups: i64 = backups::table
-        .filter(backups::created.ge(week_ago))
+        .filter(backups::created.is_not_null())
+        .filter(backups::created.gt(Some(week_ago)))
         .count()
-        .get_result(&mut conn)?;
+        .get_result(&mut conn)
+        .unwrap_or(0);
 
     // Relays (optional table)
     let (total_relays, enabled_relays, disabled_relays, recent_relays) =
@@ -809,9 +829,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
                 .count()
                 .get_result(&mut conn)?;
             let recent: i64 = relays::table
-                .filter(relays::created.ge(week_ago))
+                .filter(relays::created.is_not_null())
+                .filter(relays::created.gt(Some(week_ago)))
                 .count()
-                .get_result(&mut conn)?;
+                .get_result(&mut conn)
+                .unwrap_or(0);
             (total, enabled, disabled, recent)
         } else {
             (0, 0, 0, 0) // Table doesn't exist
@@ -830,9 +852,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
                 .count()
                 .get_result(&mut conn)?;
             let recent: i64 = relocated::table
-                .filter(relocated::created.ge(week_ago))
+                .filter(relocated::created.is_not_null())
+                .filter(relocated::created.gt(Some(week_ago)))
                 .count()
-                .get_result(&mut conn)?;
+                .get_result(&mut conn)
+                .unwrap_or(0);
             (total, enabled, disabled, recent)
         } else {
             (0, 0, 0, 0) // Table doesn't exist
@@ -851,9 +875,11 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
                 .count()
                 .get_result(&mut conn)?;
             let recent: i64 = clients::table
-                .filter(clients::created_at.ge(week_ago))
+                .filter(clients::created_at.is_not_null())
+                .filter(clients::created_at.gt(Some(week_ago)))
                 .count()
-                .get_result(&mut conn)?;
+                .get_result(&mut conn)
+                .unwrap_or(0);
             (total, enabled, disabled, recent)
         } else {
             (0, 0, 0, 0) // Table doesn't exist
@@ -2031,7 +2057,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             aliases::enabled,
             aliases::created,
         ))
-        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(mail, _, _, _)| {
             // Extract the domain from the alias mail address
@@ -2057,7 +2083,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 destination,
                 domain,
                 enabled,
-                created,
+                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2065,7 +2091,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Find users where the domain doesn't exist or is disabled in the domains table
     let orphaned_users: Vec<OrphanedUser> = users::table
         .select((users::id, users::name, users::enabled, users::created))
-        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
             // Extract the domain from the user ID
@@ -2091,7 +2117,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 name,
                 domain,
                 enabled,
-                created,
+                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2099,7 +2125,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Find users who don't have a corresponding alias
     let users_without_aliases: Vec<UserWithoutAlias> = users::table
         .select((users::id, users::name, users::enabled, users::created))
-        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
             // Check if there's an alias for this user
@@ -2118,7 +2144,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 name,
                 domain,
                 enabled,
-                created,
+                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2142,7 +2168,7 @@ pub fn get_external_forwarders_report(pool: &DbPool) -> Result<ExternalForwarder
             aliases::enabled,
             aliases::created,
         ))
-        .load::<(String, String, bool, NaiveDateTime)>(&mut conn)?
+        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(_, destination, _, _)| {
             // Extract the domain from the destination
@@ -2167,7 +2193,7 @@ pub fn get_external_forwarders_report(pool: &DbPool) -> Result<ExternalForwarder
                 destination,
                 domain,
                 enabled,
-                created,
+                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();

@@ -430,6 +430,7 @@ pub async fn render_alias_show_page(
         disable_alias_button: &disable_alias_button,
         delete_alias: &delete_alias,
         delete_confirm: &delete_confirm,
+        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
         alias,
     };
 
@@ -485,6 +486,7 @@ pub async fn render_alias_form_page(
         cancel: &cancel,
         update_alias: &update_alias,
         create_alias: &create_alias,
+        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -601,6 +603,7 @@ pub async fn render_relay_show_page(
         relay_show_title: &relay_show_title,
         relay_info_title: &relay_info_title,
         relay_info_description: &relay_info_description,
+        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -718,6 +721,7 @@ pub async fn render_backup_show_page(
         disable_backup,
         delete_backup,
         delete_confirm,
+        not_available: crate::i18n::get_translation(state, locale, "not-available").await,
         backup,
     };
 
@@ -990,6 +994,7 @@ pub async fn render_domain_show_page(
         domains_actions_header: &domains_actions_header,
         domains_missing_aliases_header: &domains_missing_aliases_header,
         domains_catch_all_header: &domains_catch_all_header,
+        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1194,6 +1199,7 @@ pub async fn render_user_show_page(
         password_management_title,
         change_password_button,
         require_password_change_button,
+        not_available: crate::i18n::get_translation(state, locale, "not-available").await,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1603,6 +1609,7 @@ pub async fn render_relocated_show_page(
         relocated_show_title: &relocated_show_title,
         relocated_info_title: &relocated_info_title,
         relocated_info_description: &relocated_info_description,
+        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
         relocated,
     };
 

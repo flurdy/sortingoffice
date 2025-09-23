@@ -21,6 +21,7 @@ pub struct BackupShowTemplate {
     pub disable_backup: String,
     pub delete_backup: String,
     pub delete_confirm: String,
+    pub not_available: String,
     pub backup: Backup,
 }
 

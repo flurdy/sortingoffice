@@ -163,8 +163,8 @@ async fn test_duplicate_domain_session_form_restoration() -> Result<(), Box<dyn 
             pkid: 1,
             domain: "example.com".to_string(),
             transport: Some("virtual".to_string()),
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
         }),
         source_is_backup: false,
@@ -203,16 +203,16 @@ async fn test_duplicate_domain_session_with_aliases_and_relays(
             mail: "admin@example.com".to_string(),
             destination: "admin@test.com".to_string(),
             enabled: true,
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
         },
         sortingoffice::models::Alias {
             pkid: 2,
             mail: "postmaster@example.com".to_string(),
             destination: "admin@test.com".to_string(),
             enabled: true,
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
         },
     ];
 
@@ -221,8 +221,8 @@ async fn test_duplicate_domain_session_with_aliases_and_relays(
         recipient: "example.com".to_string(),
         status: "OK".to_string(),
         enabled: true,
-        created: chrono::Utc::now().naive_utc(),
-        modified: chrono::Utc::now().naive_utc(),
+        created: Some(chrono::Utc::now().naive_utc()),
+        modified: Some(chrono::Utc::now().naive_utc()),
     }];
 
     let session = DuplicateDomainSession {
@@ -278,16 +278,16 @@ async fn test_duplicate_domain_session_enabled_toggles() -> Result<(), Box<dyn s
             mail: "admin@example.com".to_string(),
             destination: "admin@test.com".to_string(),
             enabled: false, // Alias disabled
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
         }],
         relays_to_duplicate: vec![sortingoffice::models::Relay {
             pkid: 1,
             recipient: "example.com".to_string(),
             status: "OK".to_string(),
             enabled: true, // Relay enabled
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
         }],
         target_is_backup: None,
     };
@@ -314,8 +314,8 @@ async fn test_duplicate_domain_session_backup_domain_handling(
             pkid: 1,
             domain: "backup.example.com".to_string(),
             transport: Some("smtp:backup.example.com".to_string()),
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
         }),
         source_is_backup: true,

@@ -2,7 +2,7 @@
 
 ### High Priority
 
-- 
+- What does the `disabled` feature toggle for a database do? Currently it seems to still show the db.
 
 ### Medium Priority
 

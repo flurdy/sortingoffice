@@ -84,6 +84,7 @@ pub struct DomainShowTemplate<'a> {
     pub add_missing_required_alias_button: &'a str,
     pub add_common_alias_button: &'a str,
     pub add_catch_all_button: &'a str,
+    pub not_available: &'a str,
     pub add_alias_button: &'a str,
     pub no_catch_all_message: &'a str,
     pub existing_aliases: &'a [crate::models::Alias],

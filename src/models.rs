@@ -113,10 +113,10 @@ pub struct Domain {
     pub domain: String,
     #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Text>)]
     pub transport: Option<String>,
-    #[diesel(sql_type = diesel::sql_types::Timestamp)]
-    pub created: NaiveDateTime,
-    #[diesel(sql_type = diesel::sql_types::Timestamp)]
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
     #[diesel(sql_type = diesel::sql_types::Bool)]
     pub enabled: bool,
 }
@@ -150,8 +150,10 @@ pub struct User {
     pub home: String,
     pub uid: u16,
     pub gid: u16,
-    pub created: NaiveDateTime,
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
     pub change_password: bool,
 }
 
@@ -197,10 +199,10 @@ pub struct Alias {
     pub mail: String,
     #[diesel(sql_type = diesel::sql_types::Text)]
     pub destination: String,
-    #[diesel(sql_type = diesel::sql_types::Timestamp)]
-    pub created: NaiveDateTime,
-    #[diesel(sql_type = diesel::sql_types::Timestamp)]
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
     #[diesel(sql_type = diesel::sql_types::Bool)]
     pub enabled: bool,
 }
@@ -258,8 +260,10 @@ pub struct Backup {
     pub pkid: i32,
     pub domain: String,
     pub transport: Option<String>,
-    pub created: NaiveDateTime,
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
     pub enabled: bool,
 }
 
@@ -290,8 +294,10 @@ pub struct Relay {
     pub recipient: String,
     pub status: String,
     pub enabled: bool,
-    pub created: NaiveDateTime,
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -321,8 +327,10 @@ pub struct Relocated {
     pub old_address: String,
     pub new_address: String,
     pub enabled: bool,
-    pub created: NaiveDateTime,
-    pub modified: NaiveDateTime,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub modified: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]
@@ -1077,8 +1085,8 @@ mod tests {
             pkid: 1,
             domain: "example.com".to_string(),
             transport: Some("smtp:localhost".to_string()),
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
         };
 
@@ -1116,8 +1124,8 @@ mod tests {
             home: "/var/spool/mail/virtual".to_string(),
             uid: 5000,
             gid: 5000,
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
             change_password: false,
         };
@@ -1137,8 +1145,8 @@ mod tests {
             pkid: 1,
             mail: "test@example.com".to_string(),
             destination: "user@example.com".to_string(),
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
         };
 
@@ -1299,8 +1307,8 @@ mod tests {
             pkid: 1,
             domain: "backup.example.com".to_string(),
             transport: Some("smtp:[]".to_string()),
-            created: chrono::Utc::now().naive_utc(),
-            modified: chrono::Utc::now().naive_utc(),
+            created: Some(chrono::Utc::now().naive_utc()),
+            modified: Some(chrono::Utc::now().naive_utc()),
             enabled: true,
         };
 

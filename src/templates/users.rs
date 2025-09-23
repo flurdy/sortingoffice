@@ -59,6 +59,7 @@ pub struct UserShowTemplate {
     pub password_management_title: String,
     pub change_password_button: String,
     pub require_password_change_button: String,
+    pub not_available: String,
 }
 
 #[derive(Template)]

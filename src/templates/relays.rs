@@ -49,6 +49,7 @@ pub struct RelayShowTemplate<'a> {
     pub relay_show_title: &'a str,
     pub relay_info_title: &'a str,
     pub relay_info_description: &'a str,
+    pub not_available: &'a str,
 }
 
 #[derive(Template)]

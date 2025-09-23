@@ -789,6 +789,7 @@ where
                 cancel: &cancel,
                 update_alias: &update_alias,
                 create_alias: &create_alias,
+                not_available: &form_translations["not-available"],
             };
 
             let error_html = crate::handlers::utils::render_form_template(

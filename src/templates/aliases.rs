@@ -56,6 +56,7 @@ pub struct AliasFormTemplate<'a> {
     pub cancel: &'a str,
     pub update_alias: &'a str,
     pub create_alias: &'a str,
+    pub not_available: &'a str,
 }
 
 #[derive(Template)]
@@ -81,6 +82,7 @@ pub struct AliasShowTemplate<'a> {
     pub disable_alias_button: &'a str,
     pub delete_alias: &'a str,
     pub delete_confirm: &'a str,
+    pub not_available: &'a str,
 }
 
 #[derive(Template)]

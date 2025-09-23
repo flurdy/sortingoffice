@@ -140,6 +140,7 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
             "users-require-password-change-button",
         )
         .await,
+        not_available: get_translation(state, locale, "not-available").await,
         user,
     }
 }

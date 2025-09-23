@@ -7,8 +7,8 @@ diesel::table! {
         mail -> Varchar,
         #[max_length = 255]
         destination -> Varchar,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
         enabled -> Bool,
     }
 }
@@ -20,8 +20,8 @@ diesel::table! {
         domain -> Varchar,
         #[max_length = 255]
         transport -> Nullable<Varchar>,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
         enabled -> Bool,
     }
 }
@@ -46,8 +46,8 @@ diesel::table! {
         domain -> Varchar,
         #[max_length = 255]
         transport -> Nullable<Varchar>,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
         enabled -> Bool,
     }
 }
@@ -60,8 +60,8 @@ diesel::table! {
         #[max_length = 10]
         status -> Varchar,
         enabled -> Bool,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
     }
 }
 
@@ -73,8 +73,8 @@ diesel::table! {
         #[max_length = 255]
         new_address -> Varchar,
         enabled -> Bool,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
     }
 }
 
@@ -92,8 +92,8 @@ diesel::table! {
         home -> Varchar,
         uid -> Unsigned<Smallint>,
         gid -> Unsigned<Smallint>,
-        created -> Datetime,
-        modified -> Datetime,
+        created -> Nullable<Datetime>,
+        modified -> Nullable<Datetime>,
         enabled -> Bool,
         change_password -> Bool,
     }
