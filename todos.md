@@ -67,7 +67,7 @@
 
 - ✅ The cache_management.rs handler seems to contain blocks of html. The other handlers do not do that. - COMPLETED
 
-- Is cache management linked from anywhere? Perhaps inside the Configuration page?
+- ✅ Is cache management linked from anywhere? Perhaps inside the Configuration page? - COMPLETED
 
 - Full search page. Postponed for now.
   - Search across all fields and tables.

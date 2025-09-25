@@ -1,136 +1,280 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Cache Management</h3>
-                    <p class="card-text">Monitor and manage application caches for optimal performance</p>
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Cache Management</h1>
+            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                Monitor and manage application caches for optimal performance
+            </p>
+        </div>
+    </div>
+
+    <!-- Cache Statistics -->
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Cache Statistics</h2>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Report Caches -->
+            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        Report Caches
+                    </h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                        Status of cached report data
+                    </p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4>Cache Statistics</h4>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>System Stats:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.system_stats_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.system_stats_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Catch-All Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.catch_all_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.catch_all_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Alias Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.alias_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.alias_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Domain Alias Matrix Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.domain_alias_matrix_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.domain_alias_matrix_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Orphaned Aliases Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.orphaned_aliases_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.orphaned_aliases_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>External Forwarders Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.external_forwarders_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.external_forwarders_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Missing Aliases Report:</strong></td>
-                                            <td><span class="badge bg-{% if cache_stats.missing_aliases_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.missing_aliases_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h4>Pagination Caches</h4>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>Domains:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.domains_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Aliases:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.aliases_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Users:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.users_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Clients:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.clients_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Relays:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.relays_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Relocated:</strong></td>
-                                            <td><span class="badge bg-info">{{ cache_stats.relocated_paginated_count }}</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Total Pagination Entries:</strong></td>
-                                            <td><span class="badge bg-primary">{{ cache_stats.total_pagination_entries }}</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                <div class="border-t border-gray-200 dark:border-gray-700">
+                    <div class="px-4 py-5 sm:px-6">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">System Stats</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.system_stats_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Catch-All Report</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.catch_all_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Alias Report</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.alias_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Domain Alias Matrix</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.domain_alias_matrix_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Orphaned Aliases</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.orphaned_aliases_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">External Forwarders</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.external_forwarders_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Missing Aliases</td>
+                                    <td class="px-2 py-3">
+                                        {% if cache_stats.missing_aliases_report_cached %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Cached
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                            Not Cached
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <hr>
-                    
-                    <h4>Cache Management Actions</h4>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <form method="post" action="/cache-management">
-                                <input type="hidden" name="action" value="clear">
-                                <input type="hidden" name="cache_type" value="all">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to clear all caches?')">
-                                    <i class="fas fa-trash"></i> Clear All Caches
-                                </button>
-                            </form>
-                        </div>
-                        <div class="col-md-3">
-                            <form method="post" action="/cache-management">
-                                <input type="hidden" name="action" value="clear">
-                                <input type="hidden" name="cache_type" value="reports">
-                                <button type="submit" class="btn btn-warning w-100">
-                                    <i class="fas fa-chart-bar"></i> Clear Reports Cache
-                                </button>
-                            </form>
-                        </div>
-                        <div class="col-md-3">
-                            <form method="post" action="/cache-management">
-                                <input type="hidden" name="action" value="clear">
-                                <input type="hidden" name="cache_type" value="pagination">
-                                <button type="submit" class="btn btn-warning w-100">
-                                    <i class="fas fa-list"></i> Clear Pagination Cache
-                                </button>
-                            </form>
-                        </div>
-                        <div class="col-md-3">
-                            <form method="post" action="/cache-management">
-                                <input type="hidden" name="action" value="clear">
-                                <input type="hidden" name="cache_type" value="system_stats">
-                                <button type="submit" class="btn btn-warning w-100">
-                                    <i class="fas fa-chart-line"></i> Clear System Stats Cache
-                                </button>
-                            </form>
-                        </div>
+                </div>
+            </div>
+
+            <!-- Pagination Caches -->
+            <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        Pagination Caches
+                    </h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                        Number of cached pagination entries
+                    </p>
+                </div>
+                <div class="border-t border-gray-200 dark:border-gray-700">
+                    <div class="px-4 py-5 sm:px-6">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Domains</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.domains_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Aliases</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.aliases_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Users</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.users_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Clients</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.clients_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Relays</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.relays_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-medium">Relocated</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ cache_stats.relocated_paginated_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr class="bg-gray-50 dark:bg-gray-700">
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-bold">Total Entries</td>
+                                    <td class="px-2 py-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                            {{ cache_stats.total_pagination_entries }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cache Management Actions -->
+    <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Cache Management Actions</h2>
+        <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-4 py-5 sm:px-6">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Clear specific cache types or all caches to refresh data
+                </p>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <form method="post" action="/cache-management" class="space-y-2">
+                        <input type="hidden" name="action" value="clear">
+                        <input type="hidden" name="cache_type" value="all">
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
+                                onclick="return confirm('Are you sure you want to clear all caches?')">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Clear All Caches
+                        </button>
+                    </form>
                     
-                    <div class="mt-3">
-                        <a href="/cache-management" class="btn btn-primary">
-                            <i class="fas fa-sync"></i> Refresh Statistics
-                        </a>
-                    </div>
+                    <form method="post" action="/cache-management" class="space-y-2">
+                        <input type="hidden" name="action" value="clear">
+                        <input type="hidden" name="cache_type" value="reports">
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-800">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Clear Reports Cache
+                        </button>
+                    </form>
+                    
+                    <form method="post" action="/cache-management" class="space-y-2">
+                        <input type="hidden" name="action" value="clear">
+                        <input type="hidden" name="cache_type" value="pagination">
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-800">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                            Clear Pagination Cache
+                        </button>
+                    </form>
+                    
+                    <form method="post" action="/cache-management" class="space-y-2">
+                        <input type="hidden" name="action" value="clear">
+                        <input type="hidden" name="cache_type" value="system_stats">
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 dark:focus:ring-offset-gray-800">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Clear System Stats Cache
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="mt-6">
+                    <a href="/cache-management" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Refresh Statistics
+                    </a>
                 </div>
             </div>
         </div>
