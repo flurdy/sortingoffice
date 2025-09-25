@@ -752,6 +752,7 @@ clients-form-tooltip-enabled = Whether this client is allowed or blocked
 clients-form-tooltip-status = Establecer el estado del cliente: OK para permitir que este cliente envíe correo, o REJECT para bloquear este cliente
 clients-form-update-client = Update Client
 clients-not-available = Clients table is not available for this database
+not-available = No disponible
 clients-status = Status
 clients-updated = Updated
 domains-error-creating-aliases = Error creating aliases

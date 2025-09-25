@@ -650,6 +650,7 @@ clients-action-disable = Disable
 clients-status-enabled = Enabled
 clients-status-disabled = Disabled
 clients-not-available = Clients table is not available for this database
+not-available = Niet beschikbaar
 clients-client-details = Client Details
 clients-client-information = Client Information
 clients-client-name = Client Name

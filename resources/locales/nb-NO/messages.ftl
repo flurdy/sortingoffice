@@ -772,6 +772,7 @@ clients-form-tooltip-enabled = Whether this client is allowed or blocked
 clients-form-tooltip-status = The status of this client
 clients-form-update-client = Update Client
 clients-not-available = Clients table is not available for this database
+not-available = Ikke tilgjengelig
 clients-status-disabled = Disabled
 clients-status-enabled = Enabled
 clients-table-header-client = Client

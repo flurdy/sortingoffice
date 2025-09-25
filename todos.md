@@ -115,10 +115,10 @@
 - ✅ "Database connection error"
   - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck
 
-- On the show user page, the not-available key for created and modified is not translated
-- On the show alias page, the not-available key for created and modified is not translated
-- On the show domain page, the not-available key for created and modified is not translated
-- On the show relay page, the not-available key for created and modified is not translated
+- ✅ On the show user page, the not-available key for created and modified is not translated
+- ✅ On the show alias page, the not-available key for created and modified is not translated
+- ✅ On the show domain page, the not-available key for created and modified is not translated
+- ✅ On the show relay page, the not-available key for created and modified is not translated
 
 ## 🐛 Other Bugs and KNOWN ISSUES
 

@@ -1161,6 +1161,7 @@ clients-form-tooltip-enabled = Whether this client is allowed or blocked
 clients-form-tooltip-status = Définir le statut du client : OK pour autoriser ce client à envoyer du courrier, ou REJECT pour bloquer ce client
 clients-form-update-client = Update Client
 clients-not-available = Clients table is not available for this database
+not-available = Non disponible
 clients-status = Status
 clients-updated = Updated
 domains-alias-report-description = Overview of all aliases for this domain, including catch-all, required, and common aliases

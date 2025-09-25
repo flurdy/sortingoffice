@@ -677,6 +677,7 @@ clients-action-disable = Deaktivieren
 clients-status-enabled = Aktiviert
 clients-status-disabled = Deaktiviert
 clients-not-available = Clients-Tabelle ist für diese Datenbank nicht verfügbar
+not-available = Nicht verfügbar
 clients-client-details = Client-Details
 clients-client-information = Client-Informationen
 clients-client-name = Client-Name
