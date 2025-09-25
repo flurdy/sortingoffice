@@ -104,8 +104,8 @@
   - ✅ Can they be ordered by domain and then mail?
   - ✅ Can the row styles be striped
 
-- On the Cross database user distribution report
-  - The users should be clickable and go to that user's page, if present on this db.
+- ✅ On the Cross database user distribution report
+  - ✅ The users should be clickable and go to that user's page, if present on this db.
   
 - On the Alias across domains report
   - The alias should be clickable and go to that alias' page.

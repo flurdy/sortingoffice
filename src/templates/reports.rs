@@ -111,6 +111,7 @@ pub struct CrossDatabaseUserDistributionReportTemplate<'a> {
     pub in_single_db: &'a str,
     pub enabled: &'a str,
     pub back_to_reports: &'a str,
+    pub current_db_id: &'a str,
     pub report: &'a crate::models::CrossDatabaseUserDistributionReport,
 }
 

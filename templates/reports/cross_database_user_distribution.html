@@ -63,7 +63,21 @@
                     <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %}">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 {% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} z-10">
                             <div>
+                                {% set user_present_in_current_db = false %}
+                                {% for presence in user.presence %}
+                                    {% if presence.database_id == current_db_id && presence.present %}
+                                        {% set user_present_in_current_db = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if user_present_in_current_db %}
+                                <div class="font-semibold">
+                                    <a href="/users/{{ user.user_id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                                        {{ user.user_id }}
+                                    </a>
+                                </div>
+                                {% else %}
                                 <div class="font-semibold">{{ user.user_id }}</div>
+                                {% endif %}
                                 <div class="text-gray-500 dark:text-gray-400">{{ user.user_name }}</div>
                             </div>
                         </td>

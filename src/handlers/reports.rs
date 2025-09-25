@@ -622,6 +622,10 @@ pub async fn cross_database_user_distribution_report(
         }
     };
 
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Create the cross-database user distribution report template
     let content_template = CrossDatabaseUserDistributionReportTemplate {
         title: &title,
@@ -639,6 +643,7 @@ pub async fn cross_database_user_distribution_report(
         in_single_db: &in_single_db,
         enabled: &enabled,
         back_to_reports: &back_to_reports,
+        current_db_id: &current_db_id,
         report: &report,
     };
 
