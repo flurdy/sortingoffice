@@ -1,5 +1,5 @@
 use crate::templates::stats::StatsTemplate;
-use crate::{db, get_system_stats_or_default, render_template, AppState};
+use crate::{render_template, AppState};
 use askama::Template;
 use axum::{extract::State, http::HeaderMap, response::Html};
 
@@ -10,8 +10,14 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
     };
     let locale = crate::handlers::http_helpers::get_user_locale(&headers);
 
-    // Use the new macro for SystemStats retrieval
-    let system_stats = get_system_stats_or_default!(db::get_system_stats(&pool));
+    // Use cached system stats for better performance
+    let system_stats = match state.db_manager.get_system_stats_cached(&pool).await {
+        Ok(stats) => stats,
+        Err(e) => {
+            tracing::error!("Failed to get system stats: {:?}", e);
+            crate::models::SystemStats::default()
+        }
+    };
 
     // Use the batch translation fetcher for all statistics translations
     let translations = crate::handlers::translations::get_translations_batch(

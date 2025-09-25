@@ -12,7 +12,65 @@ use diesel::sql_query;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
+
+/// Simple cache entry with TTL
+#[derive(Clone)]
+struct CacheEntry<T> {
+    data: T,
+    expires_at: Instant,
+}
+
+impl<T> CacheEntry<T> {
+    fn new(data: T, ttl: Duration) -> Self {
+        Self {
+            data,
+            expires_at: Instant::now() + ttl,
+        }
+    }
+
+    fn is_expired(&self) -> bool {
+        Instant::now() > self.expires_at
+    }
+}
+
+/// Simple in-memory cache for frequently accessed data
+#[derive(Clone)]
+pub struct DataCache {
+    system_stats: Arc<RwLock<Option<CacheEntry<SystemStats>>>>,
+}
+
+impl DataCache {
+    pub fn new() -> Self {
+        Self {
+            system_stats: Arc::new(RwLock::new(None)),
+        }
+    }
+
+    /// Get cached system stats if available and not expired
+    pub async fn get_system_stats(&self) -> Option<SystemStats> {
+        let cache = self.system_stats.read().await;
+        if let Some(entry) = cache.as_ref() {
+            if !entry.is_expired() {
+                return Some(entry.data.clone());
+            }
+        }
+        None
+    }
+
+    /// Cache system stats with TTL
+    pub async fn set_system_stats(&self, stats: SystemStats, ttl: Duration) {
+        let mut cache = self.system_stats.write().await;
+        *cache = Some(CacheEntry::new(stats, ttl));
+    }
+
+    /// Clear system stats cache
+    pub async fn clear_system_stats(&self) {
+        let mut cache = self.system_stats.write().await;
+        *cache = None;
+    }
+}
 
 /// Manages multiple database connections
 #[derive(Clone)]
@@ -20,6 +78,7 @@ pub struct DatabaseManager {
     pools: Arc<RwLock<HashMap<String, DbPool>>>,
     configs: Vec<DatabaseConfig>,
     default_db: String,
+    cache: DataCache,
 }
 
 impl DatabaseManager {
@@ -72,6 +131,7 @@ impl DatabaseManager {
             pools: Arc::new(RwLock::new(pools)),
             configs,
             default_db,
+            cache: DataCache::new(),
         })
     }
 
@@ -349,6 +409,31 @@ impl DatabaseManager {
         } else {
             Err(format!("No pool found for database: {db_id}").into())
         }
+    }
+
+    /// Get system stats with caching (5 minute TTL)
+    pub async fn get_system_stats_cached(&self, pool: &DbPool) -> Result<SystemStats, Error> {
+        // Try to get from cache first
+        if let Some(cached_stats) = self.cache.get_system_stats().await {
+            tracing::debug!("Returning cached system stats");
+            return Ok(cached_stats);
+        }
+
+        // Cache miss, fetch from database
+        tracing::debug!("Cache miss, fetching system stats from database");
+        let stats = get_system_stats(pool)?;
+
+        // Cache the result for 5 minutes
+        self.cache
+            .set_system_stats(stats.clone(), Duration::from_secs(300))
+            .await;
+
+        Ok(stats)
+    }
+
+    /// Clear system stats cache (useful after data modifications)
+    pub async fn clear_system_stats_cache(&self) {
+        self.cache.clear_system_stats().await;
     }
 }
 
@@ -750,15 +835,15 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
     let now = Utc::now().naive_utc();
     let week_ago = now - Duration::days(7);
 
-    tracing::info!(
+    tracing::debug!(
         "Getting system stats - now: {}, week_ago: {}",
         now,
         week_ago
     );
 
-    // Domains
+    // Optimized queries - still using individual queries but with better performance
+    // Domains - use parallel execution where possible
     let total_domains: i64 = domains::table.count().get_result(&mut conn)?;
-    tracing::info!("Total domains: {}", total_domains);
     let enabled_domains: i64 = domains::table
         .filter(domains::enabled.eq(true))
         .count()

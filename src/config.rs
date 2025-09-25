@@ -578,23 +578,23 @@ pub struct ConnectionPoolConfig {
 }
 
 fn default_max_size() -> u32 {
-    10
+    20 // Increased from 10 to 20 for better concurrency
 }
 
 fn default_min_idle() -> u32 {
-    1
+    5 // Increased from 1 to 5 to keep more connections ready
 }
 
 fn default_connection_timeout() -> u64 {
-    30
+    10 // Reduced from 30 to 10 seconds for faster failure detection
 }
 
 fn default_idle_timeout() -> u64 {
-    300
+    600 // Increased from 300 to 600 seconds (10 minutes) to keep connections longer
 }
 
 fn default_max_lifetime() -> u64 {
-    1800
+    3600 // Increased from 1800 to 3600 seconds (1 hour) for better connection reuse
 }
 
 fn default_test_on_acquire() -> bool {

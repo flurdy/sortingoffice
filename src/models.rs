@@ -63,7 +63,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SystemStats {
     pub total_domains: i64,
     pub enabled_domains: i64,
