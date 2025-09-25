@@ -123,3 +123,7 @@
 ## 🐛 Other Bugs and KNOWN ISSUES
 
 - Requests can be slow.
+
+- ✅ There are some test code warnings of unused functions. 
+  - ✅ This should be checked against ui, integration, smoke tests and against ignored smoke tests if they are actually used.
+  - ✅ Then either deleted or marked as dead code if used.

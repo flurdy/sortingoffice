@@ -22,6 +22,7 @@ use tokio::time::{timeout, Duration};
 use crate::common::testcontainer_helpers::setup_selenium_on_shared_network;
 
 /// Test environment structure
+#[allow(dead_code)]
 pub struct TestEnv {
     pub app_container: ContainerAsync<GenericImage>,
     pub selenium_container: ContainerAsync<GenericImage>,
@@ -31,6 +32,7 @@ pub struct TestEnv {
 
 impl TestEnv {
     /// Explicit cleanup method to be called at end of tests
+    #[allow(dead_code)]
     pub async fn cleanup(self) -> anyhow::Result<()> {
         println!("[CLEANUP] Cleaning up test containers (non-db)...");
         drop(self.app_container);
@@ -1545,6 +1547,7 @@ pub async fn ensure_page_ready(
 }
 
 /// Login and navigate to dashboard
+#[allow(dead_code)]
 pub async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Result<()> {
     // Go to login page (or homepage, which should redirect to login if not authenticated)
     let login_url = format!("{}/login", app_url.trim_end_matches('/'));
@@ -1557,6 +1560,7 @@ pub async fn login_and_goto_dashboard(driver: &WebDriver, app_url: &str) -> Resu
 }
 
 /// Run test with timeout
+#[allow(dead_code)]
 pub async fn run_test_with_timeout<F, T>(
     test_name: &str,
     test_fn: F,
@@ -1579,6 +1583,7 @@ where
 }
 
 /// Safe find and click with retries
+#[allow(dead_code)]
 pub async fn safe_find_and_click(
     driver: &WebDriver,
     selector: &str,
@@ -1616,6 +1621,7 @@ pub async fn safe_find_and_click(
 }
 
 /// Safe find and send keys with retries
+#[allow(dead_code)]
 pub async fn safe_find_and_send_keys(
     driver: &WebDriver,
     selector: &str,
@@ -1661,6 +1667,7 @@ pub async fn safe_find_and_send_keys(
 }
 
 /// Test 404 page functionality
+#[allow(dead_code)]
 pub async fn test_404_page(
     driver: &WebDriver,
     app_url: &str,
@@ -1681,6 +1688,7 @@ pub async fn test_404_page(
 }
 
 /// Switch to a different database using the UI dropdown
+#[allow(dead_code)]
 pub async fn switch_database_ui(driver: &WebDriver, database_id: &str) -> Result<()> {
     // Find and click the database dropdown button
     let dropdown_btn = timeout60s!(
@@ -1734,6 +1742,7 @@ pub async fn switch_database_ui(driver: &WebDriver, database_id: &str) -> Result
 }
 
 /// Setup UI test environment with containers
+#[allow(dead_code)]
 pub async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
     use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
     let schema = unique_test_id();
@@ -1779,6 +1788,7 @@ pub async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
 }
 
 /// Setup UI test environment with multi-database configuration
+#[allow(dead_code)]
 pub async fn setup_ui_test_env_multidb() -> anyhow::Result<TestEnv> {
     use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
     let schema1 = unique_test_id();
