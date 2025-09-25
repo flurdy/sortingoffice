@@ -1,6 +1,7 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
+pub mod cache_management;
 pub mod clients;
 pub mod config;
 pub mod contact;
@@ -40,6 +41,7 @@ pub use aliases::{
     toggle_enabled_domain_show, toggle_enabled_list, toggle_enabled_show, update,
 };
 pub use auth::{login, login_form, logout, require_auth, require_edit_permissions};
+pub use cache_management::{cache_management, cache_management_post};
 pub use clients::{
     create_client, create_client_form, delete_client, edit_client_form, list_clients, show_client,
     toggle_client, update_client,
@@ -199,6 +201,9 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
             "/reports/domain-statistics",
             axum::routing::get(domain_statistics_report),
         )
+        // Cache management
+        .route("/cache-management", axum::routing::get(cache_management))
+        .route("/cache-management", axum::routing::post(cache_management_post))
         // Configuration
         .route("/config", axum::routing::get(view_config))
         // Database selection

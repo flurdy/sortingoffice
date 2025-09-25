@@ -923,6 +923,16 @@ database-selection-description = Select the database you want to manage. Each da
 database-switch-button = Switch Database
 # Error Messages
 error-duplicate-domain = A domain with this name already exists
+# Cache Management
+cache-management-title = Cache Management
+cache-management-description = Monitor and manage application caches for optimal performance
+cache-stats-title = Cache Statistics
+clear-all-caches = Clear All Caches
+clear-reports-cache = Clear Reports Cache
+clear-pagination-cache = Clear Pagination Cache
+clear-system-stats-cache = Clear System Stats Cache
+refresh-stats = Refresh Statistics
+
 # Miscellaneous
 a = a
 en-US = English

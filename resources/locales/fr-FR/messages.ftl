@@ -1331,3 +1331,13 @@ reports-disabled = Désactivé
 reports-matrix-enabled = Activé
 reports-matrix-disabled = Désactivé
 reports-alias-placeholder = Entrez le nom d'alias (ex. admin, postmaster)
+
+# Cache Management
+cache-management-title = Gestion du Cache
+cache-management-description = Surveiller et gérer les caches d'application pour des performances optimales
+cache-stats-title = Statistiques du Cache
+clear-all-caches = Vider Tous les Caches
+clear-reports-cache = Vider le Cache des Rapports
+clear-pagination-cache = Vider le Cache de Pagination
+clear-system-stats-cache = Vider le Cache des Statistiques Système
+refresh-stats = Actualiser les Statistiques

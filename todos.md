@@ -26,7 +26,7 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
-- Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain
+- Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain. Postponed for now.
    - Initially just research and suggest how to
    - Leave actual implementation to another TODO
 
@@ -52,16 +52,22 @@
 
 - Fix failing integration tests
 
+- Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
+
 ## Low Priority Epics
 
-- Add caching for some DB queries.
+- ✅ Add caching for some DB queries - COMPLETED
   - ✅ System stats caching (5-minute TTL) - COMPLETED
-  - Add caching for report functions (12 report functions need caching)
-  - Add caching for pagination functions (domains, aliases, users, etc.)
-  - Implement automatic cache invalidation on write operations
-  - Add cache management utilities (clear all caches, cache stats)
+  - ✅ Add caching for report functions (12 report functions need caching) - COMPLETED
+  - ✅ Add caching for pagination functions (domains, aliases, users, etc.) - COMPLETED
+  - ✅ Implement automatic cache invalidation on write operations - COMPLETED
+  - ✅ Add cache management utilities (clear all caches, cache stats) - COMPLETED
 
 - Verify that these caches handle different DBs
+
+- ✅ The cache_management.rs handler seems to contain blocks of html. The other handlers do not do that. - COMPLETED
+
+- Is cache management linked from anywhere? Perhaps inside the Configuration page?
 
 - Full search page. Postponed for now.
   - Search across all fields and tables.
@@ -72,11 +78,16 @@
 - If a db's feature is read only, add and edit buttons should be disabled. 
   - or other relevant feature toggles as well
 
-- Refactor database helper functions for better maintainability. 
+- Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
   - Create generic functions to reduce code duplication
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
+
+- On show domain, add info of the domain in the other DBs. 
+  - E.g is domain or backup domain.  
+  - E.g count of aliases and users
+  - Enabled or disabled
 
 ## Low Priority Minor and bugs
 
@@ -84,47 +95,9 @@
 
 - Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
 
-- ✅ On the statistics the Domain Statistics table belongs as a separate report instead.
-  - COMPLETED: Successfully moved the Domain Statistics table to a separate report at /reports/domain-statistics. The table now appears as a dedicated report card in the reports list and has been removed from the main statistics page.
-
-- ✅ On the cross database domain matrix report
-  - ✅ The domain names should be clickable and go to that domain page if in the current db.
-    - This seems to not quite work on other dbs
-  - ✅ There is no back to reports button. 
-  - ✅ The domain table header key is not translated 
-  - ✅ Fixed striping issues -
-  
-
-- ✅ On the Orphaned alias and users report
-  - ✅ The domain names should be clickable, if the domain exists, even if not enabled 
-  - ✅ The alias should be clickable and go to that alias' page
-  - ✅ The users should be clickable and go to that user's page
-  - ✅ The created column seems wrong. Most of these have no created value at the moment. And not needed.
-  - ✅ Can they be ordered by domain and then mail?
-  - ✅ Can the row styles be striped
-
-- ✅ On the External Forwarders report
-  - ✅ The domain names should be clickable, if the domain exists, even if not enabled 
-  - ✅ The alias should be clickable and go to theat alias' page
-  - ✅ The created column seems wrong. Most of these have no created value at the moment. And not needed
-  - ✅ Can they be ordered by domain and then mail?
-  - ✅ Can the row styles be striped
-
-- ✅ On the Cross database user distribution report
-  - ✅ The users should be clickable and go to that user's page, if present on this db.
-  
-- ✅ On the Alias across domains report
-  - ✅ The alias should be clickable and go to that alias' page.
-
-- ✅ On the main report page is the Alias Across Domains title looks odd?
-
 - ✅ "Database connection error"
   - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck
 
-- ✅ On the show user page, the not-available key for created and modified is not translated
-- ✅ On the show alias page, the not-available key for created and modified is not translated
-- ✅ On the show domain page, the not-available key for created and modified is not translated
-- ✅ On the show relay page, the not-available key for created and modified is not translated
 
 ## 🐛 Other Bugs and KNOWN ISSUES
 

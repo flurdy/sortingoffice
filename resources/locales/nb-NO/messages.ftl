@@ -944,3 +944,13 @@ reports-disabled = Deaktivert
 reports-matrix-enabled = Aktivert
 reports-matrix-disabled = Deaktivert
 reports-alias-placeholder = Skriv inn aliasnavn (f.eks. admin, postmaster)
+
+# Cache Management
+cache-management-title = Cache-administrasjon
+cache-management-description = Overvåk og administrer applikasjons-cacher for optimal ytelse
+cache-stats-title = Cache-statistikk
+clear-all-caches = Tøm Alle Cacher
+clear-reports-cache = Tøm Rapporter-cache
+clear-pagination-cache = Tøm Paginering-cache
+clear-system-stats-cache = Tøm Systemstatistikk-cache
+refresh-stats = Oppdater Statistikk

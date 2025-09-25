@@ -64,6 +64,24 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct CacheStats {
+    pub system_stats_cached: bool,
+    pub catch_all_report_cached: bool,
+    pub alias_report_cached: bool,
+    pub domain_alias_matrix_report_cached: bool,
+    pub orphaned_aliases_report_cached: bool,
+    pub external_forwarders_report_cached: bool,
+    pub missing_aliases_report_cached: bool,
+    pub domains_paginated_count: usize,
+    pub aliases_paginated_count: usize,
+    pub users_paginated_count: usize,
+    pub clients_paginated_count: usize,
+    pub relays_paginated_count: usize,
+    pub relocated_paginated_count: usize,
+    pub total_pagination_entries: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SystemStats {
     pub total_domains: i64,
     pub enabled_domains: i64,

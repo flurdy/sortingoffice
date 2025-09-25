@@ -12,8 +12,29 @@ use diesel::sql_query;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
+
+/// Global cache invalidation callback
+type CacheInvalidationCallback = Box<dyn Fn(&str) + Send + Sync>;
+
+/// Global cache invalidation callback storage
+static CACHE_INVALIDATION_CALLBACK: Mutex<Option<CacheInvalidationCallback>> = Mutex::new(None);
+
+/// Set the global cache invalidation callback
+pub fn set_cache_invalidation_callback(callback: CacheInvalidationCallback) {
+    let mut cb = CACHE_INVALIDATION_CALLBACK.lock().unwrap();
+    *cb = Some(callback);
+}
+
+/// Call the global cache invalidation callback
+pub fn invalidate_cache_for_data_type(data_type: &str) {
+    let cb = CACHE_INVALIDATION_CALLBACK.lock().unwrap();
+    if let Some(ref callback) = *cb {
+        callback(data_type);
+    }
+}
 
 /// Simple cache entry with TTL
 #[derive(Clone)]
@@ -333,6 +354,45 @@ impl DataCache {
         let mut relocated_cache = self.relocated_paginated.write().await;
         relocated_cache.clear();
     }
+
+    /// Get cache statistics for monitoring
+    pub async fn get_stats(&self) -> CacheStats {
+        let system_stats_cached = self.system_stats.read().await.is_some();
+        let catch_all_report_cached = self.catch_all_report.read().await.is_some();
+        let alias_report_cached = self.alias_report.read().await.is_some();
+        let domain_alias_matrix_report_cached = self.domain_alias_matrix_report.read().await.is_some();
+        let orphaned_aliases_report_cached = self.orphaned_aliases_report.read().await.is_some();
+        let external_forwarders_report_cached = self.external_forwarders_report.read().await.is_some();
+        let missing_aliases_report_cached = self.missing_aliases_report.read().await.is_some();
+
+        let domains_paginated_count = self.domains_paginated.read().await.len();
+        let aliases_paginated_count = self.aliases_paginated.read().await.len();
+        let users_paginated_count = self.users_paginated.read().await.len();
+        let clients_paginated_count = self.clients_paginated.read().await.len();
+        let relays_paginated_count = self.relays_paginated.read().await.len();
+        let relocated_paginated_count = self.relocated_paginated.read().await.len();
+
+        let total_pagination_entries = domains_paginated_count + aliases_paginated_count + 
+            users_paginated_count + clients_paginated_count + 
+            relays_paginated_count + relocated_paginated_count;
+
+        CacheStats {
+            system_stats_cached,
+            catch_all_report_cached,
+            alias_report_cached,
+            domain_alias_matrix_report_cached,
+            orphaned_aliases_report_cached,
+            external_forwarders_report_cached,
+            missing_aliases_report_cached,
+            domains_paginated_count,
+            aliases_paginated_count,
+            users_paginated_count,
+            clients_paginated_count,
+            relays_paginated_count,
+            relocated_paginated_count,
+            total_pagination_entries,
+        }
+    }
 }
 
 /// Manages multiple database connections
@@ -390,12 +450,30 @@ impl DatabaseManager {
             }
         }
 
-        Ok(DatabaseManager {
+        let db_manager = DatabaseManager {
             pools: Arc::new(RwLock::new(pools)),
             configs,
             default_db,
             cache: DataCache::new(),
-        })
+        };
+
+        // Set up the global cache invalidation callback
+        let db_manager_clone = db_manager.clone();
+        set_cache_invalidation_callback(Box::new(move |data_type| {
+            let data_type = data_type.to_string(); // Clone to get owned String
+            let db_manager = db_manager_clone.clone(); // Clone for the async block
+            let rt = tokio::runtime::Handle::current();
+            rt.spawn(async move {
+                db_manager.clear_caches_for_data_type(&data_type).await;
+            });
+        }));
+
+        Ok(db_manager)
+    }
+
+    /// Get database configurations
+    pub fn get_configs(&self) -> &Vec<DatabaseConfig> {
+        &self.configs
     }
 
     /// Get a database pool by ID
@@ -468,9 +546,6 @@ impl DatabaseManager {
     }
 
     /// Get all available database configurations
-    pub fn get_configs(&self) -> &[DatabaseConfig] {
-        &self.configs
-    }
 
     /// Get only enabled database configurations (not disabled)
     pub fn get_enabled_configs(&self) -> Vec<DatabaseConfig> {
@@ -783,6 +858,90 @@ impl DatabaseManager {
         self.cache.clear_all_caches().await;
     }
 
+    /// Get cache statistics for monitoring
+    pub async fn get_cache_stats(&self) -> CacheStats {
+        self.cache.get_stats().await
+    }
+
+    /// Clear specific cache types
+    pub async fn clear_cache_by_type(&self, cache_type: &str) {
+        match cache_type {
+            "system_stats" => self.cache.clear_system_stats().await,
+            "reports" => {
+                self.cache.clear_catch_all_report().await;
+                self.cache.clear_alias_report().await;
+                self.cache.clear_domain_alias_matrix_report().await;
+                self.cache.clear_orphaned_aliases_report().await;
+                self.cache.clear_external_forwarders_report().await;
+                self.cache.clear_missing_aliases_report().await;
+            },
+            "pagination" => self.cache.clear_all_pagination_caches().await,
+            "all" => self.cache.clear_all_caches().await,
+            _ => {
+                tracing::warn!("Unknown cache type '{}' for cache clearing", cache_type);
+            }
+        }
+    }
+
+    /// Clear caches based on the type of data that was modified
+    pub async fn clear_caches_for_data_type(&self, data_type: &str) {
+        match data_type {
+            "domain" => {
+                // Domains affect system stats, reports, and domain pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_alias_report().await;
+                self.cache.clear_domain_alias_matrix_report().await;
+                self.cache.clear_orphaned_aliases_report().await;
+                self.cache.clear_external_forwarders_report().await;
+                self.cache.clear_missing_aliases_report().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as domains affect all reports
+            },
+            "user" => {
+                // Users affect system stats, reports, and user pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_orphaned_aliases_report().await;
+                self.cache.clear_external_forwarders_report().await;
+                self.cache.clear_missing_aliases_report().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as users affect all reports
+            },
+            "alias" => {
+                // Aliases affect system stats, reports, and alias pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_catch_all_report().await;
+                self.cache.clear_alias_report().await;
+                self.cache.clear_domain_alias_matrix_report().await;
+                self.cache.clear_orphaned_aliases_report().await;
+                self.cache.clear_external_forwarders_report().await;
+                self.cache.clear_missing_aliases_report().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as aliases affect all reports
+            },
+            "backup" => {
+                // Backups affect system stats
+                self.cache.clear_system_stats().await;
+            },
+            "relay" => {
+                // Relays affect system stats and relay pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as relays affect all reports
+            },
+            "relocated" => {
+                // Relocated affect system stats and relocated pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as relocated affect all reports
+            },
+            "client" => {
+                // Clients affect system stats and client pagination
+                self.cache.clear_system_stats().await;
+                self.cache.clear_all_pagination_caches().await; // Clear all pagination as clients affect all reports
+            },
+            _ => {
+                // Unknown data type, clear all caches to be safe
+                tracing::warn!("Unknown data type '{}' for cache invalidation, clearing all caches", data_type);
+                self.cache.clear_all_caches().await;
+            }
+        }
+    }
+
     // Cached pagination functions (5-minute TTL for pagination)
     pub async fn get_domains_paginated_cached(
         &self,
@@ -1005,10 +1164,15 @@ pub fn create_domain(pool: &DbPool, new_domain: NewDomain) -> Result<Domain, Err
         ))
         .execute(&mut conn)?;
 
-    domains::table
+    let domain = domains::table
         .order(domains::pkid.desc())
         .select(Domain::as_select())
-        .first::<Domain>(&mut conn)
+        .first::<Domain>(&mut conn)?;
+
+    // Invalidate caches after domain creation
+    invalidate_cache_for_data_type("domain");
+
+    Ok(domain)
 }
 
 pub fn update_domain(
@@ -1026,12 +1190,22 @@ pub fn update_domain(
         ))
         .execute(&mut conn)?;
 
-    get_domain(pool, domain_id)
+    let domain = get_domain(pool, domain_id)?;
+
+    // Invalidate caches after domain update
+    invalidate_cache_for_data_type("domain");
+
+    Ok(domain)
 }
 
 pub fn delete_domain(pool: &DbPool, domain_id: i32) -> Result<usize, Error> {
     let mut conn = pool.get().unwrap();
-    diesel::delete(domains::table.find(domain_id)).execute(&mut conn)
+    let result = diesel::delete(domains::table.find(domain_id)).execute(&mut conn)?;
+
+    // Invalidate caches after domain deletion
+    invalidate_cache_for_data_type("domain");
+
+    Ok(result)
 }
 
 pub fn get_users(pool: &DbPool) -> Result<Vec<User>, Error> {
@@ -1103,10 +1277,15 @@ pub fn create_user(pool: &DbPool, user_data: UserForm) -> Result<User, Error> {
         ))
         .execute(&mut conn)?;
 
-    users::table
+    let user = users::table
         .order(users::id.desc())
         .select(User::as_select())
-        .first::<User>(&mut conn)
+        .first::<User>(&mut conn)?;
+
+    // Invalidate caches after user creation
+    invalidate_cache_for_data_type("user");
+
+    Ok(user)
 }
 
 pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Result<User, Error> {
@@ -1145,7 +1324,12 @@ pub fn update_user(pool: &DbPool, user_id: String, user_data: UserForm) -> Resul
     } else {
         user_id
     };
-    get_user(pool, final_user_id)
+    let user = get_user(pool, final_user_id)?;
+
+    // Invalidate caches after user update
+    invalidate_cache_for_data_type("user");
+
+    Ok(user)
 }
 
 pub fn update_user_password(
@@ -1179,7 +1363,12 @@ pub fn delete_user(pool: &DbPool, user_id: String) -> Result<usize, Error> {
     use crate::schema::users::dsl::*;
     let mut conn = pool.get().unwrap();
 
-    diesel::delete(users.filter(id.eq(user_id))).execute(&mut conn)
+    let result = diesel::delete(users.filter(id.eq(user_id))).execute(&mut conn)?;
+
+    // Invalidate caches after user deletion
+    invalidate_cache_for_data_type("user");
+
+    Ok(result)
 }
 
 pub fn get_aliases(pool: &DbPool) -> Result<Vec<Alias>, Error> {
@@ -1213,10 +1402,15 @@ pub fn create_alias(pool: &DbPool, alias_data: AliasForm) -> Result<Alias, Error
         ))
         .execute(&mut conn)?;
 
-    aliases::table
+    let alias = aliases::table
         .order(aliases::pkid.desc())
         .select(Alias::as_select())
-        .first::<Alias>(&mut conn)
+        .first::<Alias>(&mut conn)?;
+
+    // Invalidate caches after alias creation
+    invalidate_cache_for_data_type("alias");
+
+    Ok(alias)
 }
 
 pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Result<Alias, Error> {
@@ -1235,7 +1429,12 @@ pub fn update_alias(pool: &DbPool, alias_id: i32, alias_data: AliasForm) -> Resu
 
 pub fn delete_alias(pool: &DbPool, alias_id: i32) -> Result<usize, Error> {
     let mut conn = pool.get().unwrap();
-    diesel::delete(aliases::table.find(alias_id)).execute(&mut conn)
+    let result = diesel::delete(aliases::table.find(alias_id)).execute(&mut conn)?;
+
+    // Invalidate caches after alias deletion
+    invalidate_cache_for_data_type("alias");
+
+    Ok(result)
 }
 
 // Toggle functions for enable/disable functionality
@@ -1253,7 +1452,12 @@ pub fn toggle_domain_enabled(pool: &DbPool, domain_id: i32) -> Result<Domain, Er
         ))
         .execute(&mut conn)?;
 
-    get_domain(pool, domain_id)
+    let domain = get_domain(pool, domain_id)?;
+
+    // Invalidate caches after domain toggle
+    invalidate_cache_for_data_type("domain");
+
+    Ok(domain)
 }
 
 pub fn toggle_user_enabled(pool: &DbPool, user_id: String) -> Result<User, Error> {
@@ -1272,7 +1476,12 @@ pub fn toggle_user_enabled(pool: &DbPool, user_id: String) -> Result<User, Error
         .execute(&mut conn)?;
 
     // Return the updated user
-    get_user(pool, user_id)
+    let user = get_user(pool, user_id)?;
+
+    // Invalidate caches after user toggle
+    invalidate_cache_for_data_type("user");
+
+    Ok(user)
 }
 
 pub fn toggle_alias_enabled(pool: &DbPool, alias_id: i32) -> Result<Alias, Error> {
@@ -1289,7 +1498,12 @@ pub fn toggle_alias_enabled(pool: &DbPool, alias_id: i32) -> Result<Alias, Error
         ))
         .execute(&mut conn)?;
 
-    get_alias(pool, alias_id)
+    let alias = get_alias(pool, alias_id)?;
+
+    // Invalidate caches after alias toggle
+    invalidate_cache_for_data_type("alias");
+
+    Ok(alias)
 }
 
 // Statistics functions
@@ -1566,10 +1780,15 @@ pub fn create_backup(pool: &DbPool, new_backup: NewBackup) -> Result<Backup, Err
         ))
         .execute(&mut conn)?;
 
-    backups::table
+    let backup = backups::table
         .order(backups::pkid.desc())
         .select(Backup::as_select())
-        .first::<Backup>(&mut conn)
+        .first::<Backup>(&mut conn)?;
+
+    // Invalidate caches after backup creation
+    invalidate_cache_for_data_type("backup");
+
+    Ok(backup)
 }
 
 pub fn update_backup(
@@ -1592,7 +1811,12 @@ pub fn update_backup(
 
 pub fn delete_backup(pool: &DbPool, backup_id: i32) -> Result<usize, Error> {
     let mut conn = pool.get().unwrap();
-    diesel::delete(backups::table.find(backup_id)).execute(&mut conn)
+    let result = diesel::delete(backups::table.find(backup_id)).execute(&mut conn)?;
+
+    // Invalidate caches after backup deletion
+    invalidate_cache_for_data_type("backup");
+
+    Ok(result)
 }
 
 pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Error> {
@@ -1609,7 +1833,12 @@ pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Er
         ))
         .execute(&mut conn)?;
 
-    get_backup(pool, backup_id)
+    let backup = get_backup(pool, backup_id)?;
+
+    // Invalidate caches after backup toggle
+    invalidate_cache_for_data_type("backup");
+
+    Ok(backup)
 }
 
 // Relay database functions

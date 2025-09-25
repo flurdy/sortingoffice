@@ -1,0 +1,138 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Cache Management</h3>
+                    <p class="card-text">Monitor and manage application caches for optimal performance</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Cache Statistics</h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>System Stats:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.system_stats_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.system_stats_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Catch-All Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.catch_all_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.catch_all_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Alias Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.alias_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.alias_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Domain Alias Matrix Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.domain_alias_matrix_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.domain_alias_matrix_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Orphaned Aliases Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.orphaned_aliases_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.orphaned_aliases_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>External Forwarders Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.external_forwarders_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.external_forwarders_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Missing Aliases Report:</strong></td>
+                                            <td><span class="badge bg-{% if cache_stats.missing_aliases_report_cached %}success{% else %}secondary{% endif %}">{% if cache_stats.missing_aliases_report_cached %}Cached{% else %}Not Cached{% endif %}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Pagination Caches</h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Domains:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.domains_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Aliases:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.aliases_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Users:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.users_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Clients:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.clients_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Relays:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.relays_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Relocated:</strong></td>
+                                            <td><span class="badge bg-info">{{ cache_stats.relocated_paginated_count }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Total Pagination Entries:</strong></td>
+                                            <td><span class="badge bg-primary">{{ cache_stats.total_pagination_entries }}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h4>Cache Management Actions</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <form method="post" action="/cache-management">
+                                <input type="hidden" name="action" value="clear">
+                                <input type="hidden" name="cache_type" value="all">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to clear all caches?')">
+                                    <i class="fas fa-trash"></i> Clear All Caches
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="post" action="/cache-management">
+                                <input type="hidden" name="action" value="clear">
+                                <input type="hidden" name="cache_type" value="reports">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-chart-bar"></i> Clear Reports Cache
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="post" action="/cache-management">
+                                <input type="hidden" name="action" value="clear">
+                                <input type="hidden" name="cache_type" value="pagination">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-list"></i> Clear Pagination Cache
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-3">
+                            <form method="post" action="/cache-management">
+                                <input type="hidden" name="action" value="clear">
+                                <input type="hidden" name="cache_type" value="system_stats">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-chart-line"></i> Clear System Stats Cache
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="/cache-management" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Refresh Statistics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

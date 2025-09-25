@@ -1,6 +1,7 @@
 pub mod about;
 pub mod aliases;
 pub mod auth;
+pub mod cache_management;
 pub mod clients;
 pub mod config;
 pub mod contact;

@@ -913,3 +913,13 @@ reports-disabled = Uitgeschakeld
 reports-matrix-enabled = Ingeschakeld
 reports-matrix-disabled = Uitgeschakeld
 reports-alias-placeholder = Voer aliasnaam in (bijv. admin, postmaster)
+
+# Cache Management
+cache-management-title = Cache-beheer
+cache-management-description = Monitor en beheer applicatie-caches voor optimale prestaties
+cache-stats-title = Cache-statistieken
+clear-all-caches = Alle Caches Wissen
+clear-reports-cache = Rapporten-cache Wissen
+clear-pagination-cache = Paginering-cache Wissen
+clear-system-stats-cache = Systeemstatistieken-cache Wissen
+refresh-stats = Statistieken Vernieuwen
