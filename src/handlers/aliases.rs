@@ -778,6 +778,8 @@ where
                 crate::i18n::get_translation(state, &locale, "aliases-update-alias").await;
             let create_alias =
                 crate::i18n::get_translation(state, &locale, "aliases-create-alias").await;
+            let not_available =
+                crate::i18n::get_translation(state, &locale, "not-available").await;
 
             let content_template = crate::templates::aliases::AliasFormTemplate {
                 title: &form_translations["aliases-add-title"],
@@ -799,7 +801,7 @@ where
                 cancel: &cancel,
                 update_alias: &update_alias,
                 create_alias: &create_alias,
-                not_available: &form_translations["not-available"],
+                not_available: &not_available,
             };
 
             let error_html = crate::handlers::utils::render_form_template(

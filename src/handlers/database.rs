@@ -79,6 +79,9 @@ pub async fn select(
     // Update the session with the new database selection
     let new_cookie = crate::handlers::auth::update_session_database(&headers, &form.database_id);
 
+    // Clear all caches when database changes to ensure fresh data
+    state.db_manager.clear_all_caches().await;
+
     // Check if this is an HTMX request
     let is_htmx = headers
         .get("HX-Request")

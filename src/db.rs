@@ -1025,8 +1025,9 @@ impl DatabaseManager {
         pool: &DbPool,
         page: i64,
         per_page: i64,
+        db_id: &str,
     ) -> Result<PaginatedResult<Domain>, Error> {
-        let cache_key = format!("domains_{}_{}", page, per_page);
+        let cache_key = format!("domains_{}_{}_{}", db_id, page, per_page);
 
         if let Some(cached_result) = self.cache.get_domains_paginated(&cache_key).await {
             tracing::debug!("Returning cached domains pagination for key: {}", cache_key);
@@ -1052,9 +1053,11 @@ impl DatabaseManager {
         per_page: i64,
         sort_by: Option<&str>,
         sort_order: Option<&str>,
+        db_id: &str,
     ) -> Result<PaginatedResult<Alias>, Error> {
         let cache_key = format!(
-            "aliases_{}_{}_{}_{}",
+            "aliases_{}_{}_{}_{}_{}",
+            db_id,
             page,
             per_page,
             sort_by.unwrap_or(""),
@@ -1083,8 +1086,9 @@ impl DatabaseManager {
         pool: &DbPool,
         page: i64,
         per_page: i64,
+        db_id: &str,
     ) -> Result<PaginatedResult<User>, Error> {
-        let cache_key = format!("users_{}_{}", page, per_page);
+        let cache_key = format!("users_{}_{}_{}", db_id, page, per_page);
 
         if let Some(cached_result) = self.cache.get_users_paginated(&cache_key).await {
             tracing::debug!("Returning cached users pagination for key: {}", cache_key);
@@ -1108,8 +1112,9 @@ impl DatabaseManager {
         pool: &DbPool,
         page: i64,
         per_page: i64,
+        db_id: &str,
     ) -> Result<PaginatedResult<Client>, Error> {
-        let cache_key = format!("clients_{}_{}", page, per_page);
+        let cache_key = format!("clients_{}_{}_{}", db_id, page, per_page);
 
         if let Some(cached_result) = self.cache.get_clients_paginated(&cache_key).await {
             tracing::debug!("Returning cached clients pagination for key: {}", cache_key);
@@ -1133,8 +1138,9 @@ impl DatabaseManager {
         pool: &DbPool,
         page: i64,
         per_page: i64,
+        db_id: &str,
     ) -> Result<PaginatedResult<Relay>, Error> {
-        let cache_key = format!("relays_{}_{}", page, per_page);
+        let cache_key = format!("relays_{}_{}_{}", db_id, page, per_page);
 
         if let Some(cached_result) = self.cache.get_relays_paginated(&cache_key).await {
             tracing::debug!("Returning cached relays pagination for key: {}", cache_key);
@@ -1158,8 +1164,9 @@ impl DatabaseManager {
         pool: &DbPool,
         page: i64,
         per_page: i64,
+        db_id: &str,
     ) -> Result<PaginatedResult<Relocated>, Error> {
-        let cache_key = format!("relocated_{}_{}", page, per_page);
+        let cache_key = format!("relocated_{}_{}_{}", db_id, page, per_page);
 
         if let Some(cached_result) = self.cache.get_relocated_paginated(&cache_key).await {
             tracing::debug!(

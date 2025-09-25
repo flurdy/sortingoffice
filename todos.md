@@ -50,7 +50,7 @@
   - Verify that the cross domain report lists them all, and correctly
   - Verify that the cross domain report links to the correct domain/backup domain if on the relevant db
 
-- Fix failing integration tests
+- ✅ Fix failing integration tests
 
 - ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
 
@@ -63,7 +63,8 @@
   - ✅ Implement automatic cache invalidation on write operations - COMPLETED
   - ✅ Add cache management utilities (clear all caches, cache stats) - COMPLETED
 
-- Verify that these caches handle different DBs
+- ✅ Verify that these caches handle different DBs
+  - e.g. the statistics page values don't seem to change if the db changes
 
 - ✅ The cache_management.rs handler seems to contain blocks of html. The other handlers do not do that. - COMPLETED
 
