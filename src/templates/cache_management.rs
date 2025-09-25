@@ -1,5 +1,5 @@
-use askama::Template;
 use crate::models::CacheStats;
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "cache_management/index.html")]

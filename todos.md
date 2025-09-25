@@ -52,7 +52,7 @@
 
 - Fix failing integration tests
 
-- Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
+- ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
 
 ## Low Priority Epics
 

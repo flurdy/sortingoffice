@@ -203,7 +203,10 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         )
         // Cache management
         .route("/cache-management", axum::routing::get(cache_management))
-        .route("/cache-management", axum::routing::post(cache_management_post))
+        .route(
+            "/cache-management",
+            axum::routing::post(cache_management_post),
+        )
         // Configuration
         .route("/config", axum::routing::get(view_config))
         // Database selection

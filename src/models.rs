@@ -263,6 +263,7 @@ pub struct AliasForm {
 // Statistics models
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DomainStats {
+    pub domain_id: i32,
     pub domain: String,
     pub user_count: i64,
     pub alias_count: i64,
@@ -1307,6 +1308,7 @@ mod tests {
     #[test]
     fn test_domain_stats_serialization() {
         let stats = DomainStats {
+            domain_id: 1,
             domain: "example.com".to_string(),
             user_count: 10,
             alias_count: 20,
@@ -1317,6 +1319,7 @@ mod tests {
         let json = serde_json::to_string(&stats).unwrap();
         let deserialized: DomainStats = serde_json::from_str(&json).unwrap();
 
+        assert_eq!(stats.domain_id, deserialized.domain_id);
         assert_eq!(stats.domain, deserialized.domain);
         assert_eq!(stats.user_count, deserialized.user_count);
         assert_eq!(stats.alias_count, deserialized.alias_count);

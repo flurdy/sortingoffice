@@ -46,7 +46,11 @@ pub async fn matrix_report(
         Ok(pool) => pool,
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
-    let report = match state.db_manager.get_domain_alias_matrix_report_cached(&pool).await {
+    let report = match state
+        .db_manager
+        .get_domain_alias_matrix_report_cached(&pool)
+        .await
+    {
         Ok(report) => report,
         Err(e) => {
             tracing::error!("Error generating matrix report: {:?}", e);
@@ -360,7 +364,11 @@ pub async fn orphaned_report(
         Ok(pool) => pool,
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
-    let report = match state.db_manager.get_orphaned_aliases_report_cached(&pool).await {
+    let report = match state
+        .db_manager
+        .get_orphaned_aliases_report_cached(&pool)
+        .await
+    {
         Ok(report) => report,
         Err(e) => {
             tracing::error!("Error generating orphaned report: {:?}", e);
@@ -433,7 +441,11 @@ pub async fn external_forwarders_report(
         Ok(pool) => pool,
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
-    let report = match state.db_manager.get_external_forwarders_report_cached(&pool).await {
+    let report = match state
+        .db_manager
+        .get_external_forwarders_report_cached(&pool)
+        .await
+    {
         Ok(report) => report,
         Err(e) => {
             tracing::error!("Error generating external forwarders report: {:?}", e);

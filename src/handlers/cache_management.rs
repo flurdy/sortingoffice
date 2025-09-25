@@ -1,6 +1,6 @@
-use crate::templates::layout::BaseTemplate;
 use crate::templates::cache_management::CacheManagementTemplate;
-use crate::{AppState, i18n::get_translation};
+use crate::templates::layout::BaseTemplate;
+use crate::{i18n::get_translation, AppState};
 use askama::Template;
 use axum::{
     extract::State,
@@ -36,7 +36,11 @@ pub async fn cache_management(
         .iter()
         .find(|db| db.id == current_db_id.as_deref().unwrap_or("primary"))
         .map(|db| db.label.clone())
-        .unwrap_or_else(|| current_db_id.clone().unwrap_or_else(|| "primary".to_string()));
+        .unwrap_or_else(|| {
+            current_db_id
+                .clone()
+                .unwrap_or_else(|| "primary".to_string())
+        });
 
     // Create the cache management template
     let cache_template = CacheManagementTemplate::new(cache_stats);

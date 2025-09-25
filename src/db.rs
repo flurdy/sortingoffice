@@ -129,7 +129,11 @@ impl DataCache {
         None
     }
 
-    async fn set_cached_report<T: Clone>(cache: &Arc<RwLock<Option<CacheEntry<T>>>>, data: T, ttl: Duration) {
+    async fn set_cached_report<T: Clone>(
+        cache: &Arc<RwLock<Option<CacheEntry<T>>>>,
+        data: T,
+        ttl: Duration,
+    ) {
         let mut cache_guard = cache.write().await;
         *cache_guard = Some(CacheEntry::new(data, ttl));
     }
@@ -170,7 +174,11 @@ impl DataCache {
         Self::get_cached_report(&self.domain_alias_matrix_report).await
     }
 
-    pub async fn set_domain_alias_matrix_report(&self, data: DomainAliasMatrixReport, ttl: Duration) {
+    pub async fn set_domain_alias_matrix_report(
+        &self,
+        data: DomainAliasMatrixReport,
+        ttl: Duration,
+    ) {
         Self::set_cached_report(&self.domain_alias_matrix_report, data, ttl).await;
     }
 
@@ -196,7 +204,11 @@ impl DataCache {
         Self::get_cached_report(&self.external_forwarders_report).await
     }
 
-    pub async fn set_external_forwarders_report(&self, data: ExternalForwarderReport, ttl: Duration) {
+    pub async fn set_external_forwarders_report(
+        &self,
+        data: ExternalForwarderReport,
+        ttl: Duration,
+    ) {
         Self::set_cached_report(&self.external_forwarders_report, data, ttl).await;
     }
 
@@ -266,7 +278,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.domains_paginated, key).await
     }
 
-    pub async fn set_domains_paginated(&self, key: String, data: PaginatedResult<Domain>, ttl: Duration) {
+    pub async fn set_domains_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<Domain>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.domains_paginated, key, data, ttl).await;
     }
 
@@ -279,7 +296,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.aliases_paginated, key).await
     }
 
-    pub async fn set_aliases_paginated(&self, key: String, data: PaginatedResult<Alias>, ttl: Duration) {
+    pub async fn set_aliases_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<Alias>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.aliases_paginated, key, data, ttl).await;
     }
 
@@ -292,7 +314,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.users_paginated, key).await
     }
 
-    pub async fn set_users_paginated(&self, key: String, data: PaginatedResult<User>, ttl: Duration) {
+    pub async fn set_users_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<User>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.users_paginated, key, data, ttl).await;
     }
 
@@ -305,7 +332,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.clients_paginated, key).await
     }
 
-    pub async fn set_clients_paginated(&self, key: String, data: PaginatedResult<Client>, ttl: Duration) {
+    pub async fn set_clients_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<Client>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.clients_paginated, key, data, ttl).await;
     }
 
@@ -318,7 +350,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.relays_paginated, key).await
     }
 
-    pub async fn set_relays_paginated(&self, key: String, data: PaginatedResult<Relay>, ttl: Duration) {
+    pub async fn set_relays_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<Relay>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.relays_paginated, key, data, ttl).await;
     }
 
@@ -331,7 +368,12 @@ impl DataCache {
         Self::get_cached_pagination(&self.relocated_paginated, key).await
     }
 
-    pub async fn set_relocated_paginated(&self, key: String, data: PaginatedResult<Relocated>, ttl: Duration) {
+    pub async fn set_relocated_paginated(
+        &self,
+        key: String,
+        data: PaginatedResult<Relocated>,
+        ttl: Duration,
+    ) {
         Self::set_cached_pagination(&self.relocated_paginated, key, data, ttl).await;
     }
 
@@ -360,9 +402,11 @@ impl DataCache {
         let system_stats_cached = self.system_stats.read().await.is_some();
         let catch_all_report_cached = self.catch_all_report.read().await.is_some();
         let alias_report_cached = self.alias_report.read().await.is_some();
-        let domain_alias_matrix_report_cached = self.domain_alias_matrix_report.read().await.is_some();
+        let domain_alias_matrix_report_cached =
+            self.domain_alias_matrix_report.read().await.is_some();
         let orphaned_aliases_report_cached = self.orphaned_aliases_report.read().await.is_some();
-        let external_forwarders_report_cached = self.external_forwarders_report.read().await.is_some();
+        let external_forwarders_report_cached =
+            self.external_forwarders_report.read().await.is_some();
         let missing_aliases_report_cached = self.missing_aliases_report.read().await.is_some();
 
         let domains_paginated_count = self.domains_paginated.read().await.len();
@@ -372,9 +416,12 @@ impl DataCache {
         let relays_paginated_count = self.relays_paginated.read().await.len();
         let relocated_paginated_count = self.relocated_paginated.read().await.len();
 
-        let total_pagination_entries = domains_paginated_count + aliases_paginated_count + 
-            users_paginated_count + clients_paginated_count + 
-            relays_paginated_count + relocated_paginated_count;
+        let total_pagination_entries = domains_paginated_count
+            + aliases_paginated_count
+            + users_paginated_count
+            + clients_paginated_count
+            + relays_paginated_count
+            + relocated_paginated_count;
 
         CacheStats {
             system_stats_cached,
@@ -775,7 +822,10 @@ impl DatabaseManager {
     }
 
     // Cached report functions (10-minute TTL for reports)
-    pub async fn get_catch_all_report_cached(&self, pool: &DbPool) -> Result<Vec<CatchAllReport>, Error> {
+    pub async fn get_catch_all_report_cached(
+        &self,
+        pool: &DbPool,
+    ) -> Result<Vec<CatchAllReport>, Error> {
         if let Some(cached_report) = self.cache.get_catch_all_report().await {
             tracing::debug!("Returning cached catch-all report");
             return Ok(cached_report);
@@ -783,8 +833,10 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching catch-all report from database");
         let report = get_catch_all_report(pool)?;
-        
-        self.cache.set_catch_all_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_catch_all_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
@@ -796,12 +848,17 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching alias report from database");
         let report = get_alias_report(pool)?;
-        
-        self.cache.set_alias_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_alias_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
-    pub async fn get_domain_alias_matrix_report_cached(&self, pool: &DbPool) -> Result<DomainAliasMatrixReport, Error> {
+    pub async fn get_domain_alias_matrix_report_cached(
+        &self,
+        pool: &DbPool,
+    ) -> Result<DomainAliasMatrixReport, Error> {
         if let Some(cached_report) = self.cache.get_domain_alias_matrix_report().await {
             tracing::debug!("Returning cached domain alias matrix report");
             return Ok(cached_report);
@@ -809,12 +866,17 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching domain alias matrix report from database");
         let report = get_domain_alias_matrix_report(pool)?;
-        
-        self.cache.set_domain_alias_matrix_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_domain_alias_matrix_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
-    pub async fn get_orphaned_aliases_report_cached(&self, pool: &DbPool) -> Result<OrphanedAliasReport, Error> {
+    pub async fn get_orphaned_aliases_report_cached(
+        &self,
+        pool: &DbPool,
+    ) -> Result<OrphanedAliasReport, Error> {
         if let Some(cached_report) = self.cache.get_orphaned_aliases_report().await {
             tracing::debug!("Returning cached orphaned aliases report");
             return Ok(cached_report);
@@ -822,12 +884,17 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching orphaned aliases report from database");
         let report = get_orphaned_aliases_report(pool)?;
-        
-        self.cache.set_orphaned_aliases_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_orphaned_aliases_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
-    pub async fn get_external_forwarders_report_cached(&self, pool: &DbPool) -> Result<ExternalForwarderReport, Error> {
+    pub async fn get_external_forwarders_report_cached(
+        &self,
+        pool: &DbPool,
+    ) -> Result<ExternalForwarderReport, Error> {
         if let Some(cached_report) = self.cache.get_external_forwarders_report().await {
             tracing::debug!("Returning cached external forwarders report");
             return Ok(cached_report);
@@ -835,12 +902,17 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching external forwarders report from database");
         let report = get_external_forwarders_report(pool)?;
-        
-        self.cache.set_external_forwarders_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_external_forwarders_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
-    pub async fn get_missing_aliases_report_cached(&self, pool: &DbPool) -> Result<MissingAliasReport, Error> {
+    pub async fn get_missing_aliases_report_cached(
+        &self,
+        pool: &DbPool,
+    ) -> Result<MissingAliasReport, Error> {
         if let Some(cached_report) = self.cache.get_missing_aliases_report().await {
             tracing::debug!("Returning cached missing aliases report");
             return Ok(cached_report);
@@ -848,8 +920,10 @@ impl DatabaseManager {
 
         tracing::debug!("Cache miss, fetching missing aliases report from database");
         let report = get_missing_aliases_report(pool)?;
-        
-        self.cache.set_missing_aliases_report(report.clone(), Duration::from_secs(600)).await;
+
+        self.cache
+            .set_missing_aliases_report(report.clone(), Duration::from_secs(600))
+            .await;
         Ok(report)
     }
 
@@ -874,7 +948,7 @@ impl DatabaseManager {
                 self.cache.clear_orphaned_aliases_report().await;
                 self.cache.clear_external_forwarders_report().await;
                 self.cache.clear_missing_aliases_report().await;
-            },
+            }
             "pagination" => self.cache.clear_all_pagination_caches().await,
             "all" => self.cache.clear_all_caches().await,
             _ => {
@@ -895,7 +969,7 @@ impl DatabaseManager {
                 self.cache.clear_external_forwarders_report().await;
                 self.cache.clear_missing_aliases_report().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as domains affect all reports
-            },
+            }
             "user" => {
                 // Users affect system stats, reports, and user pagination
                 self.cache.clear_system_stats().await;
@@ -903,7 +977,7 @@ impl DatabaseManager {
                 self.cache.clear_external_forwarders_report().await;
                 self.cache.clear_missing_aliases_report().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as users affect all reports
-            },
+            }
             "alias" => {
                 // Aliases affect system stats, reports, and alias pagination
                 self.cache.clear_system_stats().await;
@@ -914,29 +988,32 @@ impl DatabaseManager {
                 self.cache.clear_external_forwarders_report().await;
                 self.cache.clear_missing_aliases_report().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as aliases affect all reports
-            },
+            }
             "backup" => {
                 // Backups affect system stats
                 self.cache.clear_system_stats().await;
-            },
+            }
             "relay" => {
                 // Relays affect system stats and relay pagination
                 self.cache.clear_system_stats().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as relays affect all reports
-            },
+            }
             "relocated" => {
                 // Relocated affect system stats and relocated pagination
                 self.cache.clear_system_stats().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as relocated affect all reports
-            },
+            }
             "client" => {
                 // Clients affect system stats and client pagination
                 self.cache.clear_system_stats().await;
                 self.cache.clear_all_pagination_caches().await; // Clear all pagination as clients affect all reports
-            },
+            }
             _ => {
                 // Unknown data type, clear all caches to be safe
-                tracing::warn!("Unknown data type '{}' for cache invalidation, clearing all caches", data_type);
+                tracing::warn!(
+                    "Unknown data type '{}' for cache invalidation, clearing all caches",
+                    data_type
+                );
                 self.cache.clear_all_caches().await;
             }
         }
@@ -950,16 +1027,21 @@ impl DatabaseManager {
         per_page: i64,
     ) -> Result<PaginatedResult<Domain>, Error> {
         let cache_key = format!("domains_{}_{}", page, per_page);
-        
+
         if let Some(cached_result) = self.cache.get_domains_paginated(&cache_key).await {
             tracing::debug!("Returning cached domains pagination for key: {}", cache_key);
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching domains pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching domains pagination from database for key: {}",
+            cache_key
+        );
         let result = get_domains_paginated(pool, page, per_page)?;
-        
-        self.cache.set_domains_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_domains_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 
@@ -971,17 +1053,28 @@ impl DatabaseManager {
         sort_by: Option<&str>,
         sort_order: Option<&str>,
     ) -> Result<PaginatedResult<Alias>, Error> {
-        let cache_key = format!("aliases_{}_{}_{}_{}", page, per_page, sort_by.unwrap_or(""), sort_order.unwrap_or(""));
-        
+        let cache_key = format!(
+            "aliases_{}_{}_{}_{}",
+            page,
+            per_page,
+            sort_by.unwrap_or(""),
+            sort_order.unwrap_or("")
+        );
+
         if let Some(cached_result) = self.cache.get_aliases_paginated(&cache_key).await {
             tracing::debug!("Returning cached aliases pagination for key: {}", cache_key);
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching aliases pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching aliases pagination from database for key: {}",
+            cache_key
+        );
         let result = get_aliases_paginated(pool, page, per_page, sort_by, sort_order)?;
-        
-        self.cache.set_aliases_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_aliases_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 
@@ -992,16 +1085,21 @@ impl DatabaseManager {
         per_page: i64,
     ) -> Result<PaginatedResult<User>, Error> {
         let cache_key = format!("users_{}_{}", page, per_page);
-        
+
         if let Some(cached_result) = self.cache.get_users_paginated(&cache_key).await {
             tracing::debug!("Returning cached users pagination for key: {}", cache_key);
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching users pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching users pagination from database for key: {}",
+            cache_key
+        );
         let result = get_users_paginated(pool, page, per_page)?;
-        
-        self.cache.set_users_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_users_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 
@@ -1012,16 +1110,21 @@ impl DatabaseManager {
         per_page: i64,
     ) -> Result<PaginatedResult<Client>, Error> {
         let cache_key = format!("clients_{}_{}", page, per_page);
-        
+
         if let Some(cached_result) = self.cache.get_clients_paginated(&cache_key).await {
             tracing::debug!("Returning cached clients pagination for key: {}", cache_key);
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching clients pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching clients pagination from database for key: {}",
+            cache_key
+        );
         let result = get_clients_paginated(pool, page, per_page)?;
-        
-        self.cache.set_clients_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_clients_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 
@@ -1032,16 +1135,21 @@ impl DatabaseManager {
         per_page: i64,
     ) -> Result<PaginatedResult<Relay>, Error> {
         let cache_key = format!("relays_{}_{}", page, per_page);
-        
+
         if let Some(cached_result) = self.cache.get_relays_paginated(&cache_key).await {
             tracing::debug!("Returning cached relays pagination for key: {}", cache_key);
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching relays pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching relays pagination from database for key: {}",
+            cache_key
+        );
         let result = get_relays_paginated(pool, page, per_page)?;
-        
-        self.cache.set_relays_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_relays_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 
@@ -1052,16 +1160,24 @@ impl DatabaseManager {
         per_page: i64,
     ) -> Result<PaginatedResult<Relocated>, Error> {
         let cache_key = format!("relocated_{}_{}", page, per_page);
-        
+
         if let Some(cached_result) = self.cache.get_relocated_paginated(&cache_key).await {
-            tracing::debug!("Returning cached relocated pagination for key: {}", cache_key);
+            tracing::debug!(
+                "Returning cached relocated pagination for key: {}",
+                cache_key
+            );
             return Ok(cached_result);
         }
 
-        tracing::debug!("Cache miss, fetching relocated pagination from database for key: {}", cache_key);
+        tracing::debug!(
+            "Cache miss, fetching relocated pagination from database for key: {}",
+            cache_key
+        );
         let result = get_relocated_paginated(pool, page, per_page)?;
-        
-        self.cache.set_relocated_paginated(cache_key, result.clone(), Duration::from_secs(300)).await;
+
+        self.cache
+            .set_relocated_paginated(cache_key, result.clone(), Duration::from_secs(300))
+            .await;
         Ok(result)
     }
 }
@@ -1730,6 +1846,7 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
         let total_quota: i64 = 0; // Quota field removed from users table
 
         stats.push(DomainStats {
+            domain_id: domain.pkid,
             domain: domain.domain,
             user_count,
             alias_count,
