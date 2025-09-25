@@ -50,7 +50,14 @@
   - Verify that the cross domain report lists them all, and correctly
   - Verify that the cross domain report links to the correct domain/backup domain if on the relevant db
 
+- Fix failing integration tests
+
 ## Low Priority Epics
+
+- Add caching for some DB queries.
+  - Mostly for reports.
+  - But maybe also when domain and aliases gets paged etc.
+  - Invalidated as soon as a write operation happens or a certain time.
 
 - Full search page. Postponed for now.
   - Search across all fields and tables.
@@ -75,25 +82,27 @@
   - COMPLETED: Successfully moved the Domain Statistics table to a separate report at /reports/domain-statistics. The table now appears as a dedicated report card in the reports list and has been removed from the main statistics page.
 
 - ✅ On the cross database domain matrix report
-  - ✅ The domain names should be clickable and go to that domain page. - COMPLETED: Fixed domain links by adding domain ID information to the report data structure. Domains now link correctly to their show pages when they exist in the current database context, and show as plain text when they don't exist in the current database. Also fixed the domain ID lookup logic to prevent it from being overwritten in the database loop.
-  - ✅ There is no back to reports button. - COMPLETED: Already implemented
-  - ✅ The domain table header key is not translated - COMPLETED: Added missing reports-domain-header translation key to en-US, nl-NL, and it-IT locale files
-  - ✅ Fixed striping issues - COMPLETED: Fixed striping by using manual striping approach ({% if loop.index0 % 2 == 0 %}) instead of CSS pseudo-classes (odd:/even:), which weren't working properly. Now shows proper alternating row colors.
+  - ✅ The domain names should be clickable and go to that domain page if in the current db.
+    - This seems to not quite work on other dbs
+  - ✅ There is no back to reports button. 
+  - ✅ The domain table header key is not translated 
+  - ✅ Fixed striping issues -
+  
 
-- On the Orphaned alias and users report
-  - The domain names should be clickable, if the domain exists, even if not enabled 
-  - The alias should be clickable and go to that alias' page
-  - The users should be clickable and go to that user's page
-  - The created column seems wrong. Most of these have no created value at the moment. And not needed.
-  - Can they be ordered by domain and then mail?
-  - Can the row styles be striped
+- ✅ On the Orphaned alias and users report
+  - ✅ The domain names should be clickable, if the domain exists, even if not enabled 
+  - ✅ The alias should be clickable and go to that alias' page
+  - ✅ The users should be clickable and go to that user's page
+  - ✅ The created column seems wrong. Most of these have no created value at the moment. And not needed.
+  - ✅ Can they be ordered by domain and then mail?
+  - ✅ Can the row styles be striped
 
-- On the External Forwarders report
-  - The domain names should be clickable, if the domain exists, even if not enabled 
-  - The alias should be clickable and go to theat alias' page
-  - The created column seems wrong. Most of these have no created value at the moment. And not needed
-  - Can they be ordered by domain and then mail?
-  - Can the row styles be striped
+- ✅ On the External Forwarders report
+  - ✅ The domain names should be clickable, if the domain exists, even if not enabled 
+  - ✅ The alias should be clickable and go to theat alias' page
+  - ✅ The created column seems wrong. Most of these have no created value at the moment. And not needed
+  - ✅ Can they be ordered by domain and then mail?
+  - ✅ Can the row styles be striped
 
 - On the Cross database user distribution report
   - The users should be clickable and go to that user's page, if present on this db.

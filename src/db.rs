@@ -2068,17 +2068,18 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     let mut conn = pool.get().unwrap();
 
     // Find aliases where the mail domain doesn't exist in the domains table
-    let orphaned_aliases: Vec<OrphanedAlias> = aliases::table
+    let mut orphaned_aliases: Vec<OrphanedAlias> = aliases::table
         .select((
+            aliases::pkid,
             aliases::mail,
             aliases::destination,
             aliases::enabled,
             aliases::created,
         ))
         .order_by(aliases::mail.asc())
-        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
+        .load::<(i32, String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
-        .filter(|(mail, _, _, _)| {
+        .filter(|(_, mail, _, _, _)| {
             // Extract the domain from the alias mail address
             if let Some(at_pos) = mail.rfind('@') {
                 let mail_domain = &mail[at_pos + 1..];
@@ -2095,19 +2096,38 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 false
             }
         })
-        .map(|(mail, destination, enabled, _created)| {
+        .map(|(id, mail, destination, enabled, _created)| {
             let domain = mail.split('@').nth(1).unwrap_or("").to_string();
             OrphanedAlias {
+                id,
                 mail,
                 destination,
                 domain,
+                domain_id: None, // Will be populated later
                 enabled,
             }
         })
-        .collect();
+        .collect::<Vec<_>>();
+
+    // Sort by domain first, then by mail
+    orphaned_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.mail.cmp(&b.mail)));
+
+    // Populate domain IDs for orphaned aliases
+    for alias in &mut orphaned_aliases {
+        if let Some(at_pos) = alias.mail.rfind('@') {
+            let mail_domain = &alias.mail[at_pos + 1..];
+            if let Ok(domain_id) = domains::table
+                .filter(domains::domain.eq(mail_domain))
+                .select(domains::pkid)
+                .first::<i32>(&mut conn)
+            {
+                alias.domain_id = Some(domain_id);
+            }
+        }
+    }
 
     // Find users where the domain doesn't exist or is disabled in the domains table
-    let orphaned_users: Vec<OrphanedUser> = users::table
+    let mut orphaned_users: Vec<OrphanedUser> = users::table
         .select((users::id, users::name, users::enabled, users::created))
         .order_by(users::id.asc())
         .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
@@ -2135,13 +2155,31 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 id,
                 name,
                 domain,
+                domain_id: None, // Will be populated later
                 enabled,
             }
         })
-        .collect();
+        .collect::<Vec<_>>();
+
+    // Sort by domain first, then by id
+    orphaned_users.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
+
+    // Populate domain IDs for orphaned users
+    for user in &mut orphaned_users {
+        if let Some(at_pos) = user.id.rfind('@') {
+            let user_domain = &user.id[at_pos + 1..];
+            if let Ok(domain_id) = domains::table
+                .filter(domains::domain.eq(user_domain))
+                .select(domains::pkid)
+                .first::<i32>(&mut conn)
+            {
+                user.domain_id = Some(domain_id);
+            }
+        }
+    }
 
     // Find users who don't have a corresponding alias
-    let users_without_aliases: Vec<UserWithoutAlias> = users::table
+    let mut users_without_aliases: Vec<UserWithoutAlias> = users::table
         .select((users::id, users::name, users::enabled, users::created))
         .order_by(users::id.asc())
         .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
@@ -2162,10 +2200,28 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 id,
                 name,
                 domain,
+                domain_id: None, // Will be populated later
                 enabled,
             }
         })
-        .collect();
+        .collect::<Vec<_>>();
+
+    // Sort by domain first, then by id
+    users_without_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
+
+    // Populate domain IDs for users without aliases
+    for user in &mut users_without_aliases {
+        if let Some(at_pos) = user.id.rfind('@') {
+            let user_domain = &user.id[at_pos + 1..];
+            if let Ok(domain_id) = domains::table
+                .filter(domains::domain.eq(user_domain))
+                .select(domains::pkid)
+                .first::<i32>(&mut conn)
+            {
+                user.domain_id = Some(domain_id);
+            }
+        }
+    }
 
     Ok(OrphanedAliasReport {
         orphaned_aliases,
@@ -2178,17 +2234,18 @@ pub fn get_external_forwarders_report(pool: &DbPool) -> Result<ExternalForwarder
     let mut conn = pool.get().unwrap();
 
     // Find aliases where the destination is an external email address (contains @ and doesn't match any domain in the domains table)
-    let external_forwarders: Vec<ExternalForwarder> = aliases::table
+    let mut external_forwarders: Vec<ExternalForwarder> = aliases::table
         .filter(aliases::destination.like("%@%"))
         .select((
+            aliases::pkid,
             aliases::mail,
             aliases::destination,
             aliases::enabled,
             aliases::created,
         ))
-        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
+        .load::<(i32, String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
-        .filter(|(_, destination, _, _)| {
+        .filter(|(_, _, destination, _, _)| {
             // Extract the domain from the destination
             if let Some(at_pos) = destination.rfind('@') {
                 let dest_domain = &destination[at_pos + 1..];
@@ -2204,17 +2261,35 @@ pub fn get_external_forwarders_report(pool: &DbPool) -> Result<ExternalForwarder
                 false
             }
         })
-        .map(|(mail, destination, enabled, created)| {
+        .map(|(id, mail, destination, enabled, _created)| {
             let domain = mail.split('@').nth(1).unwrap_or("").to_string();
             ExternalForwarder {
+                id,
                 mail,
                 destination,
                 domain,
+                domain_id: None, // Will be populated later
                 enabled,
-                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
-        .collect();
+        .collect::<Vec<_>>();
+
+    // Sort by domain first, then by mail
+    external_forwarders.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.mail.cmp(&b.mail)));
+
+    // Populate domain IDs for external forwarders
+    for forwarder in &mut external_forwarders {
+        if let Some(at_pos) = forwarder.mail.rfind('@') {
+            let mail_domain = &forwarder.mail[at_pos + 1..];
+            if let Ok(domain_id) = domains::table
+                .filter(domains::domain.eq(mail_domain))
+                .select(domains::pkid)
+                .first::<i32>(&mut conn)
+            {
+                forwarder.domain_id = Some(domain_id);
+            }
+        }
+    }
 
     Ok(ExternalForwarderReport {
         external_forwarders,

@@ -681,9 +681,11 @@ pub struct OrphanedAliasReport {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrphanedAlias {
+    pub id: i32,
     pub mail: String,
     pub destination: String,
     pub domain: String,
+    pub domain_id: Option<i32>,
     pub enabled: bool,
 }
 
@@ -692,6 +694,7 @@ pub struct OrphanedUser {
     pub id: String,
     pub name: String,
     pub domain: String,
+    pub domain_id: Option<i32>,
     pub enabled: bool,
 }
 
@@ -700,6 +703,7 @@ pub struct UserWithoutAlias {
     pub id: String,
     pub name: String,
     pub domain: String,
+    pub domain_id: Option<i32>,
     pub enabled: bool,
 }
 
@@ -710,11 +714,12 @@ pub struct ExternalForwarderReport {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExternalForwarder {
+    pub id: i32,
     pub mail: String,
     pub destination: String,
     pub domain: String,
+    pub domain_id: Option<i32>,
     pub enabled: bool,
-    pub created: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

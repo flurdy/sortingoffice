@@ -42,32 +42,32 @@
         >
           Enabled
         </th>
-        <th
-          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-        >
-          Created
-        </th>
       </tr>
     </thead>
     <tbody
       class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
     >
       {% for fwd in report.external_forwarders %}
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ fwd.mail }}
+          <a href="/aliases/{{ fwd.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ fwd.mail }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ fwd.destination }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+          {% if fwd.domain_id.is_some() %}
+          <a href="/domains/{{ fwd.domain_id.unwrap() }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ fwd.domain }}
+          </a>
+          {% else %}
           {{ fwd.domain }}
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ fwd.enabled }}
-        </td>
-        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ fwd.created }}
         </td>
       </tr>
       {% endfor %}

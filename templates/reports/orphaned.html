@@ -50,7 +50,7 @@
       {% for alias in report.orphaned_aliases %}
       <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          <a href="/aliases/{{ alias.mail }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+          <a href="/aliases/{{ alias.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
             {{ alias.mail }}
           </a>
         </td>
@@ -58,9 +58,13 @@
           {{ alias.destination }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          <a href="/domains/{{ alias.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+          {% if alias.domain_id.is_some() %}
+          <a href="/domains/{{ alias.domain_id.unwrap() }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
             {{ alias.domain }}
           </a>
+          {% else %}
+          {{ alias.domain }}
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ alias.enabled }}
@@ -113,9 +117,13 @@
           {{ user.name }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          <a href="/domains/{{ user.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+          {% if user.domain_id.is_some() %}
+          <a href="/domains/{{ user.domain_id.unwrap() }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
             {{ user.domain }}
           </a>
+          {% else %}
+          {{ user.domain }}
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.enabled }}
@@ -168,9 +176,13 @@
           {{ user.name }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          <a href="/domains/{{ user.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+          {% if user.domain_id.is_some() %}
+          <a href="/domains/{{ user.domain_id.unwrap() }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
             {{ user.domain }}
           </a>
+          {% else %}
+          {{ user.domain }}
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.enabled }}
