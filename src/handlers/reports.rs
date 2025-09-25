@@ -242,7 +242,7 @@ pub async fn reports_list(
     let external_forwarders_report_description =
         get_translation(&state, &locale, "reports-external-forwarders-description").await;
     let alias_cross_domain_report_title =
-        get_translation(&state, &locale, "reports-alias-cross-domain-title").await;
+        get_translation(&state, &locale, "reports-alias-cross-domain-list-title").await;
     let alias_cross_domain_report_description =
         get_translation(&state, &locale, "reports-alias-cross-domain-description").await;
     let cross_database_matrix_report_title =

@@ -729,6 +729,7 @@ reports-external-forwarders-title = External Forwarders Report
 reports-external-forwarders-description = Find aliases that forward to external domains
 # Alias Cross-Domain Search Report
 reports-alias-cross-domain-title = Alias Cross-Domain Search
+reports-alias-cross-domain-list-title = Alias Cross-Domain Search
 reports-alias-cross-domain-description = Search for aliases across all domains
 # Cross-Database Domain Matrix Report
 reports-cross-db-matrix-title = Cross-Database Domain Matrix

@@ -881,6 +881,7 @@ reports-orphaned-aliases-description = Trova alias che fanno riferimento a utent
 reports-external-forwarders-title = Report Forwarder Esterni
 reports-external-forwarders-description = Trova alias che inoltrano a domini esterni
 reports-alias-cross-domain-title = Ricerca Alias Cross-Dominio
+reports-alias-cross-domain-list-title = Ricerca Alias Cross-Dominio
 reports-alias-cross-domain-description = Cerca alias in tutti i domini
 reports-cross-db-matrix-title = Matrice Dominio Cross-Database
 reports-cross-db-matrix-description = Matrice che mostra i domini presenti in tutti i database, sia come domini primari che di backup

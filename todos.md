@@ -110,7 +110,7 @@
 - ✅ On the Alias across domains report
   - ✅ The alias should be clickable and go to that alias' page.
 
-- On the main report page is the Alias Across Domains title looks odd?
+- ✅ On the main report page is the Alias Across Domains title looks odd?
 
 - "Database connection error"
   - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck
