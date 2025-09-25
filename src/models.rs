@@ -743,6 +743,7 @@ pub struct AliasCrossDomainReport {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AliasOccurrence {
+    pub id: i32,
     pub domain: String,
     pub mail: String,
     pub destination: String,

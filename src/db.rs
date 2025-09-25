@@ -2358,12 +2358,18 @@ pub fn get_alias_cross_domain_report(
     // Find all occurrences of this alias across all domains
     let occurrences: Vec<AliasOccurrence> = aliases::table
         .filter(aliases::mail.like(format!("{alias_name}@%")))
-        .select((aliases::mail, aliases::destination, aliases::enabled))
-        .load::<(String, String, bool)>(&mut conn)?
+        .select((
+            aliases::pkid,
+            aliases::mail,
+            aliases::destination,
+            aliases::enabled,
+        ))
+        .load::<(i32, String, String, bool)>(&mut conn)?
         .into_iter()
-        .map(|(mail, destination, enabled)| {
+        .map(|(id, mail, destination, enabled)| {
             let domain = mail.split('@').nth(1).unwrap_or("").to_string();
             AliasOccurrence {
+                id,
                 domain,
                 mail,
                 destination,

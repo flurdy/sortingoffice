@@ -130,7 +130,9 @@
           {{ occ.domain }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ occ.mail }}
+          <a href="/aliases/{{ occ.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ occ.mail }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ occ.destination }}
