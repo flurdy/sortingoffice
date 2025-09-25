@@ -34,7 +34,7 @@
 
 ## Medium Priority Minor and bugs
 
-- Write integration tests that
+- ✅ Write integration tests that
   - has 3 databases (in test containers)
   - And the purpose is to test domains across these dbs in /domains and reports
   - This can be split across several tests.
@@ -55,9 +55,13 @@
 ## Low Priority Epics
 
 - Add caching for some DB queries.
-  - Mostly for reports.
-  - But maybe also when domain and aliases gets paged etc.
-  - Invalidated as soon as a write operation happens or a certain time.
+  - ✅ System stats caching (5-minute TTL) - COMPLETED
+  - Add caching for report functions (12 report functions need caching)
+  - Add caching for pagination functions (domains, aliases, users, etc.)
+  - Implement automatic cache invalidation on write operations
+  - Add cache management utilities (clear all caches, cache stats)
+
+- Verify that these caches handle different DBs
 
 - Full search page. Postponed for now.
   - Search across all fields and tables.
@@ -68,15 +72,17 @@
 - If a db's feature is read only, add and edit buttons should be disabled. 
   - or other relevant feature toggles as well
 
-## Low Priority Minor and bugs
-
-- Add a single integration test alias to the makefile like the ui one.
-
-- Refactor database helper functions for better maintainability. Postponed for now.
+- Refactor database helper functions for better maintainability. 
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
   - Create generic functions to reduce code duplication
   - Improve error handling consistency across database operations
   - Add comprehensive documentation for database operation patterns
+
+## Low Priority Minor and bugs
+
+- Fix failing UI test
+
+- Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
 
 - ✅ On the statistics the Domain Statistics table belongs as a separate report instead.
   - COMPLETED: Successfully moved the Domain Statistics table to a separate report at /reports/domain-statistics. The table now appears as a dedicated report card in the reports list and has been removed from the main statistics page.

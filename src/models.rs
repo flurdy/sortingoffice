@@ -318,7 +318,7 @@ pub struct RelayForm {
 }
 
 // Relocated models
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = relocated)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -382,7 +382,7 @@ pub struct ClientForm {
 }
 
 // Catch-all report models
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CatchAllReport {
     pub domain: String,
     pub catch_all_alias: String,
@@ -390,7 +390,7 @@ pub struct CatchAllReport {
     pub required_aliases: Vec<RequiredAlias>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RequiredAlias {
     pub mail: String,
     pub destination: String,
@@ -568,7 +568,7 @@ impl RequiredAliasConfig {
 }
 
 // Enhanced report models
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DomainAliasReport {
     pub domain: String,
     pub has_catch_all: bool,
@@ -582,26 +582,26 @@ pub struct DomainAliasReport {
     pub disabled_catch_all: Option<Alias>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AliasReport {
     pub domains_with_catch_all: Vec<DomainAliasReport>,
     pub domains_without_catch_all: Vec<DomainAliasReport>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DomainAliasMatrixReport {
     pub domains: Vec<DomainAliasMatrixRow>,
     pub required_aliases_list: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DomainAliasMatrixRow {
     pub domain: String,
     pub catch_all_status: AliasStatus,
     pub required_aliases: Vec<RequiredAliasMatrixItem>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RequiredAliasMatrixItem {
     pub alias: String,
     pub status: AliasStatus,
@@ -672,14 +672,14 @@ pub struct PaginatedResult<T> {
 }
 
 // Additional report models
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrphanedAliasReport {
     pub orphaned_aliases: Vec<OrphanedAlias>,
     pub orphaned_users: Vec<OrphanedUser>,
     pub users_without_aliases: Vec<UserWithoutAlias>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrphanedAlias {
     pub id: i32,
     pub mail: String,
@@ -689,7 +689,7 @@ pub struct OrphanedAlias {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrphanedUser {
     pub id: String,
     pub name: String,
@@ -698,7 +698,7 @@ pub struct OrphanedUser {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserWithoutAlias {
     pub id: String,
     pub name: String,
@@ -707,12 +707,12 @@ pub struct UserWithoutAlias {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExternalForwarderReport {
     pub external_forwarders: Vec<ExternalForwarder>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ExternalForwarder {
     pub id: i32,
     pub mail: String,
@@ -722,12 +722,12 @@ pub struct ExternalForwarder {
     pub enabled: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MissingAliasReport {
     pub domains_missing_aliases: Vec<DomainMissingAliases>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DomainMissingAliases {
     pub domain: String,
     pub missing_required_aliases: Vec<String>,
