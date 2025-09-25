@@ -1,10 +1,19 @@
 use crate::handlers::errors::{execute_with_retry, RetryConfig};
 use crate::AppState;
 use axum::http::HeaderMap;
-use axum::response::Html;
+use axum::response::{Html, Response};
 use diesel::result::Error;
 use std::time::Duration;
 use tracing::{error, info, warn};
+
+/// Result type for database operations with session update
+pub type DatabaseResult<T> = Result<T, Html<String>>;
+
+/// Response type that includes a database pool and optional session cookie
+pub struct DatabaseResponse {
+    pub pool: crate::DbPool,
+    pub session_cookie: Option<String>,
+}
 
 /// Helper function to safely get database connection with proper error handling
 /// Replaces unwrap() calls with structured error handling
@@ -155,6 +164,124 @@ pub async fn get_db_pool_or_error(
                     Err(crate::handlers::errors::render_database_error_page(state, headers).await)
                 }
             }
+        }
+    }
+}
+
+/// Get database pool with automatic fallback and session update
+/// This function handles the case where the user's selected database becomes unavailable
+/// by automatically falling back to a working database and updating the session
+pub async fn get_db_pool_with_fallback_and_session_update(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> DatabaseResult<DatabaseResponse> {
+    // Try to get the current database pool
+    match get_current_db_pool(state, headers).await {
+        Ok(pool) => Ok(DatabaseResponse {
+            pool,
+            session_cookie: None,
+        }), // No session update needed
+        Err(_) => {
+            // Get the currently selected database from session
+            let selected_db = crate::handlers::auth::get_selected_database(headers)
+                .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+            // Try to find a working database
+            let fallback_db = find_working_database(state).await;
+
+            match fallback_db {
+                Some(fallback_id) => {
+                    if let Some(pool) = state.db_manager.get_pool(&fallback_id).await {
+                        warn!(
+                            "Selected database '{}' is unavailable, falling back to '{}'",
+                            selected_db, fallback_id
+                        );
+
+                        // Update the session to use the fallback database
+                        let session_cookie =
+                            crate::handlers::auth::update_session_database(headers, &fallback_id);
+
+                        Ok(DatabaseResponse {
+                            pool,
+                            session_cookie,
+                        })
+                    } else {
+                        error!("Fallback database '{}' is also unavailable", fallback_id);
+                        Err(
+                            crate::handlers::errors::render_database_error_page(state, headers)
+                                .await,
+                        )
+                    }
+                }
+                None => {
+                    error!("No working databases available");
+                    Err(crate::handlers::errors::render_database_error_page(state, headers).await)
+                }
+            }
+        }
+    }
+}
+
+/// Find a working database from the available databases
+async fn find_working_database(state: &AppState) -> Option<String> {
+    let configs = state.db_manager.get_configs();
+
+    // Try databases in order of preference
+    let mut preferred_order = vec![
+        state.db_manager.get_default_db_id().to_string(),
+        "primary".to_string(),
+    ];
+
+    // Add other databases to the list
+    for config in configs {
+        if !preferred_order.contains(&config.id) {
+            preferred_order.push(config.id.clone());
+        }
+    }
+
+    // Test each database
+    for db_id in preferred_order {
+        if let Some(pool) = state.db_manager.get_pool(&db_id).await {
+            // Test the connection by trying to get a connection
+            if let Ok(_conn) = pool.get() {
+                return Some(db_id);
+            }
+        }
+    }
+
+    None
+}
+
+/// Helper function to get database pool with fallback and handle session updates
+/// This is the main function that handlers should use to get database pools
+/// It automatically handles fallback to working databases and session updates
+pub async fn get_db_pool_with_fallback(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> DatabaseResult<DatabaseResponse> {
+    get_db_pool_with_fallback_and_session_update(state, headers).await
+}
+
+/// Helper function to handle database operations with automatic fallback
+/// This function can be used by handlers that need to perform database operations
+/// and want automatic fallback when the selected database becomes unavailable
+pub async fn handle_db_operation_with_fallback<T, F, Fut>(
+    operation: F,
+    state: &AppState,
+    headers: &HeaderMap,
+    error_message: &str,
+) -> Result<(T, Option<String>), Html<String>>
+where
+    F: FnOnce(&crate::DbPool) -> Fut,
+    Fut: std::future::Future<Output = Result<T, Error>>,
+{
+    let db_response = get_db_pool_with_fallback(state, headers).await?;
+
+    match operation(&db_response.pool).await {
+        Ok(result) => Ok((result, db_response.session_cookie)),
+        Err(e) => {
+            error!("{}: {:?}", error_message, e);
+            Err(crate::handlers::errors::render_database_error_page(state, headers).await)
         }
     }
 }
@@ -431,4 +558,21 @@ where
         Ok(result) => success_handler(result),
         Err(e) => error_handler(e),
     }
+}
+
+/// Helper function to create a response with optional session cookie
+/// This can be used by handlers that need to return responses with updated session cookies
+pub fn create_response_with_session_cookie(
+    content: Html<String>,
+    session_cookie: Option<String>,
+) -> Response<String> {
+    let mut response_builder = Response::builder()
+        .status(200)
+        .header("Content-Type", "text/html; charset=utf-8");
+
+    if let Some(cookie) = session_cookie {
+        response_builder = response_builder.header("Set-Cookie", cookie);
+    }
+
+    response_builder.body(content.0).unwrap()
 }
