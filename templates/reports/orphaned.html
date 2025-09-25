@@ -42,32 +42,28 @@
         >
           Enabled
         </th>
-        <th
-          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-        >
-          Created
-        </th>
       </tr>
     </thead>
     <tbody
       class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
     >
       {% for alias in report.orphaned_aliases %}
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ alias.mail }}
+          <a href="/aliases/{{ alias.mail }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ alias.mail }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ alias.destination }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ alias.domain }}
+          <a href="/domains/{{ alias.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ alias.domain }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ alias.enabled }}
-        </td>
-        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ alias.created }}
         </td>
       </tr>
       {% endfor %}
@@ -101,32 +97,28 @@
         >
           Enabled
         </th>
-        <th
-          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-        >
-          Created
-        </th>
       </tr>
     </thead>
     <tbody
       class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
     >
       {% for user in report.orphaned_users %}
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.id }}
+          <a href="/users/{{ user.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ user.id }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.name }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.domain }}
+          <a href="/domains/{{ user.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ user.domain }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.enabled }}
-        </td>
-        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.created }}
         </td>
       </tr>
       {% endfor %}
@@ -160,32 +152,28 @@
         >
           Enabled
         </th>
-        <th
-          class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-        >
-          Created
-        </th>
       </tr>
     </thead>
     <tbody
       class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
     >
       {% for user in report.users_without_aliases %}
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.id }}
+          <a href="/users/{{ user.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ user.id }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.name }}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.domain }}
+          <a href="/domains/{{ user.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+            {{ user.domain }}
+          </a>
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
           {{ user.enabled }}
-        </td>
-        <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.created }}
         </td>
       </tr>
       {% endfor %}

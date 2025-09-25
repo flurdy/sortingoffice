@@ -86,6 +86,7 @@ pub struct CrossDatabaseMatrixReportTemplate<'a> {
     pub matrix_enabled: &'a str,
     pub matrix_disabled: &'a str,
     pub back_to_reports: &'a str,
+    pub current_db_id: &'a str,
     pub report: &'a crate::models::CrossDatabaseDomainMatrixReport,
 }
 

@@ -49,8 +49,10 @@ Commands:
     backup-create <database_id>        - Create a new backup
     backup-download <filename>         - Download a backup file
     backup-delete <filename>           - Delete a backup file
+    database-switch <database_id>      - Switch to a different database
     aliases-list                       - List aliases
     domains-list                       - List domains
+    domains-create <domain> [transport] - Create a new domain
     users-list                         - List users
     stats                              - Get system statistics
     health                             - Check application health
@@ -220,6 +222,33 @@ backup_delete() {
         -H "Accept: application/json"
 }
 
+database_switch() {
+    require_login
+    local database_id="$1"
+    if [ -z "$database_id" ]; then
+        log_error "Database ID required"
+        echo "Usage: $0 database-switch <database_id>"
+        exit 1
+    fi
+    
+    log_info "Switching to database: $database_id"
+    local response=$(curl -s -w "%{http_code}" -b "$COOKIE_FILE" -c "$COOKIE_FILE" \
+        -X POST "$HOST/database/select" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "database_id=$database_id")
+    
+    local status_code="${response: -3}"
+    local body="${response%???}"
+    
+    if [ "$status_code" = "302" ] || [ "$status_code" = "200" ]; then
+        log_success "Switched to database: $database_id"
+    else
+        log_error "Database switch failed with status code: $status_code"
+        log_error "Response: $body"
+        exit 1
+    fi
+}
+
 # Resource listing operations
 aliases_list() {
     require_login
@@ -231,6 +260,36 @@ domains_list() {
     require_login
     log_info "Fetching domains list..."
     curl -s -b "$COOKIE_FILE" "$HOST/domains" | grep -E "(table|tr|td)" | head -20 || curl -s -b "$COOKIE_FILE" "$HOST/domains"
+}
+
+domains_create() {
+    require_login
+    local domain="$1"
+    local transport="${2:-virtual}"
+    
+    if [ -z "$domain" ]; then
+        log_error "Domain name required"
+        echo "Usage: $0 domains-create <domain> [transport]"
+        exit 1
+    fi
+    
+    log_info "Creating domain: $domain with transport: $transport"
+    local response=$(curl -s -w "%{http_code}" -b "$COOKIE_FILE" \
+        -X POST "$HOST/domains" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "domain=$domain&transport=$transport&enabled=on")
+    
+    local status_code="${response: -3}"
+    local body="${response%???}"
+    
+    if [ "$status_code" = "200" ]; then
+        log_success "Domain created successfully: $domain"
+        echo "$body"
+    else
+        log_error "Domain creation failed with status code: $status_code"
+        log_error "Response: $body"
+        exit 1
+    fi
 }
 
 users_list() {
@@ -283,11 +342,17 @@ main() {
         backup-delete)
             backup_delete "$2"
             ;;
+        database-switch)
+            database_switch "$2"
+            ;;
         aliases-list)
             aliases_list
             ;;
         domains-list)
             domains_list
+            ;;
+        domains-create)
+            domains_create "$2" "$3"
             ;;
         users-list)
             users_list

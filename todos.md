@@ -14,7 +14,6 @@
   - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
 
 - ✅ Are clients listed? I have a db with clients  but none are shown in the app.
-  - RESOLVED: Clients are actually being displayed correctly. Found 8 clients in the database including IP addresses and domain names with proper status and enabled/disabled states.
 
 ## Medium Priority Epics
 
@@ -35,14 +34,21 @@
 
 ## Medium Priority Minor and bugs
 
-- ✅ /reports are mostly not translated - COMPLETED
-  - ✅ Fixed hardcoded titles in Orphaned Aliases, External Forwarders, and Alias Cross-Domain reports
-  - ✅ Completely translated Cross-Database Feature Toggle report
-  - ✅ Completely translated Cross-Database Migration report
-  - ✅ Completely translated Cross-Database User Distribution report
-  - ✅ Completely translated Cross-Database Matrix report
-  - ✅ Completely translated Matrix report
-  - ✅ All 8 reports now have proper translation support with no hardcoded strings remaining
+- Write integration tests that
+  - has 3 databases (in test containers)
+  - And the purpose is to test domains across these dbs in /domains and reports
+  - This can be split across several tests.
+  - Creates domain1 in db1
+  - Creates domain1 in db2
+  - Creates domain1 as a backup domain in db3
+  - Creates domain2 in db2
+  - Creates domain3 in db3
+  - Creates domain4 as a backup domain in db1
+  - Creates domain4 as a domain in db2
+  - Verify if listed correctly in /domains when relevant db is the active db
+  - And not listed when not in the relevant db
+  - Verify that the cross domain report lists them all, and correctly
+  - Verify that the cross domain report links to the correct domain/backup domain if on the relevant db
 
 ## Low Priority Epics
 
@@ -57,12 +63,7 @@
 
 ## Low Priority Minor and bugs
 
-- ✅  Can the alias `make prod-run` run on a different port than the default
-  - RESOLVED: The functionality already exists and works perfectly. You can use:
-    - `make prod-run` (default port 3000)
-    - `PORT=8080 make prod-run` (uses PORT environment variable)
-    - `PROD_PORT=9090 make prod-run` (PROD_PORT takes precedence over PORT)
-    - The Makefile uses `${PROD_PORT:-$(PORT)}` syntax for proper precedence
+- Add a single integration test alias to the makefile like the ui one.
 
 - Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
@@ -73,14 +74,11 @@
 - ✅ On the statistics the Domain Statistics table belongs as a separate report instead.
   - COMPLETED: Successfully moved the Domain Statistics table to a separate report at /reports/domain-statistics. The table now appears as a dedicated report card in the reports list and has been removed from the main statistics page.
 
-- On the Domain alias matrix report
-  - Can the row styles be striped
-  - Can the icons/emojiis be smaller?
-
-- On the cross database domain matrix report
-  - The domain names should be clickable and go to that domain page.
-  - There is no back to reports button.
-  - The domain table header key is not translated
+- ✅ On the cross database domain matrix report
+  - ✅ The domain names should be clickable and go to that domain page. - COMPLETED: Fixed domain links by adding domain ID information to the report data structure. Domains now link correctly to their show pages when they exist in the current database context, and show as plain text when they don't exist in the current database. Also fixed the domain ID lookup logic to prevent it from being overwritten in the database loop.
+  - ✅ There is no back to reports button. - COMPLETED: Already implemented
+  - ✅ The domain table header key is not translated - COMPLETED: Added missing reports-domain-header translation key to en-US, nl-NL, and it-IT locale files
+  - ✅ Fixed striping issues - COMPLETED: Fixed striping by using manual striping approach ({% if loop.index0 % 2 == 0 %}) instead of CSS pseudo-classes (odd:/even:), which weren't working properly. Now shows proper alternating row colors.
 
 - On the Orphaned alias and users report
   - The domain names should be clickable, if the domain exists, even if not enabled 
@@ -102,6 +100,8 @@
   
 - On the Alias across domains report
   - The alias should be clickable and go to that alias' page.
+
+- On the main report page is the Alias Across Domains title looks odd?
 
 - "Database connection error"
   - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck

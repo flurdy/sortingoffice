@@ -734,6 +734,7 @@ reports-alias-cross-domain-description = Search for aliases across all domains
 reports-cross-db-matrix-title = Cross-Database Domain Matrix
 reports-cross-db-matrix-description = Matrix showing domains present across all databases, whether as primary or backup domains
 reports-database-header = Database
+reports-domain-header = Domein
 reports-primary-domain = Domain
 reports-backup-domain = Backup
 reports-not-present = Not Present

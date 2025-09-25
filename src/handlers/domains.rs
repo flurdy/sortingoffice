@@ -49,12 +49,21 @@ async fn validate_domain_creation(
     let current_db_id = get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
 
+    info!(
+        "Validating domain creation for '{}' on database '{}'",
+        form.domain, current_db_id
+    );
+
     // Check database restrictions first (guard clause)
-    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+    if let Err(status_code) = crate::handlers::restrictions::check_database_restrictions(
         state,
         &current_db_id,
         "create_domain",
     ) {
+        error!(
+            "Database restriction check failed for database '{}': status {}",
+            current_db_id, status_code
+        );
         return Err(handle_domain_form_error(
             state,
             locale,
@@ -492,7 +501,10 @@ pub async fn create(
     }
 
     let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
-        Ok(pool) => pool,
+        Ok(pool) => {
+            info!("Successfully obtained database pool for domain creation");
+            pool
+        }
         Err(e) => {
             error!("Failed to get database pool: {:?}", e);
             return Html("Database connection error".to_string());
@@ -503,6 +515,10 @@ pub async fn create(
     let new_domain = crate::handlers::performance::create_new_domain_from_form(&form);
 
     // Create the domain
+    info!(
+        "Attempting to create domain '{}' on database pool",
+        form.domain
+    );
     match db::create_domain(&pool, new_domain) {
         Ok(_created_domain) => {
             info!("Successfully created domain: {}", form.domain);
@@ -514,7 +530,11 @@ pub async fn create(
             ))
         }
         Err(e) => {
-            error!("Failed to create domain {}: {:?}", form.domain, e);
+            error!(
+                "Failed to create domain '{}' on database: {:?}",
+                form.domain, e
+            );
+            error!("Database error details: {}", e);
             let error_msg = get_translation(&state, &locale, "domains-error-creating").await;
             Html(error_msg)
         }

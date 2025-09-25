@@ -4,7 +4,7 @@
 # Include database management Makefile
 include Makefile.db
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch run prod-run
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch dev-run run prod-run
 
 # Default target
 help:
@@ -233,6 +233,9 @@ test-all: test-unit test-integration test-security test-api test-ui
 	@echo "All tests completed!"
 
 run-watch:
+	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
+
+dev-run:
 	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
 
 run:

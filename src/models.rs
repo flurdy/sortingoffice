@@ -685,7 +685,6 @@ pub struct OrphanedAlias {
     pub destination: String,
     pub domain: String,
     pub enabled: bool,
-    pub created: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -694,7 +693,6 @@ pub struct OrphanedUser {
     pub name: String,
     pub domain: String,
     pub enabled: bool,
-    pub created: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -703,7 +701,6 @@ pub struct UserWithoutAlias {
     pub name: String,
     pub domain: String,
     pub enabled: bool,
-    pub created: NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -764,6 +761,8 @@ pub struct DatabaseInfo {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrossDatabaseDomainRow {
     pub domain: String,
+    pub domain_id: i32, // ID in database where domain exists, 0 if not exists
+    pub domain_database_id: String, // Database ID where domain exists, empty if not exists
     pub presence: Vec<DomainPresence>,
 }
 

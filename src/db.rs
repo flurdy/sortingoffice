@@ -2075,6 +2075,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             aliases::enabled,
             aliases::created,
         ))
+        .order_by(aliases::mail.asc())
         .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(mail, _, _, _)| {
@@ -2094,14 +2095,13 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 false
             }
         })
-        .map(|(mail, destination, enabled, created)| {
+        .map(|(mail, destination, enabled, _created)| {
             let domain = mail.split('@').nth(1).unwrap_or("").to_string();
             OrphanedAlias {
                 mail,
                 destination,
                 domain,
                 enabled,
-                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2109,6 +2109,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Find users where the domain doesn't exist or is disabled in the domains table
     let orphaned_users: Vec<OrphanedUser> = users::table
         .select((users::id, users::name, users::enabled, users::created))
+        .order_by(users::id.asc())
         .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
@@ -2128,14 +2129,13 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 false
             }
         })
-        .map(|(id, name, enabled, created)| {
+        .map(|(id, name, enabled, _created)| {
             let domain = id.split('@').nth(1).unwrap_or("").to_string();
             OrphanedUser {
                 id,
                 name,
                 domain,
                 enabled,
-                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2143,6 +2143,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Find users who don't have a corresponding alias
     let users_without_aliases: Vec<UserWithoutAlias> = users::table
         .select((users::id, users::name, users::enabled, users::created))
+        .order_by(users::id.asc())
         .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
         .into_iter()
         .filter(|(id, _, _, _)| {
@@ -2155,14 +2156,13 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 .unwrap_or(None);
             alias_exists.is_none()
         })
-        .map(|(id, name, enabled, created)| {
+        .map(|(id, name, enabled, _created)| {
             let domain = id.split('@').nth(1).unwrap_or("").to_string();
             UserWithoutAlias {
                 id,
                 name,
                 domain,
                 enabled,
-                created: created.unwrap_or_else(|| Utc::now().naive_utc()),
             }
         })
         .collect();
@@ -2321,6 +2321,7 @@ fn get_required_aliases_for_domain(
 // Cross-database domain matrix report
 pub async fn get_cross_database_domain_matrix_report(
     db_manager: &DatabaseManager,
+    _current_db_id: Option<&str>,
 ) -> Result<CrossDatabaseDomainMatrixReport, Box<dyn std::error::Error>> {
     let configs = db_manager.get_configs();
     let mut all_domains = std::collections::HashSet::new();
@@ -2387,6 +2388,27 @@ pub async fn get_cross_database_domain_matrix_report(
     let mut domain_rows = Vec::new();
     for domain in all_domains {
         let mut presence = Vec::new();
+        let mut domain_id = 0;
+
+        // Try to get the domain ID from the database where this domain actually exists
+        // Check all databases to find where this domain exists (as primary or backup)
+        let mut domain_database_id = String::new();
+        for db_config in configs {
+            if let Some(pool) = db_manager.get_pool(&db_config.id).await {
+                // First try as primary domain
+                if let Ok(domain_record) = get_domain_by_name(&pool, &domain) {
+                    domain_id = *domain_record.id();
+                    domain_database_id = db_config.id.clone();
+                    break;
+                }
+                // If not found as primary domain, try as backup domain
+                if let Ok(backup_record) = get_backup_by_name(&pool, &domain) {
+                    domain_id = backup_record.pkid;
+                    domain_database_id = db_config.id.clone();
+                    break;
+                }
+            }
+        }
 
         for db_config in configs {
             // Check for primary domain presence
@@ -2425,7 +2447,12 @@ pub async fn get_cross_database_domain_matrix_report(
             presence.push(backup_presence);
         }
 
-        domain_rows.push(CrossDatabaseDomainRow { domain, presence });
+        domain_rows.push(CrossDatabaseDomainRow {
+            domain,
+            domain_id,
+            domain_database_id,
+            presence,
+        });
     }
 
     // Sort domains alphabetically

@@ -3,7 +3,8 @@ use thirtyfour::prelude::*;
 use tokio::time::{timeout, Duration};
 mod common;
 use common::ui_helpers::{
-    login_and_goto_dashboard, run_test_with_timeout, setup_ui_test_env, test_404_page,
+    create_domain, login_and_goto_dashboard, rand_domain_str, run_test_with_timeout,
+    setup_ui_test_env, setup_ui_test_env_multidb, switch_database_ui, test_404_page,
 };
 
 // Import test suite lifecycle for automatic cleanup
@@ -1908,6 +1909,145 @@ async fn test_database_error_handling_with_theme(driver: &WebDriver, app_url: &s
 
     println!("[ERROR TEST] ✅ Database error handling with shared theme test passed");
     Ok(())
+}
+
+#[tokio::test]
+async fn test_cross_database_domain_creation_ui() -> Result<()> {
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.multidb.toml");
+    let _config_path_str = config_path.to_str().unwrap();
+    run_test_with_timeout(
+        "test_cross_database_domain_creation_ui",
+        async {
+            let env = setup_ui_test_env_multidb().await?;
+            login_and_goto_dashboard(&env.driver, &env.app_url).await?;
+
+            // Generate unique test data
+            let domain1 = format!("test-ui-{}.example.com", rand_domain_str());
+            let domain2 = format!("test-ui-{}.example.com", rand_domain_str());
+
+            println!("[CROSS-DB UI TEST] Test domains: {}, {}", domain1, domain2);
+
+            // Test 1: Create domain in primary database
+            println!("[CROSS-DB UI TEST] Step 1: Creating domain in primary database");
+            create_domain(&env.driver, &env.app_url, &domain1).await?;
+            println!("[CROSS-DB UI TEST] ✅ Domain created in primary database");
+
+            // Verify domain is listed in primary database
+            let domains_url = format!("{}/domains", env.app_url);
+            timeout60s!(env.driver.get(&domains_url), "Navigate to domains list")?;
+            let page_source = timeout30s!(env.driver.source(), "Get domains page source")?;
+            assert!(
+                page_source.contains(&domain1),
+                "Domain {} should be visible in primary database",
+                domain1
+            );
+
+            // Test 2: Switch to secondary database
+            println!("[CROSS-DB UI TEST] Step 2: Switching to secondary database");
+            switch_database_ui(&env.driver, "secondary").await?;
+            println!("[CROSS-DB UI TEST] ✅ Switched to secondary database");
+
+            // Verify we're in secondary database (domain1 should not be visible)
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains list in secondary"
+            )?;
+            let page_source =
+                timeout30s!(env.driver.source(), "Get domains page source in secondary")?;
+            assert!(
+                !page_source.contains(&domain1),
+                "Domain {} should NOT be visible in secondary database",
+                domain1
+            );
+
+            // Test 3: Create domain in secondary database
+            println!("[CROSS-DB UI TEST] Step 3: Creating domain in secondary database");
+            create_domain(&env.driver, &env.app_url, &domain2).await?;
+            println!("[CROSS-DB UI TEST] ✅ Domain created in secondary database");
+
+            // Verify domain2 is listed in secondary database
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains list in secondary"
+            )?;
+            let page_source =
+                timeout30s!(env.driver.source(), "Get domains page source in secondary")?;
+            assert!(
+                page_source.contains(&domain2),
+                "Domain {} should be visible in secondary database",
+                domain2
+            );
+
+            // Test 4: Switch back to primary database
+            println!("[CROSS-DB UI TEST] Step 4: Switching back to primary database");
+            switch_database_ui(&env.driver, "primary").await?;
+            println!("[CROSS-DB UI TEST] ✅ Switched back to primary database");
+
+            // Verify we're back in primary database (domain1 should be visible, domain2 should not)
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains list in primary"
+            )?;
+            let page_source =
+                timeout30s!(env.driver.source(), "Get domains page source in primary")?;
+            assert!(
+                page_source.contains(&domain1),
+                "Domain {} should be visible in primary database",
+                domain1
+            );
+            assert!(
+                !page_source.contains(&domain2),
+                "Domain {} should NOT be visible in primary database",
+                domain2
+            );
+
+            // Test 5: Create same domain name in primary database (should work)
+            println!("[CROSS-DB UI TEST] Step 5: Creating same domain name in primary database");
+            let domain3 = format!("test-ui-{}.example.com", rand_domain_str());
+            create_domain(&env.driver, &env.app_url, &domain3).await?;
+            println!("[CROSS-DB UI TEST] ✅ Same domain name created in primary database");
+
+            // Test 6: Switch to secondary and create same domain name (should work)
+            println!("[CROSS-DB UI TEST] Step 6: Creating same domain name in secondary database");
+            switch_database_ui(&env.driver, "secondary").await?;
+            create_domain(&env.driver, &env.app_url, &domain3).await?;
+            println!("[CROSS-DB UI TEST] ✅ Same domain name created in secondary database");
+
+            // Verify both databases have the same domain name
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains list in secondary"
+            )?;
+            let page_source =
+                timeout30s!(env.driver.source(), "Get domains page source in secondary")?;
+            assert!(
+                page_source.contains(&domain3),
+                "Domain {} should be visible in secondary database",
+                domain3
+            );
+
+            switch_database_ui(&env.driver, "primary").await?;
+            timeout60s!(
+                env.driver.get(&domains_url),
+                "Navigate to domains list in primary"
+            )?;
+            let page_source =
+                timeout30s!(env.driver.source(), "Get domains page source in primary")?;
+            assert!(
+                page_source.contains(&domain3),
+                "Domain {} should be visible in primary database",
+                domain3
+            );
+
+            println!("[CROSS-DB UI TEST] ✅ All cross-database domain creation tests passed!");
+            env.cleanup().await?;
+            Ok(())
+        },
+        Duration::from_secs(180),
+    )
+    .await
 }
 
 // Note: UI tests for duplicate wizard would require proper setup of test environment

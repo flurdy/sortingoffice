@@ -23,3 +23,5 @@ Do not spam the todos with notes, achievements and other irrelevant noise.
 If notes, status or achievements is necessary create a separate file.
 
 No todo can be marked done unless code has been checked, formatted and tested.
+
+Before starting any epics, ask for confirmation.

@@ -1680,6 +1680,59 @@ pub async fn test_404_page(
     Ok(())
 }
 
+/// Switch to a different database using the UI dropdown
+pub async fn switch_database_ui(driver: &WebDriver, database_id: &str) -> Result<()> {
+    // Find and click the database dropdown button
+    let dropdown_btn = timeout60s!(
+        driver.find(By::Id("db-dropdown-btn")),
+        "Find database dropdown button"
+    )?;
+    timeout60s!(dropdown_btn.click(), "Click database dropdown button")?;
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+
+    // Check if dropdown is visible
+    let dropdown_list = timeout60s!(
+        driver.find(By::Id("db-dropdown-list")),
+        "Find database dropdown list"
+    )?;
+    let is_displayed = timeout60s!(dropdown_list.is_displayed(), "Check dropdown visibility")?;
+    if !is_displayed {
+        return Err(anyhow::anyhow!(
+            "Database dropdown should be visible after clicking"
+        ));
+    }
+
+    // Find all database options in the dropdown
+    let database_options = timeout60s!(
+        driver.find_all(By::Css("#db-dropdown-list button")),
+        "Find database options"
+    )?;
+
+    // Find the option with the matching database_id
+    let mut target_option = None;
+    for option in &database_options {
+        match timeout30s!(option.text(), "Get option text") {
+            Ok(text) => {
+                if text.contains(database_id) {
+                    target_option = Some(option);
+                    break;
+                }
+            }
+            Err(_) => continue,
+        }
+    }
+
+    let target_option = target_option.ok_or_else(|| {
+        anyhow::anyhow!("Database option '{}' not found in dropdown", database_id)
+    })?;
+
+    // Click on the target database option
+    timeout60s!(target_option.click(), "Click target database option")?;
+    tokio::time::sleep(Duration::from_millis(2000)).await; // Wait for database switch
+
+    Ok(())
+}
+
 /// Setup UI test environment with containers
 pub async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
     use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
@@ -1696,6 +1749,61 @@ pub async fn setup_ui_test_env() -> anyhow::Result<TestEnv> {
     let extra_env: Vec<(&str, &str)> = vec![("TESTING", "true"), ("RUST_ENV", "test")];
     let (app_container, _) =
         setup_app_on_shared_network(&schema, None, &config_path_str_owned, &extra_env).await?;
+
+    // Start selenium on shared network with extra args
+    let extra_args = vec![
+        "--disable-http2".to_string(),
+        "--disable-quic".to_string(),
+        "--proxy-server=direct://".to_string(),
+        "--proxy-bypass-list=*".to_string(),
+        "--lang=en".to_string(),
+    ];
+    let (selenium_container, driver, _selenium_port) =
+        setup_selenium_on_shared_network(extra_args, "sortingoffice-e2e").await?;
+
+    // Determine app container IP on the shared bridge network
+    let app_ip = get_container_ip_on_network(&app_container.id(), "sortingoffice-e2e").await?;
+
+    // Use the container IP for Selenium to avoid DNS alias issues on Linux
+    let app_url = format!("http://{}:3000", app_ip);
+
+    // Ensure app is reachable from Selenium before proceeding
+    let _ = wait_for_app_from_selenium(&driver, &app_url, Duration::from_secs(30)).await?;
+
+    Ok(TestEnv {
+        app_container,
+        selenium_container,
+        driver,
+        app_url,
+    })
+}
+
+/// Setup UI test environment with multi-database configuration
+pub async fn setup_ui_test_env_multidb() -> anyhow::Result<TestEnv> {
+    use sortingoffice::test_helpers::testcontainers_setup::unique_test_id;
+    let schema1 = unique_test_id();
+    let schema2 = unique_test_id();
+
+    // Create and migrate both schemas
+    create_schema(&schema1).await?;
+    run_migrations_for_schema(&schema1).await?;
+    create_schema(&schema2).await?;
+    run_migrations_for_schema(&schema2).await?;
+
+    let config_path = std::env::current_dir()
+        .unwrap()
+        .join("config/config.docker.multidb.toml");
+    let config_path_str_owned = config_path.to_str().unwrap().to_string();
+    let db_url1 = format!("mysql://root@db:3306/{}", schema1);
+    let db_url2 = format!("mysql://root@db:3306/{}", schema2);
+    let extra_env: Vec<(&str, &str)> = vec![
+        ("TESTING", "true"),
+        ("RUST_ENV", "test"),
+        ("DATABASE_URL", &db_url1),
+        ("DATABASE_URL_SECONDARY", &db_url2),
+    ];
+    let (app_container, _) =
+        setup_app_on_shared_network(&schema1, None, &config_path_str_owned, &extra_env).await?;
 
     // Start selenium on shared network with extra args
     let extra_args = vec![

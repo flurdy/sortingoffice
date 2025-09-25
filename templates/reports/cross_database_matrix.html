@@ -1,7 +1,14 @@
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ title }}</h1>
-        <p class="text-gray-600 dark:text-gray-300">{{ description }}</p>
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ title }}</h1>
+            <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">{{ description }}</p>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="/reports" class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto">
+                {{ back_to_reports }}
+            </a>
+        </div>
     </div>
 
     {% if report.domains.is_empty() %}
@@ -49,9 +56,24 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {% for domain_row in report.domains %}
-                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 odd:bg-gray-50 even:bg-white dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 z-10 bg-transparent">
-                            {{ domain_row.domain }}
+                    <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 z-10">
+                            {% if domain_row.domain_id > 0 %}
+                                {% if domain_row.domain_database_id == current_db_id %}
+                                <a href="/domains/{{ domain_row.domain_id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                                    {{ domain_row.domain }}
+                                </a>
+                                {% else %}
+                                <span class="text-gray-500 dark:text-gray-400">
+                                    {{ domain_row.domain }}
+                                    {% if domain_row.domain_database_id != "" %}
+                                    <span class="text-xs text-gray-400 dark:text-gray-500 ml-1">({{ domain_row.domain_database_id }})</span>
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-gray-500 dark:text-gray-400">{{ domain_row.domain }}</span>
+                            {% endif %}
                         </td>
                         {% for presence in domain_row.presence %}
                         <td class="px-6 py-4 whitespace-nowrap text-center {% if loop.index % 2 == 0 %}border-r border-gray-300 dark:border-gray-600{% endif %}">

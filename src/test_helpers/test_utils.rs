@@ -43,6 +43,31 @@ impl TestUtils {
         Self::create_auth_cookie(AdminRole::ReadOnly)
     }
 
+    /// Create an authenticated cookie with a specific role and database ID
+    pub fn create_auth_cookie_with_db(
+        role: AdminRole,
+        database_id: &str,
+    ) -> axum::http::HeaderValue {
+        let expiry = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            + 3600; // 1 hour in the future
+        let role_str = match role {
+            AdminRole::Edit => "edit",
+            AdminRole::ReadOnly => "read-only",
+        };
+        let cookie = format!(
+            "authenticated={expiry}:{role_str}:{database_id}; Path=/; Max-Age=3600; HttpOnly; SameSite=Lax"
+        );
+        axum::http::HeaderValue::from_str(&cookie).unwrap()
+    }
+
+    /// Create an authenticated cookie with edit role and specific database ID
+    pub fn create_edit_auth_cookie_with_db(database_id: &str) -> axum::http::HeaderValue {
+        Self::create_auth_cookie_with_db(AdminRole::Edit, database_id)
+    }
+
     /// Create a test app with a specific database
     pub async fn create_test_app_with_db(
         db_url: &str,

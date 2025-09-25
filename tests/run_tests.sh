@@ -127,7 +127,7 @@ run_integration_tests() {
     # Run only the integration tests (excluding UI tests)
     print_status "Running integration tests with cargo (threads: $TEST_THREADS)..."
     start_time=$(date +%s)
-    if cargo test --test integration --test handlers --test testcontainers_test -- --test-threads=$TEST_THREADS; then
+    if cargo test --test integration --test handlers --test testcontainers_test --test cross_database_domain_tests -- --test-threads=$TEST_THREADS; then
         end_time=$(date +%s)
         duration=$((end_time - start_time))
         print_success "Integration tests completed successfully in ${duration}s!"

@@ -885,6 +885,7 @@ reports-alias-cross-domain-description = Cerca alias in tutti i domini
 reports-cross-db-matrix-title = Matrice Dominio Cross-Database
 reports-cross-db-matrix-description = Matrice che mostra i domini presenti in tutti i database, sia come domini primari che di backup
 reports-database-header = Database
+reports-domain-header = Dominio
 reports-primary-domain = Dominio
 reports-backup-domain = Backup
 reports-not-present = Non Presente
