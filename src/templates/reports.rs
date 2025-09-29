@@ -1,6 +1,6 @@
 use crate::models::{
     DomainPresenceType::{Backup, Primary},
-    DomainStats, MigrationStatus,
+    DomainStats, MigrationStatus, RecentChangesReport,
 };
 use askama::Template;
 
@@ -45,6 +45,8 @@ pub struct ReportsListTemplate<'a> {
     pub cross_database_migration_report_description: &'a str,
     pub domain_statistics_report_title: &'a str,
     pub domain_statistics_report_description: &'a str,
+    pub recent_changes_report_title: &'a str,
+    pub recent_changes_report_description: &'a str,
     pub view_report: &'a str,
 }
 
@@ -174,4 +176,34 @@ pub struct DomainStatisticsReportTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub domain_stats: &'a [DomainStats],
+}
+
+#[derive(Template)]
+#[template(path = "reports/recent_changes.html", escape = "html")]
+pub struct RecentChangesReportTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub table_header_resource_type: &'a str,
+    pub table_header_resource_name: &'a str,
+    pub table_header_action: &'a str,
+    pub table_header_timestamp: &'a str,
+    pub table_header_status: &'a str,
+    pub table_header_actions: &'a str,
+    pub action_created: &'a str,
+    pub action_updated: &'a str,
+    pub action_deleted: &'a str,
+    pub resource_type_domain: &'a str,
+    pub resource_type_user: &'a str,
+    pub resource_type_alias: &'a str,
+    pub resource_type_backup: &'a str,
+    pub resource_type_relay: &'a str,
+    pub resource_type_relocated: &'a str,
+    pub resource_type_client: &'a str,
+    pub status_enabled: &'a str,
+    pub status_disabled: &'a str,
+    pub view_resource: &'a str,
+    pub no_changes: &'a str,
+    pub no_changes_description: &'a str,
+    pub back_to_reports: &'a str,
+    pub report: &'a RecentChangesReport,
 }

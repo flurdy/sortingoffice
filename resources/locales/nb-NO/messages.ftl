@@ -968,3 +968,26 @@ other-databases-primary-domain = Primært domene
 other-databases-backup-domain = Sikkerhetskopi domene
 other-databases-users-count = Brukere
 other-databases-aliases-count = Aliaser
+
+# Recent Changes Report
+reports-recent-changes-title = Rapport for Nylige Endringer
+reports-recent-changes-description = Se de nyeste tilleggene og oppdateringene på tvers av alle ressurstyper
+reports-table-header-resource-type = Ressurstype
+reports-table-header-resource-name = Ressursnavn
+reports-table-header-action = Handling
+reports-table-header-timestamp = Tidsstempel
+reports-table-header-status = Status
+reports-table-header-actions = Handlinger
+reports-action-created = Opprettet
+reports-action-updated = Oppdatert
+reports-action-deleted = Slettet
+reports-resource-type-domain = Domene
+reports-resource-type-user = Bruker
+reports-resource-type-alias = Alias
+reports-resource-type-backup = Backup
+reports-resource-type-relay = Relay
+reports-resource-type-relocated = Flyttet
+reports-resource-type-client = Klient
+reports-view-resource = Vis
+reports-no-changes = Ingen Nylige Endringer
+reports-no-changes-description = Ingen nylige endringer har blitt registrert i systemet

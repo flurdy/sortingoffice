@@ -728,23 +728,32 @@ pub async fn render_backup_show_page(
         crate::i18n::get_translation(state, locale, "backups-delete-confirm").await;
 
     // Get cross-database domain information
-    let cross_database_info = match crate::db::get_cross_database_domain_info(&state.db_manager, &backup.domain).await {
-        Ok(info) => info,
-        Err(e) => {
-            tracing::error!("Failed to get cross-database domain info: {:?}", e);
-            vec![]
-        }
-    };
+    let cross_database_info =
+        match crate::db::get_cross_database_domain_info(&state.db_manager, &backup.domain).await {
+            Ok(info) => info,
+            Err(e) => {
+                tracing::error!("Failed to get cross-database domain info: {:?}", e);
+                vec![]
+            }
+        };
 
     // Get translations for cross-database information
-    let other_databases_header = crate::i18n::get_translation(state, locale, "other-databases-header").await;
-    let other_databases_description = crate::i18n::get_translation(state, locale, "other-databases-description").await;
-    let other_databases_database_label = crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
-    let other_databases_domain_type = crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
-    let other_databases_primary_domain = crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
-    let other_databases_backup_domain = crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
-    let other_databases_users_count = crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
-    let other_databases_aliases_count = crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
+    let other_databases_header =
+        crate::i18n::get_translation(state, locale, "other-databases-header").await;
+    let other_databases_description =
+        crate::i18n::get_translation(state, locale, "other-databases-description").await;
+    let other_databases_database_label =
+        crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
+    let other_databases_domain_type =
+        crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
+    let other_databases_primary_domain =
+        crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
+    let other_databases_backup_domain =
+        crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
+    let other_databases_users_count =
+        crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
+    let other_databases_aliases_count =
+        crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
     let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
     let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
 
@@ -1007,23 +1016,32 @@ pub async fn render_domain_show_page(
     let add_relay_button = crate::i18n::get_translation(state, locale, "add-relay-button").await;
 
     // Get cross-database domain information
-    let cross_database_info = match crate::db::get_cross_database_domain_info(&state.db_manager, &domain.domain).await {
-        Ok(info) => info,
-        Err(e) => {
-            tracing::error!("Failed to get cross-database domain info: {:?}", e);
-            vec![]
-        }
-    };
+    let cross_database_info =
+        match crate::db::get_cross_database_domain_info(&state.db_manager, &domain.domain).await {
+            Ok(info) => info,
+            Err(e) => {
+                tracing::error!("Failed to get cross-database domain info: {:?}", e);
+                vec![]
+            }
+        };
 
     // Get translations for cross-database information
-    let other_databases_header = crate::i18n::get_translation(state, locale, "other-databases-header").await;
-    let other_databases_description = crate::i18n::get_translation(state, locale, "other-databases-description").await;
-    let other_databases_database_label = crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
-    let other_databases_domain_type = crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
-    let other_databases_primary_domain = crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
-    let other_databases_backup_domain = crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
-    let other_databases_users_count = crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
-    let other_databases_aliases_count = crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
+    let other_databases_header =
+        crate::i18n::get_translation(state, locale, "other-databases-header").await;
+    let other_databases_description =
+        crate::i18n::get_translation(state, locale, "other-databases-description").await;
+    let other_databases_database_label =
+        crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
+    let other_databases_domain_type =
+        crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
+    let other_databases_primary_domain =
+        crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
+    let other_databases_backup_domain =
+        crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
+    let other_databases_users_count =
+        crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
+    let other_databases_aliases_count =
+        crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
     let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
     let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
 
@@ -1815,7 +1833,7 @@ pub async fn render_duplicate_domain_selection_page_with_error(
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    
+
     // Fetch all required translations for duplicate domain selection
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-title").await;
     let description =
@@ -1868,7 +1886,8 @@ pub async fn render_duplicate_domain_selection_page_with_error(
         next_button: &next_button,
         cancel_button: &cancel_button,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
-        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database")
+            .await,
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
@@ -1885,7 +1904,7 @@ pub async fn render_duplicate_domain_review_page(
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    
+
     // Fetch all required translations for duplicate domain review
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-title").await;
     let description =
@@ -1958,7 +1977,8 @@ pub async fn render_duplicate_domain_review_page(
         cancel_button: &cancel_button,
         confirm_button: &confirm_button,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
-        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database")
+            .await,
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
@@ -2026,7 +2046,7 @@ pub async fn render_wizard_domain_config_page(
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    
+
     // Fetch all required translations for wizard domain config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-1-title").await;
     let description =
@@ -2069,7 +2089,8 @@ pub async fn render_wizard_domain_config_page(
         next_button: &next_button,
         cancel_button: &cancel_button,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
-        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database")
+            .await,
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
@@ -2092,7 +2113,7 @@ pub async fn render_wizard_alias_config_page(
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    
+
     // Fetch all required translations for wizard alias config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-2-title").await;
     let description =
@@ -2151,7 +2172,8 @@ pub async fn render_wizard_alias_config_page(
         next_button: &next_button,
         back_button: &back_button,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
-        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database")
+            .await,
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
@@ -2169,7 +2191,7 @@ pub async fn render_wizard_review_page(
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-    
+
     // Fetch all required translations for wizard review
     let title = crate::i18n::get_translation(state, locale, "wizard-step-3-title").await;
     let description =
@@ -2206,7 +2228,8 @@ pub async fn render_wizard_review_page(
         confirm_button: &confirm_button,
         back_button: &back_button,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
-        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database")
+            .await,
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 

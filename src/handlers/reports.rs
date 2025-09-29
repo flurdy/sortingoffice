@@ -277,6 +277,10 @@ pub async fn reports_list(
         get_translation(&state, &locale, "reports-domain-statistics-title").await;
     let domain_statistics_report_description =
         get_translation(&state, &locale, "reports-domain-statistics-description").await;
+    let recent_changes_report_title =
+        get_translation(&state, &locale, "reports-recent-changes-title").await;
+    let recent_changes_report_description =
+        get_translation(&state, &locale, "reports-recent-changes-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -304,6 +308,8 @@ pub async fn reports_list(
         cross_database_migration_report_description: &cross_database_migration_report_description,
         domain_statistics_report_title: &domain_statistics_report_title,
         domain_statistics_report_description: &domain_statistics_report_description,
+        recent_changes_report_title: &recent_changes_report_title,
+        recent_changes_report_description: &recent_changes_report_description,
         view_report: &view_report,
     };
 

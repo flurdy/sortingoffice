@@ -945,3 +945,26 @@ other-databases-primary-domain = Primäre Domain
 other-databases-backup-domain = Backup-Domain
 other-databases-users-count = Benutzer
 other-databases-aliases-count = Aliase
+
+# Recent Changes Report
+reports-recent-changes-title = Bericht über letzte Änderungen
+reports-recent-changes-description = Zeigen Sie die neuesten Ergänzungen und Updates über alle Ressourcentypen hinweg an
+reports-table-header-resource-type = Ressourcentyp
+reports-table-header-resource-name = Ressourcenname
+reports-table-header-action = Aktion
+reports-table-header-timestamp = Zeitstempel
+reports-table-header-status = Status
+reports-table-header-actions = Aktionen
+reports-action-created = Erstellt
+reports-action-updated = Aktualisiert
+reports-action-deleted = Gelöscht
+reports-resource-type-domain = Domain
+reports-resource-type-user = Benutzer
+reports-resource-type-alias = Alias
+reports-resource-type-backup = Backup
+reports-resource-type-relay = Relay
+reports-resource-type-relocated = Umgesiedelt
+reports-resource-type-client = Client
+reports-view-resource = Anzeigen
+reports-no-changes = Keine letzten Änderungen
+reports-no-changes-description = Es wurden keine letzten Änderungen im System aufgezeichnet

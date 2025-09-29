@@ -1,7 +1,6 @@
 use crate::schema::*;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use diesel::sql_types::{Bool, Text};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
@@ -158,20 +157,27 @@ pub struct NewDomain {
 #[diesel(primary_key(id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct User {
-    #[diesel(sql_type = Text)]
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub id: String,
-    #[diesel(sql_type = Bool)]
-    pub enabled: bool,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub crypt: String,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub name: String,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub maildir: String,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub home: String,
+    #[diesel(sql_type = diesel::sql_types::Unsigned<diesel::sql_types::Smallint>)]
     pub uid: u16,
+    #[diesel(sql_type = diesel::sql_types::Unsigned<diesel::sql_types::Smallint>)]
     pub gid: u16,
     #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
     pub created: Option<NaiveDateTime>,
     #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
     pub modified: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
+    pub enabled: bool,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
     pub change_password: bool,
 }
 
@@ -282,6 +288,22 @@ pub struct CrossDatabaseDomainInfo {
     pub alias_count: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RecentChange {
+    pub resource_type: String, // "domain", "user", "alias", "backup", "relay", "relocated", "client"
+    pub resource_id: String,   // ID or identifier of the resource
+    pub resource_name: String, // Human-readable name (domain name, user email, etc.)
+    pub action: String,        // "created", "updated", "deleted"
+    pub timestamp: NaiveDateTime,
+    pub enabled: Option<bool>, // For resources that have enabled status
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RecentChangesReport {
+    pub changes: Vec<RecentChange>,
+    pub total_count: usize,
+}
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = backups)]
 #[diesel(primary_key(pkid))]
@@ -386,12 +408,18 @@ pub struct RelocatedForm {
 #[diesel(primary_key(id))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub struct Client {
+    #[diesel(sql_type = diesel::sql_types::Integer)]
     pub id: i32,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub client: String,
+    #[diesel(sql_type = diesel::sql_types::Varchar)]
     pub status: String,
-    pub created_at: Option<NaiveDateTime>,
-    pub updated_at: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
     pub enabled: bool,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub created_at: Option<NaiveDateTime>,
+    #[diesel(sql_type = diesel::sql_types::Nullable<diesel::sql_types::Timestamp>)]
+    pub updated_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable)]

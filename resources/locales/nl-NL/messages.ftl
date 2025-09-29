@@ -937,3 +937,26 @@ other-databases-primary-domain = Primair domein
 other-databases-backup-domain = Backup domein
 other-databases-users-count = Gebruikers
 other-databases-aliases-count = Aliassen
+
+# Recent Changes Report
+reports-recent-changes-title = Rapport van Recente Wijzigingen
+reports-recent-changes-description = Bekijk de nieuwste toevoegingen en updates over alle resourcetypen
+reports-table-header-resource-type = Resourcetype
+reports-table-header-resource-name = Resourcenaam
+reports-table-header-action = Actie
+reports-table-header-timestamp = Tijdstempel
+reports-table-header-status = Status
+reports-table-header-actions = Acties
+reports-action-created = Aangemaakt
+reports-action-updated = Bijgewerkt
+reports-action-deleted = Verwijderd
+reports-resource-type-domain = Domein
+reports-resource-type-user = Gebruiker
+reports-resource-type-alias = Alias
+reports-resource-type-backup = Backup
+reports-resource-type-relay = Relay
+reports-resource-type-relocated = Verplaatst
+reports-resource-type-client = Client
+reports-view-resource = Bekijken
+reports-no-changes = Geen Recente Wijzigingen
+reports-no-changes-description = Er zijn geen recente wijzigingen geregistreerd in het systeem

@@ -12,7 +12,7 @@ fn redirect_to_list_page_if_resource_specific(url: &str) -> &str {
     } else {
         url
     };
-    
+
     // Extract just the path part (remove protocol and domain)
     let path_only = if let Some(path_start) = path.find("://") {
         if let Some(slash_pos) = path[path_start + 3..].find('/') {
@@ -23,16 +23,21 @@ fn redirect_to_list_page_if_resource_specific(url: &str) -> &str {
     } else {
         path
     };
-    
-    
+
     // Check for resource-specific patterns and redirect to list pages
     if path_only.starts_with("/domains/") && path_only.len() > "/domains/".len() {
         // /domains/123 -> /domains
-        tracing::info!("Redirecting resource-specific page {} to /domains", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /domains",
+            path_only
+        );
         return "/domains";
     } else if path_only.starts_with("/aliases/") && path_only.len() > "/aliases/".len() {
         // /aliases/123 -> /aliases
-        tracing::info!("Redirecting resource-specific page {} to /aliases", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /aliases",
+            path_only
+        );
         return "/aliases";
     } else if path_only.starts_with("/users/") && path_only.len() > "/users/".len() {
         // /users/123 -> /users
@@ -40,22 +45,35 @@ fn redirect_to_list_page_if_resource_specific(url: &str) -> &str {
         return "/users";
     } else if path_only.starts_with("/clients/") && path_only.len() > "/clients/".len() {
         // /clients/123 -> /clients
-        tracing::info!("Redirecting resource-specific page {} to /clients", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /clients",
+            path_only
+        );
         return "/clients";
     } else if path_only.starts_with("/relays/") && path_only.len() > "/relays/".len() {
         // /relays/123 -> /relays
-        tracing::info!("Redirecting resource-specific page {} to /relays", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /relays",
+            path_only
+        );
         return "/relays";
     } else if path_only.starts_with("/relocated/") && path_only.len() > "/relocated/".len() {
         // /relocated/123 -> /relocated
-        tracing::info!("Redirecting resource-specific page {} to /relocated", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /relocated",
+            path_only
+        );
         return "/relocated";
-    } else if path_only.starts_with("/domain_backup/") && path_only.len() > "/domain_backup/".len() {
+    } else if path_only.starts_with("/domain_backup/") && path_only.len() > "/domain_backup/".len()
+    {
         // /domain_backup/123 -> /domains (backup domains are shown in domains list)
-        tracing::info!("Redirecting resource-specific page {} to /domains", path_only);
+        tracing::info!(
+            "Redirecting resource-specific page {} to /domains",
+            path_only
+        );
         return "/domains";
     }
-    
+
     // Return the original URL if it's not a resource-specific page
     tracing::info!("No redirect needed for URL: {}", url);
     url
@@ -203,7 +221,7 @@ pub async fn dropdown(
         .and_then(|v| v.to_str().ok())
         .or_else(|| headers.get("Referer").and_then(|v| v.to_str().ok()))
         .unwrap_or("/");
-    
+
     let content_template = crate::templates::database::DatabaseDropdownTemplate {
         databases: &databases,
         current_db: &current_db,

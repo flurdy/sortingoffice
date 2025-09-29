@@ -3997,3 +3997,200 @@ pub fn get_aliases_with_field_map(
     let sql = build_field_mapped_query("aliases", &fields, db_config);
     sql_query(sql).load::<Alias>(&mut conn)
 }
+
+/// Get recent changes across all resource types
+pub async fn get_recent_changes_report(
+    pool: &DbPool,
+    limit: Option<i64>,
+) -> Result<RecentChangesReport, Box<dyn std::error::Error>> {
+    let limit = limit.unwrap_or(50);
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!("Failed to get connection from pool: {:?}", e);
+        diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {e:?}")),
+        )
+    })?;
+
+    let mut all_changes = Vec::new();
+
+    // Get recent domains
+    let recent_domains = domains::table
+        .order(domains::modified.desc())
+        .limit(limit)
+        .load::<Domain>(&mut conn)?;
+
+    for domain in recent_domains {
+        all_changes.push(RecentChange {
+            resource_type: "domain".to_string(),
+            resource_id: domain.pkid.to_string(),
+            resource_name: domain.domain.clone(),
+            action: if domain.created == domain.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: domain
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(domain.enabled),
+        });
+    }
+
+    // Get recent users
+    let recent_users = users::table
+        .order(users::modified.desc())
+        .limit(limit)
+        .load::<User>(&mut conn)?;
+
+    for user in recent_users {
+        all_changes.push(RecentChange {
+            resource_type: "user".to_string(),
+            resource_id: user.id.clone(),
+            resource_name: user.id.clone(),
+            action: if user.created == user.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: user
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(user.enabled),
+        });
+    }
+
+    // Get recent aliases
+    let recent_aliases = aliases::table
+        .order(aliases::modified.desc())
+        .limit(limit)
+        .load::<Alias>(&mut conn)?;
+
+    for alias in recent_aliases {
+        all_changes.push(RecentChange {
+            resource_type: "alias".to_string(),
+            resource_id: alias.pkid.to_string(),
+            resource_name: alias.mail.clone(),
+            action: if alias.created == alias.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: alias
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(alias.enabled),
+        });
+    }
+
+    // Get recent backups
+    let recent_backups = backups::table
+        .order(backups::modified.desc())
+        .limit(limit)
+        .load::<Backup>(&mut conn)?;
+
+    for backup in recent_backups {
+        all_changes.push(RecentChange {
+            resource_type: "backup".to_string(),
+            resource_id: backup.pkid.to_string(),
+            resource_name: backup.domain.clone(),
+            action: if backup.created == backup.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: backup
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(backup.enabled),
+        });
+    }
+
+    // Get recent relays
+    let recent_relays = relays::table
+        .order(relays::modified.desc())
+        .limit(limit)
+        .load::<Relay>(&mut conn)?;
+
+    for relay in recent_relays {
+        all_changes.push(RecentChange {
+            resource_type: "relay".to_string(),
+            resource_id: relay.pkid.to_string(),
+            resource_name: relay.recipient.clone(),
+            action: if relay.created == relay.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: relay
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(relay.enabled),
+        });
+    }
+
+    // Get recent relocated
+    let recent_relocated = relocated::table
+        .order(relocated::modified.desc())
+        .limit(limit)
+        .load::<Relocated>(&mut conn)?;
+
+    for relocated in recent_relocated {
+        all_changes.push(RecentChange {
+            resource_type: "relocated".to_string(),
+            resource_id: relocated.pkid.to_string(),
+            resource_name: format!("{} -> {}", relocated.old_address, relocated.new_address),
+            action: if relocated.created == relocated.modified {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: relocated
+                .modified
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(relocated.enabled),
+        });
+    }
+
+    // Get recent clients
+    let recent_clients = clients::table
+        .order(clients::updated_at.desc())
+        .limit(limit)
+        .load::<Client>(&mut conn)?;
+
+    for client in recent_clients {
+        all_changes.push(RecentChange {
+            resource_type: "client".to_string(),
+            resource_id: client.id.to_string(),
+            resource_name: client.client.clone(),
+            action: if client.created_at == client.updated_at {
+                "created"
+            } else {
+                "updated"
+            }
+            .to_string(),
+            timestamp: client
+                .updated_at
+                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
+            enabled: Some(client.enabled),
+        });
+    }
+
+    // Sort all changes by timestamp (most recent first)
+    all_changes.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+    // Take only the requested limit
+    let total_count = all_changes.len();
+    all_changes.truncate(limit as usize);
+
+    Ok(RecentChangesReport {
+        changes: all_changes,
+        total_count,
+    })
+}

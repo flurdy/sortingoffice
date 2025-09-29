@@ -18,6 +18,7 @@ pub mod http_helpers;
 pub mod language;
 pub mod not_found;
 pub mod performance;
+pub mod recent_changes;
 pub mod relays;
 pub mod relocated;
 pub mod reports;
@@ -69,6 +70,7 @@ pub use health::*;
 pub use http_helpers::get_user_locale as get_user_locale_util; // Export health handlers
 pub use language::{get_user_locale, set_language};
 pub use not_found::not_found;
+pub use recent_changes::recent_changes_report;
 pub use relays::{
     create_form as create_relay_form, create_relay, delete_relay, edit_form as edit_relay_form,
     list_relays, show_relay, toggle_enabled as toggle_relay_enabled_original,
@@ -171,6 +173,10 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         // Stats and reports
         .route("/stats", axum::routing::get(stats_index))
         .route("/reports", axum::routing::get(reports_list))
+        .route(
+            "/reports/recent-changes",
+            axum::routing::get(recent_changes_report),
+        )
         .route("/reports/matrix", axum::routing::get(matrix_report))
         .route(
             "/reports/cross-database-matrix",
