@@ -958,3 +958,13 @@ refresh-stats = Oppdater Statistikk
 # Read-only database messages
 read-only-database = Database er skrivebeskyttet
 read-only-tooltip = Database er skrivebeskyttet
+
+# Cross-database domain information
+other-databases-header = Andre databaser
+other-databases-description = Informasjon om dette domenet i andre databaser
+other-databases-database-label = Database
+other-databases-domain-type = Type
+other-databases-primary-domain = Primært domene
+other-databases-backup-domain = Sikkerhetskopi domene
+other-databases-users-count = Brukere
+other-databases-aliases-count = Aliaser

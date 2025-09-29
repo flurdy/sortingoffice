@@ -271,6 +271,17 @@ pub struct DomainStats {
     pub used_quota: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CrossDatabaseDomainInfo {
+    pub database_id: String,
+    pub database_label: String,
+    pub is_primary_domain: bool,
+    pub is_backup_domain: bool,
+    pub enabled: bool,
+    pub user_count: i64,
+    pub alias_count: i64,
+}
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = backups)]
 #[diesel(primary_key(pkid))]

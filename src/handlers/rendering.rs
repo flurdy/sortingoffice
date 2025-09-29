@@ -727,6 +727,27 @@ pub async fn render_backup_show_page(
     let delete_confirm =
         crate::i18n::get_translation(state, locale, "backups-delete-confirm").await;
 
+    // Get cross-database domain information
+    let cross_database_info = match crate::db::get_cross_database_domain_info(&state.db_manager, &backup.domain).await {
+        Ok(info) => info,
+        Err(e) => {
+            tracing::error!("Failed to get cross-database domain info: {:?}", e);
+            vec![]
+        }
+    };
+
+    // Get translations for cross-database information
+    let other_databases_header = crate::i18n::get_translation(state, locale, "other-databases-header").await;
+    let other_databases_description = crate::i18n::get_translation(state, locale, "other-databases-description").await;
+    let other_databases_database_label = crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
+    let other_databases_domain_type = crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
+    let other_databases_primary_domain = crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
+    let other_databases_backup_domain = crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
+    let other_databases_users_count = crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
+    let other_databases_aliases_count = crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
+    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+
     let content_template = crate::templates::domain_backup::BackupShowTemplate {
         title,
         view_edit_settings,
@@ -747,6 +768,17 @@ pub async fn render_backup_show_page(
         delete_confirm,
         not_available: crate::i18n::get_translation(state, locale, "not-available").await,
         backup,
+        cross_database_info,
+        other_databases_header,
+        other_databases_description,
+        other_databases_database_label,
+        other_databases_domain_type,
+        other_databases_primary_domain,
+        other_databases_backup_domain,
+        other_databases_users_count,
+        other_databases_aliases_count,
+        status_enabled,
+        status_disabled,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -974,6 +1006,27 @@ pub async fn render_domain_show_page(
     let no_relays_message = crate::i18n::get_translation(state, locale, "no-relays-message").await;
     let add_relay_button = crate::i18n::get_translation(state, locale, "add-relay-button").await;
 
+    // Get cross-database domain information
+    let cross_database_info = match crate::db::get_cross_database_domain_info(&state.db_manager, &domain.domain).await {
+        Ok(info) => info,
+        Err(e) => {
+            tracing::error!("Failed to get cross-database domain info: {:?}", e);
+            vec![]
+        }
+    };
+
+    // Get translations for cross-database information
+    let other_databases_header = crate::i18n::get_translation(state, locale, "other-databases-header").await;
+    let other_databases_description = crate::i18n::get_translation(state, locale, "other-databases-description").await;
+    let other_databases_database_label = crate::i18n::get_translation(state, locale, "other-databases-database-label").await;
+    let other_databases_domain_type = crate::i18n::get_translation(state, locale, "other-databases-domain-type").await;
+    let other_databases_primary_domain = crate::i18n::get_translation(state, locale, "other-databases-primary-domain").await;
+    let other_databases_backup_domain = crate::i18n::get_translation(state, locale, "other-databases-backup-domain").await;
+    let other_databases_users_count = crate::i18n::get_translation(state, locale, "other-databases-users-count").await;
+    let other_databases_aliases_count = crate::i18n::get_translation(state, locale, "other-databases-aliases-count").await;
+    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+
     let content_template = crate::templates::domains::DomainShowTemplate {
         title: &title,
         domain,
@@ -1036,6 +1089,17 @@ pub async fn render_domain_show_page(
         status_header_relay: &status_header_relay,
         no_relays_message: &no_relays_message,
         add_relay_button: &add_relay_button,
+        cross_database_info: &cross_database_info,
+        other_databases_header: &other_databases_header,
+        other_databases_description: &other_databases_description,
+        other_databases_database_label: &other_databases_database_label,
+        other_databases_domain_type: &other_databases_domain_type,
+        other_databases_primary_domain: &other_databases_primary_domain,
+        other_databases_backup_domain: &other_databases_backup_domain,
+        other_databases_users_count: &other_databases_users_count,
+        other_databases_aliases_count: &other_databases_aliases_count,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
     };
 
     render_show_template(content_template, state, locale, headers).await

@@ -42,3 +42,7 @@ Prefer more domain based logic.
 Avoid very big files. 
 
 Make small changes, format code, pass tests, iteratively.
+
+- All text should be in message bundles, never in line if possible.
+
+- All message keys should always be translated

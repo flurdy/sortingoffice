@@ -115,6 +115,18 @@ pub struct DomainShowTemplate<'a> {
     pub status_header_relay: &'a str,
     pub no_relays_message: &'a str,
     pub add_relay_button: &'a str,
+    // Cross-database domain information
+    pub cross_database_info: &'a [crate::models::CrossDatabaseDomainInfo],
+    pub other_databases_header: &'a str,
+    pub other_databases_description: &'a str,
+    pub other_databases_database_label: &'a str,
+    pub other_databases_domain_type: &'a str,
+    pub other_databases_primary_domain: &'a str,
+    pub other_databases_backup_domain: &'a str,
+    pub other_databases_users_count: &'a str,
+    pub other_databases_aliases_count: &'a str,
+    pub status_enabled: &'a str,
+    pub status_disabled: &'a str,
 }
 
 #[derive(Template)]

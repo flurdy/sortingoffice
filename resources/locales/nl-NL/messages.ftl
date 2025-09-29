@@ -927,3 +927,13 @@ refresh-stats = Statistieken Vernieuwen
 # Read-only database messages
 read-only-database = Database is alleen-lezen
 read-only-tooltip = Database is alleen-lezen
+
+# Cross-database domain information
+other-databases-header = Andere databases
+other-databases-description = Informatie over dit domein in andere databases
+other-databases-database-label = Database
+other-databases-domain-type = Type
+other-databases-primary-domain = Primair domein
+other-databases-backup-domain = Backup domein
+other-databases-users-count = Gebruikers
+other-databases-aliases-count = Aliassen

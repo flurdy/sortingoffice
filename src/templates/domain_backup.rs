@@ -23,6 +23,18 @@ pub struct BackupShowTemplate {
     pub delete_confirm: String,
     pub not_available: String,
     pub backup: Backup,
+    // Cross-database domain information
+    pub cross_database_info: Vec<crate::models::CrossDatabaseDomainInfo>,
+    pub other_databases_header: String,
+    pub other_databases_description: String,
+    pub other_databases_database_label: String,
+    pub other_databases_domain_type: String,
+    pub other_databases_primary_domain: String,
+    pub other_databases_backup_domain: String,
+    pub other_databases_users_count: String,
+    pub other_databases_aliases_count: String,
+    pub status_enabled: String,
+    pub status_disabled: String,
 }
 
 #[derive(Template)]

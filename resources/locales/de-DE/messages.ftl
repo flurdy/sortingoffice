@@ -935,3 +935,13 @@ refresh-stats = Statistiken aktualisieren
 # Read-only database messages
 read-only-database = Datenbank ist schreibgeschützt
 read-only-tooltip = Datenbank ist schreibgeschützt
+
+# Cross-database domain information
+other-databases-header = Andere Datenbanken
+other-databases-description = Informationen über diese Domain in anderen Datenbanken
+other-databases-database-label = Datenbank
+other-databases-domain-type = Typ
+other-databases-primary-domain = Primäre Domain
+other-databases-backup-domain = Backup-Domain
+other-databases-users-count = Benutzer
+other-databases-aliases-count = Aliase

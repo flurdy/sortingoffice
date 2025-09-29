@@ -46,6 +46,11 @@
 
 - ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
 
+- When viewing a resource and then in the DB drop down at the top selects another db. 
+ - It will show a completely other resource with the same id in that DB
+ - E.g viewing 'http://localhost:3000/domains/1' is not the same in other DBs 
+ - This seems weird
+
 ## Low Priority Epics
 
 - Full search page. Postponed for now.
@@ -67,6 +72,9 @@
   - E.g is domain or backup domain.  
   - E.g count of aliases and users
   - Enabled or disabled
+
+- On a show backup domain page add a button to change it from a backup domain to a normal domain. Postponed for now.
+  - This might be a wizard to add aliases etc like the current wizards
 
 ## Low Priority Minor and bugs
 

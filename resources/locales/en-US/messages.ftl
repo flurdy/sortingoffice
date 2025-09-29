@@ -944,3 +944,13 @@ welcome = Welcome
 # Read-only database messages
 read-only-database = Database is Read-Only
 read-only-tooltip = Database is read-only
+
+# Cross-database domain information
+other-databases-header = Other Databases
+other-databases-description = Information about this domain in other databases
+other-databases-database-label = Database
+other-databases-domain-type = Type
+other-databases-primary-domain = Primary Domain
+other-databases-backup-domain = Backup Domain
+other-databases-users-count = Users
+other-databases-aliases-count = Aliases

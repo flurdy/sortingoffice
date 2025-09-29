@@ -1870,6 +1870,80 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
     Ok(stats)
 }
 
+// Cross-database domain information
+pub async fn get_cross_database_domain_info(
+    db_manager: &crate::DatabaseManager,
+    domain_name: &str,
+) -> Result<Vec<crate::models::CrossDatabaseDomainInfo>, Box<dyn std::error::Error>> {
+    let configs = db_manager.get_configs();
+    let mut cross_db_info = Vec::new();
+
+    for config in configs {
+        if let Some(pool) = db_manager.get_pool(&config.id).await {
+            let mut is_primary_domain = false;
+            let mut is_backup_domain = false;
+            let enabled;
+            let user_count;
+            let alias_count;
+
+            // Check if domain exists as primary domain
+            match get_domain_by_name(&pool, domain_name) {
+                Ok(domain) => {
+                    is_primary_domain = true;
+                    enabled = domain.enabled;
+                }
+                Err(_) => {
+                    // Check if domain exists as backup domain
+                    match get_backup_by_name(&pool, domain_name) {
+                        Ok(backup) => {
+                            is_backup_domain = true;
+                            enabled = backup.enabled;
+                        }
+                        Err(_) => {
+                            // Domain doesn't exist in this database
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            // Get user count for this domain
+            let mut conn = pool.get().map_err(|e| {
+                tracing::error!("Failed to get connection from pool: {:?}", e);
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::Unknown,
+                    Box::new(format!("Failed to get database connection: {e:?}")),
+                )
+            })?;
+
+            user_count = users::table
+                .filter(users::id.like(format!("%@{}", domain_name)))
+                .count()
+                .get_result(&mut conn)
+                .unwrap_or(0);
+
+            // Get alias count for this domain
+            alias_count = aliases::table
+                .filter(aliases::mail.like(format!("%@{}", domain_name)))
+                .count()
+                .get_result(&mut conn)
+                .unwrap_or(0);
+
+            cross_db_info.push(crate::models::CrossDatabaseDomainInfo {
+                database_id: config.id.clone(),
+                database_label: config.label.clone(),
+                is_primary_domain,
+                is_backup_domain,
+                enabled,
+                user_count,
+                alias_count,
+            });
+        }
+    }
+
+    Ok(cross_db_info)
+}
+
 // Backup functions
 pub fn get_backups(pool: &DbPool) -> Result<Vec<Backup>, Error> {
     let mut conn = pool.get().unwrap();

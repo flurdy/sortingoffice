@@ -1002,3 +1002,13 @@ refresh-stats = Aggiorna Statistiche
 # Read-only database messages
 read-only-database = Database in sola lettura
 read-only-tooltip = Database in sola lettura
+
+# Cross-database domain information
+other-databases-header = Altre database
+other-databases-description = Informazioni su questo dominio in altre database
+other-databases-database-label = Database
+other-databases-domain-type = Tipo
+other-databases-primary-domain = Dominio principale
+other-databases-backup-domain = Dominio di backup
+other-databases-users-count = Utenti
+other-databases-aliases-count = Alias
