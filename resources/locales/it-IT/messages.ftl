@@ -998,3 +998,7 @@ clear-reports-cache = Cancella Cache Report
 clear-pagination-cache = Cancella Cache Paginazione
 clear-system-stats-cache = Cancella Cache Statistiche Sistema
 refresh-stats = Aggiorna Statistiche
+
+# Read-only database messages
+read-only-database = Database in sola lettura
+read-only-tooltip = Database in sola lettura

@@ -1341,3 +1341,7 @@ clear-reports-cache = Vider le Cache des Rapports
 clear-pagination-cache = Vider le Cache de Pagination
 clear-system-stats-cache = Vider le Cache des Statistiques Système
 refresh-stats = Actualiser les Statistiques
+
+# Read-only database messages
+read-only-database = Base de données en lecture seule
+read-only-tooltip = Base de données en lecture seule

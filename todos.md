@@ -42,6 +42,8 @@
 
 ## Medium Priority Minor and bugs
 
+- Domain Wizard and Duplicate Domain pages does not seem to be translated? Or at least still showing in English when selected.
+
 - ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
 
 ## Low Priority Epics
@@ -52,7 +54,7 @@
 - Recent changes report
   - list most recent added and updated resources
 
-- If a db's feature is read only, add and edit buttons should be disabled. 
+- ✅ If a db's feature is read only, add and edit buttons should be disabled. 
   - or other relevant feature toggles as well
 
 - Refactor database helper functions for better maintainability. Postponed for now.
@@ -70,11 +72,11 @@
 
 - ✅ There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
 
-- Fix failing UI test
+- ✅ Fix failing UI test
 
-- Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
+- ✅ Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
 
-- Check if the 'make help' is up to date and not too noisy. 
+- ✅ Check if the 'make help' is up to date and not too noisy. 
   - Maybe some aliases should just be listed in 'sub-help' eg 'make test-help','make db-help' etc?
 
 ## 🐛 Other Bugs and KNOWN ISSUES

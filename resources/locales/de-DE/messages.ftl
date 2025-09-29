@@ -931,3 +931,7 @@ clear-reports-cache = Berichte-Cache löschen
 clear-pagination-cache = Paginierungs-Cache löschen
 clear-system-stats-cache = System-Statistik-Cache löschen
 refresh-stats = Statistiken aktualisieren
+
+# Read-only database messages
+read-only-database = Datenbank ist schreibgeschützt
+read-only-tooltip = Datenbank ist schreibgeschützt

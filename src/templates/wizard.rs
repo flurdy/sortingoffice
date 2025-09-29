@@ -13,6 +13,10 @@ pub struct WizardIndexTemplate<'a> {
     pub step_2_box_description: &'a str,
     pub step_3_box_title: &'a str,
     pub step_3_box_description: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]
@@ -34,6 +38,10 @@ pub struct WizardDomainConfigTemplate<'a> {
     pub disabled_label: &'a str,
     pub next_button: &'a str,
     pub cancel_button: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]
@@ -63,6 +71,10 @@ pub struct WizardAliasConfigTemplate<'a> {
     pub domains_to_configure_label: &'a str,
     pub next_button: &'a str,
     pub back_button: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]
@@ -82,6 +94,10 @@ pub struct WizardReviewTemplate<'a> {
     pub new_badge: &'a str,
     pub confirm_button: &'a str,
     pub back_button: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]
@@ -137,6 +153,10 @@ pub struct DuplicateDomainSelectionTemplate<'a> {
     pub enabled_label: &'a str,
     pub next_button: &'a str,
     pub cancel_button: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]
@@ -170,6 +190,10 @@ pub struct DuplicateReviewTemplate<'a> {
     pub back_button: &'a str,
     pub cancel_button: &'a str,
     pub confirm_button: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

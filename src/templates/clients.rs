@@ -33,6 +33,9 @@ pub struct ClientsListTemplate<'a> {
     pub pagination_results: &'a str,
     pub pagination_previous: &'a str,
     pub pagination_next: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

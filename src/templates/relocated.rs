@@ -20,6 +20,9 @@ pub struct RelocatedListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub relocated: Vec<Relocated>,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

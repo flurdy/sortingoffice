@@ -194,6 +194,10 @@ pub async fn render_domain_list_page(
     headers: &HeaderMap,
     search: Option<&str>,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for domain list
     let title = crate::i18n::get_translation(state, locale, "domains-title").await;
     let description = crate::i18n::get_translation(state, locale, "domains-description").await;
@@ -292,6 +296,8 @@ pub async fn render_domain_list_page(
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
         search_term: search.unwrap_or(""),
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -306,6 +312,10 @@ pub async fn render_alias_list_page(
     headers: &HeaderMap,
     search: Option<&str>,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for alias list
     let title = crate::i18n::get_translation(state, locale, "aliases-title").await;
     let description = crate::i18n::get_translation(state, locale, "aliases-description").await;
@@ -375,6 +385,8 @@ pub async fn render_alias_list_page(
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
         search_term: search.unwrap_or(""),
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -505,6 +517,10 @@ pub async fn render_relay_list_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for relay list
     let title = crate::i18n::get_translation(state, locale, "relays-title").await;
     let relays_list_description =
@@ -549,6 +565,8 @@ pub async fn render_relay_list_page(
         empty_title: &empty_title,
         empty_description: &empty_description,
         relays,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1088,6 +1106,10 @@ pub async fn render_user_list_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for user list
     let title = crate::i18n::get_translation(state, locale, "users-title").await;
     let description = crate::i18n::get_translation(state, locale, "users-description").await;
@@ -1149,6 +1171,8 @@ pub async fn render_user_list_page(
         pagination_to,
         pagination_of,
         pagination_results,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1326,6 +1350,10 @@ pub async fn render_client_list_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for client list
     let title = crate::i18n::get_translation(state, locale, "clients-title").await;
     let description = crate::i18n::get_translation(state, locale, "clients-description").await;
@@ -1401,6 +1429,8 @@ pub async fn render_client_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1529,6 +1559,10 @@ pub async fn render_relocated_list_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for relocated list
     let title = crate::i18n::get_translation(state, locale, "relocated-title").await;
     let relocated_list_description =
@@ -1570,6 +1604,8 @@ pub async fn render_relocated_list_page(
         empty_title: &empty_title,
         empty_description: &empty_description,
         relocated,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1712,6 +1748,10 @@ pub async fn render_duplicate_domain_selection_page_with_error(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    
     // Fetch all required translations for duplicate domain selection
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-title").await;
     let description =
@@ -1763,6 +1803,9 @@ pub async fn render_duplicate_domain_selection_page_with_error(
         enabled_label: &enabled_label,
         next_button: &next_button,
         cancel_button: &cancel_button,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -1775,6 +1818,10 @@ pub async fn render_duplicate_domain_review_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    
     // Fetch all required translations for duplicate domain review
     let title = crate::i18n::get_translation(state, locale, "duplicate-wizard-review-title").await;
     let description =
@@ -1846,6 +1893,9 @@ pub async fn render_duplicate_domain_review_page(
         back_button: &back_button,
         cancel_button: &cancel_button,
         confirm_button: &confirm_button,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -1909,6 +1959,10 @@ pub async fn render_wizard_domain_config_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    
     // Fetch all required translations for wizard domain config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-1-title").await;
     let description =
@@ -1950,6 +2004,9 @@ pub async fn render_wizard_domain_config_page(
         disabled_label: &disabled_label,
         next_button: &next_button,
         cancel_button: &cancel_button,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -1968,6 +2025,10 @@ pub async fn render_wizard_alias_config_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    
     // Fetch all required translations for wizard alias config
     let title = crate::i18n::get_translation(state, locale, "wizard-step-2-title").await;
     let description =
@@ -2025,6 +2086,9 @@ pub async fn render_wizard_alias_config_page(
         domains_to_configure_label: &domains_to_configure_label,
         next_button: &next_button,
         back_button: &back_button,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
@@ -2038,6 +2102,10 @@ pub async fn render_wizard_review_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    
     // Fetch all required translations for wizard review
     let title = crate::i18n::get_translation(state, locale, "wizard-step-3-title").await;
     let description =
@@ -2073,6 +2141,9 @@ pub async fn render_wizard_review_page(
         new_badge: &new_badge,
         confirm_button: &confirm_button,
         back_button: &back_button,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_database: &crate::i18n::get_translation(state, locale, "read-only-database").await,
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_form_template(content_template, state, locale, headers, title.clone()).await

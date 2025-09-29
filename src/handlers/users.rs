@@ -32,7 +32,12 @@ async fn build_user_list_template(
     locale: &str,
     users: Vec<User>,
     pagination: PaginatedResult<User>,
+    headers: &HeaderMap,
 ) -> UsersListTemplate {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     let title = get_translation(state, locale, "users-title").await;
     let description = get_translation(state, locale, "users-description").await;
     let add_user = get_translation(state, locale, "users-add").await;
@@ -84,6 +89,8 @@ async fn build_user_list_template(
         pagination_to,
         pagination_of,
         pagination_results,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: get_translation(state, locale, "read-only-tooltip").await,
     }
 }
 
@@ -561,7 +568,7 @@ pub async fn create(
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
-                build_user_list_template(&state, &locale, users, paginated).await;
+                build_user_list_template(&state, &locale, users, paginated, &headers).await;
             let content = content_template.render().unwrap();
 
             if crate::handlers::http_helpers::is_htmx_request(&headers) {
@@ -810,7 +817,7 @@ pub async fn delete(
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
-                build_user_list_template(&state, &locale, users, paginated).await;
+                build_user_list_template(&state, &locale, users, paginated, &headers).await;
             Html(content_template.render().unwrap())
         }
         Err(error) => error,
@@ -853,7 +860,7 @@ pub async fn toggle_enabled(
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
-                build_user_list_template(&state, &locale, users, paginated).await;
+                build_user_list_template(&state, &locale, users, paginated, &headers).await;
             Html(content_template.render().unwrap())
         }
         Err(error) => error,
@@ -896,7 +903,7 @@ pub async fn toggle_enabled_list(
             };
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
-                build_user_list_template(&state, &locale, users, paginated).await;
+                build_user_list_template(&state, &locale, users, paginated, &headers).await;
             Html(content_template.render().unwrap())
         }
         Err(error) => error,

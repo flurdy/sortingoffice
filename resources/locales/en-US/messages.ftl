@@ -940,3 +940,7 @@ hello = Hello
 nonexistent = Nonexistent
 user = User
 welcome = Welcome
+
+# Read-only database messages
+read-only-database = Database is Read-Only
+read-only-tooltip = Database is read-only

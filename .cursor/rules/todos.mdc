@@ -4,33 +4,33 @@ globs:
 alwaysApply: true
 ---
 
-Do not rewrite or reformat the todo list.
+- Do not rewrite or reformat the todo list.
 
-Update the todo file with tick when finished a task.
+- Update the todo file with tick when finished a task.
 
-You can add sub tasks to implemented or new todos.
+- You can add sub tasks to implemented or new todos.
 
-You can add future outstanding todo tasks.
+- You can add future outstanding todo tasks.
 
-Before starting a new todo ask for confirmation.
+- Once a task is done, or parked, do not start another without confirmation.
 
-Once started the first thing is to add an unchecked emoji to the todo task.
+- Once started the first thing is to add an unchecked emoji to the todo task.
 
-Do not move todos instead work your way down the list.
+- Do not move todos instead work your way down the list.
 
-Do not spam the todos with notes, achievements and other irrelevant noise.
+- Do not spam the todos with notes, achievements and other irrelevant noise.
 
-If notes, status or achievements is necessary create a separate file.
+- If notes, status or achievements is necessary create a separate file.
 
-No todo can be marked done unless code has been checked, formatted and tested.
+- No todo can be marked done unless code has been checked, formatted and tested.
 
-Before starting any epics, ask for confirmation.
+- Before starting any epics, ask for confirmation.
 
-Priority order of todos:
+- Priority order of todos:
   1. High Priority Minor and Bugs
-  1. Medium Priority Minor and Bugs
-  1. Low Priority Minor and Bugs if they are small quick wins.
-  1. High Priority Epics
-  1. Low Priority Minor and Bugs
-  1. Medium Priority Epics
-  1. Low Priority Epics
+  2. Medium Priority Minor and Bugs
+  3  Low Priority Minor and Bugs if they are small quick wins.
+  4. High Priority Epics
+  5. Low Priority Minor and Bugs
+  6. Medium Priority Epics
+  7. Low Priority Epics

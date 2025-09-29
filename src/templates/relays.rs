@@ -22,6 +22,9 @@ pub struct RelayListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub relays: Vec<Relay>,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

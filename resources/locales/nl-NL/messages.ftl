@@ -923,3 +923,7 @@ clear-reports-cache = Rapporten-cache Wissen
 clear-pagination-cache = Paginering-cache Wissen
 clear-system-stats-cache = Systeemstatistieken-cache Wissen
 refresh-stats = Statistieken Vernieuwen
+
+# Read-only database messages
+read-only-database = Database is alleen-lezen
+read-only-tooltip = Database is alleen-lezen

@@ -920,3 +920,7 @@ clear-reports-cache = Limpiar Caché de Reportes
 clear-pagination-cache = Limpiar Caché de Paginación
 clear-system-stats-cache = Limpiar Caché de Estadísticas del Sistema
 refresh-stats = Actualizar Estadísticas
+
+# Read-only database messages
+read-only-database = Base de datos es de solo lectura
+read-only-tooltip = Base de datos es de solo lectura

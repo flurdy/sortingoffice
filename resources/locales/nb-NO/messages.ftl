@@ -954,3 +954,7 @@ clear-reports-cache = Tøm Rapporter-cache
 clear-pagination-cache = Tøm Paginering-cache
 clear-system-stats-cache = Tøm Systemstatistikk-cache
 refresh-stats = Oppdater Statistikk
+
+# Read-only database messages
+read-only-database = Database er skrivebeskyttet
+read-only-tooltip = Database er skrivebeskyttet

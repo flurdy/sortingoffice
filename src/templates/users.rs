@@ -28,6 +28,9 @@ pub struct UsersListTemplate {
     pub pagination_to: String,
     pub pagination_of: String,
     pub pagination_results: String,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: String,
 }
 
 #[derive(Template)]
