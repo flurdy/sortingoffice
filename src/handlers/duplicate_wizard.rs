@@ -1,7 +1,7 @@
 use crate::{
     db,
     handlers::{
-        http_helpers::get_user_locale,
+        language::get_user_locale,
         rendering::{
             render_duplicate_domain_complete_page, render_duplicate_domain_review_page,
             render_duplicate_domain_selection_page,

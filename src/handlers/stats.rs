@@ -8,7 +8,7 @@ pub async fn index(State(state): State<AppState>, headers: HeaderMap) -> Html<St
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
-    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Use cached system stats for better performance
     let system_stats = match state.db_manager.get_system_stats_cached(&pool).await {

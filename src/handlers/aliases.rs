@@ -748,7 +748,7 @@ where
     match validator(form) {
         Ok(_) => Ok(()),
         Err(_) => {
-            let locale = crate::handlers::http_helpers::get_user_locale(headers);
+            let locale = crate::handlers::language::get_user_locale(headers);
             let error_msg = crate::i18n::get_translation(state, &locale, error_key).await;
 
             // Get form translations

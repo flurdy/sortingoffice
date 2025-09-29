@@ -418,7 +418,7 @@ pub async fn create(
         "create_user",
     ) {
         // Return error form for restrictions
-        let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+        let locale = crate::handlers::language::get_user_locale(&headers);
         let error_message = get_translation(&state, &locale, "error-database-restriction").await;
         let form_template =
             build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
@@ -449,7 +449,7 @@ pub async fn create(
         }
     }
 
-    let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+    let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate user ID using helper function
     if let Err(error_html) = validate_user_form_field(
@@ -1133,7 +1133,7 @@ where
     match validator(form) {
         Ok(_) => Ok(()),
         Err(_) => {
-            let locale = crate::handlers::http_helpers::get_user_locale(headers);
+            let locale = crate::handlers::language::get_user_locale(headers);
             let error_msg = crate::i18n::get_translation(state, &locale, error_key).await;
 
             // Build user form template with error

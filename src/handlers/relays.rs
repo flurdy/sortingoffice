@@ -369,7 +369,7 @@ pub async fn toggle_enabled_domain_show(
                 }
             };
 
-            let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+            let locale = crate::handlers::language::get_user_locale(&headers);
 
             // Use resource-specific helper for domain show page with proper relay data
             let alias_report = db::get_domain_alias_report(&pool, &domain.domain).ok();

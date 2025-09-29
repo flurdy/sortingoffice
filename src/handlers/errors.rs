@@ -245,7 +245,7 @@ pub async fn render_error_page(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Html<String> {
-    let locale = crate::handlers::http_helpers::get_user_locale(headers);
+    let locale = crate::handlers::language::get_user_locale(headers);
     let (current_db_label, current_db_id) =
         crate::handlers::utils::get_current_db_info_optimized(state, headers);
 

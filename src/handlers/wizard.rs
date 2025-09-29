@@ -1,7 +1,7 @@
 use crate::{
     analytics::{find_database_common_aliases, find_most_common_destination},
     db,
-    handlers::http_helpers::get_user_locale,
+    handlers::language::get_user_locale,
     models::{
         AliasConfigForm, DomainConfigForm, DomainWizardData, DomainWizardSession,
         WizardConfirmForm, WizardStep, WizardSummary,
@@ -741,7 +741,7 @@ pub async fn destination_search(
 
     // Handle empty or missing query
     if query_string.len() < 2 {
-        let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+        let locale = get_user_locale(&headers);
         let translations = crate::handlers::translations::get_translations_batch(
             &state,
             &locale,
@@ -794,7 +794,7 @@ pub async fn destination_search(
 
     // 4. Render as a flat list of suggestions
     let html = if values.is_empty() {
-        let locale = crate::handlers::http_helpers::get_user_locale(&headers);
+        let locale = get_user_locale(&headers);
         let translations = crate::handlers::translations::get_translations_batch(
             &state,
             &locale,
