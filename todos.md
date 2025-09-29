@@ -68,7 +68,7 @@
 
 ## Low Priority Minor and bugs
 
-- There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
+- ✅ There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
 
 - Fix failing UI test
 

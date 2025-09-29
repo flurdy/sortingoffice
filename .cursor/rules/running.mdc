@@ -5,14 +5,14 @@ alwaysApply: false
 ---
 
 
-Note `make run-watch` may already be running in a terminal and will eventually recompile and restart. No need to kill it, just patience.
+Note `make dev-run` may already be running in a terminal and will eventually recompile and restart. No need to kill it, just patience.
 
 Before a `cargo run` always check with `cargo check` first.
 
 To `pkill` remember that we use fish shell so need to specify process name.
 
 To restart `cargo run` use  `pkill -f sortingoffice; sleep 1; cargo run & sleep 20`
-- or use `make run-watch` to automatically restart
+- or use `make dev-run` to automatically restart
 
 Most of the URLs are behind auth with `admin:admin123`. 
 
