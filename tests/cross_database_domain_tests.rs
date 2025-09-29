@@ -144,8 +144,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_cross_database_domain_scenarios() {
-        // Setup three test databases
-        let (db1, db2, db3) = setup_multiple_test_dbs().await;
+        // Add a timeout to prevent hanging tests
+        let test_future = async {
+            // Setup three test databases
+            let (db1, db2, db3) = setup_multiple_test_dbs().await;
         let db_configs = create_database_configs(&db1, &db2, &db3);
         // Create a custom config that includes the database features
         let config = sortingoffice::config::Config {
@@ -417,12 +419,23 @@ mod tests {
         TestUtils::assert_body_contains(list_response3, domain4).await;
 
         println!("=== All cross-database domain tests passed! ===");
+        };
+
+        // Run the test with a timeout to prevent hanging
+        tokio::time::timeout(
+            std::time::Duration::from_secs(300), // 5 minutes timeout
+            test_future
+        )
+        .await
+        .expect("Test timed out after 5 minutes");
     }
 
     #[tokio::test]
     async fn test_domain_creation_error_handling() {
-        // Setup three test databases
-        let (db1, db2, db3) = setup_multiple_test_dbs().await;
+        // Add a timeout to prevent hanging tests
+        let test_future = async {
+            // Setup three test databases
+            let (db1, db2, db3) = setup_multiple_test_dbs().await;
         let db_configs = create_database_configs(&db1, &db2, &db3);
 
         // Create a custom config with the database configurations
@@ -501,5 +514,14 @@ mod tests {
         TestUtils::assert_body_contains(create_response, "Domain name is required").await;
 
         println!("=== Domain creation error handling tests passed! ===");
+        };
+
+        // Run the test with a timeout to prevent hanging
+        tokio::time::timeout(
+            std::time::Duration::from_secs(300), // 5 minutes timeout
+            test_future
+        )
+        .await
+        .expect("Test timed out after 5 minutes");
     }
 }

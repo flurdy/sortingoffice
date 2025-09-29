@@ -23,6 +23,10 @@
 
 - ✅ Add some unit tests to test the new search/filtering of resources as well
 
+- ✅ Github Actions workflow fails, the CI one: https://github.com/flurdy/sortingoffice/actions/workflows/ci.yml
+  - Says:
+    ``` process didn't exit successfully: `/home/runner/work/sortingoffice/sortingoffice/target/debug/deps/cross_database_domain_tests-68551967c8d47aff --test-threads=2` (signal: 11, SIGSEGV: invalid memory reference) ```
+
 ## Medium Priority Epics
 
 - ✅ List relays for a domain on the show domain page.

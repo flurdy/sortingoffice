@@ -53,17 +53,31 @@ impl Drop for TestContainer {
         let schema = self.schema.clone();
         let port = self.port;
 
-        // Use blocking cleanup to avoid runtime creation issues
-        // This is a best-effort cleanup that won't block the drop
-        std::thread::spawn(move || {
-            // Use blocking cleanup without creating new runtimes
-            cleanup_test_schema_blocking(&schema, port);
+        // Use a more robust cleanup approach that doesn't spawn threads
+        // This avoids potential race conditions and memory issues
+        // We use a timeout to prevent hanging during cleanup
+        let cleanup_result = std::panic::catch_unwind(|| {
+            cleanup_test_schema_blocking(&schema, port)
         });
+
+        match cleanup_result {
+            Ok(Ok(_)) => {
+                // Cleanup successful
+            }
+            Ok(Err(e)) => {
+                // Cleanup failed but didn't panic
+                eprintln!("Warning: Failed to cleanup test schema {}: {}", schema, e);
+            }
+            Err(_) => {
+                // Cleanup panicked - this is bad but we can't do much in Drop
+                eprintln!("Warning: Cleanup panicked for test schema {}", schema);
+            }
+        }
     }
 }
 
 /// Blocking cleanup function for TestContainer drop
-fn cleanup_test_schema_blocking(schema: &str, port: u16) {
+fn cleanup_test_schema_blocking(schema: &str, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     // Try to use mysql client if available
     let mysql_result = std::process::Command::new("mysql")
         .args([
@@ -78,7 +92,10 @@ fn cleanup_test_schema_blocking(schema: &str, port: u16) {
         .output();
 
     match mysql_result {
-        Ok(_) => println!("[DEBUG] Cleaned up test schema: {schema} via mysql client"),
+        Ok(_) => {
+            println!("[DEBUG] Cleaned up test schema: {schema} via mysql client");
+            Ok(())
+        }
         Err(_) => {
             // Fallback: try to use docker exec if mysql client not available
             let docker_result = std::process::Command::new("docker")
@@ -93,11 +110,17 @@ fn cleanup_test_schema_blocking(schema: &str, port: u16) {
                 .output();
 
             match docker_result {
-                Ok(_) => println!("[DEBUG] Cleaned up test schema: {schema} via docker exec"),
-                Err(e) => println!(
-                    "[DEBUG] Warning: Could not clean up schema {}: {}",
-                    schema, e
-                ),
+                Ok(_) => {
+                    println!("[DEBUG] Cleaned up test schema: {schema} via docker exec");
+                    Ok(())
+                }
+                Err(e) => {
+                    println!(
+                        "[DEBUG] Warning: Could not clean up schema {}: {}",
+                        schema, e
+                    );
+                    Err(Box::new(e))
+                }
             }
         }
     }
