@@ -85,6 +85,15 @@ make db-help
 
 # Health checks
 ./scripts/health-check.sh
+
+# Makefile section help
+make help
+make docker-help
+make dev-help
+make test-help
+make db-help
+make tunnel-help
+make code-help
 ```
 
 ### Project Structure

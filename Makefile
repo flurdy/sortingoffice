@@ -6,6 +6,49 @@ include Makefile.db
 
 .PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch dev-run run prod-run
 
+# Section helps
+.PHONY: docker-help dev-help tunnel-help code-help
+
+docker-help:
+	@echo "🐳 Docker Commands"
+	@echo "=================="
+	@echo "  make build       - Build Docker images"
+	@echo "  make up          - Start all services"
+	@echo "  make down        - Stop all services"
+	@echo "  make restart     - Restart all services"
+	@echo "  make logs        - Show logs from all services"
+	@echo "  make status      - Show service status"
+	@echo "  make clean       - Remove all containers and volumes"
+	@echo "  make test-clean  - Remove all test containers"
+
+dev-help:
+	@echo "🛠️  Development Commands"
+	@echo "========================"
+	@echo "  make dev         - Start development environment"
+	@echo "  make dev-down    - Stop development environment"
+	@echo "  make run         - Run application with cargo (PORT to override)"
+	@echo "  make prod-run    - Run app with production config (PROD_PORT/PORT)"
+	@echo "  make run-watch   - Run with cargo watch (PORT to override)"
+
+tunnel-help:
+	@echo "🕳️  SSH Tunnel Management"
+	@echo "=========================="
+	@echo "  make tunnel-prod     - Start production SSH tunnel"
+	@echo "  make tunnel-staging  - Start staging SSH tunnel"
+	@echo "  make tunnel-backup   - Start backup SSH tunnel"
+	@echo "  make tunnel-all      - Start all SSH tunnels"
+	@echo "  make tunnel-stop     - Stop all SSH tunnels"
+	@echo "  make tunnel-status   - Show tunnel status"
+	@echo "  make tunnel-logs     - Show tunnel logs"
+
+code-help:
+	@echo "🧹 Code Quality"
+	@echo "================"
+	@echo "  make fmt         - Format code with cargo fmt"
+	@echo "  make check       - Check code compilation"
+	@echo "  make clippy      - Run clippy linter"
+	@echo "  make pre-commit  - Run formatting and compilation checks"
+
 # Default target
 help:
 	@echo "🚀 Sorting Office - Available Commands"
@@ -22,6 +65,7 @@ help:
 	@echo "  make test-clean - Remove all test containers"
 	@echo "  make test-single TEST=<name> - Run individual test with cleanup"
 	@echo "  make test-single-ui TEST=<name> - Run individual UI test with cleanup"
+	@echo "  make docker-help - Detailed Docker section help"
 	@echo ""
 	@echo "Development:"
 	@echo "  make dev        - Start development environment"
@@ -29,6 +73,7 @@ help:
 	@echo "  make run [PORT=3001] - Run application with cargo (optionally on different port)"
 	@echo "  make prod-run [PROD_PORT=8080] [PORT=3001] - Run application with production config (PROD_PORT takes precedence over PORT)"
 	@echo "  make run-watch [PORT=3001] - Run application with cargo watch (optionally on different port)"
+	@echo "  make dev-help   - Detailed Development section help"
 	@echo ""
 	@echo "Shell Access:"
 	@echo "  make shell      - Open shell in application container"
@@ -53,6 +98,7 @@ help:
 	@echo "  make test-smoke [URL] - Run end-to-end smoke test against running app (default: localhost:3000)"
 	@echo "  make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
 	@echo "  make test-all   - Run all tests (unit + integration + security + api + UI)"
+	@echo "  make test-help  - Detailed Testing section help"
 	@echo ""
 	@echo "SSH Tunnel Management:"
 	@echo "  make tunnel-prod            - Start production SSH tunnel"
@@ -62,14 +108,21 @@ help:
 	@echo "  make tunnel-stop            - Stop all SSH tunnels"
 	@echo "  make tunnel-status          - Show tunnel status"
 	@echo "  make tunnel-logs            - Show tunnel logs"
+	@echo "  make tunnel-help            - Detailed Tunnel section help"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make fmt        - Format code with cargo fmt"
 	@echo "  make check      - Check code compilation"
 	@echo "  make clippy     - Run clippy linter"
 	@echo "  make pre-commit - Run formatting and compilation checks"
+	@echo "  make code-help  - Detailed Code Quality section help"
 	@echo ""
 	@echo "For detailed testing information, run: make test-help"
+	@echo "For DB commands, run: make db-help"
+	@echo "For Docker details, run: make docker-help"
+	@echo "For Tunnel details, run: make tunnel-help"
+	@echo "For Dev details, run: make dev-help"
+	@echo "For Code Quality details, run: make code-help"
 
 # Test help target
 test-help:
@@ -176,8 +229,7 @@ db-shell:
 install:
 	cargo install diesel_cli --no-default-features --features mysql
 
-test: 
-	./tests/run_tests.sh all
+include Makefile.test
 
 .PHONY: test-unit
 test-unit:

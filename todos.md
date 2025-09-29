@@ -27,8 +27,12 @@
   - Says:
     ``` process didn't exit successfully: `/home/runner/work/sortingoffice/sortingoffice/target/debug/deps/cross_database_domain_tests-68551967c8d47aff --test-threads=2` (signal: 11, SIGSEGV: invalid memory reference) ```
     
-- There are a lot 'Unknown database' in the Github Actions CI workflow fails
+- ✅ There are a lot 'Unknown database' in the Github Actions CI workflow fails
   - https://github.com/flurdy/sortingoffice/actions/runs/18103979585/job/51513804349
+  - Investigate CI logs for which step emits "Unknown database"
+  - Ensure test databases/schemas are created in CI before tests run
+  - Align CI env/config with local `config.toml.example`/docker env
+  - Verify CI run passes after changes
 
 ## Medium Priority Epics
 
@@ -87,7 +91,7 @@
 - Move test aliases in the Makefile to a Makefile.test 
 - Move tunnel aliases in the Makefile to a Makefile.tunnel 
 
-## 🐛 Other Bugs and KNOWN ISSUES
+## 🐛 KNOWN ISSUES
 
 ## ⏩ Postponed epics
 

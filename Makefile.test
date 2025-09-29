@@ -1,0 +1,138 @@
+.PHONY: test test-unit test-integration test-security test-api test-ui test-smoke test-smoke-containerized test-all test-ui-failfast test-single test-single-ui test-clean test-help
+
+# Unified test entry
+test:
+	./tests/run_tests.sh all
+
+# Help for testing commands
+test-help:
+	@echo "🧪 Sorting Office - Testing Commands"
+	@echo "===================================="
+	@echo ""
+	@echo "Test Types:"
+	@echo "  Unit Tests:"
+	@echo "    make test-unit          - Run only unit tests (80 tests)"
+	@echo "    cargo test --lib        - Alternative: run unit tests directly"
+	@echo ""
+	@echo "  Integration Tests:"
+	@echo "    make test-integration   - Run integration tests with database"
+	@echo "    TEST_THREADS=N make test-integration  - Set parallelism (default: 8)"
+	@echo "    cargo test --test integration  - Alternative: run directly"
+	@echo ""
+	@echo "  Security Tests:"
+	@echo "    make test-security      - Run security tests (SQL injection, auth bypass)"
+	@echo "    cargo test --test security  - Alternative: run directly"
+	@echo ""
+	@echo "  API Tests:"
+	@echo "    make test-api           - Run API tests (authentication, authorization)"
+	@echo "    cargo test --test api   - Alternative: run directly"
+	@echo ""
+	@echo "  UI Tests:"
+	@echo "    make test-ui            - Run containerized UI tests (Selenium)"
+	@echo "    cargo test --test ui_containerized  - Alternative: run directly"
+	@echo ""
+	@echo "  Smoke Tests:"
+	@echo "    make test-smoke [URL]   - Run end-to-end smoke test (default: localhost:3000)"
+	@echo "    make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
+	@echo "    cargo test ui_smoke_e2e_flow -- --ignored  - Alternative: run directly"
+	@echo "    cargo test ui_smoke_e2e_flow_testcontainers -- --ignored  - Alternative: run testcontainers directly"
+	@echo ""
+	@echo "  Test Data Utilities:"
+	@echo "    cargo test --test test_data_utilities  - Run test data utility tests"
+	@echo ""
+	@echo "  All Tests:"
+	@echo "    make test               - Run all tests (unit + integration + security + api + UI)"
+	@echo "    make test-all           - Run all tests with explicit breakdown"
+	@echo "    ./tests/run_tests.sh all  - Alternative: run via test runner"
+	@echo ""
+	@echo "Test Infrastructure:"
+	@echo "  Selenium Setup (deprecated - now using testcontainers):"
+	@echo "    Selenium is now automatically managed by testcontainers"
+	@echo "    No manual setup required for smoke tests"
+	@echo ""
+	@echo "  Test Database:"
+	@echo "    make test-db-setup      - Setup test database"
+	@echo "    docker compose --profile test up -d  - Start test containers"
+	@echo ""
+	@echo "  Test Cleanup:"
+	@echo "    make test-clean         - Remove all test containers"
+	@echo "    make clean-rust         - Clean Rust artifacts"
+	@echo ""
+	@echo "  Individual Test Runners:"
+	@echo "    make test-single TEST=<name>     - Run individual test with cleanup"
+	@echo "    make test-single-ui TEST=<name>  - Run individual UI test with cleanup"
+	@echo ""
+	@echo "  Test Runner:"
+	@echo "    ./tests/run_tests.sh help  - Show test runner help"
+	@echo "    ./tests/run_tests.sh unit  - Run specific test type"
+
+test-unit:
+	@echo "Running unit tests..."
+	@tests/run_tests.sh unit
+
+test-integration:
+	@echo "Running integration tests..."
+	@TEST_THREADS=$${TEST_THREADS:-8} tests/run_tests.sh integration
+
+test-security:
+	@echo "Running security tests..."
+	@tests/run_tests.sh security
+
+test-api:
+	@echo "Running API tests..."
+	@tests/run_tests.sh api
+
+test-ui:
+	@echo "Running UI tests..."
+	@tests/run_tests.sh ui
+
+test-smoke:
+	@echo "Running end-to-end smoke test..."
+	@echo "Usage: make test-smoke [URL=http://localhost:3000]"
+	@echo "Prerequisites:"
+	@echo "  1. Start app: cargo run (in another terminal)"
+	@echo "  2. Ensure app is running on the specified URL (default: http://localhost:3000)"
+	@echo "  (Selenium is automatically managed by testcontainers)"
+	@echo ""
+	@tests/run_tests.sh smoke $(URL)
+
+test-smoke-containerized:
+	@echo "Running end-to-end smoke test with testcontainers..."
+	@echo "This will start its own isolated environment with:"
+	@echo "  - Testcontainers database"
+	@echo "  - Testcontainers app container"
+	@echo "  - Testcontainers selenium container"
+	@echo ""
+	# @echo "Building Docker image first..."
+	# @make build
+	# @echo ""
+	@tests/run_tests.sh smoke-containerized
+
+test-all: test-unit test-integration test-security test-api test-ui
+	@echo "All tests completed!"
+
+test-ui-failfast:
+	./tests/run_tests.sh ui --fail-fast
+
+# Individual test runners with cleanup
+test-single:
+	@if [ -z "$(TEST)" ]; then \
+		echo "❌ Error: TEST parameter is required"; \
+		echo "Usage: make test-single TEST=test_name"; \
+		echo "Example: make test-single TEST=test_homepage_loads_containerized"; \
+		exit 1; \
+	fi
+	@./tests/run_tests.sh single $(TEST)
+
+test-single-ui:
+	@if [ -z "$(TEST)" ]; then \
+		echo "❌ Error: TEST parameter is required"; \
+		echo "Usage: make test-single-ui TEST=test_name"; \
+		echo "Example: make test-single-ui TEST=test_homepage_loads_containerized"; \
+		exit 1; \
+	fi
+	@./tests/run_tests.sh single-ui $(TEST)
+
+# Cleanup
+test-clean:
+	@./tests/run_tests.sh cleanup
