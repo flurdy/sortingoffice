@@ -340,7 +340,7 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
             axum::routing::post(toggle_enabled_domain_show),
         )
         .route("/aliases/{id}/toggle", axum::routing::post(toggle_enabled))
-        // Domain backup edit operations
+        // Domain backup operations
         .route("/domain_backup", axum::routing::post(domain_backup::create))
         .route("/domain_backup/new", axum::routing::get(domain_backup::new))
         .route(

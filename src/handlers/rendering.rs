@@ -192,6 +192,7 @@ pub async fn render_domain_list_page(
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    search: Option<&str>,
 ) -> Html<String> {
     // Fetch all required translations for domain list
     let title = crate::i18n::get_translation(state, locale, "domains-title").await;
@@ -290,6 +291,7 @@ pub async fn render_domain_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        search_term: search.unwrap_or(""),
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -302,6 +304,7 @@ pub async fn render_alias_list_page(
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    search: Option<&str>,
 ) -> Html<String> {
     // Fetch all required translations for alias list
     let title = crate::i18n::get_translation(state, locale, "aliases-title").await;
@@ -371,10 +374,13 @@ pub async fn render_alias_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        search_term: search.unwrap_or(""),
     };
 
     render_list_template(content_template, state, locale, headers).await
 }
+
+/// Backup-specific rendering functions
 
 pub async fn render_alias_show_page(
     alias: crate::models::Alias,

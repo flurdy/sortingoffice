@@ -32,6 +32,8 @@ pub struct AliasesListTemplate<'a> {
     pub pagination_results: &'a str,
     pub pagination_previous: &'a str,
     pub pagination_next: &'a str,
+    // Search
+    pub search_term: &'a str,
 }
 
 #[derive(Template)]

@@ -48,6 +48,7 @@ pub async fn list(
     let per_page = params.per_page.unwrap_or(20);
     let sort_by = params.sort_by.as_deref();
     let sort_order = params.sort_order.as_deref();
+    let search = params.search.as_deref();
 
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
@@ -55,7 +56,7 @@ pub async fn list(
     };
 
     let paginated_aliases =
-        match db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order) {
+        match db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order, search) {
             Ok(aliases) => aliases,
             Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
         };
@@ -69,6 +70,7 @@ pub async fn list(
         &state,
         &locale,
         &headers,
+        search,
     )
     .await
 }
@@ -255,7 +257,7 @@ pub async fn create(
                             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
                             crate::handlers::rendering::render_alias_list_page(
-                                aliases, &paginated, &state, &locale, &headers,
+                                aliases, &paginated, &state, &locale, &headers, None,
                             )
                             .await
                         }
@@ -295,7 +297,7 @@ pub async fn create(
                     let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
                     crate::handlers::rendering::render_alias_list_page(
-                        aliases, &paginated, &state, &locale, &headers,
+                        aliases, &paginated, &state, &locale, &headers, None,
                     )
                     .await
                 }
@@ -450,7 +452,7 @@ pub async fn delete(
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
             crate::handlers::rendering::render_alias_list_page(
-                aliases, &paginated, &state, &locale, &headers,
+                aliases, &paginated, &state, &locale, &headers, None,
             )
             .await
         }
@@ -531,7 +533,7 @@ pub async fn toggle_enabled_list(
 
             // Use the new resource-specific helper function
             crate::handlers::rendering::render_alias_list_page(
-                aliases, &paginated, &state, &locale, &headers,
+                aliases, &paginated, &state, &locale, &headers, None,
             )
             .await
         }
@@ -778,8 +780,7 @@ where
                 crate::i18n::get_translation(state, &locale, "aliases-update-alias").await;
             let create_alias =
                 crate::i18n::get_translation(state, &locale, "aliases-create-alias").await;
-            let not_available =
-                crate::i18n::get_translation(state, &locale, "not-available").await;
+            let not_available = crate::i18n::get_translation(state, &locale, "not-available").await;
 
             let content_template = crate::templates::aliases::AliasFormTemplate {
                 title: &form_translations["aliases-add-title"],

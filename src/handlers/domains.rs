@@ -148,6 +148,7 @@ async fn render_domain_list_after_creation(
         state,
         locale,
         headers,
+        None,
     )
     .await
 }
@@ -353,22 +354,32 @@ pub async fn list(
     let locale = crate::handlers::http_helpers::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
+    let search = params.search.as_deref();
 
     // Use focused database operations with built-in error handling
-    let paginated_domains =
-        crate::handlers::database_ops::get_paginated_domains_with_fallback(&pool, page, per_page)
-            .await;
+    let paginated_domains = crate::handlers::database_ops::get_paginated_domains_with_fallback(
+        &pool, page, per_page, search,
+    )
+    .await;
 
-    let backups = crate::handlers::database_ops::get_backups_with_fallback(&pool).await;
+    // Get paginated backups with search filter
+    let paginated_backups = match crate::db::get_backups_paginated(&pool, page, per_page, search) {
+        Ok(backups) => backups,
+        Err(e) => {
+            error!("Failed to retrieve backups: {:?}", e);
+            crate::models::PaginatedResult::new(vec![], 0, 1, per_page)
+        }
+    };
 
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_domain_list_page(
         paginated_domains.items.clone(),
-        backups,
+        paginated_backups.items.clone(),
         &paginated_domains,
         &state,
         &locale,
         &headers,
+        search,
     )
     .await
 }
@@ -737,6 +748,7 @@ pub async fn toggle_enabled_list(
                 &state,
                 &locale,
                 &headers,
+                None,
             )
             .await
         }

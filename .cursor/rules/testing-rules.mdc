@@ -1,7 +1,7 @@
 ---
 description: any testing tasks
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 
 Do not use `cargo test` on its own to run all the unit tests as that also includes UI selenium tests which often fail.

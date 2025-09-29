@@ -1577,4 +1577,321 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_domains_list_search_filtering() {
+        let (app, state, container) = create_test_app().await;
+        let pool = container.get_pool();
+
+        // Create test domains
+        let unique_id = unique_test_id();
+        let domain1 = format!("search-test-{unique_id}.com");
+        let domain2 = format!("other-test-{unique_id}.com");
+
+        let new_domain1 = NewDomain {
+            domain: domain1.clone(),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain1 = db::create_domain(&pool, new_domain1).unwrap();
+
+        let new_domain2 = NewDomain {
+            domain: domain2.clone(),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain2 = db::create_domain(&pool, new_domain2).unwrap();
+
+        // Create test backup domains
+        let backup1 = NewBackup {
+            domain: format!("backup-{unique_id}.com"),
+            transport: Some("smtp:backup".to_string()),
+            enabled: true,
+        };
+        let _backup1 = db::create_backup(&pool, backup1).unwrap();
+
+        let backup2 = NewBackup {
+            domain: format!("secondary-{unique_id}.com"),
+            transport: Some("smtp:backup2".to_string()),
+            enabled: true,
+        };
+        let _backup2 = db::create_backup(&pool, backup2).unwrap();
+
+        // Test 1: Search for domains matching "search-test"
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!("/domains?search=search-test-{unique_id}"),
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain the matching domain
+        assert!(body_str.contains(&domain1));
+        // Should not contain the non-matching domain
+        assert!(!body_str.contains(&domain2));
+        // Should not contain backup domains (they don't match the search)
+        assert!(!body_str.contains(&format!("backup-{unique_id}")));
+        assert!(!body_str.contains(&format!("secondary-{unique_id}")));
+
+        // Test 2: Search for backup domains matching "backup"
+        let search_url = format!("/domains?search=backup-{unique_id}");
+        println!("Search URL: {}", search_url);
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &search_url,
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain the matching backup domain
+        assert!(body_str.contains(&format!("backup-{unique_id}")));
+        // Should not contain the non-matching backup domain (be more specific)
+        assert!(!body_str.contains(&format!("secondary-{unique_id}")));
+        // Should not contain regular domains
+        assert!(!body_str.contains(&domain1));
+        assert!(!body_str.contains(&domain2));
+
+        // Test 3: Search with empty query (should return all domains and backups)
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/domains?search=",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain all domains and backups
+        assert!(body_str.contains(&domain1));
+        assert!(body_str.contains(&domain2));
+        assert!(body_str.contains(&format!("backup-{unique_id}")));
+        assert!(body_str.contains(&format!("secondary-{unique_id}")));
+
+        // Test 4: Search with no search parameter (should return all domains and backups)
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/domains",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain all domains and backups
+        assert!(body_str.contains(&domain1));
+        assert!(body_str.contains(&domain2));
+        assert!(body_str.contains(&format!("backup-{unique_id}")));
+        assert!(body_str.contains(&format!("secondary-{unique_id}")));
+    }
+
+    #[tokio::test]
+    async fn test_aliases_list_search_filtering() {
+        let (app, state, container) = create_test_app().await;
+        let pool = container.get_pool();
+
+        // Create test domain
+        let unique_id = unique_test_id();
+        let domain = format!("search-test-{unique_id}.com");
+        let new_domain = NewDomain {
+            domain: domain.clone(),
+            transport: Some("smtp:localhost".to_string()),
+            enabled: true,
+        };
+        let _domain = db::create_domain(&pool, new_domain).unwrap();
+
+        // Create test aliases
+        let mail1 = format!("admin@{domain}");
+        let destination1 = "user@company.com";
+        let alias1 = AliasForm {
+            mail: mail1.clone(),
+            destination: destination1.to_string(),
+            enabled: true,
+            return_url: None,
+            redirect_to: None,
+        };
+        let _alias1 = db::create_alias(&pool, alias1).unwrap();
+
+        let mail2 = format!("support@{domain}");
+        let destination2 = "helpdesk@company.com";
+        let alias2 = AliasForm {
+            mail: mail2.clone(),
+            destination: destination2.to_string(),
+            enabled: true,
+            return_url: None,
+            redirect_to: None,
+        };
+        let _alias2 = db::create_alias(&pool, alias2).unwrap();
+
+        let mail3 = format!("info@{domain}");
+        let destination3 = "contact@example.org";
+        let alias3 = AliasForm {
+            mail: mail3.clone(),
+            destination: destination3.to_string(),
+            enabled: true,
+            return_url: None,
+            redirect_to: None,
+        };
+        let _alias3 = db::create_alias(&pool, alias3).unwrap();
+
+        // Test 1: Search for aliases matching "admin"
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases?search=admin",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain the matching alias
+        assert!(body_str.contains(&mail1));
+        // Should not contain non-matching aliases
+        assert!(!body_str.contains(&mail2));
+        assert!(!body_str.contains(&mail3));
+
+        // Test 2: Search for aliases matching "company.com" (destination field)
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases?search=company.com",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain aliases with matching destinations
+        assert!(body_str.contains(&mail1));
+        assert!(body_str.contains(&mail2));
+        // Should not contain alias with different destination
+        assert!(!body_str.contains(&mail3));
+
+        // Test 3: Search with empty query (should return all aliases)
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases?search=",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain all aliases
+        assert!(body_str.contains(&mail1));
+        assert!(body_str.contains(&mail2));
+        assert!(body_str.contains(&mail3));
+
+        // Test 4: Search with no search parameter (should return all aliases)
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            "/aliases",
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain all aliases
+        assert!(body_str.contains(&mail1));
+        assert!(body_str.contains(&mail2));
+        assert!(body_str.contains(&mail3));
+    }
+
+    #[tokio::test]
+    async fn test_domains_list_search_pagination() {
+        let (app, state, container) = create_test_app().await;
+        let pool = container.get_pool();
+
+        // Create multiple test domains
+        let unique_id = unique_test_id();
+        let domains: Vec<String> = (1..=5)
+            .map(|i| format!("search-test-{}-{}.com", unique_id, i))
+            .collect();
+
+        for domain in &domains {
+            let new_domain = NewDomain {
+                domain: domain.clone(),
+                transport: Some("smtp:localhost".to_string()),
+                enabled: true,
+            };
+            let _domain = db::create_domain(&pool, new_domain).unwrap();
+        }
+
+        // Test search with pagination
+        let response = TestUtils::make_handler_get_request(
+            &app,
+            &state,
+            &format!(
+                "/domains?search=search-test-{}-1&page=1&per_page=2",
+                unique_id
+            ),
+            Some(create_auth_cookie(AdminRole::ReadOnly)),
+        )
+        .await;
+
+        TestUtils::assert_status(&response, StatusCode::OK);
+
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        // Should contain the matching domain
+        assert!(body_str.contains(&format!("search-test-{}-1", unique_id)));
+        // Should not contain non-matching domains
+        for i in 2..=5 {
+            assert!(!body_str.contains(&format!("search-test-{}-{}", unique_id, i)));
+        }
+    }
 }

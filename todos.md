@@ -2,7 +2,7 @@
 
 ## High Priority Epics
 
-- Search filtering on resource list.
+- ✅ Search filtering on resource list.
   - E.g. on these pages: /domains and /aliases
   - as you type filtering by name only, not screen refresh.
   - Handy if paged across many pages 
@@ -14,6 +14,14 @@
   - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
 
 - ✅ Are clients listed? I have a db with clients  but none are shown in the app.
+
+- ✅ Bug - In list domains, filtering by search, brings a list of matching domains, however the result seems to include double up of backups as if the whole page has been replicated inside the domains list box.
+
+- ✅ It seems when filtering the domains, the backup domains are not filtered.
+  - Please filter/search them as well at the same time. 
+  - And do not create a separate filter box for just backup domains.
+
+- ✅ Add some unit tests to test the new search/filtering of resources as well
 
 ## Medium Priority Epics
 
@@ -34,41 +42,9 @@
 
 ## Medium Priority Minor and bugs
 
-- ✅ Write integration tests that
-  - has 3 databases (in test containers)
-  - And the purpose is to test domains across these dbs in /domains and reports
-  - This can be split across several tests.
-  - Creates domain1 in db1
-  - Creates domain1 in db2
-  - Creates domain1 as a backup domain in db3
-  - Creates domain2 in db2
-  - Creates domain3 in db3
-  - Creates domain4 as a backup domain in db1
-  - Creates domain4 as a domain in db2
-  - Verify if listed correctly in /domains when relevant db is the active db
-  - And not listed when not in the relevant db
-  - Verify that the cross domain report lists them all, and correctly
-  - Verify that the cross domain report links to the correct domain/backup domain if on the relevant db
-
-- ✅ Fix failing integration tests
-
 - ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
 
 ## Low Priority Epics
-
-- ✅ Add caching for some DB queries - COMPLETED
-  - ✅ System stats caching (5-minute TTL) - COMPLETED
-  - ✅ Add caching for report functions (12 report functions need caching) - COMPLETED
-  - ✅ Add caching for pagination functions (domains, aliases, users, etc.) - COMPLETED
-  - ✅ Implement automatic cache invalidation on write operations - COMPLETED
-  - ✅ Add cache management utilities (clear all caches, cache stats) - COMPLETED
-
-- ✅ Verify that these caches handle different DBs
-  - e.g. the statistics page values don't seem to change if the db changes
-
-- ✅ The cache_management.rs handler seems to contain blocks of html. The other handlers do not do that. - COMPLETED
-
-- ✅ Is cache management linked from anywhere? Perhaps inside the Configuration page? - COMPLETED
 
 - Full search page. Postponed for now.
   - Search across all fields and tables.
@@ -92,18 +68,13 @@
 
 ## Low Priority Minor and bugs
 
+- There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
+
 - Fix failing UI test
 
 - Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
 
-- ✅ "Database connection error"
-  - If you have chosen a db in your session, and the server reboots, and possibly the db have since been renamed or disabled, when you reload the page, the session is still alive but then the app gives up and just displays: Database connection error, and you are stuck
-
+- Check if the 'make help' is up to date and not too noisy. 
+  - Maybe some aliases should just be listed in 'sub-help' eg 'make test-help','make db-help' etc?
 
 ## 🐛 Other Bugs and KNOWN ISSUES
-
-- ✅ Requests can be slow.
-
-- ✅ There are some test code warnings of unused functions. 
-  - ✅ This should be checked against ui, integration, smoke tests and against ignored smoke tests if they are actually used.
-  - ✅ Then either deleted or marked as dead code if used.

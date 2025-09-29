@@ -1026,8 +1026,10 @@ impl DatabaseManager {
         page: i64,
         per_page: i64,
         db_id: &str,
+        search: Option<&str>,
     ) -> Result<PaginatedResult<Domain>, Error> {
-        let cache_key = format!("domains_{}_{}_{}", db_id, page, per_page);
+        let search_key = search.unwrap_or("");
+        let cache_key = format!("domains_{}_{}_{}_{}", db_id, page, per_page, search_key);
 
         if let Some(cached_result) = self.cache.get_domains_paginated(&cache_key).await {
             tracing::debug!("Returning cached domains pagination for key: {}", cache_key);
@@ -1038,7 +1040,7 @@ impl DatabaseManager {
             "Cache miss, fetching domains pagination from database for key: {}",
             cache_key
         );
-        let result = get_domains_paginated(pool, page, per_page)?;
+        let result = get_domains_paginated(pool, page, per_page, search)?;
 
         self.cache
             .set_domains_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -1054,14 +1056,17 @@ impl DatabaseManager {
         sort_by: Option<&str>,
         sort_order: Option<&str>,
         db_id: &str,
+        search: Option<&str>,
     ) -> Result<PaginatedResult<Alias>, Error> {
+        let search_key = search.unwrap_or("");
         let cache_key = format!(
-            "aliases_{}_{}_{}_{}_{}",
+            "aliases_{}_{}_{}_{}_{}_{}",
             db_id,
             page,
             per_page,
             sort_by.unwrap_or(""),
-            sort_order.unwrap_or("")
+            sort_order.unwrap_or(""),
+            search_key
         );
 
         if let Some(cached_result) = self.cache.get_aliases_paginated(&cache_key).await {
@@ -1073,7 +1078,7 @@ impl DatabaseManager {
             "Cache miss, fetching aliases pagination from database for key: {}",
             cache_key
         );
-        let result = get_aliases_paginated(pool, page, per_page, sort_by, sort_order)?;
+        let result = get_aliases_paginated(pool, page, per_page, sort_by, sort_order, search)?;
 
         self.cache
             .set_aliases_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -1872,6 +1877,56 @@ pub fn get_backups(pool: &DbPool) -> Result<Vec<Backup>, Error> {
         .select(Backup::as_select())
         .order(backups::domain.asc())
         .load::<Backup>(&mut conn)
+}
+
+pub fn get_backups_paginated(
+    pool: &DbPool,
+    page: i64,
+    per_page: i64,
+    search: Option<&str>,
+) -> Result<PaginatedResult<Backup>, Error> {
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!("Failed to get connection from pool: {:?}", e);
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
+
+    let offset = (page - 1) * per_page;
+
+    // Build query with optional search filter
+    let mut query = backups::table.into_boxed();
+
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(backups::domain.like(search_pattern));
+        }
+    }
+
+    // Get total count with search filter
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = backups::table.into_boxed();
+
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(backups::domain.like(search_pattern));
+        }
+    }
+
+    // Get paginated results with search filter
+    let backups = query
+        .select(Backup::as_select())
+        .order(backups::domain.asc())
+        .limit(per_page)
+        .offset(offset)
+        .load::<Backup>(&mut conn)?;
+
+    Ok(PaginatedResult::new(backups, total_count, page, per_page))
 }
 
 pub fn get_backup(pool: &DbPool, backup_id: i32) -> Result<Backup, Error> {
@@ -2745,6 +2800,7 @@ pub fn get_domains_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    search: Option<&str>,
 ) -> Result<PaginatedResult<Domain>, Error> {
     let mut conn = pool.get().map_err(|e| {
         tracing::error!("Failed to get connection from pool: {:?}", e);
@@ -2756,11 +2812,31 @@ pub fn get_domains_paginated(
 
     let offset = (page - 1) * per_page;
 
-    // Get total count
-    let total_count: i64 = domains::table.count().get_result(&mut conn)?;
+    // Build query with optional search filter
+    let mut query = domains::table.into_boxed();
 
-    // Get paginated results
-    let domains = domains::table
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(domains::domain.like(search_pattern));
+        }
+    }
+
+    // Get total count with search filter
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = domains::table.into_boxed();
+
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(domains::domain.like(search_pattern));
+        }
+    }
+
+    // Get paginated results with search filter
+    let domains = query
         .select(Domain::as_select())
         .order(domains::domain.asc())
         .limit(per_page)
@@ -2776,16 +2852,42 @@ pub fn get_aliases_paginated(
     per_page: i64,
     sort_by: Option<&str>,
     sort_order: Option<&str>,
+    search: Option<&str>,
 ) -> Result<PaginatedResult<Alias>, Error> {
     let mut conn = pool.get().unwrap();
 
     let offset = (page - 1) * per_page;
 
-    // Get total count
-    let total_count: i64 = aliases::table.count().get_result(&mut conn)?;
-
-    // Build the query with sorting
+    // Build the query with search filter
     let mut query = aliases::table.select(Alias::as_select()).into_boxed();
+
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(
+                aliases::mail
+                    .like(search_pattern.clone())
+                    .or(aliases::destination.like(search_pattern)),
+            );
+        }
+    }
+
+    // Get total count with search filter
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = aliases::table.select(Alias::as_select()).into_boxed();
+
+    if let Some(search_term) = search {
+        if !search_term.trim().is_empty() {
+            let search_pattern = format!("%{}%", search_term);
+            query = query.filter(
+                aliases::mail
+                    .like(search_pattern.clone())
+                    .or(aliases::destination.like(search_pattern)),
+            );
+        }
+    }
 
     // Apply sorting
     match sort_by {

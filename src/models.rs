@@ -271,7 +271,7 @@ pub struct DomainStats {
     pub used_quota: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = backups)]
 #[diesel(primary_key(pkid))]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
@@ -666,6 +666,7 @@ pub struct PaginationParams {
     pub per_page: Option<i64>,
     pub sort_by: Option<String>,
     pub sort_order: Option<String>,
+    pub search: Option<String>,
 }
 
 impl Default for PaginationParams {
@@ -675,6 +676,7 @@ impl Default for PaginationParams {
             per_page: Some(20),
             sort_by: Some("mail".to_string()),
             sort_order: Some("asc".to_string()),
+            search: None,
         }
     }
 }
