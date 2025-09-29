@@ -115,13 +115,13 @@ run_integration_tests() {
 
     # Reduce test threads for CI environment to prevent resource contention
     if [ "$CI" = "true" ]; then
-        TEST_THREADS=2
-        print_warning "CI environment detected, reducing test threads to $TEST_THREADS"
-        # Also reduce cargo test threads for CI
-        export RUST_TEST_THREADS=2
+        # Honor externally provided settings; default to 1 if unset
+        : "${TEST_THREADS:=1}"
+        : "${RUST_TEST_THREADS:=1}"
+        print_warning "CI environment detected, using test threads: $TEST_THREADS"
     else
-        TEST_THREADS=8
-        export RUST_TEST_THREADS=8
+        : "${TEST_THREADS:=8}"
+        : "${RUST_TEST_THREADS:=${TEST_THREADS}}"
     fi
 
     # Run only the integration tests (excluding UI tests)
