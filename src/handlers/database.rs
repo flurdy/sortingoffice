@@ -4,6 +4,63 @@ use serde::Deserialize;
 
 use crate::{render_template_with_title, AppState};
 
+/// Helper function to redirect resource-specific pages to their list pages when switching databases
+fn redirect_to_list_page_if_resource_specific(url: &str) -> &str {
+    // Parse the URL to extract the path
+    let path = if let Some(query_start) = url.find('?') {
+        &url[..query_start]
+    } else {
+        url
+    };
+    
+    // Extract just the path part (remove protocol and domain)
+    let path_only = if let Some(path_start) = path.find("://") {
+        if let Some(slash_pos) = path[path_start + 3..].find('/') {
+            &path[path_start + 3 + slash_pos..]
+        } else {
+            "/"
+        }
+    } else {
+        path
+    };
+    
+    
+    // Check for resource-specific patterns and redirect to list pages
+    if path_only.starts_with("/domains/") && path_only.len() > "/domains/".len() {
+        // /domains/123 -> /domains
+        tracing::info!("Redirecting resource-specific page {} to /domains", path_only);
+        return "/domains";
+    } else if path_only.starts_with("/aliases/") && path_only.len() > "/aliases/".len() {
+        // /aliases/123 -> /aliases
+        tracing::info!("Redirecting resource-specific page {} to /aliases", path_only);
+        return "/aliases";
+    } else if path_only.starts_with("/users/") && path_only.len() > "/users/".len() {
+        // /users/123 -> /users
+        tracing::info!("Redirecting resource-specific page {} to /users", path_only);
+        return "/users";
+    } else if path_only.starts_with("/clients/") && path_only.len() > "/clients/".len() {
+        // /clients/123 -> /clients
+        tracing::info!("Redirecting resource-specific page {} to /clients", path_only);
+        return "/clients";
+    } else if path_only.starts_with("/relays/") && path_only.len() > "/relays/".len() {
+        // /relays/123 -> /relays
+        tracing::info!("Redirecting resource-specific page {} to /relays", path_only);
+        return "/relays";
+    } else if path_only.starts_with("/relocated/") && path_only.len() > "/relocated/".len() {
+        // /relocated/123 -> /relocated
+        tracing::info!("Redirecting resource-specific page {} to /relocated", path_only);
+        return "/relocated";
+    } else if path_only.starts_with("/domain_backup/") && path_only.len() > "/domain_backup/".len() {
+        // /domain_backup/123 -> /domains (backup domains are shown in domains list)
+        tracing::info!("Redirecting resource-specific page {} to /domains", path_only);
+        return "/domains";
+    }
+    
+    // Return the original URL if it's not a resource-specific page
+    tracing::info!("No redirect needed for URL: {}", url);
+    url
+}
+
 #[derive(Deserialize)]
 pub struct DatabaseSelectionForm {
     database_id: String,
@@ -73,7 +130,8 @@ pub async fn select(
     let redirect_url = if redirect_url.is_empty() {
         "/"
     } else {
-        redirect_url
+        // Check if we're on a resource-specific page and redirect to the list page
+        redirect_to_list_page_if_resource_specific(redirect_url)
     };
 
     // Update the session with the new database selection
@@ -139,11 +197,13 @@ pub async fn dropdown(
         current_db
     };
 
-    // Try to get the current URL from Referer header, fallback to "/"
+    // Try to get the current URL from HTMX headers first, then Referer header, fallback to "/"
     let current_url = headers
-        .get("Referer")
+        .get("HX-Current-URL")
         .and_then(|v| v.to_str().ok())
+        .or_else(|| headers.get("Referer").and_then(|v| v.to_str().ok()))
         .unwrap_or("/");
+    
     let content_template = crate::templates::database::DatabaseDropdownTemplate {
         databases: &databases,
         current_db: &current_db,
