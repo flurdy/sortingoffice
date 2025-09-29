@@ -46,6 +46,18 @@ jobs:
         sudo systemctl status docker
       timeout-minutes: 5
 
+    - name: Docker sanity check
+      run: |
+        docker version
+        docker info
+        docker ps
+      timeout-minutes: 3
+
+    - name: Pre-pull MySQL image for testcontainers
+      run: |
+        docker pull mysql:8 || docker pull mysql:latest || true
+      timeout-minutes: 5
+
     - name: Cache Rust dependencies
       uses: actions/cache@v4
       with:
@@ -68,13 +80,15 @@ jobs:
       env:
         RUST_LOG: debug
         RUST_TEST_THREADS: 1
+        TEST_THREADS: 1
       run: make test-unit
       timeout-minutes: 10
 
     - name: Run integration tests
       env:
         RUST_LOG: debug
-        TEST_THREADS: 4
+        RUST_TEST_THREADS: 1
+        TEST_THREADS: 1
       run: make test-integration
       timeout-minutes: 15
 
