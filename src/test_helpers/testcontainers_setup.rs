@@ -4,6 +4,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::RunQueryDsl;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::Once;
+use std::time::Duration;
 use testcontainers::runners::AsyncRunner;
 use testcontainers::ContainerAsync;
 use testcontainers_modules::mysql::Mysql;
@@ -203,6 +204,9 @@ pub async fn setup_test_db() -> TestContainer {
     // Start or get the shared MySQL container and port
     let port = get_shared_mysql_port().await;
     let host = "127.0.0.1";
+
+    // Wait for MySQL to be fully ready before attempting any connections
+    wait_for_mysql_ready(host, port, Duration::from_secs(30)).await;
 
     // Create a unique schema/database for this test
     let schema = unique_test_id();
@@ -563,4 +567,40 @@ pub fn unique_test_id() -> String {
         .unwrap()
         .as_nanos();
     format!("test_{timestamp}")
+}
+
+/// Wait until MySQL accepts connections and responds to a trivial query.
+async fn wait_for_mysql_ready(host: &str, port: u16, timeout: Duration) {
+    use diesel::prelude::*;
+
+    let admin_url = format!("mysql://root@{host}:{port}/mysql");
+    let start = std::time::Instant::now();
+    let mut attempt: u32 = 0;
+
+    loop {
+        attempt += 1;
+        match MysqlConnection::establish(&admin_url) {
+            Ok(mut conn) => {
+                // If SELECT 1 works, we are ready
+                let res = diesel::sql_query("SELECT 1").execute(&mut conn);
+                if res.is_ok() {
+                    println!(
+                        "[DEBUG] MySQL readiness confirmed on {host}:{port} after {attempt} attempts"
+                    );
+                    break;
+                }
+            }
+            Err(e) => {
+                println!("[DEBUG] MySQL not ready on {host}:{port} (attempt {attempt}): {e}");
+            }
+        }
+
+        if start.elapsed() > timeout {
+            panic!(
+                "Timed out waiting for MySQL to be ready on {host}:{port} after {:?}",
+                timeout
+            );
+        }
+        tokio::time::sleep(Duration::from_millis(200)).await;
+    }
 }
