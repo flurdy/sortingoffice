@@ -473,6 +473,27 @@ pub fn validate_transport(transport: &str) -> Result<(), ValidationError> {
         ));
     }
 
+    // Disallow path separators to prevent path traversal-like inputs
+    if transport.contains('/') || transport.contains('\\') {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot contain path separators".to_string(),
+        ));
+    }
+
+    // Disallow path traversal patterns
+    if transport.contains("..") {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot contain path traversal sequences".to_string(),
+        ));
+    }
+
+    // Disallow spaces for safety (tabs/newlines are already covered as control chars)
+    if transport.contains(' ') {
+        return Err(ValidationError::TransportInvalid(
+            "Transport cannot contain spaces".to_string(),
+        ));
+    }
+
     Ok(())
 }
 
