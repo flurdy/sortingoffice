@@ -304,6 +304,34 @@ pub struct RecentChangesReport {
     pub total_count: usize,
 }
 
+// Search models
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SearchResult {
+    pub resource_type: String, // "domain", "user", "alias", "backup", "relay", "relocated", "client"
+    pub resource_id: String,
+    pub resource_name: String,
+    pub resource_description: String, // Additional context about the resource
+    pub enabled: Option<bool>,
+    pub created: Option<NaiveDateTime>,
+    pub modified: Option<NaiveDateTime>,
+    pub match_fields: Vec<String>, // Fields that matched the search
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SearchResults {
+    pub query: String,
+    pub results: Vec<SearchResult>,
+    pub total_count: usize,
+    pub search_time_ms: u64,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SearchForm {
+    pub query: String,
+    pub resource_types: Option<Vec<String>>, // Filter by resource types
+    pub enabled_only: Option<bool>,          // Filter by enabled status
+}
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable, Clone)]
 #[diesel(table_name = backups)]
 #[diesel(primary_key(pkid))]

@@ -56,9 +56,8 @@ impl Drop for TestContainer {
         // Use a more robust cleanup approach that doesn't spawn threads
         // This avoids potential race conditions and memory issues
         // We use a timeout to prevent hanging during cleanup
-        let cleanup_result = std::panic::catch_unwind(|| {
-            cleanup_test_schema_blocking(&schema, port)
-        });
+        let cleanup_result =
+            std::panic::catch_unwind(|| cleanup_test_schema_blocking(&schema, port));
 
         match cleanup_result {
             Ok(Ok(_)) => {

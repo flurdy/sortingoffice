@@ -15,6 +15,7 @@ pub mod layout;
 pub mod relays;
 pub mod relocated;
 pub mod reports;
+pub mod search;
 pub mod stats;
 pub mod users;
 pub mod wizard;

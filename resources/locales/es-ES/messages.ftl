@@ -11,6 +11,7 @@ nav-relocated = "Reubicados"
 nav-clients = "Clientes"
 nav-statistics = "Estadísticas"
 nav-reports = "Informes"
+nav-search = "Buscar"
 nav-config = "Configuración"
 nav-database-backup = "Respaldo de Base de Datos"
 nav-database = "Selección de Base de Datos"
@@ -884,6 +885,30 @@ welcome = Welcome
 
 # Reports - New Translation Keys
 reports-back-to-reports = Volver a Informes
+
+# Search functionality
+search-title = "Buscar"
+search-description = "Buscar en todos los recursos de la base de datos"
+search-placeholder = "Ingrese término de búsqueda..."
+search-button = "Buscar"
+search-results-title = "Resultados de Búsqueda"
+search-no-results = "No se encontraron resultados"
+search-no-results-description = "Intente ajustar sus términos de búsqueda o filtros"
+search-results-count = "Resultados"
+search-time = "Tiempo"
+search-filter-types = "Tipos de Recursos"
+search-filter-enabled-only = "Solo habilitados"
+search-resource-type-domain = "Dominios"
+search-resource-type-user = "Usuarios"
+search-resource-type-alias = "Alias"
+search-resource-type-backup = "Dominios de Respaldo"
+search-resource-type-relay = "Relés"
+search-resource-type-relocated = "Reubicados"
+search-resource-type-client = "Clientes"
+search-match-fields = "Campos coincidentes"
+search-view-resource = "Ver"
+search-created = "Creado"
+search-modified = "Modificado"
 reports-total-databases = Total de Bases de Datos
 reports-read-only = Solo Lectura
 reports-no-new-users = Sin Nuevos Usuarios

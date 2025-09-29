@@ -1,5 +1,5 @@
 ---
-description: when finishing or starting a new todo
+description: when finishing or starting a new todo task
 globs: 
 alwaysApply: true
 ---
@@ -12,7 +12,7 @@ alwaysApply: true
 
 - You can add future outstanding todo tasks.
 
-- Once a task is done, or parked, do not start another without confirmation.
+- Once a task is done, or parked, do not start another todo task without confirmation.
 
 - Once started the first thing is to add an unchecked emoji to the todo task.
 

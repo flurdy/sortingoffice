@@ -17,6 +17,7 @@ pub struct BaseTemplate {
     pub nav_clients: String,
     pub nav_statistics: String,
     pub nav_reports: String,
+    pub nav_search: String,
     pub nav_config: String,
     pub nav_database_backup: String,
     pub nav_database: String,
@@ -65,6 +66,7 @@ pub struct LayoutTemplate<'a> {
     pub nav_clients: &'a str,
     pub nav_statistics: &'a str,
     pub nav_reports: &'a str,
+    pub nav_search: &'a str,
     pub nav_config: &'a str,
     pub nav_database_backup: &'a str,
     pub nav_database: &'a str,
@@ -119,6 +121,7 @@ impl BaseTemplate {
             nav_clients: crate::i18n::get_translation(state, locale, "nav-clients").await,
             nav_statistics: crate::i18n::get_translation(state, locale, "nav-statistics").await,
             nav_reports: crate::i18n::get_translation(state, locale, "nav-reports").await,
+            nav_search: crate::i18n::get_translation(state, locale, "nav-search").await,
             nav_config: crate::i18n::get_translation(state, locale, "nav-config").await,
             nav_database_backup: crate::i18n::get_translation(state, locale, "nav-database-backup")
                 .await,

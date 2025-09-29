@@ -1,0 +1,195 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">{{ title }}</h1>
+            <p class="text-gray-600 dark:text-gray-300">{{ description }}</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mb-8">
+            <form method="GET" action="/search" class="space-y-6">
+                <!-- Search Input -->
+                <div>
+                    <label for="search-query" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Search Query
+                    </label>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="search-query"
+                            name="q"
+                            value="{{ query }}"
+                            placeholder="{{ search_placeholder }}"
+                            class="w-full px-4 py-3 pl-10 pr-4 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            required
+                        />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Resource Types Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {{ search_filter_types }}
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="domain" value="true" 
+                                       {% if selected_domain %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_domain }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="user" value="true"
+                                       {% if selected_user %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_user }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="alias" value="true"
+                                       {% if selected_alias %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_alias }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="backup" value="true"
+                                       {% if selected_backup %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_backup }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="relay" value="true"
+                                       {% if selected_relay %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_relay }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="relocated" value="true"
+                                       {% if selected_relocated %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_relocated }}</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="client" value="true"
+                                       {% if selected_client %}checked{% endif %}
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ search_resource_type_client }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Enabled Only Filter -->
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="enabled_only" value="true"
+                                   {% if enabled_only %}checked{% endif %}
+                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ search_filter_enabled_only }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline">
+                        {{ search_button }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        {% if has_results %}
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ search_results_title }}</h2>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        <span>{{ search_results_count }}: {{ total_count }}</span>
+                        <span class="mx-2">•</span>
+                        <span>{{ search_time }}: {{ search_time_ms }}ms</span>
+                    </div>
+                </div>
+
+                {% if results.is_empty() %}
+                    <!-- No Results -->
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">{{ search_no_results }}</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ search_no_results_description }}</p>
+                    </div>
+                {% else %}
+                    <!-- Results List -->
+                    <div class="space-y-4">
+                        {% for result in results %}
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {% if result.resource_type == "domain" %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                                {% elif result.resource_type == "user" %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                {% elif result.resource_type == "alias" %}bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                                                {% elif result.resource_type == "backup" %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                {% elif result.resource_type == "relay" %}bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200
+                                                {% elif result.resource_type == "relocated" %}bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200
+                                                {% elif result.resource_type == "client" %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200
+                                                {% endif %}">
+                                                {{ result.resource_type|title }}
+                                            </span>
+                                            {% if result.enabled.is_some() %}
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                                    {% if result.enabled.unwrap() %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                    {% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                                                    {% if result.enabled.unwrap() %}{{ status_enabled }}{% else %}{{ status_disabled }}{% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                                            {{ result.resource_name }}
+                                        </h3>
+                                        
+                                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                                            {{ result.resource_description }}
+                                        </p>
+                                        
+                                        {% if !result.match_fields.is_empty() %}
+                                            <div class="flex items-center space-x-2 mb-2">
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ search_match_fields }}:</span>
+                                                <div class="flex flex-wrap gap-1">
+                                                    {% for field in result.match_fields %}
+                                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                                            {{ field }}
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Date info removed for template compatibility -->
+                                    </div>
+                                    
+                                    <div class="ml-4">
+                                        <a href="/{{ result.resource_type }}s/{{ result.resource_id }}" 
+                                           class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            {{ search_view_resource }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>

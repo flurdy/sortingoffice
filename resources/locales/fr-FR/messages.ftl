@@ -11,6 +11,7 @@ nav-relocated = Réacheminés
 nav-clients = Clients
 nav-statistics = Statistiques
 nav-reports = Rapports
+nav-search = Recherche
 nav-config = Configuration
 nav-database-backup = Sauvegarde de Base de Données
 nav-database = Sélection de Base de Données
@@ -1305,6 +1306,30 @@ welcome = Welcome
 
 # Reports - New Translation Keys
 reports-back-to-reports = Retour aux Rapports
+
+# Search functionality
+search-title = Recherche
+search-description = Rechercher dans toutes les ressources de la base de données
+search-placeholder = Entrez un terme de recherche...
+search-button = Rechercher
+search-results-title = Résultats de Recherche
+search-no-results = Aucun résultat trouvé
+search-no-results-description = Essayez d'ajuster vos termes de recherche ou filtres
+search-results-count = Résultats
+search-time = Temps
+search-filter-types = Types de Ressources
+search-filter-enabled-only = Activés uniquement
+search-resource-type-domain = Domaines
+search-resource-type-user = Utilisateurs
+search-resource-type-alias = Alias
+search-resource-type-backup = Domaines de Sauvegarde
+search-resource-type-relay = Relais
+search-resource-type-relocated = Réacheminés
+search-resource-type-client = Clients
+search-match-fields = Champs correspondants
+search-view-resource = Voir
+search-created = Créé
+search-modified = Modifié
 reports-total-databases = Total des Bases de Données
 reports-read-only = Lecture Seule
 reports-no-new-users = Aucun Nouvel Utilisateur

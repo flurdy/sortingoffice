@@ -4194,3 +4194,349 @@ pub async fn get_recent_changes_report(
         total_count,
     })
 }
+
+/// Perform a comprehensive search across all tables
+pub async fn search_all_tables(
+    pool: &DbPool,
+    query: &str,
+    resource_types: Option<&[String]>,
+    enabled_only: Option<bool>,
+    limit: Option<i64>,
+) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    let start_time = std::time::Instant::now();
+    let limit = limit.unwrap_or(100);
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!("Failed to get connection from pool: {:?}", e);
+        diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {e:?}")),
+        )
+    })?;
+
+    let mut all_results = Vec::new();
+    let search_pattern = format!("%{}%", query);
+
+    // Search domains
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"domain".to_string())
+    {
+        let domains = domains::table
+            .filter(
+                domains::domain
+                    .like(&search_pattern)
+                    .or(domains::transport.like(&search_pattern)),
+            )
+            .load::<Domain>(&mut conn)?;
+
+        for domain in domains {
+            if enabled_only.is_some() && enabled_only.unwrap() && !domain.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if domain.domain.contains(query) {
+                match_fields.push("domain".to_string());
+            }
+            if domain
+                .transport
+                .as_ref()
+                .map_or(false, |t| t.contains(query))
+            {
+                match_fields.push("transport".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "domain".to_string(),
+                resource_id: domain.pkid.to_string(),
+                resource_name: domain.domain.clone(),
+                resource_description: format!(
+                    "Transport: {}",
+                    domain.transport.as_deref().unwrap_or("N/A")
+                ),
+                enabled: Some(domain.enabled),
+                created: domain.created,
+                modified: domain.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search users
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"user".to_string())
+    {
+        let users = users::table
+            .filter(
+                users::id
+                    .like(&search_pattern)
+                    .or(users::name.like(&search_pattern))
+                    .or(users::maildir.like(&search_pattern))
+                    .or(users::home.like(&search_pattern)),
+            )
+            .load::<User>(&mut conn)?;
+
+        for user in users {
+            if enabled_only.is_some() && enabled_only.unwrap() && !user.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if user.id.contains(query) {
+                match_fields.push("id".to_string());
+            }
+            if user.name.contains(query) {
+                match_fields.push("name".to_string());
+            }
+            if user.maildir.contains(query) {
+                match_fields.push("maildir".to_string());
+            }
+            if user.home.contains(query) {
+                match_fields.push("home".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "user".to_string(),
+                resource_id: user.id.clone(),
+                resource_name: user.id.clone(),
+                resource_description: format!("Name: {}, Maildir: {}", user.name, user.maildir),
+                enabled: Some(user.enabled),
+                created: user.created,
+                modified: user.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search aliases
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"alias".to_string())
+    {
+        let aliases = aliases::table
+            .filter(
+                aliases::mail
+                    .like(&search_pattern)
+                    .or(aliases::destination.like(&search_pattern)),
+            )
+            .load::<Alias>(&mut conn)?;
+
+        for alias in aliases {
+            if enabled_only.is_some() && enabled_only.unwrap() && !alias.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if alias.mail.contains(query) {
+                match_fields.push("mail".to_string());
+            }
+            if alias.destination.contains(query) {
+                match_fields.push("destination".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "alias".to_string(),
+                resource_id: alias.pkid.to_string(),
+                resource_name: alias.mail.clone(),
+                resource_description: format!("→ {}", alias.destination),
+                enabled: Some(alias.enabled),
+                created: alias.created,
+                modified: alias.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search backups
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"backup".to_string())
+    {
+        let backups = backups::table
+            .filter(
+                backups::domain
+                    .like(&search_pattern)
+                    .or(backups::transport.like(&search_pattern)),
+            )
+            .load::<Backup>(&mut conn)?;
+
+        for backup in backups {
+            if enabled_only.is_some() && enabled_only.unwrap() && !backup.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if backup.domain.contains(query) {
+                match_fields.push("domain".to_string());
+            }
+            if backup
+                .transport
+                .as_ref()
+                .map_or(false, |t| t.contains(query))
+            {
+                match_fields.push("transport".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "backup".to_string(),
+                resource_id: backup.pkid.to_string(),
+                resource_name: backup.domain.clone(),
+                resource_description: format!(
+                    "Transport: {}",
+                    backup.transport.as_deref().unwrap_or("N/A")
+                ),
+                enabled: Some(backup.enabled),
+                created: backup.created,
+                modified: backup.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search relays
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"relay".to_string())
+    {
+        let relays = relays::table
+            .filter(
+                relays::recipient
+                    .like(&search_pattern)
+                    .or(relays::status.like(&search_pattern)),
+            )
+            .load::<Relay>(&mut conn)?;
+
+        for relay in relays {
+            if enabled_only.is_some() && enabled_only.unwrap() && !relay.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if relay.recipient.contains(query) {
+                match_fields.push("recipient".to_string());
+            }
+            if relay.status.contains(query) {
+                match_fields.push("status".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "relay".to_string(),
+                resource_id: relay.pkid.to_string(),
+                resource_name: relay.recipient.clone(),
+                resource_description: format!("Status: {}", relay.status),
+                enabled: Some(relay.enabled),
+                created: relay.created,
+                modified: relay.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search relocated
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"relocated".to_string())
+    {
+        let relocated = relocated::table
+            .filter(
+                relocated::old_address
+                    .like(&search_pattern)
+                    .or(relocated::new_address.like(&search_pattern)),
+            )
+            .load::<Relocated>(&mut conn)?;
+
+        for rel in relocated {
+            if enabled_only.is_some() && enabled_only.unwrap() && !rel.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if rel.old_address.contains(query) {
+                match_fields.push("old_address".to_string());
+            }
+            if rel.new_address.contains(query) {
+                match_fields.push("new_address".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "relocated".to_string(),
+                resource_id: rel.pkid.to_string(),
+                resource_name: format!("{} → {}", rel.old_address, rel.new_address),
+                resource_description: "Address relocation".to_string(),
+                enabled: Some(rel.enabled),
+                created: rel.created,
+                modified: rel.modified,
+                match_fields,
+            });
+        }
+    }
+
+    // Search clients
+    if resource_types.is_none()
+        || resource_types
+            .as_ref()
+            .unwrap()
+            .contains(&"client".to_string())
+    {
+        let clients = clients::table
+            .filter(
+                clients::client
+                    .like(&search_pattern)
+                    .or(clients::status.like(&search_pattern)),
+            )
+            .load::<Client>(&mut conn)?;
+
+        for client in clients {
+            if enabled_only.is_some() && enabled_only.unwrap() && !client.enabled {
+                continue;
+            }
+
+            let mut match_fields = Vec::new();
+            if client.client.contains(query) {
+                match_fields.push("client".to_string());
+            }
+            if client.status.contains(query) {
+                match_fields.push("status".to_string());
+            }
+
+            all_results.push(SearchResult {
+                resource_type: "client".to_string(),
+                resource_id: client.id.to_string(),
+                resource_name: client.client.clone(),
+                resource_description: format!("Status: {}", client.status),
+                enabled: Some(client.enabled),
+                created: client.created_at,
+                modified: client.updated_at,
+                match_fields,
+            });
+        }
+    }
+
+    // Sort by relevance (more match fields = higher relevance)
+    all_results.sort_by(|a, b| b.match_fields.len().cmp(&a.match_fields.len()));
+
+    let total_count = all_results.len();
+    all_results.truncate(limit as usize);
+
+    let search_time = start_time.elapsed().as_millis() as u64;
+
+    Ok(SearchResults {
+        query: query.to_string(),
+        results: all_results,
+        total_count,
+        search_time_ms: search_time,
+    })
+}

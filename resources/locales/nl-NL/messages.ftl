@@ -11,6 +11,7 @@ nav-relocated = Verplaatst
 nav-clients = Clients
 nav-statistics = Statistieken
 nav-reports = Rapporten
+nav-search = Zoeken
 nav-config = Configuratie
 nav-database-backup = Database Backup
 nav-database = Database Selectie
@@ -887,6 +888,30 @@ welcome = Welcome
 
 # Reports - New Translation Keys
 reports-back-to-reports = Terug naar Rapporten
+
+# Search functionality
+search-title = Zoeken
+search-description = Zoek in alle resources in de database
+search-placeholder = Voer zoekterm in...
+search-button = Zoeken
+search-results-title = Zoekresultaten
+search-no-results = Geen resultaten gevonden
+search-no-results-description = Probeer uw zoektermen of filters aan te passen
+search-results-count = Resultaten
+search-time = Tijd
+search-filter-types = Resourcetypes
+search-filter-enabled-only = Alleen ingeschakeld
+search-resource-type-domain = Domeinen
+search-resource-type-user = Gebruikers
+search-resource-type-alias = Aliassen
+search-resource-type-backup = Backup Domeinen
+search-resource-type-relay = Relais
+search-resource-type-relocated = Verplaatst
+search-resource-type-client = Clients
+search-match-fields = Overeenkomende velden
+search-view-resource = Bekijken
+search-created = Aangemaakt
+search-modified = Gewijzigd
 reports-total-databases = Totale Databases
 reports-read-only = Alleen Lezen
 reports-no-new-users = Geen Nieuwe Gebruikers

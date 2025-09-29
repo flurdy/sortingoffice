@@ -11,6 +11,7 @@ nav-relocated = Flyttet
 nav-clients = Klienter
 nav-statistics = Statistikk
 nav-reports = Rapporter
+nav-search = Søk
 nav-config = Konfigurasjon
 nav-database-backup = Database Backup
 nav-database = Databasevalg
@@ -918,6 +919,30 @@ welcome = Welcome
 
 # Reports - New Translation Keys
 reports-back-to-reports = Tilbake til Rapporter
+
+# Search functionality
+search-title = Søk
+search-description = Søk i alle ressurser i databasen
+search-placeholder = Skriv inn søkeord...
+search-button = Søk
+search-results-title = Søkeresultater
+search-no-results = Ingen resultater funnet
+search-no-results-description = Prøv å justere søkeordene eller filtrene dine
+search-results-count = Resultater
+search-time = Tid
+search-filter-types = Ressurstyper
+search-filter-enabled-only = Kun aktiverte
+search-resource-type-domain = Domener
+search-resource-type-user = Brukere
+search-resource-type-alias = Aliaser
+search-resource-type-backup = Backup Domener
+search-resource-type-relay = Videresendinger
+search-resource-type-relocated = Flyttet
+search-resource-type-client = Klienter
+search-match-fields = Matchende felt
+search-view-resource = Vis
+search-created = Opprettet
+search-modified = Endret
 reports-total-databases = Totale Databaser
 reports-read-only = Kun Lesing
 reports-no-new-users = Ingen Nye Brukere

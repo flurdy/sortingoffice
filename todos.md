@@ -26,10 +26,25 @@
 - ✅ Github Actions workflow fails, the CI one: https://github.com/flurdy/sortingoffice/actions/workflows/ci.yml
   - Says:
     ``` process didn't exit successfully: `/home/runner/work/sortingoffice/sortingoffice/target/debug/deps/cross_database_domain_tests-68551967c8d47aff --test-threads=2` (signal: 11, SIGSEGV: invalid memory reference) ```
+    
+- There are a lot 'Unknown database' in the Github Actions CI workflow fails
+  - https://github.com/flurdy/sortingoffice/actions/runs/18103979585/job/51513804349
 
 ## Medium Priority Epics
 
 - ✅ List relays for a domain on the show domain page.
+
+- ✅ Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain.
+   - ✅ Research completed - see docs/DNS_LOOKUP_RESEARCH.md
+
+- Implement DNS lookup researched above
+   - See docs/DNS_LOOKUP_RESEARCH.md
+   - Adjust DNS lookup implementation plan:
+     - There is no DB for this app to store any information (the app accesses client mail dbs, but they are not its own dbs)
+     - There is in-memory caching that can be extended to avoid too many request.
+
+- ✅ Full search page. 
+  - ✅ Search across all fields and tables.
 
 ## Medium Priority Minor and bugs
 
@@ -67,6 +82,11 @@
 - ✅ Check if the 'make help' is up to date and not too noisy. 
   - Maybe some aliases should just be listed in 'sub-help' eg 'make test-help','make db-help' etc?
 
+- Make sure each section of makefile has a help for its part. 
+
+- Move test aliases in the Makefile to a Makefile.test 
+- Move tunnel aliases in the Makefile to a Makefile.tunnel 
+
 ## 🐛 Other Bugs and KNOWN ISSUES
 
 ## ⏩ Postponed epics
@@ -80,10 +100,6 @@
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
 
-- Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain. Postponed for now.
-   - Initially just research and suggest how to
-   - Leave actual implementation to another TODO
-
 - Refactor database helper functions for better maintainability. Postponed for now.
   - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
   - Create generic functions to reduce code duplication
@@ -92,6 +108,3 @@
 
 - On a show backup domain page add a button to change it from a backup domain to a normal domain. Postponed for now.
   - This might be a wizard to add aliases etc like the current wizards
-
-- Full search page. Postponed for now.
-  - Search across all fields and tables.

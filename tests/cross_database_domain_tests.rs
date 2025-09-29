@@ -148,283 +148,292 @@ mod tests {
         let test_future = async {
             // Setup three test databases
             let (db1, db2, db3) = setup_multiple_test_dbs().await;
-        let db_configs = create_database_configs(&db1, &db2, &db3);
-        // Create a custom config that includes the database features
-        let config = sortingoffice::config::Config {
-            admins: vec![AdminCredentials {
-                username: "admin".to_string(),
-                password_hash: "admin123".to_string(), // In real usage this would be hashed
-                role: AdminRole::Edit,
-            }],
-            contact: None,
-            databases: db_configs.clone(),
-            ..Default::default()
-        };
-        let (app, state) = TestUtils::create_test_app_with_config(db_configs, config).await;
+            let db_configs = create_database_configs(&db1, &db2, &db3);
+            // Create a custom config that includes the database features
+            let config = sortingoffice::config::Config {
+                admins: vec![AdminCredentials {
+                    username: "admin".to_string(),
+                    password_hash: "admin123".to_string(), // In real usage this would be hashed
+                    role: AdminRole::Edit,
+                }],
+                contact: None,
+                databases: db_configs.clone(),
+                ..Default::default()
+            };
+            let (app, state) = TestUtils::create_test_app_with_config(db_configs, config).await;
 
-        // Create authentication cookie for db1 (default)
-        let auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db1");
+            // Create authentication cookie for db1 (default)
+            let auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db1");
 
-        // Test scenario 1: Create domain1 in db1
-        println!("=== Test 1: Create domain1 in db1 ===");
-        let domain1 = "test1.example.com";
-        let form_data = TestData::domain_form_data(domain1, "virtual", true);
+            // Test scenario 1: Create domain1 in db1
+            println!("=== Test 1: Create domain1 in db1 ===");
+            let domain1 = "test1.example.com";
+            let form_data = TestData::domain_form_data(domain1, "virtual", true);
 
-        // Switch to db1
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
+            // Switch to db1
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
 
-        // Create domain1 in db1
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&create_response, StatusCode::OK);
-
-        // Verify domain1 is listed in db1
-        let list_response =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_status(&list_response, StatusCode::OK);
-        TestUtils::assert_body_contains(list_response, domain1).await;
-
-        // Test scenario 2: Create domain1 in db2 (same domain name, different database)
-        println!("=== Test 2: Create domain1 in db2 ===");
-
-        // Switch to db2
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
-
-        // Create domain1 in db2
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&create_response, StatusCode::OK);
-
-        // Verify domain1 is listed in db2
-        let list_response =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_status(&list_response, StatusCode::OK);
-        TestUtils::assert_body_contains(list_response, domain1).await;
-
-        // Test scenario 3: Create domain1 as backup domain in db3
-        println!("=== Test 3: Create domain1 as backup domain in db3 ===");
-
-        // Switch to db3
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db3", auth_cookie).await;
-        println!("Switched to db3, cookie: {:?}", auth_cookie);
-
-        // Try to create domain1 in db3 (should fail - read-only)
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        println!("Create response status: {:?}", create_response.status());
-        let body_bytes = axum::body::to_bytes(create_response.into_body(), usize::MAX)
+            // Create domain1 in db1
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data,
+                Some(auth_cookie.clone()),
+            )
             .await
             .unwrap();
-        let body_str = String::from_utf8_lossy(&body_bytes);
-        println!("Create response body: {}", body_str);
-        // Should fail with permission error - check for the error message in the HTML
-        assert!(body_str.contains("This operation is not allowed on the current database due to restrictions."), 
+            TestUtils::assert_status(&create_response, StatusCode::OK);
+
+            // Verify domain1 is listed in db1
+            let list_response =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_status(&list_response, StatusCode::OK);
+            TestUtils::assert_body_contains(list_response, domain1).await;
+
+            // Test scenario 2: Create domain1 in db2 (same domain name, different database)
+            println!("=== Test 2: Create domain1 in db2 ===");
+
+            // Switch to db2
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
+
+            // Create domain1 in db2
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_status(&create_response, StatusCode::OK);
+
+            // Verify domain1 is listed in db2
+            let list_response =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_status(&list_response, StatusCode::OK);
+            TestUtils::assert_body_contains(list_response, domain1).await;
+
+            // Test scenario 3: Create domain1 as backup domain in db3
+            println!("=== Test 3: Create domain1 as backup domain in db3 ===");
+
+            // Switch to db3
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db3", auth_cookie).await;
+            println!("Switched to db3, cookie: {:?}", auth_cookie);
+
+            // Try to create domain1 in db3 (should fail - read-only)
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            println!("Create response status: {:?}", create_response.status());
+            let body_bytes = axum::body::to_bytes(create_response.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            let body_str = String::from_utf8_lossy(&body_bytes);
+            println!("Create response body: {}", body_str);
+            // Should fail with permission error - check for the error message in the HTML
+            assert!(body_str.contains("This operation is not allowed on the current database due to restrictions."), 
                 "Expected body to contain 'This operation is not allowed on the current database due to restrictions.', but got: {}", body_str);
 
-        // Test scenario 4: Create domain2 in db2
-        println!("=== Test 4: Create domain2 in db2 ===");
+            // Test scenario 4: Create domain2 in db2
+            println!("=== Test 4: Create domain2 in db2 ===");
 
-        // Switch back to db2
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
+            // Switch back to db2
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
 
-        let domain2 = "test2.example.com";
-        let form_data2 = TestData::domain_form_data(domain2, "virtual", true);
+            let domain2 = "test2.example.com";
+            let form_data2 = TestData::domain_form_data(domain2, "virtual", true);
 
-        // Create domain2 in db2
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data2,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&create_response, StatusCode::OK);
+            // Create domain2 in db2
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data2,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_status(&create_response, StatusCode::OK);
 
-        // Test scenario 5: Create domain3 in db3 (should fail - read-only)
-        println!("=== Test 5: Create domain3 in db3 (should fail) ===");
+            // Test scenario 5: Create domain3 in db3 (should fail - read-only)
+            println!("=== Test 5: Create domain3 in db3 (should fail) ===");
 
-        // Switch to db3
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db3", auth_cookie).await;
+            // Switch to db3
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db3", auth_cookie).await;
 
-        let domain3 = "test3.example.com";
-        let form_data3 = TestData::domain_form_data(domain3, "virtual", true);
+            let domain3 = "test3.example.com";
+            let form_data3 = TestData::domain_form_data(domain3, "virtual", true);
 
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data3,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        // Should fail with permission error
-        TestUtils::assert_body_contains(
-            create_response,
-            "This operation is not allowed on the current database due to restrictions.",
-        )
-        .await;
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data3,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            // Should fail with permission error
+            TestUtils::assert_body_contains(
+                create_response,
+                "This operation is not allowed on the current database due to restrictions.",
+            )
+            .await;
 
-        // Test scenario 6: Create domain4 as backup domain in db1
-        println!("=== Test 6: Create domain4 as backup domain in db1 ===");
+            // Test scenario 6: Create domain4 as backup domain in db1
+            println!("=== Test 6: Create domain4 as backup domain in db1 ===");
 
-        // Switch back to db1
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
+            // Switch back to db1
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
 
-        let domain4 = "test4.example.com";
-        let form_data4 = TestData::domain_form_data(domain4, "virtual", true);
+            let domain4 = "test4.example.com";
+            let form_data4 = TestData::domain_form_data(domain4, "virtual", true);
 
-        // Create domain4 in db1
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data4,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&create_response, StatusCode::OK);
+            // Create domain4 in db1
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data4,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_status(&create_response, StatusCode::OK);
 
-        // Test scenario 7: Create domain4 as domain in db2
-        println!("=== Test 7: Create domain4 as domain in db2 ===");
+            // Test scenario 7: Create domain4 as domain in db2
+            println!("=== Test 7: Create domain4 as domain in db2 ===");
 
-        // Switch to db2
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
+            // Switch to db2
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
 
-        // Create domain4 in db2
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data4,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&create_response, StatusCode::OK);
+            // Create domain4 in db2
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data4,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_status(&create_response, StatusCode::OK);
 
-        // Test scenario 8: Verify cross-database domain matrix report
-        println!("=== Test 8: Verify cross-database domain matrix report ===");
+            // Test scenario 8: Verify cross-database domain matrix report
+            println!("=== Test 8: Verify cross-database domain matrix report ===");
 
-        let report_response = TestUtils::make_get_request(
-            &app,
-            &state,
-            "/reports/cross-database-matrix",
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_status(&report_response, StatusCode::OK);
+            let report_response = TestUtils::make_get_request(
+                &app,
+                &state,
+                "/reports/cross-database-matrix",
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_status(&report_response, StatusCode::OK);
 
-        // Verify all domains are listed in the report
-        TestUtils::assert_body_contains(report_response, domain1).await;
+            // Verify all domains are listed in the report
+            TestUtils::assert_body_contains(report_response, domain1).await;
 
-        // Make separate requests for each domain check
-        let report_response2 = TestUtils::make_get_request(
-            &app,
-            &state,
-            "/reports/cross-database-matrix",
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_body_contains(report_response2, domain2).await;
+            // Make separate requests for each domain check
+            let report_response2 = TestUtils::make_get_request(
+                &app,
+                &state,
+                "/reports/cross-database-matrix",
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_body_contains(report_response2, domain2).await;
 
-        let report_response3 = TestUtils::make_get_request(
-            &app,
-            &state,
-            "/reports/cross-database-matrix",
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
-        TestUtils::assert_body_contains(report_response3, domain4).await;
+            let report_response3 = TestUtils::make_get_request(
+                &app,
+                &state,
+                "/reports/cross-database-matrix",
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
+            TestUtils::assert_body_contains(report_response3, domain4).await;
 
-        // Test scenario 9: Verify domain isolation
-        println!("=== Test 9: Verify domain isolation ===");
+            // Test scenario 9: Verify domain isolation
+            println!("=== Test 9: Verify domain isolation ===");
 
-        // Switch to db1 and verify only db1 domains are listed
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
+            // Switch to db1 and verify only db1 domains are listed
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
 
-        let list_response =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_status(&list_response, StatusCode::OK);
-        TestUtils::assert_body_contains(list_response, domain1).await;
+            let list_response =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_status(&list_response, StatusCode::OK);
+            TestUtils::assert_body_contains(list_response, domain1).await;
 
-        // Make separate requests for each domain check
-        let list_response2 =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_body_contains(list_response2, domain4).await;
+            // Make separate requests for each domain check
+            let list_response2 =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_body_contains(list_response2, domain4).await;
 
-        let list_response3 =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        // domain2 should not be visible in db1
-        TestUtils::assert_body_not_contains(list_response3, domain2).await;
+            let list_response3 =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            // domain2 should not be visible in db1
+            TestUtils::assert_body_not_contains(list_response3, domain2).await;
 
-        // Switch to db2 and verify only db2 domains are listed
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
+            // Switch to db2 and verify only db2 domains are listed
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db2", auth_cookie).await;
 
-        let list_response =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_status(&list_response, StatusCode::OK);
-        TestUtils::assert_body_contains(list_response, domain1).await;
+            let list_response =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_status(&list_response, StatusCode::OK);
+            TestUtils::assert_body_contains(list_response, domain1).await;
 
-        // Make separate requests for each domain check
-        let list_response2 =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_body_contains(list_response2, domain2).await;
+            // Make separate requests for each domain check
+            let list_response2 =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_body_contains(list_response2, domain2).await;
 
-        let list_response3 =
-            TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
-                .await
-                .unwrap();
-        TestUtils::assert_body_contains(list_response3, domain4).await;
+            let list_response3 =
+                TestUtils::make_get_request(&app, &state, "/domains", Some(auth_cookie.clone()))
+                    .await
+                    .unwrap();
+            TestUtils::assert_body_contains(list_response3, domain4).await;
 
-        println!("=== All cross-database domain tests passed! ===");
+            println!("=== All cross-database domain tests passed! ===");
         };
 
         // Run the test with a timeout to prevent hanging
         tokio::time::timeout(
             std::time::Duration::from_secs(300), // 5 minutes timeout
-            test_future
+            test_future,
         )
         .await
         .expect("Test timed out after 5 minutes");
@@ -436,90 +445,91 @@ mod tests {
         let test_future = async {
             // Setup three test databases
             let (db1, db2, db3) = setup_multiple_test_dbs().await;
-        let db_configs = create_database_configs(&db1, &db2, &db3);
+            let db_configs = create_database_configs(&db1, &db2, &db3);
 
-        // Create a custom config with the database configurations
-        let config = sortingoffice::config::Config {
-            required_aliases: vec!["postmaster".to_string(), "abuse".to_string()],
-            common_aliases: vec!["admin".to_string(), "webmaster".to_string()],
-            global_features: sortingoffice::config::GlobalFeatures {
-                read_only: false,
-                no_new_users: false,
-                no_new_domains: false,
-                no_password_updates: false,
-            },
-            databases: db_configs.clone(),
-            admins: vec![sortingoffice::config::AdminCredentials {
-                username: "admin".to_string(),
-                password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
-                    .to_string(),
-                role: sortingoffice::config::AdminRole::Edit,
-            }],
-            admin: None,
-            contact: Some(sortingoffice::config::ContactInfo {
-                name: "Test Admin".to_string(),
-                email: None,
-                contact_form: None,
-                role: Some("Test Administrator".to_string()),
-            }),
-        };
+            // Create a custom config with the database configurations
+            let config = sortingoffice::config::Config {
+                required_aliases: vec!["postmaster".to_string(), "abuse".to_string()],
+                common_aliases: vec!["admin".to_string(), "webmaster".to_string()],
+                global_features: sortingoffice::config::GlobalFeatures {
+                    read_only: false,
+                    no_new_users: false,
+                    no_new_domains: false,
+                    no_password_updates: false,
+                },
+                databases: db_configs.clone(),
+                admins: vec![sortingoffice::config::AdminCredentials {
+                    username: "admin".to_string(),
+                    password_hash: "$2a$12$o8thacsiGCRhN1JN8xnW6e0KqNb7KrSgM67xxa62RKoAC9fOPf.aO"
+                        .to_string(),
+                    role: sortingoffice::config::AdminRole::Edit,
+                }],
+                admin: None,
+                contact: Some(sortingoffice::config::ContactInfo {
+                    name: "Test Admin".to_string(),
+                    email: None,
+                    contact_form: None,
+                    role: Some("Test Administrator".to_string()),
+                }),
+            };
 
-        let (app, state) = TestUtils::create_test_app_with_config(db_configs, config).await;
+            let (app, state) = TestUtils::create_test_app_with_config(db_configs, config).await;
 
-        // Create authentication cookie for db1 (default)
-        let auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db1");
+            // Create authentication cookie for db1 (default)
+            let auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db1");
 
-        // Test 1: Try to create domain in read-only database (db3)
-        println!("=== Test 1: Try to create domain in read-only database ===");
+            // Test 1: Try to create domain in read-only database (db3)
+            println!("=== Test 1: Try to create domain in read-only database ===");
 
-        // Create authentication cookie directly for db3 (read-only)
-        let db3_auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db3");
+            // Create authentication cookie directly for db3 (read-only)
+            let db3_auth_cookie = TestUtils::create_edit_auth_cookie_with_db("db3");
 
-        let domain = "test-readonly.example.com";
-        let form_data = TestData::domain_form_data(domain, "virtual", true);
+            let domain = "test-readonly.example.com";
+            let form_data = TestData::domain_form_data(domain, "virtual", true);
 
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            &form_data,
-            Some(db3_auth_cookie),
-        )
-        .await
-        .unwrap();
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                &form_data,
+                Some(db3_auth_cookie),
+            )
+            .await
+            .unwrap();
 
-        // Should fail with specific error message
-        TestUtils::assert_body_contains(create_response, "This operation is not allowed").await;
+            // Should fail with specific error message
+            TestUtils::assert_body_contains(create_response, "This operation is not allowed").await;
 
-        // Test 2: Try to create domain with invalid data
-        println!("=== Test 2: Try to create domain with invalid data ===");
+            // Test 2: Try to create domain with invalid data
+            println!("=== Test 2: Try to create domain with invalid data ===");
 
-        // Switch to db1 (writable)
-        let auth_cookie = switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
+            // Switch to db1 (writable)
+            let auth_cookie =
+                switch_database_and_get_cookie(&app, &state, "db1", auth_cookie).await;
 
-        // Try to create domain with empty name
-        let invalid_form_data = "domain=&transport=virtual&enabled=on";
+            // Try to create domain with empty name
+            let invalid_form_data = "domain=&transport=virtual&enabled=on";
 
-        let create_response = TestUtils::make_post_request(
-            &app,
-            &state,
-            "/domains",
-            invalid_form_data,
-            Some(auth_cookie.clone()),
-        )
-        .await
-        .unwrap();
+            let create_response = TestUtils::make_post_request(
+                &app,
+                &state,
+                "/domains",
+                invalid_form_data,
+                Some(auth_cookie.clone()),
+            )
+            .await
+            .unwrap();
 
-        // Should fail with validation error
-        TestUtils::assert_body_contains(create_response, "Domain name is required").await;
+            // Should fail with validation error
+            TestUtils::assert_body_contains(create_response, "Domain name is required").await;
 
-        println!("=== Domain creation error handling tests passed! ===");
+            println!("=== Domain creation error handling tests passed! ===");
         };
 
         // Run the test with a timeout to prevent hanging
         tokio::time::timeout(
             std::time::Duration::from_secs(300), // 5 minutes timeout
-            test_future
+            test_future,
         )
         .await
         .expect("Test timed out after 5 minutes");

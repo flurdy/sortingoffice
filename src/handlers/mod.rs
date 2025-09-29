@@ -23,6 +23,7 @@ pub mod relays;
 pub mod relocated;
 pub mod reports;
 pub mod restrictions;
+pub mod search;
 pub mod stats;
 pub mod templates;
 
@@ -87,6 +88,7 @@ pub use reports::{
     cross_database_user_distribution_report, domain_statistics_report, external_forwarders_report,
     matrix_report, orphaned_report, reports_list,
 };
+pub use search::search_page;
 pub use stats::index as stats_index;
 pub use theme::toggle_theme;
 pub use users::{
@@ -173,6 +175,7 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         // Stats and reports
         .route("/stats", axum::routing::get(stats_index))
         .route("/reports", axum::routing::get(reports_list))
+        .route("/search", axum::routing::get(search_page))
         .route(
             "/reports/recent-changes",
             axum::routing::get(recent_changes_report),
