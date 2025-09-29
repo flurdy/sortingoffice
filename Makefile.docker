@@ -1,0 +1,37 @@
+.PHONY: build up down restart logs status clean test-clean docker-help
+
+docker-help:
+	@echo "🐳 Docker Commands"
+	@echo "=================="
+	@echo "  make build       - Build Docker images"
+	@echo "  make up          - Start all services"
+	@echo "  make down        - Stop all services"
+	@echo "  make restart     - Restart all services"
+	@echo "  make logs        - Show logs from all services"
+	@echo "  make status      - Show service status"
+	@echo "  make clean       - Remove all containers and volumes"
+	@echo "  make test-clean  - Remove all test containers"
+
+build:
+	./docker.sh build
+
+up:
+	./docker.sh up
+
+down:
+	./docker.sh down
+
+restart:
+	./docker.sh restart
+
+logs:
+	./docker.sh logs
+
+status:
+	./docker.sh status
+
+clean:
+	./docker.sh clean
+
+test-clean:
+	@./tests/run_tests.sh cleanup

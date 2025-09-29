@@ -7,7 +7,7 @@
   - as you type filtering by name only, not screen refresh.
   - Handy if paged across many pages 
 
-## High Priority Minor and bugs
+## High Priority Minor and bugs 🐛 
 
 - ✅ What does the `disabled` feature toggle for a database actually do? 
   - Currently it seems to still show the db.
@@ -50,7 +50,7 @@
 - ✅ Full search page. 
   - ✅ Search across all fields and tables.
 
-## Medium Priority Minor and bugs
+## Medium Priority Minor and bugs 🐛 
 
 - ✅ Domain Wizard and Duplicate Domain pages does not seem to be translated? Or at least still showing in English when selected.
 
@@ -75,7 +75,7 @@
   - E.g count of aliases and users
   - Enabled or disabled
 
-## Low Priority Minor and bugs
+## Low Priority Minor and bugs 🐛 
 
 - ✅ There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
 
@@ -86,12 +86,14 @@
 - ✅ Check if the 'make help' is up to date and not too noisy. 
   - Maybe some aliases should just be listed in 'sub-help' eg 'make test-help','make db-help' etc?
 
-- Make sure each section of makefile has a help for its part. 
+- ✅ Make sure each section of makefile has a help for its part. 
 
-- Move test aliases in the Makefile to a Makefile.test 
-- Move tunnel aliases in the Makefile to a Makefile.tunnel 
+- ✅ Move test aliases in the Makefile to a Makefile.test 
+- ✅ Move tunnel aliases in the Makefile to a Makefile.tunnel 
+- Move docker aliases in the Makefile to a Makefile.docker 
+- ✅ Move some of the help aliases in the respective Makefile
 
-## 🐛 KNOWN ISSUES
+## 🙈 KNOWN ISSUES
 
 ## ⏩ Postponed epics
 

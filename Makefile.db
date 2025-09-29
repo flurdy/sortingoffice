@@ -1,7 +1,7 @@
 # Database Management Makefile
 # Contains all database-related operations for Sorting Office
 
-.PHONY: migrate migrate-revert migrate-reset migrate-all seed create-seed-migration test-db-setup test-db-clean test-db-reset prod-db-setup prod-db-reset list-domains count-domains list-aliases count-aliases list-users count-users
+.PHONY: migrate migrate-revert migrate-reset migrate-all seed create-seed-migration test-db-setup test-db-clean test-db-reset prod-db-setup prod-db-reset list-domains count-domains list-aliases count-aliases list-users count-users db-shell
 
 # Database configuration
 MYSQL ?= mysql
@@ -14,6 +14,10 @@ MYSQL_CMD = $(MYSQL) -u$(MYSQL_USER) -p$(MYSQL_PASSWORD) -h$(MYSQL_HOST) -P$(MYS
 
 # Optional DATABASE_URL parameter for targeting other databases
 DATABASE_URL_ARG ?=
+# Shell access to database
+db-shell:
+	./docker.sh db-shell
+
 
 # General database operations
 migrate:

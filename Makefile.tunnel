@@ -1,4 +1,15 @@
-.PHONY: tunnel-prod tunnel-staging tunnel-backup tunnel-all tunnel-stop tunnel-status tunnel-logs
+.PHONY: tunnel-prod tunnel-staging tunnel-backup tunnel-all tunnel-stop tunnel-status tunnel-logs tunnel-help
+
+tunnel-help:
+	@echo "🕳️  SSH Tunnel Management"
+	@echo "=========================="
+	@echo "  make tunnel-prod     - Start production SSH tunnel"
+	@echo "  make tunnel-staging  - Start staging SSH tunnel"
+	@echo "  make tunnel-backup   - Start backup SSH tunnel"
+	@echo "  make tunnel-all      - Start all SSH tunnels"
+	@echo "  make tunnel-stop     - Stop all SSH tunnels"
+	@echo "  make tunnel-status   - Show tunnel status"
+	@echo "  make tunnel-logs     - Show tunnel logs"
 
 tunnel-prod:
 	@echo "Starting production SSH tunnel..."

@@ -1,55 +1,26 @@
 # Sorting Office Makefile
 # Provides convenient shortcuts for common tasks
 
-# Include database management Makefile
+# Include sectioned Makefiles
 include Makefile.db
 include Makefile.test
 include Makefile.tunnel
+include Makefile.docker
+include Makefile.dev
+include Makefile.code
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell run-watch dev-run run prod-run
+.PHONY: help shell db-shell
 
 # Section helps
 .PHONY: docker-help dev-help tunnel-help code-help
 
-docker-help:
-	@echo "🐳 Docker Commands"
-	@echo "=================="
-	@echo "  make build       - Build Docker images"
-	@echo "  make up          - Start all services"
-	@echo "  make down        - Stop all services"
-	@echo "  make restart     - Restart all services"
-	@echo "  make logs        - Show logs from all services"
-	@echo "  make status      - Show service status"
-	@echo "  make clean       - Remove all containers and volumes"
-	@echo "  make test-clean  - Remove all test containers"
+# docker-help moved to Makefile.docker
 
-dev-help:
-	@echo "🛠️  Development Commands"
-	@echo "========================"
-	@echo "  make dev         - Start development environment"
-	@echo "  make dev-down    - Stop development environment"
-	@echo "  make run         - Run application with cargo (PORT to override)"
-	@echo "  make prod-run    - Run app with production config (PROD_PORT/PORT)"
-	@echo "  make run-watch   - Run with cargo watch (PORT to override)"
+# dev-help moved to Makefile.dev
 
-tunnel-help:
-	@echo "🕳️  SSH Tunnel Management"
-	@echo "=========================="
-	@echo "  make tunnel-prod     - Start production SSH tunnel"
-	@echo "  make tunnel-staging  - Start staging SSH tunnel"
-	@echo "  make tunnel-backup   - Start backup SSH tunnel"
-	@echo "  make tunnel-all      - Start all SSH tunnels"
-	@echo "  make tunnel-stop     - Stop all SSH tunnels"
-	@echo "  make tunnel-status   - Show tunnel status"
-	@echo "  make tunnel-logs     - Show tunnel logs"
+# tunnel-help moved to Makefile.tunnel
 
-code-help:
-	@echo "🧹 Code Quality"
-	@echo "================"
-	@echo "  make fmt         - Format code with cargo fmt"
-	@echo "  make check       - Check code compilation"
-	@echo "  make clippy      - Run clippy linter"
-	@echo "  make pre-commit  - Run formatting and compilation checks"
+# code-help moved to Makefile.code
 
 # Default target
 help:
@@ -126,105 +97,17 @@ help:
 	@echo "For Dev details, run: make dev-help"
 	@echo "For Code Quality details, run: make code-help"
 
-# Test help target
-test-help:
-	@echo "🧪 Sorting Office - Testing Commands"
-	@echo "===================================="
-	@echo ""
-	@echo "Test Types:"
-	@echo "  Unit Tests:"
-	@echo "    make test-unit          - Run only unit tests (80 tests)"
-	@echo "    cargo test --lib        - Alternative: run unit tests directly"
-	@echo ""
-	@echo "  Integration Tests:"
-	@echo "    make test-integration   - Run integration tests with database"
-	@echo "    TEST_THREADS=N make test-integration  - Set parallelism (default: 8)"
-	@echo "    cargo test --test integration  - Alternative: run directly"
-	@echo ""
-	@echo "  Security Tests:"
-	@echo "    make test-security      - Run security tests (SQL injection, auth bypass)"
-	@echo "    cargo test --test security  - Alternative: run directly"
-	@echo ""
-	@echo "  API Tests:"
-	@echo "    make test-api           - Run API tests (authentication, authorization)"
-	@echo "    cargo test --test api   - Alternative: run directly"
-	@echo ""
-	@echo "  UI Tests:"
-	@echo "    make test-ui            - Run containerized UI tests (Selenium)"
-	@echo "    cargo test --test ui_containerized  - Alternative: run directly"
-	@echo ""
-	@echo "  Smoke Tests:"
-	@echo "    make test-smoke [URL]   - Run end-to-end smoke test (default: localhost:3000)"
-	@echo "    make test-smoke-containerized - Run end-to-end smoke test with testcontainers"
-	@echo "    cargo test ui_smoke_e2e_flow -- --ignored  - Alternative: run directly"
-	@echo "    cargo test ui_smoke_e2e_flow_testcontainers -- --ignored  - Alternative: run testcontainers directly"
-	@echo ""
-	@echo "  Test Data Utilities:"
-	@echo "    cargo test --test test_data_utilities  - Run test data utility tests"
-	@echo ""
-	@echo "  All Tests:"
-	@echo "    make test               - Run all tests (unit + integration + security + api + UI)"
-	@echo "    make test-all           - Run all tests with explicit breakdown"
-	@echo "    ./tests/run_tests.sh all  - Alternative: run via test runner"
-	@echo ""
-	@echo "Test Infrastructure:"
-	@echo "  Selenium Setup (deprecated - now using testcontainers):"
-	@echo "    Selenium is now automatically managed by testcontainers"
-	@echo "    No manual setup required for smoke tests"
-	@echo ""
-	@echo "  Test Database:"
-	@echo "    make test-db-setup      - Setup test database"
-	@echo "    docker compose --profile test up -d  - Start test containers"
-	@echo ""
-	@echo "  Test Cleanup:"
-	@echo "    make test-clean         - Remove all test containers"
-	@echo "    make clean-rust         - Clean Rust artifacts"
-	@echo ""
-	@echo "  Individual Test Runners:"
-	@echo "    make test-single TEST=<name>     - Run individual test with cleanup"
-	@echo "    make test-single-ui TEST=<name>  - Run individual UI test with cleanup"
-	@echo ""
-	@echo "  Test Runner:"
-	@echo "    ./tests/run_tests.sh help  - Show test runner help"
-	@echo "    ./tests/run_tests.sh unit  - Run specific test type"
+# test-help moved to Makefile.test
 
-# Docker commands
-build:
-	./docker.sh build
+# Docker commands moved to Makefile.docker
 
-up:
-	./docker.sh up
-
-down:
-	./docker.sh down
-
-restart:
-	./docker.sh restart
-
-logs:
-	./docker.sh logs
-
-status:
-	./docker.sh status
-
-clean:
-	./docker.sh clean
-
-# test-clean moved to Makefile.test
-
-# Development environment
-dev:
-	./docker.sh dev
-
-dev-down:
-	./docker.sh dev-down
+# Development environment moved to Makefile.dev
 
 # Shell access
 shell:
 	./docker.sh shell
 
-db-shell:
-	./docker.sh db-shell
+# db-shell is provided by Makefile.db
 
 # Local development
 install:
@@ -234,39 +117,9 @@ include Makefile.test
 
 # test targets moved to Makefile.test
 
-run-watch:
-	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
+# dev run/watch and run/prod-run moved to Makefile.dev
 
-dev-run:
-	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
-
-run:
-	PORT=$(PORT) cargo run
-
-prod-run:
-	CONFIG_PATH=config/config.prod.toml PORT=$${PROD_PORT:-$(PORT)} cargo run
-
-# Utility commands
-fmt:
-	cargo fmt
-
-check:
-	cargo check
-
-clippy:
-	cargo clippy
-
-# Pre-commit checks (same as git hook)
-pre-commit: fmt check
-	@echo "✅ All pre-commit checks passed!"
-
-# Production build
-release:
-	cargo build --release
-
-# Clean Rust artifacts
-clean-rust:
-	cargo clean
+# Utility/code-quality targets moved to Makefile.code
 
 # Show project info
 info:

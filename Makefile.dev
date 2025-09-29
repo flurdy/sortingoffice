@@ -1,0 +1,29 @@
+.PHONY: dev dev-down run prod-run run-watch dev-run dev-help
+
+dev-help:
+	@echo "🛠️  Development Commands"
+	@echo "========================"
+	@echo "  make dev         - Start development environment"
+	@echo "  make dev-down    - Stop development environment"
+	@echo "  make run         - Run application with cargo (PORT to override)"
+	@echo "  make prod-run    - Run app with production config (PROD_PORT/PORT)"
+	@echo "  make run-watch   - Run with cargo watch (PORT to override)"
+
+# Development environment
+dev:
+	./docker.sh dev
+
+dev-down:
+	./docker.sh dev-down
+
+run-watch:
+	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
+
+dev-run:
+	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
+
+run:
+	PORT=$(PORT) cargo run
+
+prod-run:
+	CONFIG_PATH=config/config.prod.toml PORT=$${PROD_PORT:-$(PORT)} cargo run

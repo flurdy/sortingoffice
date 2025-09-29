@@ -1,0 +1,52 @@
+.PHONY: fmt check clippy pre-commit code-help release clean-rust info shell
+
+code-help:
+	@echo "🧹 Code Quality"
+	@echo "================"
+	@echo "  make fmt         - Format code with cargo fmt"
+	@echo "  make check       - Check code compilation"
+	@echo "  make clippy      - Run clippy linter"
+	@echo "  make pre-commit  - Run formatting and compilation checks"
+	@echo "  make release     - Build release binary"
+	@echo "  make clean-rust  - Clean Rust artifacts"
+	@echo "  make info        - Show project info"
+
+# Utility commands
+fmt:
+	cargo fmt
+
+check:
+	cargo check
+
+clippy:
+	cargo clippy
+
+# Pre-commit checks (same as git hook)
+pre-commit: fmt check
+	@echo "✅ All pre-commit checks passed!"
+
+# Production build
+release:
+	cargo build --release
+
+# Clean Rust artifacts
+clean-rust:
+	cargo clean
+
+# Show project info
+info:
+	@echo "Sorting Office - Mail Server Admin Tool"
+	@echo "======================================"
+	@echo "Version: $(shell grep '^version =' Cargo.toml | cut -d'\"' -f2)"
+	@echo "Rust Version: $(shell rustc --version)"
+	@echo "Cargo Version: $(shell cargo --version)"
+	@echo ""
+	@echo "Services:"
+	@echo "  - Sorting Office: http://localhost:3000"
+	@echo "  - phpMyAdmin: http://localhost:8080"
+	@echo "  - MySQL: localhost:3306"
+	@echo ""
+	@echo "SSH Tunnels:"
+	@echo "  - Production: localhost:3306"
+	@echo "  - Staging: localhost:3307"
+	@echo "  - Backup: localhost:3308"
