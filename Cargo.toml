@@ -41,7 +41,7 @@ thiserror = "1.0.69"
 log = "0.4"
 env_logger = "0.10"
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 # Time handling
 chrono = { version = "0.4.41", features = ["serde"] }
@@ -96,6 +96,9 @@ regex = "1.10.4"
 
 # Futures utilities
 futures-util = "0.3"
+
+# Security: force patched slab version due to RUSTSEC-2025-0047
+slab = "0.4.11"
 
 [dev-dependencies]
 tokio-test = "0.4"
