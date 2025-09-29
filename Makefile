@@ -3,8 +3,10 @@
 
 # Include database management Makefile
 include Makefile.db
+include Makefile.test
+include Makefile.tunnel
 
-.PHONY: help build up down restart logs dev dev-down clean status shell db-shell test test-unit test-ui test-all test-smoke test-smoke-containerized test-help test-single test-single-ui run-watch dev-run run prod-run
+.PHONY: help build up down restart logs dev dev-down clean status shell db-shell run-watch dev-run run prod-run
 
 # Section helps
 .PHONY: docker-help dev-help tunnel-help code-help
@@ -208,8 +210,7 @@ status:
 clean:
 	./docker.sh clean
 
-test-clean:
-	@./tests/run_tests.sh cleanup
+# test-clean moved to Makefile.test
 
 # Development environment
 dev:
@@ -231,58 +232,7 @@ install:
 
 include Makefile.test
 
-.PHONY: test-unit
-test-unit:
-	@echo "Running unit tests..."
-	@tests/run_tests.sh unit
-
-.PHONY: test-integration
-test-integration:
-	@echo "Running integration tests..."
-	@TEST_THREADS=$${TEST_THREADS:-8} tests/run_tests.sh integration
-
-.PHONY: test-security
-test-security:
-	@echo "Running security tests..."
-	@tests/run_tests.sh security
-
-.PHONY: test-api
-test-api:
-	@echo "Running API tests..."
-	@tests/run_tests.sh api
-
-.PHONY: test-ui
-test-ui:
-	@echo "Running UI tests..."
-	@tests/run_tests.sh ui
-
-.PHONY: test-smoke
-test-smoke:
-	@echo "Running end-to-end smoke test..."
-	@echo "Usage: make test-smoke [URL=http://localhost:3000]"
-	@echo "Prerequisites:"
-	@echo "  1. Start app: cargo run (in another terminal)"
-	@echo "  2. Ensure app is running on the specified URL (default: http://localhost:3000)"
-	@echo "  (Selenium is automatically managed by testcontainers)"
-	@echo ""
-	@tests/run_tests.sh smoke $(URL)
-
-.PHONY: test-smoke-containerized
-test-smoke-containerized:
-	@echo "Running end-to-end smoke test with testcontainers..."
-	@echo "This will start its own isolated environment with:"
-	@echo "  - Testcontainers database"
-	@echo "  - Testcontainers app container"
-	@echo "  - Testcontainers selenium container"
-	@echo ""
-	# @echo "Building Docker image first..."
-	# @make build
-	# @echo ""
-	@tests/run_tests.sh smoke-containerized
-
-.PHONY: test-all
-test-all: test-unit test-integration test-security test-api test-ui
-	@echo "All tests completed!"
+# test targets moved to Makefile.test
 
 run-watch:
 	PORT=$(PORT) cargo watch -d 5 -w src -w static -w templates -w Cargo.toml -w resources --why -x run
@@ -336,34 +286,7 @@ info:
 	@echo "  - Staging: localhost:3307"
 	@echo "  - Backup: localhost:3308"
 
-# SSH Tunnel Management
-tunnel-prod:
-	@echo "Starting production SSH tunnel..."
-	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-prod
-
-tunnel-staging:
-	@echo "Starting staging SSH tunnel..."
-	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-staging
-
-tunnel-backup:
-	@echo "Starting backup SSH tunnel..."
-	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-backup
-
-tunnel-all:
-	@echo "Starting all SSH tunnels..."
-	@docker-compose -f docker-compose.tunnels.yml up -d
-
-tunnel-stop:
-	@echo "Stopping all SSH tunnels..."
-	@docker-compose -f docker-compose.tunnels.yml down
-
-tunnel-status:
-	@echo "SSH Tunnel Status:"
-	@docker-compose -f docker-compose.tunnels.yml ps
-
-tunnel-logs:
-	@echo "SSH Tunnel Logs:"
-	@docker-compose -f docker-compose.tunnels.yml logs
+# SSH Tunnel targets moved to Makefile.tunnel
 
 # Test organization:
 #   src/tests/           - Unit and integration test modules
@@ -372,26 +295,7 @@ tunnel-logs:
 #   tests/README.md      - Test documentation
 #   tests/run_tests.sh   - Unified test runner 
 
-test-ui-failfast:
-	./tests/run_tests.sh ui --fail-fast
+# test-ui-failfast moved to Makefile.test
 
 # Individual test runners with cleanup
-.PHONY: test-single
-test-single:
-	@if [ -z "$(TEST)" ]; then \
-		echo "❌ Error: TEST parameter is required"; \
-		echo "Usage: make test-single TEST=test_name"; \
-		echo "Example: make test-single TEST=test_homepage_loads_containerized"; \
-		exit 1; \
-	fi
-	@./tests/run_tests.sh single $(TEST)
-
-.PHONY: test-single-ui  
-test-single-ui:
-	@if [ -z "$(TEST)" ]; then \
-		echo "❌ Error: TEST parameter is required"; \
-		echo "Usage: make test-single-ui TEST=test_name"; \
-		echo "Example: make test-single-ui TEST=test_homepage_loads_containerized"; \
-		exit 1; \
-	fi
-	@./tests/run_tests.sh single-ui $(TEST)
+# individual test runners moved to Makefile.test

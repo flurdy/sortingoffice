@@ -1,0 +1,29 @@
+.PHONY: tunnel-prod tunnel-staging tunnel-backup tunnel-all tunnel-stop tunnel-status tunnel-logs
+
+tunnel-prod:
+	@echo "Starting production SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-prod
+
+tunnel-staging:
+	@echo "Starting staging SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-staging
+
+tunnel-backup:
+	@echo "Starting backup SSH tunnel..."
+	@docker-compose -f docker-compose.tunnels.yml up -d tunnel-backup
+
+tunnel-all:
+	@echo "Starting all SSH tunnels..."
+	@docker-compose -f docker-compose.tunnels.yml up -d
+
+tunnel-stop:
+	@echo "Stopping all SSH tunnels..."
+	@docker-compose -f docker-compose.tunnels.yml down
+
+tunnel-status:
+	@echo "SSH Tunnel Status:"
+	@docker-compose -f docker-compose.tunnels.yml ps
+
+tunnel-logs:
+	@echo "SSH Tunnel Logs:"
+	@docker-compose -f docker-compose.tunnels.yml logs
