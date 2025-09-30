@@ -9,20 +9,6 @@
 
 ## High Priority Minor and bugs 🐛 
 
-- ✅ What does the `disabled` feature toggle for a database actually do? 
-  - Currently it seems to still show the db.
-  - I was expecting a disabled db not to shown as a choice as all, or at least grayed out.
-
-- ✅ Are clients listed? I have a db with clients  but none are shown in the app.
-
-- ✅ Bug - In list domains, filtering by search, brings a list of matching domains, however the result seems to include double up of backups as if the whole page has been replicated inside the domains list box.
-
-- ✅ It seems when filtering the domains, the backup domains are not filtered.
-  - Please filter/search them as well at the same time. 
-  - And do not create a separate filter box for just backup domains.
-
-- ✅ Add some unit tests to test the new search/filtering of resources as well
-
 - ✅ Github Actions workflow fails, the CI one: https://github.com/flurdy/sortingoffice/actions/workflows/ci.yml
   - Says:
     ``` process didn't exit successfully: `/home/runner/work/sortingoffice/sortingoffice/target/debug/deps/cross_database_domain_tests-68551967c8d47aff --test-threads=2` (signal: 11, SIGSEGV: invalid memory reference) ```
@@ -35,8 +21,6 @@
   - Verify CI run passes after changes
 
 ## Medium Priority Epics
-
-- ✅ List relays for a domain on the show domain page.
 
 - ✅ Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain.
    - ✅ Research completed - see docs/DNS_LOOKUP_RESEARCH.md
@@ -52,9 +36,9 @@
 
 ## Medium Priority Minor and bugs 🐛 
 
-- ✅ Domain Wizard and Duplicate Domain pages does not seem to be translated? Or at least still showing in English when selected.
-
-- ✅ Domain statics report links to domains are broken. The URL should be i32 IDs not strings.
+- ✅ Rename the 'Domain Wizard' to 'Bulk Add Domains' 
+  - Because there are other wizards for domains, the original name is confusing
+  - Or perhaps an even better/more suitable new name can be found
 
 - ✅ When viewing a resource and then in the DB drop down at the top selects another db. 
  - It will show a completely other resource with the same id in that DB
@@ -66,20 +50,7 @@
 - ✅ Recent changes report
   - list most recent added and updated resources
 
-- ✅ If a db's feature is read only, add and edit buttons should be disabled. 
-  - or other relevant feature toggles as well
-
-
-- ✅ On show domain, add info of the domain in the other DBs. 
-  - E.g is domain or backup domain.  
-  - E.g count of aliases and users
-  - Enabled or disabled
-
 ## Low Priority Minor and bugs 🐛 
-
-- ✅ There seems to be a domain backups item in the menu, under Users and above Relays. The text is missing but the icon is shown. It should not be there at all.
-
-- ✅ Fix failing UI test
 
 - ✅ Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
 
@@ -90,7 +61,7 @@
 
 - ✅ Move test aliases in the Makefile to a Makefile.test 
 - ✅ Move tunnel aliases in the Makefile to a Makefile.tunnel 
-- Move docker aliases in the Makefile to a Makefile.docker 
+- ✅ Move docker aliases in the Makefile to a Makefile.docker 
 - ✅ Move some of the help aliases in the respective Makefile
 
 ## 🙈 KNOWN ISSUES
