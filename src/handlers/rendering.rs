@@ -1118,6 +1118,11 @@ pub async fn render_domain_show_page(
         other_databases_aliases_count: &other_databases_aliases_count,
         status_enabled: &status_enabled,
         status_disabled: &status_disabled,
+        dns_section_header: &crate::i18n::get_translation(state, locale, "dns-section-header").await,
+        dns_section_description: &crate::i18n::get_translation(state, locale, "dns-section-description").await,
+        dns_lookup_button: &crate::i18n::get_translation(state, locale, "dns-lookup-button").await,
+        dns_loading_label: &crate::i18n::get_translation(state, locale, "dns-loading-label").await,
+        dns_selector_label: &crate::i18n::get_translation(state, locale, "dns-selector-label").await,
     };
 
     render_show_template(content_template, state, locale, headers).await

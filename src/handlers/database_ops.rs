@@ -123,7 +123,7 @@ where
 pub async fn get_current_db_pool(
     state: &AppState,
     headers: &HeaderMap,
-) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
+) -> Result<crate::DbPool, Box<dyn std::error::Error + Send + Sync>> {
     let retry_config = RetryConfig {
         max_attempts: 2,
         base_delay: Duration::from_millis(50),
@@ -137,7 +137,9 @@ pub async fn get_current_db_pool(
             .db_manager
             .get_pool(&selected_db.unwrap_or_else(|| "primary".to_string()))
             .await
-            .ok_or_else(|| "Database pool not found".into())
+            .ok_or_else(|| {
+                std::io::Error::new(std::io::ErrorKind::Other, "Database pool not found").into()
+            })
     };
 
     execute_with_retry(operation, retry_config, "get_current_db_pool").await

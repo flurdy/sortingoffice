@@ -36,6 +36,12 @@
 
 ## Medium Priority Minor and bugs 🐛 
 
+- Configuration page, some translations missing.
+  - Feature and status columns
+  - System Management section all together.
+
+- On show domain page the relay sections seems untranslated
+
 - ✅ Rename the 'Domain Wizard' to 'Bulk Add Domains' 
   - Because there are other wizards for domains, the original name is confusing
   - Or perhaps an even better/more suitable new name can be found
@@ -52,17 +58,11 @@
 
 ## Low Priority Minor and bugs 🐛 
 
-- ✅ Add a single integration test alias to the makefile like the ui one. Unless the test-single already cover this
+- On the show domains, we should list users
 
-- ✅ Check if the 'make help' is up to date and not too noisy. 
-  - Maybe some aliases should just be listed in 'sub-help' eg 'make test-help','make db-help' etc?
+- On the show backup domains, we should really list relays
 
-- ✅ Make sure each section of makefile has a help for its part. 
-
-- ✅ Move test aliases in the Makefile to a Makefile.test 
-- ✅ Move tunnel aliases in the Makefile to a Makefile.tunnel 
-- ✅ Move docker aliases in the Makefile to a Makefile.docker 
-- ✅ Move some of the help aliases in the respective Makefile
+- On the show backup domains, we should really list aliases and users even of they wont be relayed to.
 
 ## 🙈 KNOWN ISSUES
 

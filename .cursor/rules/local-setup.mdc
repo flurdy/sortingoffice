@@ -1,0 +1,16 @@
+---
+description: The local development environment
+alwaysApply: false
+---
+
+- The OS is Linux, the distro is Fedora
+
+- The shell is Fish Shell
+
+- The VCS is git
+
+- The location is England
+
+- The language is English but i18n encouraged
+
+- The PC is a desktop with 128GB RAM

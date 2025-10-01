@@ -29,6 +29,7 @@ This document outlines the research and implementation plan for integrating DNS 
 - **Cons**:
   - Maintenance mode (not actively developed)
   - Older async patterns
+  - Replaced by hickory-dns
 
 ## Implementation Plan
 

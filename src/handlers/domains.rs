@@ -9,11 +9,11 @@ use crate::{
 };
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query, State, Form},
     http::HeaderMap,
     response::Html,
-    Form,
 };
+use std::fmt::Write as FmtWrite;
 
 use tracing::{error, info};
 
@@ -933,4 +933,198 @@ pub async fn add_missing_required_alias(
     Html(format!(
         "<script>window.location.href = '{redirect_url}';</script>"
     ))
+}
+
+#[derive(serde::Deserialize, Default)]
+pub struct DnsLookupForm {
+    selector: Option<String>,
+}
+
+pub async fn dns_lookup(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+    Form(form): Form<DnsLookupForm>,
+) -> Html<String> {
+    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_) => return Html("Database connection error".to_string()),
+    };
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    let domain = match crate::db::get_domain(&pool, id) {
+        Ok(d) => d,
+        Err(_) => {
+            let not_found_msg = crate::i18n::get_translation(&state, &locale, "domains-not-found").await;
+            return Html(not_found_msg);
+        }
+    };
+
+    let resolver = match crate::services::dns_lookup::DnsLookupService::new_system().await {
+        Ok(r) => r,
+        Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
+    };
+
+    let result = match resolver.lookup_all(&domain.domain).await {
+        Ok(r) => r,
+        Err(_) => crate::services::dns_lookup::DnsLookupResult::default(),
+    };
+
+    // i18n for fragment
+    let dns_records_title = crate::i18n::get_translation(&state, &locale, "dns-records-title").await;
+    let dns_ns_header = crate::i18n::get_translation(&state, &locale, "dns-ns-header").await;
+    let dns_mx_header = crate::i18n::get_translation(&state, &locale, "dns-mx-header").await;
+    let dns_txt_header = crate::i18n::get_translation(&state, &locale, "dns-txt-header").await;
+    let dns_dkim_header = crate::i18n::get_translation(&state, &locale, "dns-dkim-header").await;
+    let _dns_lookup_button = crate::i18n::get_translation(&state, &locale, "dns-lookup-button").await;
+
+    let mut html = String::new();
+    html.push_str("<div class=\"mt-6\"><h3 class=\"text-lg font-medium\">");
+    let _ = FmtWrite::write_fmt(
+        &mut html,
+        format_args!(
+            "{}",
+            askama_escape::escape(&dns_records_title, askama_escape::Html)
+        ),
+    );
+    html.push_str("</h3>");
+    if !result.ns_records.is_empty() {
+        html.push_str("<div class=\"mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900\">");
+        html.push_str("<h4 class=\"font-semibold text-gray-900 dark:text-gray-100\">");
+        let _ = FmtWrite::write_fmt(
+            &mut html,
+            format_args!(
+                "{}",
+                askama_escape::escape(&dns_ns_header, askama_escape::Html)
+            ),
+        );
+        html.push_str("</h4><ul class=\"list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200\">");
+        for ns in result.ns_records {
+            html.push_str(&format!("<li>{}</li>", ns));
+        }
+        html.push_str("</ul></div>");
+    }
+    if !result.mx_records.is_empty() {
+        html.push_str("<div class=\"mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900\">");
+        html.push_str("<h4 class=\"font-semibold text-gray-900 dark:text-gray-100\">");
+        let _ = FmtWrite::write_fmt(
+            &mut html,
+            format_args!(
+                "{}",
+                askama_escape::escape(&dns_mx_header, askama_escape::Html)
+            ),
+        );
+        html.push_str("</h4><ul class=\"list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200\">");
+        for mx in result.mx_records {
+            html.push_str(&format!("<li>{}: {}</li>", mx.priority, mx.exchange));
+        }
+        html.push_str("</ul></div>");
+    }
+    if !result.txt_records.is_empty() {
+        html.push_str("<div class=\"mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900\">");
+        html.push_str("<h4 class=\"font-semibold text-gray-900 dark:text-gray-100\">");
+        let _ = FmtWrite::write_fmt(
+            &mut html,
+            format_args!(
+                "{}",
+                askama_escape::escape(&dns_txt_header, askama_escape::Html)
+            ),
+        );
+        html.push_str("</h4><ul class=\"list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200\">");
+        for t in result.txt_records {
+            let _ = FmtWrite::write_fmt(
+                &mut html,
+                format_args!(
+                    "<li><code>{}</code></li>",
+                    askama_escape::escape(&t, askama_escape::Html)
+                ),
+            );
+        }
+        html.push_str("</ul></div>");
+    }
+
+    // DKIM lookup: with selector if provided, else try common selectors
+    if let Some(sel) = form.selector.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        if let Ok(records) = resolver.lookup_dkim(sel, &domain.domain).await {
+            if !records.is_empty() {
+                html.push_str("<h4 class=\"mt-4 font-semibold\">");
+                let _ = FmtWrite::write_fmt(
+                    &mut html,
+                    format_args!(
+                        "{}",
+                        askama_escape::escape(&dns_dkim_header, askama_escape::Html)
+                    ),
+                );
+                html.push_str("</h4><ul class=\"list-disc ml-5\">");
+                for rec in records {
+                    let _ = FmtWrite::write_fmt(
+                        &mut html,
+                        format_args!(
+                            "<li><code>{}</code></li>",
+                            askama_escape::escape(&rec, askama_escape::Html)
+                        ),
+                    );
+                }
+                html.push_str("</ul>");
+            }
+        }
+    } else {
+        // Fallback: try common selectors
+        let common_selectors = [
+            "s1", "s2", "default", "selector1", "selector", "k1", "google",
+        ];
+        let mut any_found = false;
+        let mut per_selector: Vec<(String, Vec<String>)> = Vec::new();
+        for s in common_selectors.iter() {
+            if let Ok(records) = resolver.lookup_dkim(s, &domain.domain).await {
+                if !records.is_empty() {
+                    any_found = true;
+                    per_selector.push((s.to_string(), records));
+                }
+            }
+        }
+        if any_found {
+            html.push_str("<div class=\"mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900\">");
+            html.push_str("<h4 class=\"font-semibold text-gray-900 dark:text-gray-100\">");
+            let _ = FmtWrite::write_fmt(
+                &mut html,
+                format_args!(
+                    "{}",
+                    askama_escape::escape(&dns_dkim_header, askama_escape::Html)
+                ),
+            );
+            html.push_str("</h4>");
+            let dkim_fallback_desc = crate::i18n::get_translation(&state, &locale, "dns-dkim-fallback-description").await;
+            let _ = FmtWrite::write_fmt(
+                &mut html,
+                format_args!(
+                    "<p class=\"mt-1 text-xs text-gray-600 dark:text-gray-400\">{}</p>",
+                    askama_escape::escape(&dkim_fallback_desc, askama_escape::Html)
+                ),
+            );
+            for (selector, recs) in per_selector {
+                let _ = FmtWrite::write_fmt(
+                    &mut html,
+                    format_args!("<div class=\"mt-2\"><div class=\"text-sm text-gray-600 dark:text-gray-300\">selector: <code>{}</code></div>",
+                        askama_escape::escape(&selector, askama_escape::Html)
+                    ),
+                );
+                html.push_str("<ul class=\"list-disc ml-5 mt-1 text-sm text-gray-800 dark:text-gray-200\">");
+                for rec in recs {
+                    let _ = FmtWrite::write_fmt(
+                        &mut html,
+                        format_args!(
+                            "<li><code>{}</code></li>",
+                            askama_escape::escape(&rec, askama_escape::Html)
+                        ),
+                    );
+                }
+                html.push_str("</ul></div>");
+            }
+            html.push_str("</div>");
+        }
+    }
+
+    html.push_str("</div>");
+    Html(html)
 }

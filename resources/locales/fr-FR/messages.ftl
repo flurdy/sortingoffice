@@ -1,3 +1,14 @@
+dns-section-header = DNS
+dns-section-description = NS, MX, TXT, DKIM
+dns-lookup-button = Rechercher DNS
+dns-loading-label = Chargement...
+dns-records-title = Enregistrements DNS
+dns-ns-header = NS
+dns-mx-header = MX
+dns-txt-header = TXT
+dns-dkim-header = DKIM
+dns-selector-label = Sélecteur DKIM
+dns-dkim-fallback-description = Sélecteurs DKIM courants essayés (ex. s1, s2, default, k1, google)
 # Application title and branding
 app-title = Sorting Office
 app-subtitle = Outil d'Administration du Serveur de Courrier

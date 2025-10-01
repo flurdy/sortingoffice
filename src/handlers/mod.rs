@@ -61,6 +61,7 @@ pub use domains::{
     edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
     toggle_enabled as toggle_domain_enabled, toggle_enabled_list as toggle_domain_enabled_list,
     toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
+    dns_lookup as domain_dns_lookup,
 };
 pub use duplicate_wizard::{
     domain_selection, domain_selection_post, execute as duplicate_wizard_execute,
@@ -150,6 +151,7 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         // Read-only domain operations
         .route("/domains", axum::routing::get(list_domains))
         .route("/domains/{id}", axum::routing::get(show_domain))
+        .route("/domains/{id}/dns-lookup", axum::routing::post(domain_dns_lookup))
         // Read-only user operations
         .route("/users", axum::routing::get(list_users))
         .route("/users/{id}", axum::routing::get(show_user))

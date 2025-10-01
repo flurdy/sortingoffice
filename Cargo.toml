@@ -18,6 +18,8 @@ tower = "0.5"
 tower-http = { version = "0.6.6", features = ["trace", "cors", "fs"] }
 tokio = { version = "1", features = ["full"] }
 hyper = { version = "1.6.0", features = ["full"] }
+hickory-resolver = { version = "0.24", default-features = true, features = ["tokio-runtime"] }
+askama_escape = "0.10"
 
 # Database
 diesel = { version = "2.2.11", features = ["mysql", "r2d2", "chrono", "numeric"] }

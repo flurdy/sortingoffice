@@ -127,6 +127,12 @@ pub struct DomainShowTemplate<'a> {
     pub other_databases_aliases_count: &'a str,
     pub status_enabled: &'a str,
     pub status_disabled: &'a str,
+    // DNS section
+    pub dns_section_header: &'a str,
+    pub dns_section_description: &'a str,
+    pub dns_lookup_button: &'a str,
+    pub dns_loading_label: &'a str,
+    pub dns_selector_label: &'a str,
 }
 
 #[derive(Template)]

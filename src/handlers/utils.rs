@@ -253,7 +253,7 @@ macro_rules! get_system_stats_or_default {
 pub async fn get_current_db_pool(
     state: &AppState,
     headers: &HeaderMap,
-) -> Result<crate::DbPool, Box<dyn std::error::Error>> {
+) -> Result<crate::DbPool, Box<dyn std::error::Error + Send + Sync>> {
     // Get the selected database from the session, or fall back to default
     let selected_db = crate::handlers::auth::get_selected_database(headers)
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
@@ -266,7 +266,13 @@ pub async fn get_current_db_pool(
         .db_manager
         .get_or_create_pool(&selected_db)
         .await
-        .ok_or_else(|| format!("No database pool available for '{selected_db}'").into())
+        .ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("No database pool available for '{selected_db}'"),
+            )
+            .into()
+        })
 }
 
 /// Helper function to fetch field-related translations
