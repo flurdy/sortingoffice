@@ -1,9 +1,5 @@
 use askama::Template;
-use axum::{
-    extract::{Path, State},
-    http::HeaderMap,
-    response::Html,
-};
+use axum::{http::HeaderMap, response::Html};
 
 use crate::AppState;
 

@@ -13,7 +13,7 @@ use axum::{
     http::HeaderMap,
     response::Html,
 };
-use std::fmt::Write as FmtWrite;
+// use std::fmt::Write as FmtWrite;
 
 use tracing::{error, info};
 
