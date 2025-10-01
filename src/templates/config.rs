@@ -16,9 +16,18 @@ pub struct ConfigTemplate<'a> {
     pub feature_database_disabled: &'a str,
     pub status_enabled: &'a str,
     pub status_disabled: &'a str,
+    // Table column headers
+    pub table_feature_column: &'a str,
+    pub table_status_column: &'a str,
     // Database Feature Toggles
     pub database_features_header: &'a str,
     pub database_features_description: &'a str,
     pub database_disabled_badge: &'a str,
+    // System Management section
+    pub system_management_header: &'a str,
+    pub system_management_description: &'a str,
+    pub cache_management_header: &'a str,
+    pub cache_management_description: &'a str,
+    pub cache_management_button: &'a str,
     pub config: &'a Config,
 }

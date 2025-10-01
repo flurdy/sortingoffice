@@ -9,7 +9,7 @@ use log::error;
 
 use crate::handlers::database_ops::{get_entity_or_handle_error, handle_entity_operation};
 use crate::handlers::rendering::{render_backup_form_page, render_backup_show_page};
-use std::fmt::Write as FmtWrite;
+// use std::fmt::Write as FmtWrite;
 
 pub async fn new(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
     let locale = crate::handlers::language::get_user_locale(&headers);

@@ -577,10 +577,19 @@ config-feature-no-password-updates = "Keine Passwort-Updates"
 config-feature-database-disabled = "Datenbank deaktiviert"
 config-status-enabled = "Aktiviert"
 config-status-disabled = "Deaktiviert"
+# Tabellenspalten
+config-table-feature-column = "Funktion"
+config-table-status-column = "Status"
 # Database Feature Toggles
 config-database-features-header = "Datenbank-Feature-Toggles"
 config-database-features-description = "Datenbankspezifische Feature-Einschränkungen. Diese überschreiben globale Einstellungen, wenn sie aktiviert sind."
 config-database-disabled-badge = "Deaktiviert"
+# Systemverwaltung
+config-system-management-header = "Systemverwaltung"
+config-system-management-description = "Anwendungscaches und Systemeinstellungen zur Leistung verwalten."
+config-cache-management-header = "Cache-Verwaltung"
+config-cache-management-description = "Anwendungscaches für optimale Leistung überwachen und verwalten."
+config-cache-management-button = "Caches verwalten"
 # Matrix Report
 reports-matrix-title = "Domain-Alias-Matrix-Bericht"
 reports-matrix-description = "Umfassende Übersicht über alle Domains und deren Alias-Status mit visuellen Indikatoren"

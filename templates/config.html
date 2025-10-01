@@ -22,8 +22,8 @@
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                                 <thead>
                                     <tr>
-                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Feature</th>
-                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Status</th>
+                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">{{ table_feature_column }}</th>
+                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">{{ table_status_column }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -116,8 +116,8 @@
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                                 <thead>
                                     <tr>
-                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Feature</th>
-                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Status</th>
+                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">{{ table_feature_column }}</th>
+                                        <th class="px-2 py-1 text-left text-gray-700 dark:text-gray-300">{{ table_status_column }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -202,25 +202,25 @@
                 <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
                     <div class="px-4 py-5 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                            System Management
+                            {{ system_management_header }}
                         </h3>
                         <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                            Manage application caches and system performance settings.
+                            {{ system_management_description }}
                         </p>
                     </div>
                     <div class="border-t border-gray-200 dark:border-gray-700">
                         <div class="px-4 py-5 sm:px-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Cache Management</h4>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ cache_management_header }}</h4>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        Monitor and manage application caches for optimal performance.
+                                        {{ cache_management_description }}
                                     </p>
                                 </div>
                                 <div class="ml-4">
                                     <a href="/cache-management" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600">
                                         <i class="fas fa-cogs mr-2"></i>
-                                        Manage Caches
+                                        {{ cache_management_button }}
                                     </a>
                                 </div>
                             </div>

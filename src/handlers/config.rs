@@ -23,6 +23,8 @@ pub async fn view_config(
             "config-description",
             "config-global-features-header",
             "config-global-features-description",
+            "config-table-feature-column",
+            "config-table-status-column",
             "config-feature-read-only",
             "config-feature-no-new-users",
             "config-feature-no-new-domains",
@@ -33,6 +35,11 @@ pub async fn view_config(
             "config-database-features-header",
             "config-database-features-description",
             "config-database-disabled-badge",
+            "config-system-management-header",
+            "config-system-management-description",
+            "config-cache-management-header",
+            "config-cache-management-description",
+            "config-cache-management-button",
         ],
     )
     .await;
@@ -60,10 +67,18 @@ pub async fn view_config(
         feature_database_disabled: &form_translations["config-feature-database-disabled"],
         status_enabled: &form_translations["config-status-enabled"],
         status_disabled: &form_translations["config-status-disabled"],
+        table_feature_column: &form_translations["config-table-feature-column"],
+        table_status_column: &form_translations["config-table-status-column"],
         // Database Feature Toggles
         database_features_header: &form_translations["config-database-features-header"],
         database_features_description: &form_translations["config-database-features-description"],
         database_disabled_badge: &form_translations["config-database-disabled-badge"],
+        // System Management section
+        system_management_header: &form_translations["config-system-management-header"],
+        system_management_description: &form_translations["config-system-management-description"],
+        cache_management_header: &form_translations["config-cache-management-header"],
+        cache_management_description: &form_translations["config-cache-management-description"],
+        cache_management_button: &form_translations["config-cache-management-button"],
         config: &config,
     };
 

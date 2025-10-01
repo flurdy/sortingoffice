@@ -486,10 +486,19 @@ config-feature-no-password-updates = "Sin Actualizaciones de Contraseña"
 config-feature-database-disabled = "Base de Datos Deshabilitada"
 config-status-enabled = "Habilitado"
 config-status-disabled = "Deshabilitado"
+# Encabezados de columna
+config-table-feature-column = "Función"
+config-table-status-column = "Estado"
 # Database Feature Toggles
 config-database-features-header = "Interruptores de Características de Base de Datos"
 config-database-features-description = "Restricciones de características específicas de la base de datos. Estos anulan los ajustes globales cuando están habilitados."
 config-database-disabled-badge = "Deshabilitado"
+# Gestión del sistema
+config-system-management-header = "Gestión del Sistema"
+config-system-management-description = "Administra cachés de la aplicación y configuraciones de rendimiento del sistema."
+config-cache-management-header = "Gestión de Caché"
+config-cache-management-description = "Supervisa y administra las cachés de la aplicación para un rendimiento óptimo."
+config-cache-management-button = "Administrar cachés"
 # Matrix Report
 reports-matrix-title = "Reporte de Matriz de Alias de Dominios"
 reports-matrix-description = "Vista general completa de todos los dominios y su estado de alias con indicadores visuales"

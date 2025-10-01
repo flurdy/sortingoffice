@@ -933,10 +933,19 @@ config-feature-no-password-updates = No Password Updates
 config-feature-database-disabled = Database Disabled
 config-status-enabled = Enabled
 config-status-disabled = Disabled
+# Table column headers
+config-table-feature-column = Feature
+config-table-status-column = Status
 # Database Feature Toggles
 config-database-features-header = Database Feature Toggles
 config-database-features-description = Database-specific feature restrictions. These override global settings when enabled.
 config-database-disabled-badge = Disabled
+# System management section
+config-system-management-header = System Management
+config-system-management-description = Manage application caches and system performance settings.
+config-cache-management-header = Cache Management
+config-cache-management-description = Monitor and manage application caches for optimal performance.
+config-cache-management-button = Manage Caches
 # Dashboard fields (added for test_domains_edit and similar tests)
 not-found-title = Page Not Found
 not-found-message = Sorry, the page you requested does not exist or may have been moved.

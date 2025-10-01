@@ -552,10 +552,19 @@ config-feature-no-password-updates = "Ingen Passordoppdateringer"
 config-feature-database-disabled = "Database Deaktivert"
 config-status-enabled = "Aktivert"
 config-status-disabled = "Deaktivert"
+# Tabell kolonneoverskrifter
+config-table-feature-column = "Funksjon"
+config-table-status-column = "Status"
 # Database Feature Toggles
 config-database-features-header = "Database Funksjonsbrytere"
 config-database-features-description = "Databasespesifikke funksjonsrestriksjoner. Disse overstyrer globale innstillinger når de er aktivert."
 config-database-disabled-badge = "Deaktivert"
+# Systemadministrasjon
+config-system-management-header = "Systemadministrasjon"
+config-system-management-description = "Administrer applikasjonsbuffer og systemytelsesinnstillinger."
+config-cache-management-header = "Bufferadministrasjon"
+config-cache-management-description = "Overvåk og administrer applikasjonsbuffer for optimal ytelse."
+config-cache-management-button = "Administrer buffer"
 # Error messages
 error-internal-server = Intern serverfeil
 error-bad-request = Ugyldig forespørsel

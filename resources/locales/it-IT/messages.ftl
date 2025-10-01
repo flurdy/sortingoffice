@@ -699,9 +699,18 @@ config-feature-no-password-updates = Nessun Aggiornamento Password
 config-feature-database-disabled = Database Disabilitato
 config-status-enabled = Abilitato
 config-status-disabled = Disabilitato
+# Intestazioni di colonna
+config-table-feature-column = Funzionalità
+config-table-status-column = Stato
 config-database-features-header = Toggle Funzionalità Database
 config-database-features-description = Restrizioni funzionalità specifiche per database. Queste sovrascrivono le impostazioni globali quando abilitate.
 config-database-disabled-badge = Disabilitato
+# Gestione del sistema
+config-system-management-header = Gestione del Sistema
+config-system-management-description = Gestisci le cache dell'applicazione e le impostazioni di prestazioni del sistema.
+config-cache-management-header = Gestione Cache
+config-cache-management-description = Monitora e gestisci le cache dell'applicazione per prestazioni ottimali.
+config-cache-management-button = Gestisci cache
 
 # Pagination Section
 pagination-previous = Precedente

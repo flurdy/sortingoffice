@@ -809,10 +809,19 @@ config-feature-no-password-updates = No Password Updates
 config-feature-database-disabled = Database Disabled
 config-status-enabled = Enabled
 config-status-disabled = Disabled
+# Kolomkoppen
+config-table-feature-column = Functie
+config-table-status-column = Status
 # Database Feature Toggles
 config-database-features-header = Database Feature Toggles
 config-database-features-description = Database-specific feature restrictions. These override global settings when enabled.
 config-database-disabled-badge = Disabled
+# Systeembeheer
+config-system-management-header = Systeembeheer
+config-system-management-description = Beheer applicatie-caches en systeemprestatie-instellingen.
+config-cache-management-header = Cachebeheer
+config-cache-management-description = Bewaak en beheer applicatie-caches voor optimale prestaties.
+config-cache-management-button = Beheer caches
 # Dashboard fields (added for test_domains_edit and similar tests)
 not-found-title = Page Not Found
 not-found-message = Sorry, the page you requested does not exist or may have been moved.

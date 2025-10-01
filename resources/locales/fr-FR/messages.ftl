@@ -527,10 +527,19 @@ config-feature-no-password-updates = "Pas de Mises à Jour de Mot de Passe"
 config-feature-database-disabled = "Base de Données Désactivée"
 config-status-enabled = "Activé"
 config-status-disabled = "Désactivé"
+# En-têtes de colonnes
+config-table-feature-column = "Fonctionnalité"
+config-table-status-column = "Statut"
 # Database Feature Toggles
 config-database-features-header = "Interrupteurs de Fonctionnalités de Base de Données"
 config-database-features-description = "Restrictions de fonctionnalités spécifiques à la base de données. Celles-ci remplacent les paramètres globaux lorsqu'elles sont activées."
 config-database-disabled-badge = "Désactivé"
+# Gestion du système
+config-system-management-header = "Gestion du Système"
+config-system-management-description = "Gérer les caches de l'application et les paramètres de performance du système."
+config-cache-management-header = "Gestion du Cache"
+config-cache-management-description = "Surveiller et gérer les caches de l'application pour des performances optimales."
+config-cache-management-button = "Gérer les caches"
 # Forms
 form-error = Erreur
 form-cancel = Annuler
