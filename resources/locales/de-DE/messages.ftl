@@ -566,6 +566,9 @@ reports-primary-domain = Primäre Domain
 reports-user-header = Benutzer
 # Configuration
 config-title = "Konfiguration"
+# Domainsuche
+domains-search-label = Domains und Backups durchsuchen
+domains-search-placeholder = Tippen, um Domains und Backups zu suchen...
 config-description = "Erforderliche Aliase und domainspezifische Überschreibungen verwalten."
 # Global Feature Toggles
 config-global-features-header = "Globale Feature-Toggles"

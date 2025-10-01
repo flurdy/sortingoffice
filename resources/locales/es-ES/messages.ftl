@@ -475,6 +475,9 @@ reports-no-missing-aliases = "No hay alias requeridos faltantes para este domini
 reports-catch-all-header = Alias de Captura Total
 # Configuration
 config-title = "Configuración"
+# Búsqueda de dominios
+domains-search-label = Buscar dominios y copias de seguridad
+domains-search-placeholder = Escribe para buscar dominios y copias de seguridad...
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
 # Global Feature Toggles
 config-global-features-header = "Interruptores de Características Globales"

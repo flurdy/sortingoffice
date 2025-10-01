@@ -47,6 +47,9 @@ pub struct DomainsListTemplate<'a> {
     // Database read-only status
     pub current_db_read_only: bool,
     pub read_only_tooltip: &'a str,
+    // Search UI
+    pub domains_search_label: &'a str,
+    pub domains_search_placeholder: &'a str,
 }
 
 #[derive(Template)]

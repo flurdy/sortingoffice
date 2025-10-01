@@ -298,6 +298,14 @@ pub async fn render_domain_list_page(
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
+        domains_search_label: &crate::i18n::get_translation(state, locale, "domains-search-label")
+            .await,
+        domains_search_placeholder: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-search-placeholder",
+        )
+        .await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -1018,14 +1026,17 @@ pub async fn render_domain_show_page(
     let analytics_common_aliases_description =
         crate::i18n::get_translation(state, locale, "analytics-common-aliases-description").await;
 
-    // Relay-related translations
-    let relays_header = crate::i18n::get_translation(state, locale, "relays-header").await;
+    // Relay-related translations (align with existing locale keys)
+    let relays_header = crate::i18n::get_translation(state, locale, "relays-title").await;
     let relays_description =
-        crate::i18n::get_translation(state, locale, "relays-description").await;
-    let recipient_header = crate::i18n::get_translation(state, locale, "recipient-header").await;
-    let status_header_relay = crate::i18n::get_translation(state, locale, "status-header").await;
-    let no_relays_message = crate::i18n::get_translation(state, locale, "no-relays-message").await;
-    let add_relay_button = crate::i18n::get_translation(state, locale, "add-relay-button").await;
+        crate::i18n::get_translation(state, locale, "relays-list-description").await;
+    let recipient_header =
+        crate::i18n::get_translation(state, locale, "relays-table-header-recipient").await;
+    let status_header_relay =
+        crate::i18n::get_translation(state, locale, "relays-table-header-status").await;
+    let no_relays_message =
+        crate::i18n::get_translation(state, locale, "relays-empty-description").await;
+    let add_relay_button = crate::i18n::get_translation(state, locale, "relays-add").await;
 
     // Get cross-database domain information
     let cross_database_info =

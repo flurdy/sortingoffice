@@ -19,13 +19,13 @@
         <div class="mt-6">
             <div class="max-w-md">
                 <label for="domain-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Search domains and backups
+                    {{ domains_search_label }}
                 </label>
                 <input 
                     type="text" 
                     id="domain-search" 
                     name="search"
-                    placeholder="Type to search domains and backups..."
+                    placeholder="{{ domains_search_placeholder }}"
                     hx-get="/domains"
                     hx-target="#main-content"
                     hx-trigger="keyup changed delay:300ms"

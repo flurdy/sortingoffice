@@ -949,6 +949,9 @@ config-cache-management-button = Manage Caches
 # Dashboard fields (added for test_domains_edit and similar tests)
 not-found-title = Page Not Found
 not-found-message = Sorry, the page you requested does not exist or may have been moved.
+# Domains search UI
+domains-search-label = Search domains and backups
+domains-search-placeholder = Type to search domains and backups...
 # Backup Management
 database-backup-title = Database Backup
 database-backup-description = Create and manage database backups. Backups are stored locally and can be downloaded.

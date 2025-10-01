@@ -515,6 +515,9 @@ reports-no-required-aliases = "Aucun alias requis trouvé pour ce domaine"
 reports-no-missing-aliases = "Aucun alias requis manquant pour ce domaine"
 # Configuration
 config-title = Configuration
+# Recherche de domaines
+domains-search-label = Rechercher des domaines et des sauvegardes
+domains-search-placeholder = Tapez pour rechercher des domaines et des sauvegardes...
 config-description = Gérer la configuration du système.
 config-required-aliases = Alias Requis
 # Global Feature Toggles

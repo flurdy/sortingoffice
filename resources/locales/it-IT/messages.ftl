@@ -385,6 +385,9 @@ reports-download = Scarica Report
 reports-no-reports = Nessun report disponibile
 # Configuration
 config-title = Configurazione
+# Ricerca domini
+domains-search-label = Cerca domini e backup
+domains-search-placeholder = Digita per cercare domini e backup...
 config-save = Salva Configurazione
 config-reset = Ripristina Configurazione
 config-success = Configurazione salvata con successo

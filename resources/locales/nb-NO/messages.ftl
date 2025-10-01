@@ -541,6 +541,9 @@ domains-alias-report-description = "Oversikt over alle aliaser for dette domenet
 domains-existing-aliases-header = "Eksisterende aliaser"
 # Configuration
 config-title = "Konfigurasjon"
+# Domenesøk
+domains-search-label = Søk i domener og sikkerhetskopier
+domains-search-placeholder = Skriv for å søke i domener og sikkerhetskopier...
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
 # Global Feature Toggles
 config-global-features-header = "Globale Funksjonsbrytere"

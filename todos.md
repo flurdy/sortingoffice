@@ -36,15 +36,21 @@
 
 ## Medium Priority Minor and bugs 🐛 
 
-- Configuration page, some translations missing.
+ - ✅ Configuration page, some translations missing.
   - Feature and status columns
   - System Management section all together.
 
-- On show domain page the relay sections seems untranslated
+ - ✅ On show domain page the relay sections seems untranslated
+
+- ✅ Search box on domains list is not translated
 
 - ✅ Rename the 'Domain Wizard' to 'Bulk Add Domains' 
   - Because there are other wizards for domains, the original name is confusing
   - Or perhaps an even better/more suitable new name can be found
+
+- Cache management page seems untranslated
+
+- In cache management would it make sense to add any of the DNS lookup caches?
 
 - ✅ When viewing a resource and then in the DB drop down at the top selects another db. 
  - It will show a completely other resource with the same id in that DB
