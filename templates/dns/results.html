@@ -1,0 +1,64 @@
+<div class="mt-6">
+  <h3 class="text-lg font-medium">{{ dns_records_title }}</h3>
+
+  {% if !ns_records.is_empty() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_ns_header }}</h4>
+    <ul class="list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200">
+      {% for ns in ns_records %}
+      <li>{{ ns }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if !mx_records.is_empty() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_mx_header }}</h4>
+    <ul class="list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200">
+      {% for mx in mx_records %}
+      <li>{{ mx.priority }}: {{ mx.exchange }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if !txt_records.is_empty() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_txt_header }}</h4>
+    <ul class="list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200">
+      {% for t in txt_records %}
+      <li><code>{{ t }}</code></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if !dkim_records.is_empty() || !selectors_results.is_empty() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_dkim_header }}</h4>
+    {% if dkim_fallback_description.is_some() %}
+      <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">{{ dkim_fallback_description.as_ref().unwrap() }}</p>
+    {% endif %}
+
+    {% if !dkim_records.is_empty() %}
+    <ul class="list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200">
+      {% for rec in dkim_records %}
+      <li><code>{{ rec }}</code></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% for sel in selectors_results %}
+    <div class="mt-2">
+      <div class="text-sm text-gray-600 dark:text-gray-300">selector: <code>{{ sel.selector }}</code></div>
+      <ul class="list-disc ml-5 mt-1 text-sm text-gray-800 dark:text-gray-200">
+        {% for rec in sel.records %}
+        <li><code>{{ rec }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

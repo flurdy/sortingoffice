@@ -9,6 +9,7 @@ pub mod dashboard;
 pub mod database;
 pub mod database_backup;
 pub mod database_ops;
+pub mod dns;
 pub mod domain_backup;
 pub mod domains;
 pub mod duplicate_wizard;
@@ -58,10 +59,10 @@ pub use database_backup::{
 };
 pub use domains::{
     add_missing_required_alias, create as create_domain, delete as delete_domain,
-    edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
-    toggle_enabled as toggle_domain_enabled, toggle_enabled_list as toggle_domain_enabled_list,
+    dns_lookup as domain_dns_lookup, edit as edit_domain, list as list_domains, new as new_domain,
+    show as show_domain, toggle_enabled as toggle_domain_enabled,
+    toggle_enabled_list as toggle_domain_enabled_list,
     toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
-    dns_lookup as domain_dns_lookup,
 };
 pub use duplicate_wizard::{
     domain_selection, domain_selection_post, execute as duplicate_wizard_execute,
@@ -151,7 +152,10 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         // Read-only domain operations
         .route("/domains", axum::routing::get(list_domains))
         .route("/domains/{id}", axum::routing::get(show_domain))
-        .route("/domains/{id}/dns-lookup", axum::routing::post(domain_dns_lookup))
+        .route(
+            "/domains/{id}/dns-lookup",
+            axum::routing::post(domain_dns_lookup),
+        )
         // Read-only user operations
         .route("/users", axum::routing::get(list_users))
         .route("/users/{id}", axum::routing::get(show_user))
@@ -164,6 +168,10 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/domain_backup/{id}",
             axum::routing::get(domain_backup::show),
+        )
+        .route(
+            "/domain_backup/{id}/dns-lookup",
+            axum::routing::post(domain_backup::dns_lookup),
         )
         // Read-only relay operations
         .route("/relays", axum::routing::get(list_relays))

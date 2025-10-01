@@ -35,6 +35,11 @@ pub struct BackupShowTemplate {
     pub other_databases_aliases_count: String,
     pub status_enabled: String,
     pub status_disabled: String,
+    // DNS section
+    pub dns_section_header: String,
+    pub dns_section_description: String,
+    pub dns_lookup_button: String,
+    pub dns_loading_label: String,
 }
 
 #[derive(Template)]

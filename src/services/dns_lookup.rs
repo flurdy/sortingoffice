@@ -27,7 +27,10 @@ impl DnsLookupService {
         Ok(Self { resolver })
     }
 
-    pub async fn lookup_ns(&self, domain: &str) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn lookup_ns(
+        &self,
+        domain: &str,
+    ) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
         let response = self.resolver.ns_lookup(domain).await?;
         Ok(response
             .iter()
@@ -35,7 +38,10 @@ impl DnsLookupService {
             .collect::<Vec<_>>())
     }
 
-    pub async fn lookup_mx(&self, domain: &str) -> Result<Vec<MxRecord>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn lookup_mx(
+        &self,
+        domain: &str,
+    ) -> Result<Vec<MxRecord>, Box<dyn std::error::Error + Send + Sync>> {
         let response = self.resolver.mx_lookup(domain).await?;
         Ok(response
             .iter()
@@ -46,7 +52,10 @@ impl DnsLookupService {
             .collect::<Vec<_>>())
     }
 
-    pub async fn lookup_txt(&self, domain: &str) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn lookup_txt(
+        &self,
+        domain: &str,
+    ) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
         let response = self.resolver.txt_lookup(domain).await?;
         let mut results = Vec::new();
         for txt in response.iter() {
@@ -66,7 +75,10 @@ impl DnsLookupService {
         self.lookup_txt(&hostname).await
     }
 
-    pub async fn lookup_all(&self, domain: &str) -> Result<DnsLookupResult, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn lookup_all(
+        &self,
+        domain: &str,
+    ) -> Result<DnsLookupResult, Box<dyn std::error::Error + Send + Sync>> {
         let (ns, mx, txt) = tokio::join!(
             self.lookup_ns(domain),
             self.lookup_mx(domain),

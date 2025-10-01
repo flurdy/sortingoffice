@@ -8,6 +8,7 @@ pub mod contact;
 pub mod dashboard;
 pub mod database;
 pub mod database_backup;
+pub mod dns;
 pub mod domain_backup;
 pub mod domains;
 pub mod error;

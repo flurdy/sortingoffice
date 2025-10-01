@@ -6,10 +6,10 @@ pub mod handlers;
 pub mod i18n;
 pub mod models;
 pub mod schema;
+pub mod services;
 pub mod templates;
 pub mod test_helpers;
 pub mod validation;
-pub mod services;
 
 pub use crate::config::Config;
 pub use crate::db::DatabaseManager;

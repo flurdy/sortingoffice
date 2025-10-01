@@ -757,6 +757,14 @@ pub async fn render_backup_show_page(
     let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
     let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
 
+    // DNS translations (reuse domain DNS labels)
+    let dns_section_header =
+        crate::i18n::get_translation(state, locale, "dns-section-header").await;
+    let dns_section_description =
+        crate::i18n::get_translation(state, locale, "dns-section-description").await;
+    let dns_lookup_button = crate::i18n::get_translation(state, locale, "dns-lookup-button").await;
+    let dns_loading_label = crate::i18n::get_translation(state, locale, "dns-loading-label").await;
+
     let content_template = crate::templates::domain_backup::BackupShowTemplate {
         title,
         view_edit_settings,
@@ -788,6 +796,10 @@ pub async fn render_backup_show_page(
         other_databases_aliases_count,
         status_enabled,
         status_disabled,
+        dns_section_header,
+        dns_section_description,
+        dns_lookup_button,
+        dns_loading_label,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1118,11 +1130,18 @@ pub async fn render_domain_show_page(
         other_databases_aliases_count: &other_databases_aliases_count,
         status_enabled: &status_enabled,
         status_disabled: &status_disabled,
-        dns_section_header: &crate::i18n::get_translation(state, locale, "dns-section-header").await,
-        dns_section_description: &crate::i18n::get_translation(state, locale, "dns-section-description").await,
+        dns_section_header: &crate::i18n::get_translation(state, locale, "dns-section-header")
+            .await,
+        dns_section_description: &crate::i18n::get_translation(
+            state,
+            locale,
+            "dns-section-description",
+        )
+        .await,
         dns_lookup_button: &crate::i18n::get_translation(state, locale, "dns-lookup-button").await,
         dns_loading_label: &crate::i18n::get_translation(state, locale, "dns-loading-label").await,
-        dns_selector_label: &crate::i18n::get_translation(state, locale, "dns-selector-label").await,
+        dns_selector_label: &crate::i18n::get_translation(state, locale, "dns-selector-label")
+            .await,
     };
 
     render_show_template(content_template, state, locale, headers).await
