@@ -40,6 +40,27 @@ pub struct BackupShowTemplate {
     pub dns_section_description: String,
     pub dns_lookup_button: String,
     pub dns_loading_label: String,
+    // Relays section
+    pub domain_relays: Vec<crate::models::Relay>,
+    pub relays_header: String,
+    pub relays_description: String,
+    pub recipient_header: String,
+    pub status_header_relay: String,
+    pub enabled_header: String,
+    pub no_relays_message: String,
+    // Users section
+    pub domain_users: Vec<crate::models::User>,
+    pub users_header: String,
+    pub users_description: String,
+    pub user_id_header: String,
+    pub user_enabled_header: String,
+    pub users_empty_message: String,
+    // Aliases section
+    pub existing_aliases: Vec<crate::models::Alias>,
+    pub existing_aliases_header: String,
+    pub domains_mail_header: String,
+    pub domains_destination_header: String,
+    pub domains_enabled_header: String,
 }
 
 #[derive(Template)]

@@ -75,11 +75,11 @@
 
   - ✅ Table header on show domains' alias report for Existing Aliases seems untranslated in French, maybe other in the same section is missing as well?
  
- - Catch-call title on show domains' alias report seems untranslated in German, though maybe that word is used in German.
+ - ✅ Catch-call title on show domains' alias report seems untranslated in German, though maybe that word is used in German.
 
-- On the show domains, we should list users
+- ✅ On the show domains, we should list users
 
-- On the show backup domains, we should really list relays
+- ☐ On the show backup domains, we should really list relays
 
 - On the show backup domains, we should really list aliases and users even of they wont be relayed to.
 

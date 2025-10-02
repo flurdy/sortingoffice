@@ -40,7 +40,18 @@ pub async fn show(
         "backups-not-found"
     );
 
-    render_backup_show_page(backup, &state, &locale, &headers).await
+    // Fetch related data for this backup domain and pass to renderer
+    let (domain_relays, domain_users, existing_aliases) = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => {
+            let relays = crate::db::get_relays_for_domain(&pool, &backup.domain).unwrap_or_default();
+            let users = crate::db::get_users_for_domain(&pool, &backup.domain).unwrap_or_default();
+            let aliases = crate::db::get_aliases_for_domain(&pool, &backup.domain).unwrap_or_default();
+            (relays, users, aliases)
+        },
+        Err(_) => (Vec::new(), Vec::new(), Vec::new()),
+    };
+
+    render_backup_show_page(backup, domain_relays, domain_users, existing_aliases, &state, &locale, &headers).await
 }
 
 pub async fn edit(
@@ -199,7 +210,19 @@ pub async fn update(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers)
+            // Reload relays as well
+            {
+                let (domain_relays, domain_users, existing_aliases) = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+                    Ok(pool) => {
+                        let relays = crate::db::get_relays_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        let users = crate::db::get_users_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        let aliases = crate::db::get_aliases_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        (relays, users, aliases)
+                    },
+                    Err(_) => (Vec::new(), Vec::new(), Vec::new()),
+                };
+                crate::handlers::rendering::render_backup_show_page(backup, domain_relays, domain_users, existing_aliases, &state, &locale, &headers)
+            }
                 .await
         }
         Err(e) => {
@@ -328,10 +351,27 @@ pub async fn toggle_enabled(
             .await
             {
                 Ok(backup) => {
-                    // Use the helper function for rendering
-                    crate::handlers::rendering::render_backup_show_page(
-                        backup, &state, &locale, &headers,
-                    )
+                    // Use the helper function for rendering with relays
+                    {
+                        let (domain_relays, domain_users, existing_aliases) = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+                            Ok(pool) => {
+                                let relays = crate::db::get_relays_for_domain(&pool, &backup.domain).unwrap_or_default();
+                                let users = crate::db::get_users_for_domain(&pool, &backup.domain).unwrap_or_default();
+                                let aliases = crate::db::get_aliases_for_domain(&pool, &backup.domain).unwrap_or_default();
+                                (relays, users, aliases)
+                            },
+                            Err(_) => (Vec::new(), Vec::new(), Vec::new()),
+                        };
+                        crate::handlers::rendering::render_backup_show_page(
+                            backup,
+                            domain_relays,
+                            domain_users,
+                            existing_aliases,
+                            &state,
+                            &locale,
+                            &headers,
+                        )
+                    }
                     .await
                 }
                 Err(error) => error,
@@ -361,7 +401,18 @@ pub async fn toggle_enabled_show(
                 }
             };
             // Use the helper function for rendering
-            crate::handlers::rendering::render_backup_show_page(backup, &state, &locale, &headers)
+            {
+                let (domain_relays, domain_users, existing_aliases) = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+                    Ok(pool) => {
+                        let relays = crate::db::get_relays_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        let users = crate::db::get_users_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        let aliases = crate::db::get_aliases_for_domain(&pool, &backup.domain).unwrap_or_default();
+                        (relays, users, aliases)
+                    },
+                    Err(_) => (Vec::new(), Vec::new(), Vec::new()),
+                };
+                crate::handlers::rendering::render_backup_show_page(backup, domain_relays, domain_users, existing_aliases, &state, &locale, &headers)
+            }
                 .await
         }
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,

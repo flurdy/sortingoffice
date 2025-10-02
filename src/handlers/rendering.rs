@@ -706,6 +706,9 @@ pub async fn render_relay_form_page(
 /// Backup-specific rendering functions
 pub async fn render_backup_show_page(
     backup: crate::models::Backup,
+    domain_relays: Vec<crate::models::Relay>,
+    domain_users: Vec<crate::models::User>,
+    existing_aliases: Vec<crate::models::Alias>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -773,6 +776,37 @@ pub async fn render_backup_show_page(
     let dns_lookup_button = crate::i18n::get_translation(state, locale, "dns-lookup-button").await;
     let dns_loading_label = crate::i18n::get_translation(state, locale, "dns-loading-label").await;
 
+    // Relay translations (reuse domain page keys)
+    let relays_header = crate::i18n::get_translation(state, locale, "relays-title").await;
+    let relays_description =
+        crate::i18n::get_translation(state, locale, "relays-list-description").await;
+    let recipient_header =
+        crate::i18n::get_translation(state, locale, "relays-table-header-recipient").await;
+    let status_header_relay =
+        crate::i18n::get_translation(state, locale, "relays-table-header-status").await;
+    let enabled_header =
+        crate::i18n::get_translation(state, locale, "relays-table-header-enabled").await;
+    let no_relays_message =
+        crate::i18n::get_translation(state, locale, "relays-empty-description").await;
+
+    // Users translations
+    let users_header = crate::i18n::get_translation(state, locale, "users-title").await;
+    let users_description = crate::i18n::get_translation(state, locale, "users-description").await;
+    let user_id_header = crate::i18n::get_translation(state, locale, "users-user-id").await;
+    let user_enabled_header =
+        crate::i18n::get_translation(state, locale, "users-table-header-enabled").await;
+    let users_empty_message =
+        crate::i18n::get_translation(state, locale, "users-empty-description").await;
+
+    // Alias table headers (reuse domain keys)
+    let existing_aliases_header =
+        crate::i18n::get_translation(state, locale, "domains-existing-aliases-header").await;
+    let domains_mail_header = crate::i18n::get_translation(state, locale, "domains-mail-header").await;
+    let domains_destination_header =
+        crate::i18n::get_translation(state, locale, "domains-destination-header").await;
+    let domains_enabled_header =
+        crate::i18n::get_translation(state, locale, "domains-enabled-header").await;
+
     let content_template = crate::templates::domain_backup::BackupShowTemplate {
         title,
         view_edit_settings,
@@ -808,6 +842,24 @@ pub async fn render_backup_show_page(
         dns_section_description,
         dns_lookup_button,
         dns_loading_label,
+        domain_relays,
+        relays_header,
+        relays_description,
+        recipient_header,
+        status_header_relay,
+        enabled_header,
+        no_relays_message,
+        domain_users,
+        users_header,
+        users_description,
+        user_id_header,
+        user_enabled_header,
+        users_empty_message,
+        existing_aliases,
+        existing_aliases_header,
+        domains_mail_header,
+        domains_destination_header,
+        domains_enabled_header,
     };
 
     render_show_template(content_template, state, locale, headers).await
