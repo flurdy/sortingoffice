@@ -290,6 +290,11 @@ pub async fn render_domain_show_page(
     // Get relays for this domain
     let domain_relays = db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
 
+    // Get users for this domain (declared later in show handler)
+
+    // Get users for this domain
+    let domain_users = db::get_users_for_domain(&pool, &domain.domain).unwrap_or_default();
+
     // Get analytics-driven common aliases
     let analytics_common_aliases = find_database_common_aliases(state, headers, 10, 3).await;
 
@@ -308,6 +313,7 @@ pub async fn render_domain_show_page(
         existing_aliases,
         filtered_analytics_aliases,
         domain_relays,
+        domain_users,
         state,
         &locale,
         headers,
@@ -437,6 +443,9 @@ pub async fn show(
     // Get relays for this domain
     let domain_relays = db::get_relays_for_domain(&pool, &domain.domain).unwrap_or_default();
 
+    // Get users for this domain
+    let domain_users = db::get_users_for_domain(&pool, &domain.domain).unwrap_or_default();
+
     // Get filtered analytics aliases using helper function
     let filtered_analytics_aliases =
         get_filtered_analytics_aliases(&state, &headers, &existing_aliases).await;
@@ -448,6 +457,7 @@ pub async fn show(
         existing_aliases,
         filtered_analytics_aliases,
         domain_relays,
+        domain_users,
         &state,
         &locale,
         &headers,

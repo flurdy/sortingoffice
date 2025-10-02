@@ -2941,6 +2941,16 @@ pub fn get_aliases_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<Al
         .load::<Alias>(&mut conn)
 }
 
+/// Get users belonging to a specific domain by matching the user id's domain part
+pub fn get_users_for_domain(pool: &DbPool, domain_name: &str) -> Result<Vec<User>, Error> {
+    let mut conn = pool.get().unwrap();
+    users::table
+        .filter(users::id.like(format!("%@{domain_name}")))
+        .select(User::as_select())
+        .order(users::id.asc())
+        .load::<User>(&mut conn)
+}
+
 pub fn search_aliases(pool: &DbPool, query: &str, limit: i64) -> Result<Vec<Alias>, Error> {
     let mut conn = pool.get().unwrap();
     let search_pattern = format!("%{query}%");

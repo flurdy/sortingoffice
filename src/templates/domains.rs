@@ -118,6 +118,13 @@ pub struct DomainShowTemplate<'a> {
     pub status_header_relay: &'a str,
     pub no_relays_message: &'a str,
     pub add_relay_button: &'a str,
+    // Users-related fields
+    pub domain_users: &'a [crate::models::User],
+    pub users_header: &'a str,
+    pub users_description: &'a str,
+    pub user_id_header: &'a str,
+    pub user_enabled_header: &'a str,
+    pub users_empty_message: &'a str,
     // Cross-database domain information
     pub cross_database_info: &'a [crate::models::CrossDatabaseDomainInfo],
     pub other_databases_header: &'a str,

@@ -69,9 +69,13 @@
 
 ## Low Priority Minor and bugs 🐛 
 
-- Description on show domains for relays seems untranslated in French
+ - ✅ Description on show domains for relays seems untranslated in French
 
-- Description on show domains for alias report seems untranslated in French
+ - ✅ Description on show domains for alias report seems untranslated in French
+
+  - ✅ Table header on show domains' alias report for Existing Aliases seems untranslated in French, maybe other in the same section is missing as well?
+ 
+ - Catch-call title on show domains' alias report seems untranslated in German, though maybe that word is used in German.
 
 - On the show domains, we should list users
 
