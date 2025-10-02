@@ -1,25 +1,25 @@
 <div class="px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Cache Management</h1>
+            <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ cache_title }}</h1>
             <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                Monitor and manage application caches for optimal performance
+                {{ cache_description }}
             </p>
         </div>
     </div>
 
     <!-- Cache Statistics -->
     <div class="mt-8">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Cache Statistics</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ stats_title }}</h2>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <!-- Report Caches -->
             <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="px-4 py-5 sm:px-6">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                        Report Caches
+                        {{ report_caches_title }}
                     </h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                        Status of cached report data
+                        {{ report_caches_desc }}
                     </p>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
@@ -31,11 +31,11 @@
                                     <td class="px-2 py-3">
                                         {% if cache_stats.system_stats_cached %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                            Cached
+                                            {{ cached_label }}
                                         </span>
                                         {% else %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                            Not Cached
+                                            {{ not_cached_label }}
                                         </span>
                                         {% endif %}
                                     </td>
@@ -134,10 +134,10 @@
             <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="px-4 py-5 sm:px-6">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                        Pagination Caches
+                        {{ pagination_caches_title }}
                     </h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                        Number of cached pagination entries
+                        {{ pagination_caches_desc }}
                     </p>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
@@ -193,7 +193,7 @@
                                     </td>
                                 </tr>
                                 <tr class="bg-gray-50 dark:bg-gray-700">
-                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-bold">Total Entries</td>
+                                    <td class="px-2 py-3 text-gray-900 dark:text-gray-100 font-bold">{{ total_entries_label }}</td>
                                     <td class="px-2 py-3">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                             {{ cache_stats.total_pagination_entries }}
@@ -210,10 +210,10 @@
             <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="px-4 py-5 sm:px-6">
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                        DNS Caches
+                        {{ dns_caches_title }}
                     </h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                        Number of cached DNS entries
+                        {{ dns_caches_desc }}
                     </p>
                 </div>
                 <div class="border-t border-gray-200 dark:border-gray-700">
@@ -270,11 +270,11 @@
 
     <!-- Cache Management Actions -->
     <div class="mt-8">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Cache Management Actions</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ actions_title }}</h2>
         <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-200 dark:border-gray-700">
             <div class="px-4 py-5 sm:px-6">
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Clear specific cache types or all caches to refresh data
+                    {{ actions_desc }}
                 </p>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <form method="post" action="/cache-management" class="space-y-2">
@@ -286,7 +286,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Clear All Caches
+                            {{ clear_all_label }}
                         </button>
                     </form>
                     
@@ -298,7 +298,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            Clear Reports Cache
+                            {{ clear_reports_label }}
                         </button>
                     </form>
                     
@@ -310,7 +310,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
-                            Clear Pagination Cache
+                            {{ clear_pagination_label }}
                         </button>
                     </form>
                     
@@ -322,7 +322,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            Clear DNS Cache
+                            {{ clear_dns_label }}
                         </button>
                     </form>
 
@@ -334,7 +334,7 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            Clear System Stats Cache
+                            {{ clear_system_stats_label }}
                         </button>
                     </form>
                 </div>
@@ -345,7 +345,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
-                        Refresh Statistics
+                        {{ refresh_stats_label }}
                     </a>
                 </div>
             </div>
