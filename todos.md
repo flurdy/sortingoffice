@@ -42,6 +42,8 @@
 
  - ✅ On show domain page the relay sections seems untranslated
 
+ - On show domain page the relays description seems untranslated
+
 - ✅ Search box on domains list is not translated
 
 - ✅ Rename the 'Domain Wizard' to 'Bulk Add Domains' 
@@ -50,7 +52,7 @@
 
 - Cache management page seems untranslated
 
-- In cache management would it make sense to add any of the DNS lookup caches?
+- ✅ In cache management add DNS lookup caches (stats + clear action)
 
 - ✅ When viewing a resource and then in the DB drop down at the top selects another db. 
  - It will show a completely other resource with the same id in that DB

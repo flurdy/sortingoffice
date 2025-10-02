@@ -21,9 +21,30 @@ pub async fn render_dns_fragment(
         Err(_) => return crate::handlers::errors::render_500_page(state, headers).await,
     };
 
-    let result = match resolver.lookup_all(domain_name).await {
-        Ok(r) => r,
-        Err(_) => crate::services::dns_lookup::DnsLookupResult::default(),
+    // Use short-lived cache for DNS lookups
+    let ttl = std::time::Duration::from_secs(300);
+    let ns_records = if let Some(cached) = state.db_manager.get_dns_ns(domain_name).await {
+        cached
+    } else {
+        let fetched = resolver.lookup_ns(domain_name).await.unwrap_or_default();
+        state.db_manager.set_dns_ns(domain_name, fetched.clone(), ttl).await;
+        fetched
+    };
+
+    let mx_records = if let Some(cached) = state.db_manager.get_dns_mx(domain_name).await {
+        cached
+    } else {
+        let fetched = resolver.lookup_mx(domain_name).await.unwrap_or_default();
+        state.db_manager.set_dns_mx(domain_name, fetched.clone(), ttl).await;
+        fetched
+    };
+
+    let txt_records = if let Some(cached) = state.db_manager.get_dns_txt(domain_name).await {
+        cached
+    } else {
+        let fetched = resolver.lookup_txt(domain_name).await.unwrap_or_default();
+        state.db_manager.set_dns_txt(domain_name, fetched.clone(), ttl).await;
+        fetched
     };
 
     // Gather DKIM data
@@ -32,8 +53,15 @@ pub async fn render_dns_fragment(
     let mut dkim_fallback_description: Option<String> = None;
 
     if let Some(sel) = selector.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
-        if let Ok(records) = resolver.lookup_dkim(sel, domain_name).await {
+        let cache_key = format!("{}:{}", sel, domain_name);
+        if let Some(records) = state.db_manager.get_dns_dkim(&cache_key).await {
             dkim_records = records;
+        } else if let Ok(records) = resolver.lookup_dkim(sel, domain_name).await {
+            dkim_records = records;
+            state
+                .db_manager
+                .set_dns_dkim(&cache_key, dkim_records.clone(), ttl)
+                .await;
         }
     } else {
         let common_selectors = [
@@ -46,12 +74,27 @@ pub async fn render_dns_fragment(
             "google",
         ];
         for s in common_selectors.iter() {
-            if let Ok(records) = resolver.lookup_dkim(s, domain_name).await {
+            let cache_key = format!("{}:{}", s, domain_name);
+            if let Some(records) = state.db_manager.get_dns_dkim(&cache_key).await {
                 if !records.is_empty() {
                     selectors_results.push(crate::templates::dns::SelectorDkimRecords {
                         selector: s.to_string(),
                         records,
                     });
+                }
+            } else if let Ok(records) = resolver.lookup_dkim(s, domain_name).await {
+                if !records.is_empty() {
+                    selectors_results.push(crate::templates::dns::SelectorDkimRecords {
+                        selector: s.to_string(),
+                        records,
+                    });
+                    // Store DKIM cache
+                    if let Some(last) = selectors_results.last() {
+                        state
+                            .db_manager
+                            .set_dns_dkim(&cache_key, last.records.clone(), ttl)
+                            .await;
+                    }
                 }
             }
         }
@@ -70,9 +113,9 @@ pub async fn render_dns_fragment(
         dns_txt_header: crate::i18n::get_translation(state, &locale, "dns-txt-header").await,
         dns_dkim_header: crate::i18n::get_translation(state, &locale, "dns-dkim-header").await,
         dkim_fallback_description,
-        ns_records: result.ns_records,
-        mx_records: result.mx_records,
-        txt_records: result.txt_records,
+        ns_records,
+        mx_records,
+        txt_records,
         dkim_records,
         selectors_results,
     };

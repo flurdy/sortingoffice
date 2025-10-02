@@ -67,6 +67,11 @@ pub struct DataCache {
     orphaned_aliases_report: Arc<RwLock<Option<CacheEntry<OrphanedAliasReport>>>>,
     external_forwarders_report: Arc<RwLock<Option<CacheEntry<ExternalForwarderReport>>>>,
     missing_aliases_report: Arc<RwLock<Option<CacheEntry<MissingAliasReport>>>>,
+    // DNS caches
+    dns_ns: Arc<RwLock<HashMap<String, CacheEntry<Vec<String>>>>>,
+    dns_mx: Arc<RwLock<HashMap<String, CacheEntry<Vec<crate::services::dns_lookup::MxRecord>>>>>,
+    dns_txt: Arc<RwLock<HashMap<String, CacheEntry<Vec<String>>>>>,
+    dns_dkim: Arc<RwLock<HashMap<String, CacheEntry<Vec<String>>>>>,
     // Pagination caches - using HashMap for different pagination parameters
     domains_paginated: Arc<RwLock<HashMap<String, CacheEntry<PaginatedResult<Domain>>>>>,
     aliases_paginated: Arc<RwLock<HashMap<String, CacheEntry<PaginatedResult<Alias>>>>>,
@@ -86,6 +91,10 @@ impl DataCache {
             orphaned_aliases_report: Arc::new(RwLock::new(None)),
             external_forwarders_report: Arc::new(RwLock::new(None)),
             missing_aliases_report: Arc::new(RwLock::new(None)),
+            dns_ns: Arc::new(RwLock::new(HashMap::new())),
+            dns_mx: Arc::new(RwLock::new(HashMap::new())),
+            dns_txt: Arc::new(RwLock::new(HashMap::new())),
+            dns_dkim: Arc::new(RwLock::new(HashMap::new())),
             domains_paginated: Arc::new(RwLock::new(HashMap::new())),
             aliases_paginated: Arc::new(RwLock::new(HashMap::new())),
             users_paginated: Arc::new(RwLock::new(HashMap::new())),
@@ -239,6 +248,7 @@ impl DataCache {
         self.clear_external_forwarders_report().await;
         self.clear_missing_aliases_report().await;
         self.clear_all_pagination_caches().await;
+        self.clear_all_dns_caches().await;
     }
 
     // Generic pagination cache methods
@@ -423,6 +433,13 @@ impl DataCache {
             + relays_paginated_count
             + relocated_paginated_count;
 
+        // DNS stats
+        let dns_ns_count = self.dns_ns.read().await.len();
+        let dns_mx_count = self.dns_mx.read().await.len();
+        let dns_txt_count = self.dns_txt.read().await.len();
+        let dns_dkim_count = self.dns_dkim.read().await.len();
+        let total_dns_entries = dns_ns_count + dns_mx_count + dns_txt_count + dns_dkim_count;
+
         CacheStats {
             system_stats_cached,
             catch_all_report_cached,
@@ -431,6 +448,11 @@ impl DataCache {
             orphaned_aliases_report_cached,
             external_forwarders_report_cached,
             missing_aliases_report_cached,
+            dns_ns_count,
+            dns_mx_count,
+            dns_txt_count,
+            dns_dkim_count,
+            total_dns_entries,
             domains_paginated_count,
             aliases_paginated_count,
             users_paginated_count,
@@ -439,6 +461,54 @@ impl DataCache {
             relocated_paginated_count,
             total_pagination_entries,
         }
+    }
+
+    // DNS cache helpers
+    pub async fn get_dns_ns(&self, domain: &str) -> Option<Vec<String>> {
+        let cache = self.dns_ns.read().await;
+        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+    }
+    pub async fn set_dns_ns(&self, domain: &str, data: Vec<String>, ttl: Duration) {
+        let mut cache = self.dns_ns.write().await;
+        cache.insert(domain.to_string(), CacheEntry::new(data, ttl));
+    }
+    pub async fn get_dns_mx(
+        &self,
+        domain: &str,
+    ) -> Option<Vec<crate::services::dns_lookup::MxRecord>> {
+        let cache = self.dns_mx.read().await;
+        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+    }
+    pub async fn set_dns_mx(
+        &self,
+        domain: &str,
+        data: Vec<crate::services::dns_lookup::MxRecord>,
+        ttl: Duration,
+    ) {
+        let mut cache = self.dns_mx.write().await;
+        cache.insert(domain.to_string(), CacheEntry::new(data, ttl));
+    }
+    pub async fn get_dns_txt(&self, domain: &str) -> Option<Vec<String>> {
+        let cache = self.dns_txt.read().await;
+        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+    }
+    pub async fn set_dns_txt(&self, domain: &str, data: Vec<String>, ttl: Duration) {
+        let mut cache = self.dns_txt.write().await;
+        cache.insert(domain.to_string(), CacheEntry::new(data, ttl));
+    }
+    pub async fn get_dns_dkim(&self, key: &str) -> Option<Vec<String>> {
+        let cache = self.dns_dkim.read().await;
+        cache.get(key).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+    }
+    pub async fn set_dns_dkim(&self, key: &str, data: Vec<String>, ttl: Duration) {
+        let mut cache = self.dns_dkim.write().await;
+        cache.insert(key.to_string(), CacheEntry::new(data, ttl));
+    }
+    pub async fn clear_all_dns_caches(&self) {
+        self.dns_ns.write().await.clear();
+        self.dns_mx.write().await.clear();
+        self.dns_txt.write().await.clear();
+        self.dns_dkim.write().await.clear();
     }
 }
 
@@ -937,6 +1007,47 @@ impl DatabaseManager {
         self.cache.get_stats().await
     }
 
+    // DNS cache wrappers
+    pub async fn get_dns_ns(&self, domain: &str) -> Option<Vec<String>> {
+        self.cache.get_dns_ns(domain).await
+    }
+
+    pub async fn set_dns_ns(&self, domain: &str, data: Vec<String>, ttl: Duration) {
+        self.cache.set_dns_ns(domain, data, ttl).await;
+    }
+
+    pub async fn get_dns_mx(
+        &self,
+        domain: &str,
+    ) -> Option<Vec<crate::services::dns_lookup::MxRecord>> {
+        self.cache.get_dns_mx(domain).await
+    }
+
+    pub async fn set_dns_mx(
+        &self,
+        domain: &str,
+        data: Vec<crate::services::dns_lookup::MxRecord>,
+        ttl: Duration,
+    ) {
+        self.cache.set_dns_mx(domain, data, ttl).await;
+    }
+
+    pub async fn get_dns_txt(&self, domain: &str) -> Option<Vec<String>> {
+        self.cache.get_dns_txt(domain).await
+    }
+
+    pub async fn set_dns_txt(&self, domain: &str, data: Vec<String>, ttl: Duration) {
+        self.cache.set_dns_txt(domain, data, ttl).await;
+    }
+
+    pub async fn get_dns_dkim(&self, key: &str) -> Option<Vec<String>> {
+        self.cache.get_dns_dkim(key).await
+    }
+
+    pub async fn set_dns_dkim(&self, key: &str, data: Vec<String>, ttl: Duration) {
+        self.cache.set_dns_dkim(key, data, ttl).await;
+    }
+
     /// Clear specific cache types
     pub async fn clear_cache_by_type(&self, cache_type: &str) {
         match cache_type {
@@ -950,6 +1061,7 @@ impl DatabaseManager {
                 self.cache.clear_missing_aliases_report().await;
             }
             "pagination" => self.cache.clear_all_pagination_caches().await,
+            "dns" => self.cache.clear_all_dns_caches().await,
             "all" => self.cache.clear_all_caches().await,
             _ => {
                 tracing::warn!("Unknown cache type '{}' for cache clearing", cache_type);

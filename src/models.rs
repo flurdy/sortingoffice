@@ -71,6 +71,12 @@ pub struct CacheStats {
     pub orphaned_aliases_report_cached: bool,
     pub external_forwarders_report_cached: bool,
     pub missing_aliases_report_cached: bool,
+    // DNS caches
+    pub dns_ns_count: usize,
+    pub dns_mx_count: usize,
+    pub dns_txt_count: usize,
+    pub dns_dkim_count: usize,
+    pub total_dns_entries: usize,
     pub domains_paginated_count: usize,
     pub aliases_paginated_count: usize,
     pub users_paginated_count: usize,
