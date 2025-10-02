@@ -42,7 +42,7 @@
 
  - ✅ On show domain page the relay sections seems untranslated
 
- - On show domain page the relays description seems untranslated
+ - ✅ On show domain page the relays description seems untranslated
 
 - ✅ Search box on domains list is not translated
 
@@ -50,9 +50,10 @@
   - Because there are other wizards for domains, the original name is confusing
   - Or perhaps an even better/more suitable new name can be found
 
-- Cache management page seems untranslated
+- ✅ Cache management page seems untranslated
 
 - ✅ In cache management add DNS lookup caches (stats + clear action)
+  - ✅ Internationalize cache management page headings, labels, and buttons
 
 - ✅ When viewing a resource and then in the DB drop down at the top selects another db. 
  - It will show a completely other resource with the same id in that DB
@@ -61,10 +62,16 @@
 
 ## Low Priority Epics
 
+ - ✅ The DNS lookup could add a DMARC section similar to DKIM
+
 - ✅ Recent changes report
   - list most recent added and updated resources
 
 ## Low Priority Minor and bugs 🐛 
+
+- Description on show domains for relays seems untranslated in French
+
+- Description on show domains for alias report seems untranslated in French
 
 - On the show domains, we should list users
 

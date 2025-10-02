@@ -34,6 +34,17 @@
   </div>
   {% endif %}
 
+  {% if !dmarc_records.is_empty() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_dmarc_header }}</h4>
+    <ul class="list-disc ml-5 mt-2 text-sm text-gray-800 dark:text-gray-200">
+      {% for rec in dmarc_records %}
+      <li><code>{{ rec }}</code></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   {% if !dkim_records.is_empty() || !selectors_results.is_empty() %}
   <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
     <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ dns_dkim_header }}</h4>

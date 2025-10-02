@@ -13,6 +13,7 @@ pub struct DnsLookupResult {
     pub mx_records: Vec<MxRecord>,
     pub txt_records: Vec<String>,
     pub dkim_records: Vec<String>,
+    pub dmarc_records: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -75,14 +76,23 @@ impl DnsLookupService {
         self.lookup_txt(&hostname).await
     }
 
+    pub async fn lookup_dmarc(
+        &self,
+        domain: &str,
+    ) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
+        let hostname = format!("_dmarc.{}", domain.trim());
+        self.lookup_txt(&hostname).await
+    }
+
     pub async fn lookup_all(
         &self,
         domain: &str,
     ) -> Result<DnsLookupResult, Box<dyn std::error::Error + Send + Sync>> {
-        let (ns, mx, txt) = tokio::join!(
+        let (ns, mx, txt, dmarc) = tokio::join!(
             self.lookup_ns(domain),
             self.lookup_mx(domain),
-            self.lookup_txt(domain)
+            self.lookup_txt(domain),
+            self.lookup_dmarc(domain)
         );
 
         Ok(DnsLookupResult {
@@ -91,6 +101,7 @@ impl DnsLookupService {
             mx_records: mx.unwrap_or_default(),
             txt_records: txt.unwrap_or_default(),
             dkim_records: Vec::new(),
+            dmarc_records: dmarc.unwrap_or_default(),
         })
     }
 }

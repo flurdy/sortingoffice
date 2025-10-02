@@ -47,6 +47,21 @@ pub async fn render_dns_fragment(
         fetched
     };
 
+    // DMARC TXT (_dmarc.domain)
+    let dmarc_host = format!("_dmarc.{}", domain_name);
+    let dmarc_records = if let Some(cached) = state.db_manager.get_dns_txt(&dmarc_host).await {
+        cached
+    } else {
+        let fetched = resolver.lookup_dmarc(domain_name).await.unwrap_or_default();
+        if !fetched.is_empty() {
+            state
+                .db_manager
+                .set_dns_txt(&dmarc_host, fetched.clone(), ttl)
+                .await;
+        }
+        fetched
+    };
+
     // Gather DKIM data
     let mut dkim_records: Vec<String> = Vec::new();
     let mut selectors_results: Vec<crate::templates::dns::SelectorDkimRecords> = Vec::new();
@@ -112,10 +127,12 @@ pub async fn render_dns_fragment(
         dns_mx_header: crate::i18n::get_translation(state, &locale, "dns-mx-header").await,
         dns_txt_header: crate::i18n::get_translation(state, &locale, "dns-txt-header").await,
         dns_dkim_header: crate::i18n::get_translation(state, &locale, "dns-dkim-header").await,
+        dns_dmarc_header: crate::i18n::get_translation(state, &locale, "dns-dmarc-header").await,
         dkim_fallback_description,
         ns_records,
         mx_records,
         txt_records,
+        dmarc_records,
         dkim_records,
         selectors_results,
     };

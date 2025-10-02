@@ -39,3 +39,5 @@ resources/locales/*/*.bak.*
 
 /.env
 /.envrc
+
+check.out

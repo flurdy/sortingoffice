@@ -1,5 +1,5 @@
 dns-section-header = DNS
-dns-section-description = NS, MX, TXT, DKIM
+dns-section-description = NS, MX, TXT, DKIM, DMARC
 dns-lookup-button = Rechercher DNS
 dns-loading-label = Chargement...
 dns-records-title = Enregistrements DNS
@@ -7,6 +7,7 @@ dns-ns-header = NS
 dns-mx-header = MX
 dns-txt-header = TXT
 dns-dkim-header = DKIM
+dns-dmarc-header = DMARC
 dns-selector-label = Sélecteur DKIM
 dns-dkim-fallback-description = Sélecteurs DKIM courants essayés (ex. s1, s2, default, k1, google)
 # Application title and branding
