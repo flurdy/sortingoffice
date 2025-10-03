@@ -135,20 +135,20 @@ pub async fn show(
         Err(error_html) => return error_html,
     };
 
-    let alias = match db::get_alias(&pool, id) {
-        Ok(alias) => alias,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "aliases",
-                "aliases-not-found",
-            )
-            .await;
-        }
-    };
-
     let locale = get_user_locale(&headers);
+
+    let alias = match crate::handlers::database_ops::get_entity_with_not_found(
+        || async { db::get_alias(&pool, id) },
+        &state,
+        &locale,
+        "alias",
+        "aliases-not-found",
+    )
+    .await
+    {
+        Ok(alias) => alias,
+        Err(error_response) => return error_response,
+    };
 
     // Extract domain from alias mail and look it up
     let domain_name = alias.mail.split('@').next_back().unwrap_or("");
@@ -282,6 +282,7 @@ pub async fn create(
                                 existing_aliases,
                                 analytics_common_aliases,
                                 domain_relays,
+                                vec![], // domain_users - empty for now
                                 &state,
                                 &locale,
                                 &headers,
@@ -628,6 +629,7 @@ pub async fn toggle_enabled_domain_show(
                 existing_aliases,
                 analytics_common_aliases,
                 domain_relays,
+                vec![], // domain_users - empty for now
                 &state,
                 &locale,
                 &headers,

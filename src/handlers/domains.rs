@@ -122,21 +122,17 @@ async fn render_domain_list_after_creation(
     headers: &HeaderMap,
 ) -> Html<String> {
     // Get domains and backups for the list page
-    let domains = match db::get_domains(pool) {
-        Ok(domains) => domains,
-        Err(e) => {
-            error!("Failed to retrieve domains after creation: {:?}", e);
-            vec![]
-        }
-    };
+    let domains = crate::handlers::database_ops::get_entity_list_with_fallback(
+        || async { db::get_domains(pool) },
+        "retrieve domains after creation",
+    )
+    .await;
 
-    let backups = match db::get_backups(pool) {
-        Ok(backups) => backups,
-        Err(e) => {
-            error!("Failed to retrieve backups: {:?}", e);
-            vec![]
-        }
-    };
+    let backups = crate::handlers::database_ops::get_entity_list_with_fallback(
+        || async { db::get_backups(pool) },
+        "retrieve backups",
+    )
+    .await;
 
     let paginated_domains = PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
 
@@ -481,17 +477,17 @@ pub async fn edit(
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Get domain with proper error handling
-    let domain = match db::get_domain(&pool, id) {
+    let domain = match crate::handlers::database_ops::get_entity_with_not_found(
+        || async { db::get_domain(&pool, id) },
+        &state,
+        &locale,
+        "domain",
+        "domains-not-found",
+    )
+    .await
+    {
         Ok(domain) => domain,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "domains",
-                "domains-not-found",
-            )
-            .await;
-        }
+        Err(error_response) => return error_response,
     };
 
     // Use optimized helper to create form without cloning
@@ -555,7 +551,6 @@ pub async fn create(
                 "Failed to create domain '{}' on database: {:?}",
                 form.domain, e
             );
-            error!("Database error details: {}", e);
             let error_msg = get_translation(&state, &locale, "domains-error-creating").await;
             Html(error_msg)
         }

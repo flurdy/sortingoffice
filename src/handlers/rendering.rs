@@ -861,6 +861,8 @@ pub async fn render_backup_show_page(
         domains_mail_header,
         domains_destination_header,
         domains_enabled_header,
+        no_required_aliases: crate::i18n::get_translation(state, locale, "no-required-aliases")
+            .await,
     };
 
     render_show_template(content_template, state, locale, headers).await

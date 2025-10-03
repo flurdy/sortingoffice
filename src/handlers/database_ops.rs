@@ -148,12 +148,12 @@ impl PoolRetrievalConfigBuilder {
 pub trait PoolErrorHandler {
     type Error;
 
-    async fn handle_error(
+    fn handle_error(
         &self,
         state: &AppState,
         headers: &HeaderMap,
         error: Box<dyn std::error::Error + Send + Sync>,
-    ) -> Result<crate::DbPool, Self::Error>;
+    ) -> impl std::future::Future<Output = Result<crate::DbPool, Self::Error>> + Send;
 }
 
 /// HTML error handler for database pool retrieval
@@ -1042,6 +1042,493 @@ where
             error_handler(e)
         }
     }
+}
+
+// ============================================================================
+// UNIFIED ERROR HANDLING PATTERNS
+// ============================================================================
+
+/// Unified error handling strategy for database operations
+/// This enum defines the different ways errors can be handled across the application
+#[derive(Debug, Clone, PartialEq)]
+pub enum ErrorHandlingStrategy {
+    /// Return HTML error page response
+    HtmlResponse,
+    /// Return HTTP error status with message
+    HttpError,
+    /// Return default/fallback value
+    FallbackValue,
+    /// Return empty result (for lists/collections)
+    EmptyResult,
+    /// Redirect to error page
+    Redirect,
+    /// Return custom error response
+    Custom(String),
+}
+
+/// Error handling configuration for database operations
+/// This struct provides a unified way to configure error handling behavior
+#[derive(Debug, Clone)]
+pub struct ErrorHandlingConfig {
+    /// The strategy to use for error handling
+    pub strategy: ErrorHandlingStrategy,
+    /// Custom error message key for i18n
+    pub error_message_key: Option<String>,
+    /// Whether to log the error
+    pub log_error: bool,
+    /// Whether to include error details in response
+    pub include_error_details: bool,
+    /// Fallback value for FallbackValue strategy
+    pub fallback_value: Option<String>,
+}
+
+impl Default for ErrorHandlingConfig {
+    fn default() -> Self {
+        Self {
+            strategy: ErrorHandlingStrategy::HtmlResponse,
+            error_message_key: None,
+            log_error: true,
+            include_error_details: false,
+            fallback_value: None,
+        }
+    }
+}
+
+impl ErrorHandlingConfig {
+    /// Create a new error handling configuration
+    pub fn new(strategy: ErrorHandlingStrategy) -> Self {
+        Self {
+            strategy,
+            error_message_key: None,
+            log_error: true,
+            include_error_details: false,
+            fallback_value: None,
+        }
+    }
+
+    /// Set custom error message key
+    pub fn with_error_message(mut self, key: &str) -> Self {
+        self.error_message_key = Some(key.to_string());
+        self
+    }
+
+    /// Set whether to log errors
+    pub fn with_logging(mut self, log: bool) -> Self {
+        self.log_error = log;
+        self
+    }
+
+    /// Set whether to include error details
+    pub fn with_error_details(mut self, include: bool) -> Self {
+        self.include_error_details = include;
+        self
+    }
+
+    /// Set fallback value
+    pub fn with_fallback_value(mut self, value: &str) -> Self {
+        self.fallback_value = Some(value.to_string());
+        self
+    }
+
+    /// Create HTML response strategy
+    pub fn html_response() -> Self {
+        Self::new(ErrorHandlingStrategy::HtmlResponse)
+    }
+
+    /// Create HTTP error strategy
+    pub fn http_error() -> Self {
+        Self::new(ErrorHandlingStrategy::HttpError)
+    }
+
+    /// Create fallback value strategy
+    pub fn fallback_value(value: &str) -> Self {
+        Self::new(ErrorHandlingStrategy::FallbackValue).with_fallback_value(value)
+    }
+
+    /// Create empty result strategy
+    pub fn empty_result() -> Self {
+        Self::new(ErrorHandlingStrategy::EmptyResult)
+    }
+
+    /// Create redirect strategy
+    pub fn redirect() -> Self {
+        Self::new(ErrorHandlingStrategy::Redirect)
+    }
+}
+
+/// Unified error handler trait for database operations
+/// This trait provides a consistent interface for handling database errors
+pub trait UnifiedErrorHandler {
+    type Output;
+    type Error;
+
+    /// Handle a database error using the configured strategy
+    fn handle_database_error(
+        &self,
+        error: diesel::result::Error,
+        config: &ErrorHandlingConfig,
+        context: &str,
+    ) -> impl std::future::Future<Output = Result<Self::Output, Self::Error>> + Send;
+}
+
+/// HTML error handler implementation
+pub struct HtmlErrorHandlerImpl {
+    pub state: AppState,
+    pub headers: HeaderMap,
+}
+
+impl UnifiedErrorHandler for HtmlErrorHandlerImpl {
+    type Output = Html<String>;
+    type Error = Html<String>;
+
+    async fn handle_database_error(
+        &self,
+        error: diesel::result::Error,
+        config: &ErrorHandlingConfig,
+        context: &str,
+    ) -> Result<Self::Output, Self::Error> {
+        if config.log_error {
+            error!("Database error in {}: {:?}", context, error);
+        }
+
+        match config.strategy {
+            ErrorHandlingStrategy::HtmlResponse => {
+                let error_page =
+                    crate::handlers::errors::render_database_error_page(&self.state, &self.headers)
+                        .await;
+                Ok(error_page)
+            }
+            ErrorHandlingStrategy::FallbackValue => {
+                let fallback = config
+                    .fallback_value
+                    .clone()
+                    .unwrap_or_else(|| "".to_string());
+                Ok(Html(fallback))
+            }
+            ErrorHandlingStrategy::EmptyResult => Ok(Html("".to_string())),
+            ErrorHandlingStrategy::Redirect => {
+                // For HTML handler, redirect is not applicable, fall back to error page
+                let error_page =
+                    crate::handlers::errors::render_database_error_page(&self.state, &self.headers)
+                        .await;
+                Ok(error_page)
+            }
+            _ => {
+                let error_page =
+                    crate::handlers::errors::render_database_error_page(&self.state, &self.headers)
+                        .await;
+                Ok(error_page)
+            }
+        }
+    }
+}
+
+/// HTTP error handler implementation
+pub struct HttpErrorHandlerImpl;
+
+impl UnifiedErrorHandler for HttpErrorHandlerImpl {
+    type Output = (axum::http::StatusCode, String);
+    type Error = (axum::http::StatusCode, String);
+
+    async fn handle_database_error(
+        &self,
+        error: diesel::result::Error,
+        config: &ErrorHandlingConfig,
+        context: &str,
+    ) -> Result<Self::Output, Self::Error> {
+        if config.log_error {
+            error!("Database error in {}: {:?}", context, error);
+        }
+
+        match config.strategy {
+            ErrorHandlingStrategy::HttpError => {
+                let message = if config.include_error_details {
+                    format!("Database error in {}: {}", context, error)
+                } else {
+                    format!("Database error in {}", context)
+                };
+                Ok((axum::http::StatusCode::INTERNAL_SERVER_ERROR, message))
+            }
+            ErrorHandlingStrategy::FallbackValue => {
+                let fallback = config
+                    .fallback_value
+                    .clone()
+                    .unwrap_or_else(|| "".to_string());
+                Ok((axum::http::StatusCode::OK, fallback))
+            }
+            ErrorHandlingStrategy::EmptyResult => Ok((axum::http::StatusCode::OK, "".to_string())),
+            ErrorHandlingStrategy::Redirect => {
+                Ok((axum::http::StatusCode::SEE_OTHER, "/error".to_string()))
+            }
+            _ => {
+                let message = format!("Database error in {}", context);
+                Ok((axum::http::StatusCode::INTERNAL_SERVER_ERROR, message))
+            }
+        }
+    }
+}
+
+/// Generic database operation with unified error handling
+/// This function provides a consistent way to handle database operations with configurable error handling
+pub async fn execute_db_operation_with_unified_error_handling<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    config: ErrorHandlingConfig,
+    context: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    match operation().await {
+        Ok(result) => Ok(result),
+        Err(error) => {
+            error_handler
+                .handle_database_error(error, &config, context)
+                .await?;
+            // This should never be reached due to the error handler returning the error
+            unreachable!()
+        }
+    }
+}
+
+/// Unified entity operation with consistent error handling patterns
+/// This function consolidates common patterns for entity operations with unified error handling
+pub async fn unified_entity_operation<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    operation_type: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("{} {} for {}", operation_type, entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-{}-{}", operation_type, entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
+}
+
+/// Unified list operation with consistent error handling patterns
+/// This function provides consistent error handling for list/collection operations
+pub async fn unified_list_operation<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    operation_type: &str,
+) -> Result<Vec<T>, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<Vec<T>, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+    T: Clone,
+{
+    let context = format!("{} {} list", operation_type, entity_name);
+    let config = ErrorHandlingConfig::empty_result()
+        .with_error_message(&format!("error-{}-{}", operation_type, entity_name))
+        .with_logging(true);
+
+    match operation().await {
+        Ok(result) => Ok(result),
+        Err(error) => {
+            if config.log_error {
+                error!("Database error in {}: {:?}", context, error);
+            }
+
+            match config.strategy {
+                ErrorHandlingStrategy::EmptyResult => Ok(vec![]),
+                ErrorHandlingStrategy::FallbackValue => {
+                    // For lists, fallback value doesn't make sense, return empty
+                    Ok(vec![])
+                }
+                _ => {
+                    // For other strategies, let the error handler deal with it
+                    error_handler
+                        .handle_database_error(error, &config, &context)
+                        .await?;
+                    unreachable!()
+                }
+            }
+        }
+    }
+}
+
+/// Unified paginated operation with consistent error handling patterns
+/// This function provides consistent error handling for paginated operations
+pub async fn unified_paginated_operation<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    operation_type: &str,
+    page: i64,
+    per_page: i64,
+) -> Result<crate::models::PaginatedResult<T>, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<Vec<T>, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+    T: Clone,
+{
+    let context = format!("{} {} paginated list", operation_type, entity_name);
+    let config = ErrorHandlingConfig::empty_result()
+        .with_error_message(&format!("error-{}-{}", operation_type, entity_name))
+        .with_logging(true);
+
+    match operation().await {
+        Ok(result) => {
+            let total = result.len() as i64;
+            Ok(crate::models::PaginatedResult::new(
+                result, total, page, per_page,
+            ))
+        }
+        Err(error) => {
+            if config.log_error {
+                error!("Database error in {}: {:?}", context, error);
+            }
+
+            match config.strategy {
+                ErrorHandlingStrategy::EmptyResult => Ok(crate::models::PaginatedResult::new(
+                    vec![],
+                    0,
+                    page,
+                    per_page,
+                )),
+                ErrorHandlingStrategy::FallbackValue => {
+                    // For paginated results, fallback value doesn't make sense, return empty
+                    Ok(crate::models::PaginatedResult::new(
+                        vec![],
+                        0,
+                        page,
+                        per_page,
+                    ))
+                }
+                _ => {
+                    // For other strategies, let the error handler deal with it
+                    error_handler
+                        .handle_database_error(error, &config, &context)
+                        .await?;
+                    unreachable!()
+                }
+            }
+        }
+    }
+}
+
+/// Unified entity retrieval with consistent error handling patterns
+/// This function provides consistent error handling for single entity retrieval operations
+pub async fn unified_entity_retrieval<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("retrieve {} with id {}", entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-{}-not-found", entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
+}
+
+/// Unified entity creation with consistent error handling patterns
+/// This function provides consistent error handling for entity creation operations
+pub async fn unified_entity_creation<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("create {} with identifier {}", entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-create-{}", entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
+}
+
+/// Unified entity update with consistent error handling patterns
+/// This function provides consistent error handling for entity update operations
+pub async fn unified_entity_update<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("update {} with id {}", entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-update-{}", entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
+}
+
+/// Unified entity deletion with consistent error handling patterns
+/// This function provides consistent error handling for entity deletion operations
+pub async fn unified_entity_deletion<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("delete {} with id {}", entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-delete-{}", entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
+}
+
+/// Unified entity toggle with consistent error handling patterns
+/// This function provides consistent error handling for entity toggle operations
+pub async fn unified_entity_toggle<T, F, Fut, H>(
+    operation: F,
+    error_handler: H,
+    entity_name: &str,
+    identifier: &str,
+) -> Result<T, H::Error>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, diesel::result::Error>>,
+    H: UnifiedErrorHandler,
+{
+    let context = format!("toggle {} with id {}", entity_name, identifier);
+    let config = ErrorHandlingConfig::html_response()
+        .with_error_message(&format!("error-toggle-{}", entity_name))
+        .with_logging(true);
+
+    execute_db_operation_with_unified_error_handling(operation, error_handler, config, &context)
+        .await
 }
 
 #[cfg(test)]

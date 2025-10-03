@@ -32,16 +32,11 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
         return Html(not_available_msg);
     }
 
-    let relays = match db::get_relays(&pool) {
-        Ok(relays) => {
-            info!("Successfully retrieved {} relays", relays.len());
-            relays
-        }
-        Err(e) => {
-            error!("Failed to retrieve relays: {:?}", e);
-            vec![]
-        }
-    };
+    let relays = crate::handlers::database_ops::get_entity_list_with_fallback(
+        || async { db::get_relays(&pool) },
+        "retrieve relays",
+    )
+    .await;
 
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_relay_list_page(relays, &state, &locale, &headers).await
@@ -69,17 +64,17 @@ pub async fn show_relay(
         return Html(not_available_msg);
     }
 
-    let relay = match db::get_relay(&pool, relay_id) {
+    let relay = match crate::handlers::database_ops::get_entity_with_not_found(
+        || async { db::get_relay(&pool, relay_id) },
+        &state,
+        &locale,
+        "relay",
+        "relays-not-found",
+    )
+    .await
+    {
         Ok(relay) => relay,
-        Err(_) => {
-            return crate::handlers::utils::handle_entity_not_found(
-                &state,
-                &headers,
-                "relays",
-                "relays-not-found",
-            )
-            .await;
-        }
+        Err(error_response) => return error_response,
     };
 
     // Use the new resource-specific helper function
@@ -388,6 +383,7 @@ pub async fn toggle_enabled_domain_show(
                 existing_aliases,
                 analytics_common_aliases,
                 domain_relays,
+                vec![], // domain_users - empty for now
                 &state,
                 &locale,
                 &headers,

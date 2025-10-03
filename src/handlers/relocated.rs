@@ -36,19 +36,11 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         return Html(not_available_msg);
     }
 
-    let relocated = match db::get_relocated(&pool) {
-        Ok(relocated) => {
-            info!(
-                "Successfully retrieved {} relocated entries",
-                relocated.len()
-            );
-            relocated
-        }
-        Err(e) => {
-            error!("Failed to retrieve relocated entries: {:?}", e);
-            vec![]
-        }
-    };
+    let relocated = crate::handlers::database_ops::get_entity_list_with_fallback(
+        || async { db::get_relocated(&pool) },
+        "retrieve relocated entries",
+    )
+    .await;
 
     render_relocated_list_page(relocated, &state, &locale, &headers).await
 }

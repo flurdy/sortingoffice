@@ -61,6 +61,7 @@ pub struct BackupShowTemplate {
     pub domains_mail_header: String,
     pub domains_destination_header: String,
     pub domains_enabled_header: String,
+    pub no_required_aliases: String,
 }
 
 #[derive(Template)]
