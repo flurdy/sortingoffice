@@ -936,6 +936,48 @@ where
     }
 }
 
+/// Generic paginated operation helper that works with PaginatedResult<T>
+/// This function provides consistent error handling for operations that return PaginatedResult directly
+pub async fn get_paginated_result_with_fallback<T, F, Fut>(
+    operation: F,
+    operation_name: &str,
+) -> crate::models::PaginatedResult<T>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<crate::models::PaginatedResult<T>, Error>>,
+    T: Clone,
+{
+    match operation().await {
+        Ok(paginated_result) => paginated_result,
+        Err(e) => {
+            error!("Failed to {}: {:?}", operation_name, e);
+            crate::models::PaginatedResult::new(vec![], 0, 1, 20)
+        }
+    }
+}
+
+/// Generic paginated operation helper with configurable fallback page and per_page
+/// This function provides consistent error handling for operations that return PaginatedResult directly
+pub async fn get_paginated_result_with_custom_fallback<T, F, Fut>(
+    operation: F,
+    operation_name: &str,
+    fallback_page: i64,
+    fallback_per_page: i64,
+) -> crate::models::PaginatedResult<T>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<crate::models::PaginatedResult<T>, Error>>,
+    T: Clone,
+{
+    match operation().await {
+        Ok(paginated_result) => paginated_result,
+        Err(e) => {
+            error!("Failed to {}: {:?}", operation_name, e);
+            crate::models::PaginatedResult::new(vec![], 0, fallback_page, fallback_per_page)
+        }
+    }
+}
+
 /// Generic entity creation helper that returns HTML response directly
 /// This consolidates the common pattern of creating entities and returning HTML responses
 pub async fn create_entity_html<T, F, Fut, S, E>(
@@ -1949,5 +1991,76 @@ mod tests {
             conservative.operation_name,
             "get_database_pool_conservative"
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_paginated_result_with_fallback_success() {
+        let mock_entities = vec![
+            MockEntity {
+                id: 1,
+                name: "test1".to_string(),
+            },
+            MockEntity {
+                id: 2,
+                name: "test2".to_string(),
+            },
+        ];
+        let paginated_result = crate::models::PaginatedResult::new(mock_entities.clone(), 2, 1, 10);
+
+        let operation = || async { Ok(paginated_result) };
+        let result = get_paginated_result_with_fallback(operation, "retrieve entities").await;
+
+        assert_eq!(result.items.len(), 2);
+        assert_eq!(result.total_count, 2);
+        assert_eq!(result.current_page, 1);
+        assert_eq!(result.per_page, 10);
+    }
+
+    #[tokio::test]
+    async fn test_get_paginated_result_with_fallback_error() {
+        let operation = || async { Err(Error::NotFound) };
+        let result: crate::models::PaginatedResult<MockEntity> =
+            get_paginated_result_with_fallback(operation, "retrieve entities").await;
+
+        assert_eq!(result.items.len(), 0);
+        assert_eq!(result.total_count, 0);
+        assert_eq!(result.current_page, 1);
+        assert_eq!(result.per_page, 20); // Default fallback values
+    }
+
+    #[tokio::test]
+    async fn test_get_paginated_result_with_custom_fallback_success() {
+        let mock_entities = vec![
+            MockEntity {
+                id: 1,
+                name: "test1".to_string(),
+            },
+            MockEntity {
+                id: 2,
+                name: "test2".to_string(),
+            },
+        ];
+        let paginated_result = crate::models::PaginatedResult::new(mock_entities.clone(), 2, 2, 5);
+
+        let operation = || async { Ok(paginated_result) };
+        let result =
+            get_paginated_result_with_custom_fallback(operation, "retrieve entities", 2, 5).await;
+
+        assert_eq!(result.items.len(), 2);
+        assert_eq!(result.total_count, 2);
+        assert_eq!(result.current_page, 2);
+        assert_eq!(result.per_page, 5);
+    }
+
+    #[tokio::test]
+    async fn test_get_paginated_result_with_custom_fallback_error() {
+        let operation = || async { Err(Error::NotFound) };
+        let result: crate::models::PaginatedResult<MockEntity> =
+            get_paginated_result_with_custom_fallback(operation, "retrieve entities", 3, 15).await;
+
+        assert_eq!(result.items.len(), 0);
+        assert_eq!(result.total_count, 0);
+        assert_eq!(result.current_page, 3); // Custom fallback values
+        assert_eq!(result.per_page, 15);
     }
 }

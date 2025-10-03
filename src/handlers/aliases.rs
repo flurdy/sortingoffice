@@ -56,10 +56,15 @@ pub async fn list(
     };
 
     let paginated_aliases =
-        match db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order, search) {
-            Ok(aliases) => aliases,
-            Err(_) => PaginatedResult::new(vec![], 0, 1, per_page),
-        };
+        crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+            || async {
+                db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order, search)
+            },
+            "retrieve aliases",
+            page,
+            per_page,
+        )
+        .await;
 
     let locale = get_user_locale(&headers);
 

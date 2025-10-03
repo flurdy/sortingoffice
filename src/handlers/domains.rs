@@ -365,13 +365,14 @@ pub async fn list(
     .await;
 
     // Get paginated backups with search filter
-    let paginated_backups = match crate::db::get_backups_paginated(&pool, page, per_page, search) {
-        Ok(backups) => backups,
-        Err(e) => {
-            error!("Failed to retrieve backups: {:?}", e);
-            crate::models::PaginatedResult::new(vec![], 0, 1, per_page)
-        }
-    };
+    let paginated_backups =
+        crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+            || async { crate::db::get_backups_paginated(&pool, page, per_page, search) },
+            "retrieve backups",
+            page,
+            per_page,
+        )
+        .await;
 
     // Use the new resource-specific helper function
     crate::handlers::rendering::render_domain_list_page(
