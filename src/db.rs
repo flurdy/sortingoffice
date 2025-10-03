@@ -466,7 +466,13 @@ impl DataCache {
     // DNS cache helpers
     pub async fn get_dns_ns(&self, domain: &str) -> Option<Vec<String>> {
         let cache = self.dns_ns.read().await;
-        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+        cache.get(domain).and_then(|e| {
+            if e.is_expired() {
+                None
+            } else {
+                Some(e.data.clone())
+            }
+        })
     }
     pub async fn set_dns_ns(&self, domain: &str, data: Vec<String>, ttl: Duration) {
         let mut cache = self.dns_ns.write().await;
@@ -477,7 +483,13 @@ impl DataCache {
         domain: &str,
     ) -> Option<Vec<crate::services::dns_lookup::MxRecord>> {
         let cache = self.dns_mx.read().await;
-        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+        cache.get(domain).and_then(|e| {
+            if e.is_expired() {
+                None
+            } else {
+                Some(e.data.clone())
+            }
+        })
     }
     pub async fn set_dns_mx(
         &self,
@@ -490,7 +502,13 @@ impl DataCache {
     }
     pub async fn get_dns_txt(&self, domain: &str) -> Option<Vec<String>> {
         let cache = self.dns_txt.read().await;
-        cache.get(domain).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+        cache.get(domain).and_then(|e| {
+            if e.is_expired() {
+                None
+            } else {
+                Some(e.data.clone())
+            }
+        })
     }
     pub async fn set_dns_txt(&self, domain: &str, data: Vec<String>, ttl: Duration) {
         let mut cache = self.dns_txt.write().await;
@@ -498,7 +516,13 @@ impl DataCache {
     }
     pub async fn get_dns_dkim(&self, key: &str) -> Option<Vec<String>> {
         let cache = self.dns_dkim.read().await;
-        cache.get(key).and_then(|e| if e.is_expired() { None } else { Some(e.data.clone()) })
+        cache.get(key).and_then(|e| {
+            if e.is_expired() {
+                None
+            } else {
+                Some(e.data.clone())
+            }
+        })
     }
     pub async fn set_dns_dkim(&self, key: &str, data: Vec<String>, ttl: Duration) {
         let mut cache = self.dns_dkim.write().await;

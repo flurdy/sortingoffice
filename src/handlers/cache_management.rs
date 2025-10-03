@@ -64,22 +64,18 @@ pub async fn cache_management(
     cache_template.not_cached_label = get_translation(&state, &locale, "not-cached-label").await;
     cache_template.total_entries_label =
         get_translation(&state, &locale, "total-entries-label").await;
-    cache_template.actions_title =
-        get_translation(&state, &locale, "cache-actions-title").await;
+    cache_template.actions_title = get_translation(&state, &locale, "cache-actions-title").await;
     cache_template.actions_desc =
         get_translation(&state, &locale, "cache-actions-description").await;
-    cache_template.clear_all_label =
-        get_translation(&state, &locale, "clear-all-caches").await;
+    cache_template.clear_all_label = get_translation(&state, &locale, "clear-all-caches").await;
     cache_template.clear_reports_label =
         get_translation(&state, &locale, "clear-reports-cache").await;
     cache_template.clear_pagination_label =
         get_translation(&state, &locale, "clear-pagination-cache").await;
     cache_template.clear_system_stats_label =
         get_translation(&state, &locale, "clear-system-stats-cache").await;
-    cache_template.clear_dns_label =
-        get_translation(&state, &locale, "clear-dns-cache").await;
-    cache_template.refresh_stats_label =
-        get_translation(&state, &locale, "refresh-stats").await;
+    cache_template.clear_dns_label = get_translation(&state, &locale, "clear-dns-cache").await;
+    cache_template.refresh_stats_label = get_translation(&state, &locale, "refresh-stats").await;
     let content = match cache_template.render() {
         Ok(content) => content,
         Err(e) => {

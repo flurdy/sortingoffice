@@ -559,13 +559,11 @@ pub async fn create(
     // Create user directly (no domain validation needed)
     match db::create_user(&pool, form.clone()) {
         Ok(_) => {
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(e) => {
-                    error!("Failed to retrieve users after creation: {:?}", e);
-                    vec![]
-                }
-            };
+            let users = crate::handlers::database_ops::get_entity_list_with_fallback(
+                || async { db::get_users(&pool) },
+                "retrieve users after creation",
+            )
+            .await;
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated, &headers).await;
@@ -589,9 +587,10 @@ pub async fn create(
             }
         }
         Err(e) => {
-            let error_message =
-                crate::handlers::utils::handle_database_error(&state, &locale, e, "user", &form.id)
-                    .await;
+            let error_message = crate::handlers::database_ops::handle_database_error(
+                &state, &locale, e, "user", &form.id,
+            )
+            .await;
 
             let form_template =
                 build_user_form_template(&state, &locale, None, form.clone(), Some(error_message))
@@ -808,13 +807,11 @@ pub async fn delete(
     {
         Ok(_) => {
             // Get updated users list with error handling
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(e) => {
-                    error!("Failed to retrieve users after deletion: {:?}", e);
-                    vec![]
-                }
-            };
+            let users = crate::handlers::database_ops::get_entity_list_with_fallback(
+                || async { db::get_users(&pool) },
+                "retrieve users after deletion",
+            )
+            .await;
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated, &headers).await;
@@ -851,13 +848,11 @@ pub async fn toggle_enabled(
     {
         Ok(_) => {
             // Get updated users list with error handling
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(e) => {
-                    error!("Failed to retrieve users after toggle: {:?}", e);
-                    vec![]
-                }
-            };
+            let users = crate::handlers::database_ops::get_entity_list_with_fallback(
+                || async { db::get_users(&pool) },
+                "retrieve users after toggle",
+            )
+            .await;
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated, &headers).await;
@@ -894,13 +889,11 @@ pub async fn toggle_enabled_list(
     {
         Ok(_) => {
             // Get updated users list with error handling
-            let users = match db::get_users(&pool) {
-                Ok(users) => users,
-                Err(e) => {
-                    error!("Failed to retrieve users after toggle: {:?}", e);
-                    vec![]
-                }
-            };
+            let users = crate::handlers::database_ops::get_entity_list_with_fallback(
+                || async { db::get_users(&pool) },
+                "retrieve users after toggle",
+            )
+            .await;
             let paginated = PaginatedResult::new(users.clone(), 0, 1, 20);
             let content_template =
                 build_user_list_template(&state, &locale, users, paginated, &headers).await;

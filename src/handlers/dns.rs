@@ -27,7 +27,10 @@ pub async fn render_dns_fragment(
         cached
     } else {
         let fetched = resolver.lookup_ns(domain_name).await.unwrap_or_default();
-        state.db_manager.set_dns_ns(domain_name, fetched.clone(), ttl).await;
+        state
+            .db_manager
+            .set_dns_ns(domain_name, fetched.clone(), ttl)
+            .await;
         fetched
     };
 
@@ -35,7 +38,10 @@ pub async fn render_dns_fragment(
         cached
     } else {
         let fetched = resolver.lookup_mx(domain_name).await.unwrap_or_default();
-        state.db_manager.set_dns_mx(domain_name, fetched.clone(), ttl).await;
+        state
+            .db_manager
+            .set_dns_mx(domain_name, fetched.clone(), ttl)
+            .await;
         fetched
     };
 
@@ -43,7 +49,10 @@ pub async fn render_dns_fragment(
         cached
     } else {
         let fetched = resolver.lookup_txt(domain_name).await.unwrap_or_default();
-        state.db_manager.set_dns_txt(domain_name, fetched.clone(), ttl).await;
+        state
+            .db_manager
+            .set_dns_txt(domain_name, fetched.clone(), ttl)
+            .await;
         fetched
     };
 

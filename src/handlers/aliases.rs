@@ -9,10 +9,10 @@ use crate::{
     analytics::find_database_common_aliases,
     db,
     handlers::{
+        database_ops::handle_database_error,
         database_ops::{get_entity_or_handle_error, handle_entity_operation},
         language::get_user_locale,
         translations::get_translations_batch,
-        utils::handle_database_error,
     },
     i18n::get_translation,
     models::{PaginatedResult, PaginationParams},

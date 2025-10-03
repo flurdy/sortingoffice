@@ -25,7 +25,7 @@
 - ✅ Integrate or link to DNS lookup for NS, MX, TXT, DKIM and similar for a domain.
    - ✅ Research completed - see docs/DNS_LOOKUP_RESEARCH.md
 
-- Implement DNS lookup researched above
+- ✅ Implement DNS lookup researched above
    - See docs/DNS_LOOKUP_RESEARCH.md
    - Adjust DNS lookup implementation plan:
      - There is no DB for this app to store any information (the app accesses client mail dbs, but they are not its own dbs)
@@ -64,6 +64,13 @@
 
  - ✅ The DNS lookup could add a DMARC section similar to DKIM
 
+
+- Refactor database helper functions for better maintainability.
+  - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
+  - Create generic functions to reduce code duplication
+  - Improve error handling consistency across database operations
+  - Add comprehensive documentation for database operation patterns
+
 - ✅ Recent changes report
   - list most recent added and updated resources
 
@@ -79,9 +86,9 @@
 
 - ✅ On the show domains, we should list users
 
-- ☐ On the show backup domains, we should really list relays
+- ✅ On the show backup domains, we should really list relays
 
-- On the show backup domains, we should really list aliases and users even of they wont be relayed to.
+- ✅ On the show backup domains, we should really list aliases and users even of they wont be relayed to.
 
 ## 🙈 KNOWN ISSUES
 
@@ -95,12 +102,6 @@
   - Delete from domains or backup table.
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
-
-- Refactor database helper functions for better maintainability. Postponed for now.
-  - Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
-  - Create generic functions to reduce code duplication
-  - Improve error handling consistency across database operations
-  - Add comprehensive documentation for database operation patterns
 
 - On a show backup domain page add a button to change it from a backup domain to a normal domain. Postponed for now.
   - This might be a wizard to add aliases etc like the current wizards

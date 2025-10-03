@@ -801,7 +801,8 @@ pub async fn render_backup_show_page(
     // Alias table headers (reuse domain keys)
     let existing_aliases_header =
         crate::i18n::get_translation(state, locale, "domains-existing-aliases-header").await;
-    let domains_mail_header = crate::i18n::get_translation(state, locale, "domains-mail-header").await;
+    let domains_mail_header =
+        crate::i18n::get_translation(state, locale, "domains-mail-header").await;
     let domains_destination_header =
         crate::i18n::get_translation(state, locale, "domains-destination-header").await;
     let domains_enabled_header =
@@ -1188,8 +1189,18 @@ pub async fn render_domain_show_page(
         users_header: &crate::i18n::get_translation(state, locale, "users-title").await,
         users_description: &crate::i18n::get_translation(state, locale, "users-description").await,
         user_id_header: &crate::i18n::get_translation(state, locale, "users-user-id").await,
-        user_enabled_header: &crate::i18n::get_translation(state, locale, "users-table-header-enabled").await,
-        users_empty_message: &crate::i18n::get_translation(state, locale, "users-empty-description").await,
+        user_enabled_header: &crate::i18n::get_translation(
+            state,
+            locale,
+            "users-table-header-enabled",
+        )
+        .await,
+        users_empty_message: &crate::i18n::get_translation(
+            state,
+            locale,
+            "users-empty-description",
+        )
+        .await,
         cross_database_info: &cross_database_info,
         other_databases_header: &other_databases_header,
         other_databases_description: &other_databases_description,

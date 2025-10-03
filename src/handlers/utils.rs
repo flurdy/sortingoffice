@@ -4,7 +4,6 @@ use axum::http::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::Html;
 use tracing::error;
-use tracing::info;
 
 // Import template functions from the new templates module
 use crate::handlers::templates::render_template_safely;
@@ -254,25 +253,7 @@ pub async fn get_current_db_pool(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Box<dyn std::error::Error + Send + Sync>> {
-    // Get the selected database from the session, or fall back to default
-    let selected_db = crate::handlers::auth::get_selected_database(headers)
-        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
-
-    // Try existing pool, otherwise lazily create with brief retries
-    if let Some(pool) = state.db_manager.get_pool(&selected_db).await {
-        return Ok(pool);
-    }
-    state
-        .db_manager
-        .get_or_create_pool(&selected_db)
-        .await
-        .ok_or_else(|| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("No database pool available for '{selected_db}'"),
-            )
-            .into()
-        })
+    crate::handlers::database_ops::get_current_db_pool(state, headers).await
 }
 
 /// Helper function to fetch field-related translations
@@ -307,32 +288,6 @@ where
             tracing::error!("{}: {:?}", error_msg, e);
             Err(e)
         }
-    }
-}
-
-/// Helper function to handle database errors consistently
-pub async fn handle_database_error(
-    state: &AppState,
-    locale: &str,
-    error: diesel::result::Error,
-    entity: &str,
-    identifier: &str,
-) -> String {
-    match error {
-        diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::UniqueViolation,
-            _,
-        ) => {
-            let key = format!("error-duplicate-{entity}");
-            get_translation(state, locale, &key)
-                .await
-                .replace("{identifier}", identifier)
-        }
-        diesel::result::Error::DatabaseError(
-            diesel::result::DatabaseErrorKind::CheckViolation,
-            _,
-        ) => get_translation(state, locale, "error-constraint-violation").await,
-        _ => get_translation(state, locale, "error-unexpected").await,
     }
 }
 
@@ -515,13 +470,7 @@ pub async fn get_db_pool_or_handle_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Html<String>> {
-    match get_current_db_pool(state, headers).await {
-        Ok(pool) => Ok(pool),
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            Err(Html("Database connection error".to_string()))
-        }
-    }
+    crate::handlers::database_ops::get_db_pool_or_handle_error(state, headers).await
 }
 
 /// Helper function to get database pool with consistent error handling
@@ -529,13 +478,7 @@ pub async fn get_db_pool_or_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, Html<String>> {
-    match get_current_db_pool(state, headers).await {
-        Ok(pool) => Ok(pool),
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            Err(Html("Database connection error".to_string()))
-        }
-    }
+    crate::handlers::database_ops::get_db_pool_or_error(state, headers).await
 }
 
 /// Helper function to get database pool with consistent error handling for redirect handlers
@@ -543,16 +486,7 @@ pub async fn get_db_pool_or_redirect_error(
     state: &AppState,
     headers: &HeaderMap,
 ) -> Result<crate::DbPool, (StatusCode, String)> {
-    match get_current_db_pool(state, headers).await {
-        Ok(pool) => Ok(pool),
-        Err(e) => {
-            error!("Failed to get database pool: {:?}", e);
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Database connection error".to_string(),
-            ))
-        }
-    }
+    crate::handlers::database_ops::get_db_pool_or_redirect_error(state, headers).await
 }
 
 /// Functional helper for simple database operations with standard error handling
@@ -564,19 +498,14 @@ pub async fn execute_db_operation_with_standard_error_handling<T>(
     error_context: &str,
     identifier: &str,
 ) -> Html<String> {
-    match operation(pool) {
-        Ok(_result) => {
-            info!("Successfully completed {}: {}", error_context, identifier);
-            success_response
-        }
-        Err(e) => {
-            error!(
-                "Database operation failed for {} {}: {:?}",
-                error_context, identifier, e
-            );
-            Html(format!("Failed to {error_context}"))
-        }
-    }
+    crate::handlers::database_ops::execute_db_operation_with_standard_error_handling(
+        pool,
+        operation,
+        success_response,
+        error_context,
+        identifier,
+    )
+    .await
 }
 
 /// Helper function to handle entity not found errors consistently

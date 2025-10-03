@@ -622,7 +622,7 @@ pub async fn update(
         }
         Err(e) => {
             error!("Failed to update domain: {:?}", e);
-            let error_message = crate::handlers::utils::handle_database_error(
+            let error_message = crate::handlers::database_ops::handle_database_error(
                 &state,
                 &locale,
                 e,

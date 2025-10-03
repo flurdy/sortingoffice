@@ -115,11 +115,113 @@ pub struct RetryConfig {
 
 impl Default for RetryConfig {
     fn default() -> Self {
+        Self::standard()
+    }
+}
+
+impl RetryConfig {
+    /// Standard retry configuration for most database operations
+    /// - 3 attempts with exponential backoff
+    /// - Base delay: 100ms, Max delay: 5s
+    /// - Backoff multiplier: 2.0
+    pub fn standard() -> Self {
         Self {
             max_attempts: 3,
             base_delay: Duration::from_millis(100),
             max_delay: Duration::from_secs(5),
             backoff_multiplier: 2.0,
+        }
+    }
+
+    /// Fast retry configuration for lightweight operations
+    /// - 2 attempts with quick retry
+    /// - Base delay: 50ms, Max delay: 1s
+    /// - Backoff multiplier: 2.0
+    pub fn fast() -> Self {
+        Self {
+            max_attempts: 2,
+            base_delay: Duration::from_millis(50),
+            max_delay: Duration::from_secs(1),
+            backoff_multiplier: 2.0,
+        }
+    }
+
+    /// Aggressive retry configuration for critical operations
+    /// - 5 attempts with longer delays
+    /// - Base delay: 200ms, Max delay: 10s
+    /// - Backoff multiplier: 2.0
+    pub fn aggressive() -> Self {
+        Self {
+            max_attempts: 5,
+            base_delay: Duration::from_millis(200),
+            max_delay: Duration::from_secs(10),
+            backoff_multiplier: 2.0,
+        }
+    }
+
+    /// Conservative retry configuration for non-critical operations
+    /// - 2 attempts with minimal delay
+    /// - Base delay: 100ms, Max delay: 2s
+    /// - Backoff multiplier: 2.0
+    pub fn conservative() -> Self {
+        Self {
+            max_attempts: 2,
+            base_delay: Duration::from_millis(100),
+            max_delay: Duration::from_secs(2),
+            backoff_multiplier: 2.0,
+        }
+    }
+
+    /// Custom retry configuration builder
+    pub fn custom() -> RetryConfigBuilder {
+        RetryConfigBuilder::new()
+    }
+}
+
+/// Builder for custom retry configurations
+pub struct RetryConfigBuilder {
+    max_attempts: u32,
+    base_delay: Duration,
+    max_delay: Duration,
+    backoff_multiplier: f64,
+}
+
+impl RetryConfigBuilder {
+    pub fn new() -> Self {
+        Self {
+            max_attempts: 3,
+            base_delay: Duration::from_millis(100),
+            max_delay: Duration::from_secs(5),
+            backoff_multiplier: 2.0,
+        }
+    }
+
+    pub fn max_attempts(mut self, attempts: u32) -> Self {
+        self.max_attempts = attempts;
+        self
+    }
+
+    pub fn base_delay(mut self, delay: Duration) -> Self {
+        self.base_delay = delay;
+        self
+    }
+
+    pub fn max_delay(mut self, delay: Duration) -> Self {
+        self.max_delay = delay;
+        self
+    }
+
+    pub fn backoff_multiplier(mut self, multiplier: f64) -> Self {
+        self.backoff_multiplier = multiplier;
+        self
+    }
+
+    pub fn build(self) -> RetryConfig {
+        RetryConfig {
+            max_attempts: self.max_attempts,
+            base_delay: self.base_delay,
+            max_delay: self.max_delay,
+            backoff_multiplier: self.backoff_multiplier,
         }
     }
 }
