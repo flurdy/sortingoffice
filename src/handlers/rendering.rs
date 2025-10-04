@@ -1232,6 +1232,7 @@ pub async fn render_domain_show_page(
             "users-empty-description",
         )
         .await,
+        add_user_button: &crate::i18n::get_translation(state, locale, "users-add").await,
         cross_database_info: &cross_database_info,
         other_databases_header: &other_databases_header,
         other_databases_description: &other_databases_description,

@@ -410,6 +410,9 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ users_header }}</h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ users_description }}</p>
                 </div>
+                <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/users/new?domain={{ domain.domain }}'"{% endif %} class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}">
+                    {{ add_user_button }}
+                </button>
             </div>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-700">

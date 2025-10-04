@@ -23,7 +23,7 @@
   - ✅ For global and per db features
   - ✅ As I noticed when globally it is set to read only, on the show domain there are still add relay and add alias.
 
-- In show domain there is no add user button in the users section
+- ✅ In show domain there is no add user button in the users section
 
 ## Low Priority Epics
 
