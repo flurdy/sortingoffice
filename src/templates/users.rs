@@ -35,7 +35,7 @@ pub struct UsersListTemplate {
 
 #[derive(Template)]
 #[template(path = "users/show.html", escape = "html")]
-pub struct UserShowTemplate<'a> {
+pub struct UserShowTemplate {
     pub title: String,
     pub view_edit_settings: String,
     pub back_to_users: String,
@@ -53,12 +53,12 @@ pub struct UserShowTemplate<'a> {
     pub edit_user: String,
     pub enable_user: String,
     pub disable_user: String,
-    pub delete_user: &'a str,
-    pub delete_confirm: &'a str,
-    pub delete_user_disabled_tooltip: &'a str,
+    pub delete_user: String,
+    pub delete_confirm: String,
+    pub delete_user_disabled_tooltip: String,
     pub user: User,
-    pub password_change_required_label: &'a str,
-    pub password_change_required_yes: &'a str,
+    pub password_change_required_label: String,
+    pub password_change_required_yes: String,
     pub password_change_required_no: String,
     pub password_management_title: String,
     pub change_password_button: String,

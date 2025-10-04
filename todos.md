@@ -4,7 +4,10 @@
 
 ## High Priority Minor and bugs 🐛 
 
-- I'm unable to go to the next page when backup domains lists are paginated.  Because there are no pagination buttons
+- On the list domains page, the backups list also needs to be paged independently of the domains list.
+  - We do not want a separate list backup domains page.
+  - We need to remember which page the domains list and the backup domains list is, when clicking on the paging buttons for both the domains and backup domains list.
+  - Since the SQL lookups are eventually cached this should not be much of further delay in rendering times.
 
 ## Medium Priority Epics
 
@@ -14,7 +17,7 @@
 
 - ✅ bug: links to domains in domain alias matrix report are wrong. IDs are not string
 
-- If on domains list I go to the next page of domains, the backup lists is empty
+- ✅ If on domains list I go to the next page of domains, the backup lists is empty
 
 ## Low Priority Epics
 
@@ -31,7 +34,7 @@
 
 - ✅ In the show domain page, can the users be below the aliases
 
-- Add i18n translations for disabled delete button tooltips
+- ✅ Add i18n translations for disabled delete button tooltips
 
 ## 🙈 KNOWN ISSUES
 

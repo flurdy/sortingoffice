@@ -364,12 +364,12 @@ pub async fn list(
     )
     .await;
 
-    // Get paginated backups with search filter
+    // Get paginated backups with search filter (always show first page)
     let paginated_backups =
         crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
-            || async { crate::db::get_backups_paginated(&pool, page, per_page, search) },
+            || async { crate::db::get_backups_paginated(&pool, 1, per_page, search) },
             "retrieve backups",
-            page,
+            1,
             per_page,
         )
         .await;
