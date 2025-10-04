@@ -58,10 +58,10 @@ pub use database_backup::{
     list_backups,
 };
 pub use domains::{
-    add_missing_required_alias, create as create_domain, delete as delete_domain,
-    dns_lookup as domain_dns_lookup, edit as edit_domain, list as list_domains, new as new_domain,
-    show as show_domain, toggle_enabled as toggle_domain_enabled,
-    toggle_enabled_list as toggle_domain_enabled_list,
+    add_missing_required_alias, convert_to_backup as convert_domain_to_backup,
+    create as create_domain, delete as delete_domain, dns_lookup as domain_dns_lookup,
+    edit as edit_domain, list as list_domains, new as new_domain, show as show_domain,
+    toggle_enabled as toggle_domain_enabled, toggle_enabled_list as toggle_domain_enabled_list,
     toggle_enabled_show as toggle_domain_enabled_show, update as update_domain,
 };
 pub use duplicate_wizard::{
@@ -306,6 +306,10 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
             axum::routing::post(toggle_domain_enabled),
         )
         .route(
+            "/domains/{id}/convert-to-backup",
+            axum::routing::post(convert_domain_to_backup),
+        )
+        .route(
             "/domains/{id}/add-missing-alias/{alias}",
             axum::routing::post(add_missing_required_alias),
         )
@@ -377,6 +381,10 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/domain_backup/{id}/toggle",
             axum::routing::post(domain_backup::toggle_enabled),
+        )
+        .route(
+            "/domain_backup/{id}/convert-to-domain",
+            axum::routing::post(domain_backup::convert_to_domain),
         )
         // Relay edit operations
         .route("/relays", axum::routing::post(create_relay))

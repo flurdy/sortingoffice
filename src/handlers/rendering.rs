@@ -848,6 +848,14 @@ pub async fn render_backup_show_page(
         delete_backup,
         delete_confirm,
         delete_backup_disabled_tooltip,
+        convert_to_domain: crate::i18n::get_translation(state, locale, "backups-convert-to-domain")
+            .await,
+        convert_to_domain_confirm: crate::i18n::get_translation(
+            state,
+            locale,
+            "backups-convert-to-domain-confirm",
+        )
+        .await,
         not_available,
         backup,
         cross_database_info,
@@ -1233,6 +1241,18 @@ pub async fn render_domain_show_page(
         )
         .await,
         add_user_button: &crate::i18n::get_translation(state, locale, "users-add").await,
+        convert_to_backup: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-convert-to-backup",
+        )
+        .await,
+        convert_to_backup_confirm: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-convert-to-backup-confirm",
+        )
+        .await,
         cross_database_info: &cross_database_info,
         other_databases_header: &other_databases_header,
         other_databases_description: &other_databases_description,

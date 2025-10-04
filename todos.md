@@ -25,6 +25,34 @@
 
 - ✅ In show domain there is no add user button in the users section
 
+- If global or db is set to read only
+  - on show domain 
+    - the edit button should be disabled
+    - the disable domain button should be disabled
+    - on the relays rows the enable/disable button should be disabled
+    - on the existing aliases rows the enable/disable button should be disabled
+    - on the user rows the enable/disable button should be disabled
+  - on show alias 
+    - the edit button should be disabled
+    - the disable button should be disabled
+  - on show relay 
+    - the edit button should be disabled
+    - the disable button should be disabled
+  - on show user 
+    - the edit button should be disabled
+    - the disable button should be disabled
+    - the change password button should be disabled
+    - the require password Change button should be disabled
+  - on list users
+    - on the user rows the enable/disable button should be disabled
+  - I presume there are similar issues on show relocated
+
+- on the show user page there should be a link to the domain, like in show alias
+
+- on the show relay page there should be a link to the domain, like in show alias
+
+- Converting a domain to a backup domain when finished redirects to the new backup domain, but the path prefix is wrong.
+
 ## Low Priority Epics
 
 - ✅ Refactor database helper functions for better maintainability. **COMPLETED**
@@ -36,8 +64,8 @@
   - ✅ Migrate 6+ handlers to unified patterns
   - ✅ Add 23 comprehensive unit tests
 
-- On a show backup domain page add a button to change it from a backup domain to a normal domain.
-  - And a button to change from domain to backup domain
+- ✅ On a show backup domain page add a button to change it from a backup domain to a normal domain.
+  - ✅ And a button to change from domain to backup domain
 
 ## Low Priority Minor and bugs 🐛 
 

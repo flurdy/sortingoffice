@@ -2230,6 +2230,80 @@ pub fn toggle_backup_enabled(pool: &DbPool, backup_id: i32) -> Result<Backup, Er
     Ok(backup)
 }
 
+/// Convert a primary domain to a backup domain
+/// This moves the domain from the domains table to the backups table
+pub fn convert_domain_to_backup(pool: &DbPool, domain_id: i32) -> Result<Backup, Error> {
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {e:?}")),
+        )
+    })?;
+
+    // Get the existing domain
+    let domain = get_domain(pool, domain_id)?;
+
+    // Insert into backups table
+    diesel::insert_into(backups::table)
+        .values((
+            backups::domain.eq(&domain.domain),
+            backups::transport.eq(&domain.transport),
+            backups::enabled.eq(domain.enabled),
+            backups::created.eq(domain.created),
+            backups::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    // Get the newly created backup
+    let backup = get_backup_by_name(pool, &domain.domain)?;
+
+    // Delete from domains table
+    diesel::delete(domains::table.find(domain_id)).execute(&mut conn)?;
+
+    // Invalidate caches
+    invalidate_cache_for_data_type("domain");
+    invalidate_cache_for_data_type("backup");
+
+    Ok(backup)
+}
+
+/// Convert a backup domain to a primary domain
+/// This moves the domain from the backups table to the domains table
+pub fn convert_backup_to_domain(pool: &DbPool, backup_id: i32) -> Result<Domain, Error> {
+    let mut conn = pool.get().map_err(|e| {
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(format!("Failed to get database connection: {e:?}")),
+        )
+    })?;
+
+    // Get the existing backup
+    let backup = get_backup(pool, backup_id)?;
+
+    // Insert into domains table
+    diesel::insert_into(domains::table)
+        .values((
+            domains::domain.eq(&backup.domain),
+            domains::transport.eq(&backup.transport),
+            domains::enabled.eq(backup.enabled),
+            domains::created.eq(backup.created),
+            domains::modified.eq(Utc::now().naive_utc()),
+        ))
+        .execute(&mut conn)?;
+
+    // Get the newly created domain
+    let domain = get_domain_by_name(pool, &backup.domain)?;
+
+    // Delete from backups table
+    diesel::delete(backups::table.find(backup_id)).execute(&mut conn)?;
+
+    // Invalidate caches
+    invalidate_cache_for_data_type("domain");
+    invalidate_cache_for_data_type("backup");
+
+    Ok(domain)
+}
+
 // Relay database functions
 pub fn get_relays(pool: &DbPool) -> Result<Vec<Relay>, Error> {
     let mut conn = pool.get().unwrap();

@@ -472,3 +472,45 @@ pub async fn toggle_enabled_show(
         Err(_) => return crate::handlers::errors::render_500_page(&state, &headers).await,
     }
 }
+
+// Convert a backup domain to a primary domain
+pub async fn convert_to_domain(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            return Html("Database connection error".to_string());
+        }
+    };
+
+    let locale = crate::handlers::language::get_user_locale(&headers);
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    if state.config.is_database_read_only(&current_db_id) {
+        let error_msg = crate::i18n::get_translation(&state, &locale, "error-read-only-mode").await;
+        return Html(error_msg);
+    }
+
+    match crate::db::convert_backup_to_domain(&pool, id) {
+        Ok(domain) => {
+            info!("Successfully converted backup ID {} to primary domain", id);
+            // Redirect to the domain show page
+            let redirect_url = format!("/domains/{}", domain.pkid);
+            Html(format!(
+                "<script>window.location.href = '{redirect_url}';</script>"
+            ))
+        }
+        Err(e) => {
+            error!("Failed to convert backup to domain: {:?}", e);
+            let error_msg =
+                crate::i18n::get_translation(&state, &locale, "backups-convert-error").await;
+            Html(format!("<div class='text-red-600'>{error_msg}</div>"))
+        }
+    }
+}

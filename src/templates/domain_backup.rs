@@ -22,6 +22,8 @@ pub struct BackupShowTemplate {
     pub delete_backup: String,
     pub delete_confirm: String,
     pub delete_backup_disabled_tooltip: String,
+    pub convert_to_domain: String,
+    pub convert_to_domain_confirm: String,
     pub not_available: String,
     pub backup: Backup,
     // Cross-database domain information

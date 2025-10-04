@@ -130,6 +130,8 @@ pub struct DomainShowTemplate<'a> {
     pub user_enabled_header: &'a str,
     pub users_empty_message: &'a str,
     pub add_user_button: &'a str,
+    pub convert_to_backup: &'a str,
+    pub convert_to_backup_confirm: &'a str,
     // Cross-database domain information
     pub cross_database_info: &'a [crate::models::CrossDatabaseDomainInfo],
     pub other_databases_header: &'a str,
