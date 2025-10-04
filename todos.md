@@ -19,6 +19,12 @@
 
 - ✅ If on domains list I go to the next page of domains, the backup lists is empty
 
+- ✅ More feature toggle unit tests for various list and show resource pages
+  - ✅ For global and per db features
+  - ✅ As I noticed when globally it is set to read only, on the show domain there are still add relay and add alias.
+
+- In show domain there is no add user button in the users section
+
 ## Low Priority Epics
 
 - ✅ Refactor database helper functions for better maintainability. **COMPLETED**
@@ -35,6 +41,8 @@
 - ✅ In the show domain page, can the users be below the aliases
 
 - ✅ Add i18n translations for disabled delete button tooltips
+
+- Long strings in a domain's DKIM or DMARC sections are not wrapped as expected and changes the width of the page.
 
 ## 🙈 KNOWN ISSUES
 

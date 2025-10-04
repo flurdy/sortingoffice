@@ -147,6 +147,9 @@ pub struct DomainShowTemplate<'a> {
     pub dns_lookup_button: &'a str,
     pub dns_loading_label: &'a str,
     pub dns_selector_label: &'a str,
+    // Database read-only status
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

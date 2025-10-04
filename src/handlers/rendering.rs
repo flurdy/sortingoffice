@@ -1015,6 +1015,10 @@ pub async fn render_domain_show_page(
     locale: &str,
     headers: &HeaderMap,
 ) -> Html<String> {
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
     // Fetch all required translations for domain show
     let title = crate::i18n::get_translation(state, locale, "domains-title").await;
     let view_edit_settings =
@@ -1251,6 +1255,8 @@ pub async fn render_domain_show_page(
         dns_loading_label: &crate::i18n::get_translation(state, locale, "dns-loading-label").await,
         dns_selector_label: &crate::i18n::get_translation(state, locale, "dns-selector-label")
             .await,
+        current_db_read_only: state.config.is_database_read_only(&current_db_id),
+        read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
     render_show_template(content_template, state, locale, headers).await

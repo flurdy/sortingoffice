@@ -134,9 +134,9 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ relays_header }}</h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ relays_description }}</p>
                 </div>
-                <a href="/relays/new?domain={{ domain.domain }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/relays/new?domain={{ domain.domain }}'"{% endif %} class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}">
                     {{ add_relay_button }}
-                </a>
+                </button>
             </div>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-700">
@@ -199,9 +199,9 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ alias_report_title }}</h3>
                     <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ alias_report_description }}</p>
                 </div>
-                <a href="/aliases/new?domain={{ domain.domain }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/aliases/new?domain={{ domain.domain }}'"{% endif %} class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}">
                     {{ add_alias_button }}
-                </a>
+                </button>
             </div>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-700">
@@ -270,9 +270,9 @@
                         {% for alias in report.missing_required_aliases %}
                         <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
                             <span class="text-sm text-red-700 dark:text-red-300">{{ alias }}@{{ report.domain }}</span>
-                            <a href="/aliases/new?domain={{ report.domain }}&alias={{ alias }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/aliases/new?domain={{ report.domain }}&alias={{ alias }}'"{% endif %} class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:ring-red-500{% endif %}">
                                 {{ add_missing_required_alias_button }}
-                            </a>
+                            </button>
                         </div>
                         {% endfor %}
                     </div>
@@ -307,9 +307,9 @@
                         {% for alias in report.missing_common_aliases %}
                         <div class="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
                             <span class="text-sm text-orange-700 dark:text-orange-300">{{ alias }}@{{ report.domain }}</span>
-                            <a href="/aliases/new?domain={{ report.domain }}&alias={{ alias }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                            <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/aliases/new?domain={{ report.domain }}&alias={{ alias }}'"{% endif %} class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-orange-600 hover:bg-orange-700 focus:ring-orange-500{% endif %}">
                                 {{ add_common_alias_button }}
-                            </a>
+                            </button>
                         </div>
                         {% endfor %}
                     </div>
@@ -325,9 +325,9 @@
                         {% for alias in analytics_common_aliases %}
                         <div class="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded">
                             <span class="text-sm text-green-700 dark:text-green-300">{{ alias }}@{{ report.domain }}</span>
-                            <a href="/aliases/new?domain={{ report.domain }}&alias={{ alias }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/aliases/new?domain={{ report.domain }}&alias={{ alias }}'"{% endif %} class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}">
                                 {{ add_common_alias_button }}
-                            </a>
+                            </button>
                         </div>
                         {% endfor %}
                     </div>
@@ -344,9 +344,9 @@
                                 <span class="text-sm text-yellow-700 dark:text-yellow-300">@{{ report.domain }}</span>
                                 <p class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">{{ no_catch_all_message }}</p>
                             </div>
-                            <a href="/aliases/new?domain={{ report.domain }}&alias=%40" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                            <button type="button" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% else %}onclick="window.location.href='/aliases/new?domain={{ report.domain }}&alias=%40'"{% endif %} class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500{% endif %}">
                                 {{ add_catch_all_button }}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
