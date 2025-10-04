@@ -135,12 +135,14 @@ async fn render_domain_list_after_creation(
     .await;
 
     let paginated_domains = PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
+    let paginated_backups = PaginatedResult::new(backups.clone(), backups.len() as i64, 1, 20);
 
     // Use the rendering.rs helper function
     crate::handlers::rendering::render_domain_list_page(
         domains,
         backups,
         &paginated_domains,
+        &paginated_backups,
         state,
         locale,
         headers,
@@ -355,6 +357,7 @@ pub async fn list(
 
     let locale = crate::handlers::language::get_user_locale(&headers);
     let page = params.page.unwrap_or(1);
+    let backup_page = params.backup_page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
     let search = params.search.as_deref();
 
@@ -364,12 +367,12 @@ pub async fn list(
     )
     .await;
 
-    // Get paginated backups with search filter (always show first page)
+    // Get paginated backups with search filter (use backup_page parameter)
     let paginated_backups =
         crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
-            || async { crate::db::get_backups_paginated(&pool, 1, per_page, search) },
+            || async { crate::db::get_backups_paginated(&pool, backup_page, per_page, search) },
             "retrieve backups",
-            1,
+            backup_page,
             per_page,
         )
         .await;
@@ -379,6 +382,7 @@ pub async fn list(
         paginated_domains.items.clone(),
         paginated_backups.items.clone(),
         &paginated_domains,
+        &paginated_backups,
         &state,
         &locale,
         &headers,
@@ -745,12 +749,15 @@ pub async fn toggle_enabled_list(
 
             let paginated_domains =
                 PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
+            let paginated_backups =
+                PaginatedResult::new(backups.clone(), backups.len() as i64, 1, 20);
 
             // Use the helper function for rendering
             crate::handlers::rendering::render_domain_list_page(
                 domains,
                 backups,
                 &paginated_domains,
+                &paginated_backups,
                 &state,
                 &locale,
                 &headers,

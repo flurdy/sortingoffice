@@ -1617,14 +1617,6 @@ mod tests {
             Self::default()
         }
 
-        fn add_success_call(&self, id: String) {
-            self.success_calls.lock().unwrap().push(id);
-        }
-
-        fn add_error_call(&self, id: String) {
-            self.error_calls.lock().unwrap().push(id);
-        }
-
         fn get_success_calls(&self) -> Vec<String> {
             self.success_calls.lock().unwrap().clone()
         }

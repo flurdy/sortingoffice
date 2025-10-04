@@ -189,6 +189,7 @@ pub async fn render_domain_list_page(
     domains: Vec<crate::models::Domain>,
     backups: Vec<crate::models::Backup>,
     paginated: &crate::models::PaginatedResult<crate::models::Domain>,
+    backups_paginated: &crate::models::PaginatedResult<crate::models::Backup>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -257,6 +258,12 @@ pub async fn render_domain_list_page(
         paginated.total_count,
     );
 
+    let backups_page_range: Vec<i64> = (1..=backups_paginated.total_pages).collect();
+    let backups_max_item = std::cmp::min(
+        backups_paginated.current_page * backups_paginated.per_page,
+        backups_paginated.total_count,
+    );
+
     let content_template = crate::templates::domains::DomainsListTemplate {
         title: &title,
         description: &description,
@@ -284,6 +291,9 @@ pub async fn render_domain_list_page(
         backups_table_header_enabled: &backups_table_header_enabled,
         backups_table_header_actions: &backups_table_header_actions,
         backups: &backups,
+        backups_pagination: backups_paginated,
+        backups_page_range: &backups_page_range,
+        backups_max_item,
         backups_view: &backups_view,
         backups_enable: &backups_enable,
         backups_disable: &backups_disable,
@@ -597,24 +607,6 @@ pub async fn render_relay_show_page(
     let action_disable = crate::i18n::get_translation(state, locale, "action-disable").await;
     let action_delete = crate::i18n::get_translation(state, locale, "action-delete").await;
     let delete_confirm = crate::i18n::get_translation(state, locale, "relays-delete-confirm").await;
-    let back_to_list = crate::i18n::get_translation(state, locale, "relays-back-to-list").await;
-    let field_id = crate::i18n::get_translation(state, locale, "relays-field-id").await;
-    let field_recipient =
-        crate::i18n::get_translation(state, locale, "relays-field-recipient").await;
-    let field_status = crate::i18n::get_translation(state, locale, "relays-field-status").await;
-    let field_enabled = crate::i18n::get_translation(state, locale, "relays-field-enabled").await;
-    let field_created = crate::i18n::get_translation(state, locale, "relays-field-created").await;
-    let field_modified = crate::i18n::get_translation(state, locale, "relays-field-modified").await;
-    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
-    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
-    let status_ok = crate::i18n::get_translation(state, locale, "status-ok").await;
-    let status_reject = crate::i18n::get_translation(state, locale, "status-reject").await;
-    let view_edit_settings =
-        crate::i18n::get_translation(state, locale, "relays-view-edit-settings").await;
-    let relay_show_title = crate::i18n::get_translation(state, locale, "relays-show-title").await;
-    let relay_info_title = crate::i18n::get_translation(state, locale, "relays-info-title").await;
-    let relay_info_description =
-        crate::i18n::get_translation(state, locale, "relays-info-description").await;
     let delete_relay_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "relays-delete-disabled-tooltip").await;
     let back_to_list = crate::i18n::get_translation(state, locale, "relays-back-to-list").await;

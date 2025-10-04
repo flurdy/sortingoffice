@@ -2,12 +2,12 @@
 
 ## High Priority Epics
 
-## High Priority Minor and bugs 🐛 
+- ✅ On the list domains page, the backups list also needs to be paged independently of the domains list.
+  - ✅ We do not want a separate list backup domains page.
+  - ✅ We need to remember which page the domains list and the backup domains list is, when clicking on the paging buttons for both the domains and backup domains list.
+  - ✅ Since the SQL lookups are eventually cached this should not be much of further delay in rendering times.
 
-- On the list domains page, the backups list also needs to be paged independently of the domains list.
-  - We do not want a separate list backup domains page.
-  - We need to remember which page the domains list and the backup domains list is, when clicking on the paging buttons for both the domains and backup domains list.
-  - Since the SQL lookups are eventually cached this should not be much of further delay in rendering times.
+## High Priority Minor and bugs 🐛
 
 ## Medium Priority Epics
 

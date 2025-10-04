@@ -737,6 +737,7 @@ impl AliasStatus {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PaginationParams {
     pub page: Option<i64>,
+    pub backup_page: Option<i64>,
     pub per_page: Option<i64>,
     pub sort_by: Option<String>,
     pub sort_order: Option<String>,
@@ -747,6 +748,7 @@ impl Default for PaginationParams {
     fn default() -> Self {
         Self {
             page: Some(1),
+            backup_page: Some(1),
             per_page: Some(20),
             sort_by: Some("mail".to_string()),
             sort_order: Some("asc".to_string()),
