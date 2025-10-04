@@ -36,13 +36,16 @@
   - ✅ Migrate 6+ handlers to unified patterns
   - ✅ Add 23 comprehensive unit tests
 
+- On a show backup domain page add a button to change it from a backup domain to a normal domain.
+  - And a button to change from domain to backup domain
+
 ## Low Priority Minor and bugs 🐛 
 
 - ✅ In the show domain page, can the users be below the aliases
 
 - ✅ Add i18n translations for disabled delete button tooltips
 
-- Long strings in a domain's DKIM or DMARC sections are not wrapped as expected and changes the width of the page.
+- ✅ Long strings in a domain's DKIM or DMARC sections are not wrapped as expected and changes the width of the page.
 
 ## 🙈 KNOWN ISSUES
 
@@ -58,6 +61,3 @@
   - Delete from domains or backup table.
   - Lists all entries to be deleted/disabled in the review step
   - Add tests
-
-- On a show backup domain page add a button to change it from a backup domain to a normal domain. Postponed for now.
-  - This might be a wizard to add aliases etc like the current wizards
