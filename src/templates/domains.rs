@@ -73,6 +73,7 @@ pub struct DomainShowTemplate<'a> {
     pub disable_domain: &'a str,
     pub delete_domain: &'a str,
     pub delete_confirm: &'a str,
+    pub delete_domain_disabled_tooltip: &'a str,
     pub alias_report: Option<crate::models::DomainAliasReport>,
     pub catch_all_header: &'a str,
     pub destination_header: &'a str,

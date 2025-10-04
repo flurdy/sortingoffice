@@ -190,58 +190,6 @@
         </div>
     </div>
 
-    <!-- Users Section -->
-    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ users_header }}</h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ users_description }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700">
-            {% if domain_users.is_empty() %}
-            <div class="px-4 py-5 sm:px-6">
-                <p class="text-gray-500 dark:text-gray-400 italic">{{ users_empty_message }}</p>
-            </div>
-            {% else %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_id_header }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_enabled_header }}</th>
-                            <th scope="col" class="relative px-6 py-3">
-                                <span class="sr-only">{{ actions_header }}</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {% for user in domain_users %}
-                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                <a href="/users/{{ user.id }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ user.id }}</a>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                {% if user.enabled %}
-                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
-                                {% else %}
-                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <a href="/users/{{ user.id }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">{{ action_view }}</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
     <!-- Alias Report Section -->
     {% if alias_report.is_some() %}
     <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
@@ -454,6 +402,58 @@
     </div>
     {% endif %}
 
+    <!-- Users Section -->
+    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ users_header }}</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ users_description }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            {% if domain_users.is_empty() %}
+            <div class="px-4 py-5 sm:px-6">
+                <p class="text-gray-500 dark:text-gray-400 italic">{{ users_empty_message }}</p>
+            </div>
+            {% else %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_id_header }}</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_enabled_header }}</th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">{{ actions_header }}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for user in domain_users %}
+                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                <a href="/users/{{ user.id }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ user.id }}</a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                {% if user.enabled %}
+                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
+                                {% else %}
+                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <a href="/users/{{ user.id }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">{{ action_view }}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Actions -->
     <div class="mt-6 flex space-x-3">
         <button 
@@ -472,7 +472,11 @@
             hx-delete="/domains/{{ domain.pkid }}" 
             hx-target="#main-content" 
             hx-confirm="{{ delete_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if domain.enabled %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
+            {% if domain.enabled %}
+                disabled
+                title="{{ delete_domain_disabled_tooltip }}"
+            {% endif %}>
             {{ delete_domain }}
         </button>
     </div>

@@ -410,7 +410,7 @@ pub async fn render_alias_show_page(
     headers: &HeaderMap,
 ) -> Html<String> {
     // Fetch all required translations for alias show
-    let title = crate::i18n::get_translation(state, locale, "aliases-show-title").await;
+    let title = crate::i18n::get_translation(state, locale, "aliases-title").await;
     let view_edit_settings =
         crate::i18n::get_translation(state, locale, "aliases-view-edit-settings").await;
     let back_to_aliases =
@@ -435,9 +435,14 @@ pub async fn render_alias_show_page(
     let delete_alias = crate::i18n::get_translation(state, locale, "aliases-delete-alias").await;
     let delete_confirm =
         crate::i18n::get_translation(state, locale, "aliases-delete-confirm").await;
+    let delete_alias_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "aliases-delete-disabled-tooltip").await;
+    let not_available = crate::i18n::get_translation(state, locale, "not-available").await;
 
     let content_template = crate::templates::aliases::AliasShowTemplate {
         title: &title,
+        alias,
+        domain_info,
         view_edit_settings: &view_edit_settings,
         back_to_aliases: &back_to_aliases,
         alias_information: &alias_information,
@@ -445,19 +450,18 @@ pub async fn render_alias_show_page(
         mail: &mail,
         forward_to: &forward_to,
         domain: &domain,
-        domain_info,
         status: &status,
-        status_active: &status_active,
-        status_inactive: &status_inactive,
         created: &created,
         modified: &modified,
+        status_active: &status_active,
+        status_inactive: &status_inactive,
         edit_alias_button: &edit_alias_button,
         enable_alias_button: &enable_alias_button,
         disable_alias_button: &disable_alias_button,
         delete_alias: &delete_alias,
         delete_confirm: &delete_confirm,
-        not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
-        alias,
+        delete_alias_disabled_tooltip: &delete_alias_disabled_tooltip,
+        not_available: &not_available,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -611,6 +615,26 @@ pub async fn render_relay_show_page(
     let relay_info_title = crate::i18n::get_translation(state, locale, "relays-info-title").await;
     let relay_info_description =
         crate::i18n::get_translation(state, locale, "relays-info-description").await;
+    let delete_relay_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "relays-delete-disabled-tooltip").await;
+    let back_to_list = crate::i18n::get_translation(state, locale, "relays-back-to-list").await;
+    let field_id = crate::i18n::get_translation(state, locale, "relays-field-id").await;
+    let field_recipient =
+        crate::i18n::get_translation(state, locale, "relays-field-recipient").await;
+    let field_status = crate::i18n::get_translation(state, locale, "relays-field-status").await;
+    let field_enabled = crate::i18n::get_translation(state, locale, "relays-field-enabled").await;
+    let field_created = crate::i18n::get_translation(state, locale, "relays-field-created").await;
+    let field_modified = crate::i18n::get_translation(state, locale, "relays-field-modified").await;
+    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+    let status_ok = crate::i18n::get_translation(state, locale, "status-ok").await;
+    let status_reject = crate::i18n::get_translation(state, locale, "status-reject").await;
+    let view_edit_settings =
+        crate::i18n::get_translation(state, locale, "relays-view-edit-settings").await;
+    let relay_show_title = crate::i18n::get_translation(state, locale, "relays-show-title").await;
+    let relay_info_title = crate::i18n::get_translation(state, locale, "relays-info-title").await;
+    let relay_info_description =
+        crate::i18n::get_translation(state, locale, "relays-info-description").await;
 
     let content_template = crate::templates::relays::RelayShowTemplate {
         title: &title,
@@ -636,6 +660,7 @@ pub async fn render_relay_show_page(
         relay_info_title: &relay_info_title,
         relay_info_description: &relay_info_description,
         not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
+        delete_relay_disabled_tooltip: &delete_relay_disabled_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -734,9 +759,13 @@ pub async fn render_backup_show_page(
     let enable_backup = crate::i18n::get_translation(state, locale, "backups-enable-backup").await;
     let disable_backup =
         crate::i18n::get_translation(state, locale, "backups-disable-backup").await;
-    let delete_backup = crate::i18n::get_translation(state, locale, "backups-delete-backup").await;
+    let delete_backup =
+        crate::i18n::get_translation(state, locale, "backups-delete-backup-button").await;
     let delete_confirm =
         crate::i18n::get_translation(state, locale, "backups-delete-confirm").await;
+    let delete_backup_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "backups-delete-disabled-tooltip").await;
+    let not_available = crate::i18n::get_translation(state, locale, "not-available").await;
 
     // Get cross-database domain information
     let cross_database_info =
@@ -826,7 +855,8 @@ pub async fn render_backup_show_page(
         disable_backup,
         delete_backup,
         delete_confirm,
-        not_available: crate::i18n::get_translation(state, locale, "not-available").await,
+        delete_backup_disabled_tooltip,
+        not_available,
         backup,
         cross_database_info,
         other_databases_header,
@@ -1018,6 +1048,8 @@ pub async fn render_domain_show_page(
     let delete_domain = crate::i18n::get_translation(state, locale, "domains-delete-domain").await;
     let delete_confirm =
         crate::i18n::get_translation(state, locale, "domains-delete-confirm").await;
+    let delete_domain_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "domains-delete-disabled-tooltip").await;
 
     // Alias report translations
     let catch_all_header =
@@ -1143,6 +1175,7 @@ pub async fn render_domain_show_page(
         disable_domain: &disable_domain,
         delete_domain: &delete_domain,
         delete_confirm: &delete_confirm,
+        delete_domain_disabled_tooltip: &delete_domain_disabled_tooltip,
         alias_report,
         catch_all_header: &catch_all_header,
         destination_header: &destination_header,
@@ -1408,35 +1441,38 @@ pub async fn render_user_show_page(
         crate::i18n::get_translation(state, locale, "users-change-password-button").await;
     let require_password_change_button =
         crate::i18n::get_translation(state, locale, "users-require-password-change-button").await;
+    let delete_user_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "users-delete-disabled-tooltip").await;
 
     let content_template = crate::templates::users::UserShowTemplate {
-        title,
-        view_edit_settings,
-        back_to_users,
-        user_information,
-        user_details,
-        user_id,
-        full_name,
-        users_maildir,
-        users_home,
-        status,
-        created,
-        modified,
-        status_active,
-        status_inactive,
-        edit_user,
-        enable_user,
-        disable_user,
-        delete_user,
-        delete_confirm,
+        title: title.as_str(),
+        view_edit_settings: view_edit_settings.as_str(),
+        back_to_users: back_to_users.as_str(),
+        user_information: user_information.as_str(),
+        user_details: user_details.as_str(),
+        user_id: user_id.as_str(),
+        full_name: full_name.as_str(),
+        users_maildir: users_maildir.as_str(),
+        users_home: users_home.as_str(),
+        status: status.as_str(),
+        created: created.as_str(),
+        modified: modified.as_str(),
+        status_active: status_active.as_str(),
+        status_inactive: status_inactive.as_str(),
+        edit_user: edit_user.as_str(),
+        enable_user: enable_user.as_str(),
+        disable_user: disable_user.as_str(),
+        delete_user: delete_user.as_str(),
+        delete_confirm: delete_confirm.as_str(),
+        delete_user_disabled_tooltip: delete_user_disabled_tooltip.as_str(),
         user,
-        password_change_required_label,
-        password_change_required_yes,
-        password_change_required_no,
-        password_management_title,
-        change_password_button,
-        require_password_change_button,
-        not_available: crate::i18n::get_translation(state, locale, "not-available").await,
+        password_change_required_label: password_change_required_label.as_str(),
+        password_change_required_yes: password_change_required_yes.as_str(),
+        password_change_required_no: password_change_required_no.as_str(),
+        password_management_title: password_management_title.as_str(),
+        change_password_button: change_password_button.as_str(),
+        require_password_change_button: require_password_change_button.as_str(),
+        not_available: crate::i18n::get_translation(state, locale, "not-available").await.as_str(),
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1660,6 +1696,8 @@ pub async fn render_client_show_page(
     let delete_client = crate::i18n::get_translation(state, locale, "clients-delete-client").await;
     let delete_confirm =
         crate::i18n::get_translation(state, locale, "clients-delete-confirm").await;
+    let delete_client_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "clients-delete-disabled-tooltip").await;
 
     let content_template = crate::templates::clients::ClientShowTemplate {
         title: &title,
@@ -1670,18 +1708,19 @@ pub async fn render_client_show_page(
         client_details: &client_details,
         client_name: &client_name,
         status: &status,
-        status_allowed: &status_allowed,
-        status_blocked: &status_blocked,
-        status_enabled: &status_enabled,
-        status_disabled: &status_disabled,
-        enabled_label: &enabled_label,
         created: &created,
         updated: &updated,
-        edit_client: &edit_client,
+        status_allowed: &status_allowed,
+        status_blocked: &status_blocked,
+        enabled_label: &enabled_label,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
         action_enable: &action_enable,
         action_disable: &action_disable,
+        edit_client: &edit_client,
         delete_client: &delete_client,
         delete_confirm: &delete_confirm,
+        delete_client_disabled_tooltip: &delete_client_disabled_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1837,6 +1876,8 @@ pub async fn render_relocated_show_page(
         crate::i18n::get_translation(state, locale, "relocated-info-title").await;
     let relocated_info_description =
         crate::i18n::get_translation(state, locale, "relocated-info-description").await;
+    let delete_relocated_disabled_tooltip =
+        crate::i18n::get_translation(state, locale, "relocated-delete-disabled-tooltip").await;
 
     let content_template = crate::templates::relocated::RelocatedShowTemplate {
         title: &title,
@@ -1860,6 +1901,7 @@ pub async fn render_relocated_show_page(
         relocated_info_description: &relocated_info_description,
         not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
         relocated,
+        delete_relocated_disabled_tooltip: &delete_relocated_disabled_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await

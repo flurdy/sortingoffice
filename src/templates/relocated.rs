@@ -34,6 +34,7 @@ pub struct RelocatedShowTemplate<'a> {
     pub action_disable: &'a str,
     pub action_delete: &'a str,
     pub delete_confirm: &'a str,
+    pub delete_relocated_disabled_tooltip: &'a str,
     pub back_to_list: &'a str,
     pub field_id: &'a str,
     pub field_old_address: &'a str,

@@ -114,6 +114,12 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         disable_user: get_translation(state, locale, "users-disable-user").await,
         delete_user: get_translation(state, locale, "users-delete-user").await,
         delete_confirm: get_translation(state, locale, "users-delete-confirm").await,
+        delete_user_disabled_tooltip: get_translation(
+            state,
+            locale,
+            "users-delete-disabled-tooltip",
+        )
+        .await,
         status: get_translation(state, locale, "users-status").await,
         password_change_required_label: get_translation(
             state,

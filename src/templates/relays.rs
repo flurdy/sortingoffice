@@ -37,6 +37,7 @@ pub struct RelayShowTemplate<'a> {
     pub action_disable: &'a str,
     pub action_delete: &'a str,
     pub delete_confirm: &'a str,
+    pub delete_relay_disabled_tooltip: &'a str,
     pub back_to_list: &'a str,
     pub field_id: &'a str,
     pub field_recipient: &'a str,
