@@ -77,12 +77,34 @@ pub async fn show_relay(
         Err(error_response) => return error_response,
     };
 
+    // Extract domain from relay recipient and look it up
+    let domain_name = relay.recipient.split('@').next_back().unwrap_or("");
+    let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
+
     // Use the new resource-specific helper function
-    crate::handlers::rendering::render_relay_show_page(relay, &state, &locale, &headers).await
+    crate::handlers::rendering::render_relay_show_page(
+        relay,
+        domain_info,
+        &state,
+        &locale,
+        &headers,
+    )
+    .await
 }
 
 // Show form for creating a new relay
 pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+    // Check database restrictions for new operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay create form request");
@@ -116,6 +138,17 @@ pub async fn create_relay(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for create operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay creation request");
@@ -146,6 +179,17 @@ pub async fn edit_form(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for edit operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "edit_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay edit form request for ID: {}", relay_id);
@@ -193,6 +237,17 @@ pub async fn update_relay(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for update operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "update_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay update request for ID: {}", relay_id);
@@ -228,6 +283,17 @@ pub async fn delete_relay(
         Err(error) => return error,
     };
 
+    // Check database restrictions for delete operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "delete_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relay delete request for ID: {}", relay_id);
@@ -262,6 +328,17 @@ pub async fn toggle_enabled(
         Ok(pool) => pool,
         Err(error) => return error,
     };
+
+    // Check database restrictions for toggle operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "toggle_relay",
+    )
+    .await
+    {
+        return error_html;
+    }
 
     let locale = crate::handlers::language::get_user_locale(&headers);
 

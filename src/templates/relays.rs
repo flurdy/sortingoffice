@@ -1,4 +1,4 @@
-use crate::models::{Relay, RelayForm};
+use crate::models::{Domain, Relay, RelayForm};
 use askama::Template;
 
 #[derive(Template)]
@@ -41,6 +41,8 @@ pub struct RelayShowTemplate<'a> {
     pub back_to_list: &'a str,
     pub field_id: &'a str,
     pub field_recipient: &'a str,
+    pub domain: &'a str,
+    pub domain_info: Option<Domain>,
     pub field_status: &'a str,
     pub field_enabled: &'a str,
     pub field_created: &'a str,

@@ -69,6 +69,16 @@ pub async fn show_relocated(
 
 // Show form for creating a new relocated entry
 pub async fn create_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+    // Check database restrictions for new operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_relocated",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
     let form = RelocatedForm {
         old_address: String::new(),
@@ -98,6 +108,17 @@ pub async fn create_relocated(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for create operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_relocated",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated create request");
@@ -131,6 +152,17 @@ pub async fn edit_form(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for edit operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "edit_relocated",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let relocated = get_entity_or_not_found!(
@@ -169,6 +201,17 @@ pub async fn update_relocated(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for update operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "update_relocated",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     debug!("Handling relocated update request for ID: {}", relocated_id);
@@ -206,6 +249,17 @@ pub async fn delete_relocated(
         Ok(pool) => pool,
         Err(error) => return error,
     };
+
+    // Check database restrictions for delete operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "delete_relocated",
+    )
+    .await
+    {
+        return error_html;
+    }
 
     let locale = crate::handlers::language::get_user_locale(&headers);
 

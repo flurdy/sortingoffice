@@ -17,86 +17,30 @@
 
 ## Medium Priority Minor and bugs 🐛
 
-- ✅ bug: links to domains in domain alias matrix report are wrong. IDs are not string
-
-- ✅ If on domains list I go to the next page of domains, the backup lists is empty
-
-- ✅ More feature toggle unit tests for various list and show resource pages
-  - ✅ For global and per db features
-  - ✅ As I noticed when globally it is set to read only, on the show domain there are still add relay and add alias.
+- Need to test alias destination containing multiple emails separated by a comma.
 
 - ✅ In show domain there is no add user button in the users section
 
-- ✅ If global or db is set to read only
-  - ✅ on show domain 
-    - ✅ the edit button should be disabled
-    - ✅ the disable domain button should be disabled
-    - ✅ on the relays rows the enable/disable button should be disabled
-    - ✅ on the existing aliases rows the enable/disable button should be disabled
-    - ✅ on the user rows the enable/disable button should be disabled (no buttons exist on domain show)
-  - ✅ on show alias 
-    - ✅ the edit button should be disabled
-    - ✅ the disable button should be disabled
-  - ✅ on show relay 
-    - ✅ the edit button should be disabled
-    - ✅ the disable button should be disabled
-  - ✅ on show user 
-    - ✅ the edit button should be disabled
-    - ✅ the disable button should be disabled
-    - ✅ the change password button should be disabled
-    - ✅ the require password Change button should be disabled
-  - ✅ on list users
-    - ✅ on the user rows the enable/disable button should be disabled
-  - ✅ on show relocated
-    - ✅ the edit button should be disabled
-    - ✅ the disable button should be disabled
-  - ✅ on list relays
-    - ✅ on the relay rows the enable/disable button should be disabled
-  - ✅ on list relocated
-    - ✅ on the relocated rows the enable/disable button should be disabled
-  - ✅ on list aliases
-    - ✅ on the alias rows the enable/disable button should be disabled
-  - ✅ on list domains
-    - ✅ on the domain rows the enable/disable button should be disabled
-    - ✅ on the backup rows the enable/disable button should be disabled
-  - ✅ on list clients
-    - ✅ on the client rows the enable/disable button should be disabled
-  - ✅ delete buttons on all show pages should be disabled when read-only
-    - ✅ relay show page delete button
-    - ✅ relocated show page delete button  
-    - ✅ user show page delete button
-    - ✅ alias show page delete button
-    - ✅ domain show page delete button
-    - ✅ backup show page delete button
-    - ✅ client show page delete button
-
 - ✅ on the show user page there should be a link to the domain, like in show alias
 
-- on the show relay page there should be a link to the domain, like in show alias
+- ✅ on the show relay page there should be a link to the domain, like in show alias
 
 - ✅ Converting a domain to a backup domain when finished redirects to the new backup domain, but the path prefix is wrong.
 
-- At an API level can be we also disable/return an error if any edits/toggles are attempted when that db/global is read only.
-  - e.g. toggling htmx post request to disable/enable resources
-  - This also includes request to GET pages to show add or edit resource when read only.
+- ✅ At an API level can be we also disable/return an error if any edits/toggles are attempted when that db/global is read only.
+  - ✅ e.g. toggling htmx post request to disable/enable resources
+  - ✅ This also includes request to GET pages to show add or edit resource when read only.
 
 ## Low Priority Epics
-
-- ✅ Refactor database helper functions for better maintainability. **COMPLETED**
-  - ✅ Consolidate similar database pool retrieval functions in `src/handlers/database_ops.rs`
-  - ✅ Create generic functions to reduce code duplication
-  - ✅ Improve error handling consistency across database operations
-  - ✅ Add comprehensive documentation for database operation patterns
-  - ✅ Add paginated helpers for PaginatedResult<T>
-  - ✅ Migrate 6+ handlers to unified patterns
-  - ✅ Add 23 comprehensive unit tests
 
 - ✅ On a show backup domain page add a button to change it from a backup domain to a normal domain.
   - ✅ And a button to change from domain to backup domain
 
-## Low Priority Minor and bugs 🐛 
+- A report to check if any domains mx settings are not in a list of servers. 
+  - Basically to check if some domains are not pointing to these mail servers.
+  - May need to add optional servers name (e.g mail.example.com) to DBs in the config, to compare with?
 
-- ✅ In the show domain page, can the users be below the aliases
+## Low Priority Minor and bugs 🐛 
 
 - ✅ Add i18n translations for disabled delete button tooltips
 
@@ -104,8 +48,13 @@
 
 - ✅ if show domain is for a missing domain, there is an error in the log but just a blank page shown, with correct header and sidebar.
   - ✅ Applied the same fix to all other missing resource pages (users, aliases, relays, backups, relocated, clients)
+  - Not found Alias Still shows unstyled page http://localhost:3000/aliases/85 
+  - Same for relay
+  - Not found domain, user, relocated and client is styled
 
 ## 🙈 KNOWN ISSUES
+
+* Adding alias/user full emial as domain field in a backup domain is an edge case 
 
 ## ⏩ Postponed epics
 

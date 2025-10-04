@@ -605,6 +605,7 @@ pub async fn render_relay_list_page(
 
 pub async fn render_relay_show_page(
     relay: crate::models::Relay,
+    domain_info: Option<crate::models::Domain>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -622,6 +623,7 @@ pub async fn render_relay_show_page(
     let field_id = crate::i18n::get_translation(state, locale, "relays-field-id").await;
     let field_recipient =
         crate::i18n::get_translation(state, locale, "relays-field-recipient").await;
+    let domain = crate::i18n::get_translation(state, locale, "domain").await;
     let field_status = crate::i18n::get_translation(state, locale, "relays-field-status").await;
     let field_enabled = crate::i18n::get_translation(state, locale, "relays-field-enabled").await;
     let field_created = crate::i18n::get_translation(state, locale, "relays-field-created").await;
@@ -655,6 +657,8 @@ pub async fn render_relay_show_page(
         back_to_list: &back_to_list,
         field_id: &field_id,
         field_recipient: &field_recipient,
+        domain: &domain,
+        domain_info,
         field_status: &field_status,
         field_enabled: &field_enabled,
         field_created: &field_created,

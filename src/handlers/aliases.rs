@@ -85,6 +85,17 @@ pub async fn new(
     headers: HeaderMap,
     Query(prefill): Query<AliasPrefill>,
 ) -> Html<String> {
+    // Check database restrictions for new operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     let return_url = headers
         .get("referer")
         .and_then(|r| r.to_str().ok())
@@ -180,6 +191,17 @@ pub async fn edit(
         Err(error_html) => return error_html,
     };
 
+    // Check database restrictions for edit operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "edit_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     let alias = match db::get_alias(&pool, id) {
         Ok(alias) => alias,
         Err(_) => {
@@ -218,6 +240,17 @@ pub async fn create(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for create operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
 
     // Validate alias mail using helper function
     if let Err(error_html) = validate_alias_form_field(
@@ -338,6 +371,17 @@ pub async fn update(
         Err(error_html) => return error_html,
     };
 
+    // Check database restrictions for update operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "update_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     // Validate alias mail
     match crate::validation::validate_alias_mail(&form.mail) {
         Ok(_) => {}
@@ -439,6 +483,17 @@ pub async fn delete(
         Err(error) => return error,
     };
 
+    // Check database restrictions for delete operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "delete_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
+
     let locale = get_user_locale(&headers);
 
     // Use helper function for entity operation
@@ -476,6 +531,17 @@ pub async fn toggle_enabled(
         Ok(pool) => pool,
         Err(error) => return error,
     };
+
+    // Check database restrictions for toggle operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "toggle_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
 
     let locale = get_user_locale(&headers);
 
@@ -531,6 +597,17 @@ pub async fn toggle_enabled_list(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for toggle operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "toggle_alias",
+    )
+    .await
+    {
+        return error_html;
+    }
     match db::toggle_alias_enabled(&pool, id) {
         Ok(_) => {
             let aliases = db::get_aliases(&pool).unwrap_or_default();

@@ -76,6 +76,17 @@ pub async fn edit(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for edit operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "edit_backup",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let backup = get_entity_or_not_found!(
@@ -114,6 +125,17 @@ pub async fn create(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for create operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_backup",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -199,6 +221,17 @@ pub async fn update(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for update operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "update_backup",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     // Validate form data
@@ -293,6 +326,17 @@ pub async fn delete(
         Ok(pool) => pool,
         Err(error) => return error,
     };
+
+    // Check database restrictions for delete operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "delete_backup",
+    )
+    .await
+    {
+        return error_html;
+    }
 
     let locale = crate::handlers::language::get_user_locale(&headers);
 

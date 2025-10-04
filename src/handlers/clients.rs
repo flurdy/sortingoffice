@@ -102,6 +102,16 @@ pub async fn show_client(
 }
 
 pub async fn create_client_form(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+    // Check database restrictions for new operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "create_client",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
     let form = ClientForm {
         client: String::new(),
@@ -129,6 +139,17 @@ pub async fn edit_client_form(
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
+
+    // Check database restrictions for edit operation
+    if let Some(error_html) = crate::handlers::restrictions::check_read_only_and_return_error(
+        &state,
+        &headers,
+        "edit_client",
+    )
+    .await
+    {
+        return error_html;
+    }
     let locale = crate::handlers::language::get_user_locale(&headers);
 
     let client = match db::get_client(&pool, client_id) {
@@ -168,6 +189,18 @@ pub async fn create_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client creation request");
 
+    // Check database restrictions for create operation
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "create_client",
+    ) {
+        return Err((StatusCode::FORBIDDEN, "Database is read-only".to_string()));
+    }
+
     // Get database pool using helper function
     let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
         Ok(pool) => pool,
@@ -199,6 +232,18 @@ pub async fn update_client(
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client update request for ID: {}", client_id);
 
+    // Check database restrictions for update operation
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "update_client",
+    ) {
+        return Err((StatusCode::FORBIDDEN, "Database is read-only".to_string()));
+    }
+
     // Get database pool using helper function
     let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {
         Ok(pool) => pool,
@@ -228,6 +273,18 @@ pub async fn delete_client(
     headers: HeaderMap,
 ) -> Result<Redirect, (StatusCode, String)> {
     info!("Handling client deletion request for ID: {}", client_id);
+
+    // Check database restrictions for delete operation
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    if let Err(_status_code) = crate::handlers::restrictions::check_database_restrictions(
+        &state,
+        &current_db_id,
+        "delete_client",
+    ) {
+        return Err((StatusCode::FORBIDDEN, "Database is read-only".to_string()));
+    }
 
     // Get database pool using helper function
     let pool = match crate::handlers::utils::get_db_pool_or_redirect_error(&state, &headers).await {

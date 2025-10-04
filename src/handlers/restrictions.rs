@@ -88,3 +88,24 @@ pub fn get_database_restrictions_info(state: &AppState, database_id: &str) -> Ve
 
     restrictions
 }
+
+/// Helper function to check read-only restrictions and return HTML error page
+pub async fn check_read_only_and_return_error(
+    state: &crate::AppState,
+    headers: &axum::http::HeaderMap,
+    operation: &str,
+) -> Option<axum::response::Html<String>> {
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+
+    if let Err(_status_code) = check_database_restrictions(state, &current_db_id, operation) {
+        let locale = crate::handlers::language::get_user_locale(headers);
+        let error_msg = crate::i18n::get_translation(state, &locale, "error-read-only-mode").await;
+        return Some(axum::response::Html(format!(
+            "<div class='text-center py-16'><h1 class='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1><p class='text-lg text-gray-700 dark:text-gray-300'>{}</p></div>", 
+            error_msg
+        )));
+    }
+
+    None
+}
