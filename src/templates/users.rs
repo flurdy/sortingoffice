@@ -1,4 +1,4 @@
-use crate::models::{PaginatedResult, User, UserForm};
+use crate::models::{Domain, PaginatedResult, User, UserForm};
 use askama::Template;
 
 #[derive(Template)]
@@ -42,6 +42,7 @@ pub struct UserShowTemplate {
     pub user_information: String,
     pub user_details: String,
     pub user_id: String,
+    pub domain: String,
     pub full_name: String,
     pub users_maildir: String,
     pub users_home: String,
@@ -57,6 +58,7 @@ pub struct UserShowTemplate {
     pub delete_confirm: String,
     pub delete_user_disabled_tooltip: String,
     pub user: User,
+    pub domain_info: Option<Domain>,
     pub password_change_required_label: String,
     pub password_change_required_yes: String,
     pub password_change_required_no: String,

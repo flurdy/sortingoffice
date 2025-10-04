@@ -99,6 +99,7 @@ async fn build_user_show_template(
     locale: &str,
     user: User,
     headers: &HeaderMap,
+    pool: &crate::DbPool,
 ) -> UserShowTemplate {
     UserShowTemplate {
         title: get_translation(state, locale, "users-show-user-title").await,
@@ -107,6 +108,7 @@ async fn build_user_show_template(
         user_information: get_translation(state, locale, "users-user-information").await,
         user_details: get_translation(state, locale, "users-user-details").await,
         user_id: get_translation(state, locale, "users-user-id").await,
+        domain: get_translation(state, locale, "domain").await,
         full_name: get_translation(state, locale, "users-form-name").await,
         users_maildir: get_translation(state, locale, "users-maildir").await,
         users_home: get_translation(state, locale, "users-home").await,
@@ -164,6 +166,11 @@ async fn build_user_show_template(
             let current_db_id = crate::handlers::auth::get_selected_database(headers)
                 .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
             state.config.is_database_read_only(&current_db_id)
+        },
+        domain_info: {
+            // Extract domain from user ID and look it up
+            let domain_name = user.id.split('@').next_back().unwrap_or("");
+            db::get_domain_by_name(pool, domain_name).ok()
         },
         user,
     }
@@ -381,7 +388,11 @@ pub async fn show(
     let user =
         get_entity_or_not_found!(db::get_user(&pool, id), &state, &headers, "users-not-found");
 
-    render_user_show_page(user, &state, &locale, &headers).await
+    // Extract domain from user ID and look it up
+    let domain_name = user.id.split('@').next_back().unwrap_or("");
+    let domain_info = db::get_domain_by_name(&pool, domain_name).ok();
+
+    render_user_show_page(user, domain_info, &state, &locale, &headers).await
 }
 
 pub async fn edit(
@@ -738,7 +749,7 @@ pub async fn update(
                 };
 
                 let content_template =
-                    build_user_show_template(&state, &locale, user, &headers).await;
+                    build_user_show_template(&state, &locale, user, &headers, &pool).await;
                 let content = content_template.render().unwrap();
 
                 if crate::handlers::http_helpers::is_htmx_request(&headers) {
@@ -958,7 +969,7 @@ pub async fn toggle_enabled_show(
             {
                 Ok(user) => {
                     let content_template =
-                        build_user_show_template(&state, &locale, user, &headers).await;
+                        build_user_show_template(&state, &locale, user, &headers, &pool).await;
                     Html(content_template.render().unwrap())
                 }
                 Err(error) => error,
@@ -1021,7 +1032,8 @@ pub async fn change_password_post(
     }
     match db::update_user_password(&pool, id.clone(), &form.new_password) {
         Ok(_) => {
-            let content_template = build_user_show_template(&state, &locale, user, &headers).await;
+            let content_template =
+                build_user_show_template(&state, &locale, user, &headers, &pool).await;
             let content = content_template.render().unwrap();
             Html(content)
         }
@@ -1108,7 +1120,7 @@ pub async fn toggle_change_password(
             };
 
             let content_template =
-                build_user_show_template(&state, &locale, updated_user, &headers).await;
+                build_user_show_template(&state, &locale, updated_user, &headers, &pool).await;
             let content = content_template.render().unwrap();
 
             if crate::handlers::http_helpers::is_htmx_request(&headers) {

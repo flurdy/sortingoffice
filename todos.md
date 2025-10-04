@@ -70,7 +70,7 @@
     - ✅ backup show page delete button
     - ✅ client show page delete button
 
-- on the show user page there should be a link to the domain, like in show alias
+- ✅ on the show user page there should be a link to the domain, like in show alias
 
 - on the show relay page there should be a link to the domain, like in show alias
 

@@ -1449,6 +1449,7 @@ pub async fn render_user_list_page(
 
 pub async fn render_user_show_page(
     user: crate::models::User,
+    domain_info: Option<crate::models::Domain>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
@@ -1462,6 +1463,7 @@ pub async fn render_user_show_page(
         crate::i18n::get_translation(state, locale, "users-user-information").await;
     let user_details = crate::i18n::get_translation(state, locale, "users-user-details").await;
     let user_id = crate::i18n::get_translation(state, locale, "users-user-id").await;
+    let domain = crate::i18n::get_translation(state, locale, "domain").await;
     let full_name = crate::i18n::get_translation(state, locale, "users-form-name").await;
     let users_maildir = crate::i18n::get_translation(state, locale, "users-maildir").await;
     let users_home = crate::i18n::get_translation(state, locale, "users-home").await;
@@ -1503,6 +1505,7 @@ pub async fn render_user_show_page(
         user_information,
         user_details,
         user_id,
+        domain,
         full_name,
         users_maildir,
         users_home,
@@ -1518,6 +1521,7 @@ pub async fn render_user_show_page(
         delete_confirm,
         delete_user_disabled_tooltip,
         user,
+        domain_info,
         password_change_required_label,
         password_change_required_yes,
         password_change_required_no,
