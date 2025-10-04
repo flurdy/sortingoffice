@@ -356,32 +356,50 @@ pub async fn render_error_page(
 
     println!("[DEBUG] Rendering error page with title: {title}, message: {message}");
 
-    match crate::templates::error::ErrorTemplate::new(
-        &title,
-        &message,
-        state,
-        &locale,
-        &current_db_label,
-        &current_db_id,
-    )
-    .await
-    {
-        Ok(template) => match crate::handlers::templates::render_template_safely(template) {
-            Ok(html) => {
-                println!(
-                    "[DEBUG] Error template rendered successfully, length: {}",
-                    html.len()
-                );
-                Html(html)
-            }
+    // Create error content directly without ErrorTemplate to avoid Send issues
+    let content = format!(
+        r#"<div class='text-center py-16'>
+            <h1 class='text-5xl font-bold text-red-600 mb-4'>{}</h1>
+            <p class='text-lg text-gray-700 dark:text-gray-300 mb-8'>{}</p>
+            <a href='/' class='inline-block px-6 py-3 bg-primary-600 text-white rounded shadow hover:bg-primary-700 transition'>Go to Dashboard</a>
+        </div>"#,
+        title, message
+    );
+
+    println!(
+        "[DEBUG] Rendering error page with content length: {}",
+        content.len()
+    );
+
+    // Wrap with layout template like other pages
+    if crate::handlers::http_helpers::is_htmx_request(headers) {
+        Html(content)
+    } else {
+        let layout_template = crate::templates::layout::BaseTemplate::with_i18n(
+            title.clone(),
+            content,
+            state,
+            &locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await;
+
+        match layout_template {
+            Ok(template) => match crate::handlers::templates::render_template_safely(template) {
+                Ok(html) => {
+                    println!("[DEBUG] Error page with layout rendered successfully");
+                    Html(html)
+                }
+                Err(e) => {
+                    println!("[DEBUG] Error rendering layout template: {e}");
+                    Html("Error rendering error page layout".to_string())
+                }
+            },
             Err(e) => {
-                println!("[DEBUG] Error rendering template: {e}");
-                Html("Error rendering error page".to_string())
+                println!("[DEBUG] Error creating layout template: {e:?}");
+                Html("Error creating error page layout".to_string())
             }
-        },
-        Err(e) => {
-            println!("[DEBUG] Error creating template: {e:?}");
-            Html("Error creating error page".to_string())
         }
     }
 }

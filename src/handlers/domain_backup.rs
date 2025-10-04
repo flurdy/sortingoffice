@@ -334,10 +334,7 @@ pub async fn dns_lookup(
     let backup = match crate::db::get_backup(&pool, id) {
         Ok(b) => b,
         Err(_) => {
-            let locale = crate::handlers::language::get_user_locale(&headers);
-            let not_found =
-                crate::i18n::get_translation(&state, &locale, "backups-not-found").await;
-            return Html(not_found);
+            return crate::handlers::errors::render_backup_not_found_page(&state, &headers).await;
         }
     };
 

@@ -102,6 +102,9 @@
 
 - ✅ Long strings in a domain's DKIM or DMARC sections are not wrapped as expected and changes the width of the page.
 
+- ✅ if show domain is for a missing domain, there is an error in the log but just a blank page shown, with correct header and sidebar.
+  - ✅ Applied the same fix to all other missing resource pages (users, aliases, relays, backups, relocated, clients)
+
 ## 🙈 KNOWN ISSUES
 
 ## ⏩ Postponed epics

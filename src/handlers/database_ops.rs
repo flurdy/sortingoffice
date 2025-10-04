@@ -608,6 +608,8 @@ where
     match entity_fetch().await {
         Ok(entity) => Ok(entity),
         Err(_) => {
+            // We can't use render_*_not_found_page here because we don't have headers
+            // This function is used in contexts where we only have state and locale
             let not_found_msg = crate::i18n::get_translation(state, locale, not_found_key).await;
             Err(Html(not_found_msg))
         }
@@ -908,6 +910,8 @@ where
     match operation().await {
         Ok(entity) => Ok(entity),
         Err(_) => {
+            // We can't use render_*_not_found_page here because we don't have headers
+            // This function is used in contexts where we only have state and locale
             let not_found_msg = crate::i18n::get_translation(state, locale, not_found_key).await;
             Err(Html(not_found_msg))
         }

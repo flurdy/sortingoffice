@@ -613,8 +613,8 @@ pub async fn update(
             let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => {
-                    let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-                    return Html(not_found_msg);
+                    return crate::handlers::errors::render_domain_not_found_page(&state, &headers)
+                        .await;
                 }
             };
 
@@ -683,7 +683,7 @@ pub async fn toggle_enabled(
         }
     };
 
-    let locale = crate::handlers::language::get_user_locale(&headers);
+    let _locale = crate::handlers::language::get_user_locale(&headers);
 
     match db::toggle_domain_enabled(&pool, id) {
         Ok(_) => {
@@ -693,8 +693,8 @@ pub async fn toggle_enabled(
             let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => {
-                    let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-                    return Html(not_found_msg);
+                    return crate::handlers::errors::render_domain_not_found_page(&state, &headers)
+                        .await;
                 }
             };
 
@@ -792,14 +792,14 @@ pub async fn toggle_enabled_show(
                 id
             );
 
-            let locale = crate::handlers::language::get_user_locale(&headers);
+            let _locale = crate::handlers::language::get_user_locale(&headers);
 
             // Get updated domain
             let domain = match db::get_domain(&pool, id) {
                 Ok(domain) => domain,
                 Err(_) => {
-                    let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-                    return Html(not_found_msg);
+                    return crate::handlers::errors::render_domain_not_found_page(&state, &headers)
+                        .await;
                 }
             };
 
@@ -873,8 +873,7 @@ pub async fn add_missing_required_aliases(
     let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::errors::render_domain_not_found_page(&state, &headers).await;
         }
     };
 
@@ -955,8 +954,7 @@ pub async fn add_missing_required_alias(
     let domain = match db::get_domain(&pool, id) {
         Ok(domain) => domain,
         Err(_) => {
-            let not_found_msg = get_translation(&state, &locale, "domains-not-found").await;
-            return Html(not_found_msg);
+            return crate::handlers::errors::render_domain_not_found_page(&state, &headers).await;
         }
     };
 
@@ -1007,8 +1005,7 @@ pub async fn dns_lookup(
     let domain = match crate::db::get_domain(&pool, id) {
         Ok(d) => d,
         Err(_) => {
-            let locale = crate::handlers::language::get_user_locale(&headers);
-            return Html(crate::i18n::get_translation(&state, &locale, "domains-not-found").await);
+            return crate::handlers::errors::render_domain_not_found_page(&state, &headers).await;
         }
     };
     crate::handlers::dns::render_dns_fragment(&state, &headers, &domain.domain, form.selector).await

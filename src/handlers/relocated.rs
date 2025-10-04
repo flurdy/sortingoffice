@@ -185,8 +185,7 @@ pub async fn update_relocated(
             ))
         }
         Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relocated-not-found").await;
-            Html(not_found_msg)
+            crate::handlers::errors::render_relocated_not_found_page(&state, &headers).await
         }
         Err(e) => {
             error!("Failed to update relocated entry {}: {:?}", relocated_id, e);

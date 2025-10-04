@@ -246,7 +246,10 @@ pub async fn domain_selection_post(
                     (domain, true) // Backup domain
                 }
                 Err(_) => {
-                    return Ok(Html("Source domain not found".to_string()));
+                    return Ok(crate::handlers::errors::render_domain_not_found_page(
+                        &state, &headers,
+                    )
+                    .await);
                 }
             }
         }

@@ -206,8 +206,7 @@ pub async fn update_relay(
             ))
         }
         Err(Error::NotFound) => {
-            let not_found_msg = get_translation(&state, &locale, "relays-not-found").await;
-            Html(not_found_msg)
+            crate::handlers::errors::render_relay_not_found_page(&state, &headers).await
         }
         Err(e) => {
             error!("Failed to update relay {}: {:?}", relay_id, e);
