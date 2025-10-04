@@ -61,6 +61,8 @@ pub struct UserShowTemplate {
     pub password_change_required_yes: String,
     pub password_change_required_no: String,
     pub password_management_title: String,
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: String,
     pub change_password_button: String,
     pub require_password_change_button: String,
     pub not_available: String,

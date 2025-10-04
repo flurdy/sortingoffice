@@ -62,6 +62,8 @@ pub struct ClientShowTemplate<'a> {
     pub delete_client: &'a str,
     pub delete_confirm: &'a str,
     pub delete_client_disabled_tooltip: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
 }
 
 #[derive(Template)]

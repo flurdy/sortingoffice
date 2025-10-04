@@ -448,6 +448,13 @@ pub async fn render_alias_show_page(
     let delete_alias_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "aliases-delete-disabled-tooltip").await;
     let not_available = crate::i18n::get_translation(state, locale, "not-available").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
     let content_template = crate::templates::aliases::AliasShowTemplate {
         title: &title,
@@ -472,6 +479,8 @@ pub async fn render_alias_show_page(
         delete_confirm: &delete_confirm,
         delete_alias_disabled_tooltip: &delete_alias_disabled_tooltip,
         not_available: &not_available,
+        current_db_read_only,
+        read_only_tooltip: &read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -627,6 +636,13 @@ pub async fn render_relay_show_page(
     let relay_info_title = crate::i18n::get_translation(state, locale, "relays-info-title").await;
     let relay_info_description =
         crate::i18n::get_translation(state, locale, "relays-info-description").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
     let content_template = crate::templates::relays::RelayShowTemplate {
         title: &title,
@@ -653,6 +669,8 @@ pub async fn render_relay_show_page(
         relay_info_description: &relay_info_description,
         not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
         delete_relay_disabled_tooltip: &delete_relay_disabled_tooltip,
+        current_db_read_only,
+        read_only_tooltip: &read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -758,6 +776,13 @@ pub async fn render_backup_show_page(
     let delete_backup_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "backups-delete-disabled-tooltip").await;
     let not_available = crate::i18n::get_translation(state, locale, "not-available").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
     // Get cross-database domain information
     let cross_database_info =
@@ -893,6 +918,8 @@ pub async fn render_backup_show_page(
         domains_enabled_header,
         no_required_aliases: crate::i18n::get_translation(state, locale, "no-required-aliases")
             .await,
+        current_db_read_only,
+        read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1463,6 +1490,12 @@ pub async fn render_user_show_page(
     let delete_user_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "users-delete-disabled-tooltip").await;
 
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
+
     let content_template = crate::templates::users::UserShowTemplate {
         title,
         view_edit_settings,
@@ -1492,6 +1525,8 @@ pub async fn render_user_show_page(
         change_password_button,
         require_password_change_button,
         not_available: crate::i18n::get_translation(state, locale, "not-available").await,
+        current_db_read_only,
+        read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1717,6 +1752,13 @@ pub async fn render_client_show_page(
         crate::i18n::get_translation(state, locale, "clients-delete-confirm").await;
     let delete_client_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "clients-delete-disabled-tooltip").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
     let content_template = crate::templates::clients::ClientShowTemplate {
         title: &title,
@@ -1740,6 +1782,8 @@ pub async fn render_client_show_page(
         delete_client: &delete_client,
         delete_confirm: &delete_confirm,
         delete_client_disabled_tooltip: &delete_client_disabled_tooltip,
+        current_db_read_only,
+        read_only_tooltip: &read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await
@@ -1897,6 +1941,13 @@ pub async fn render_relocated_show_page(
         crate::i18n::get_translation(state, locale, "relocated-info-description").await;
     let delete_relocated_disabled_tooltip =
         crate::i18n::get_translation(state, locale, "relocated-delete-disabled-tooltip").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "error-read-only-mode").await;
+
+    // Check if database is read-only
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
     let content_template = crate::templates::relocated::RelocatedShowTemplate {
         title: &title,
@@ -1921,6 +1972,8 @@ pub async fn render_relocated_show_page(
         not_available: &crate::i18n::get_translation(state, locale, "not-available").await,
         relocated,
         delete_relocated_disabled_tooltip: &delete_relocated_disabled_tooltip,
+        current_db_read_only,
+        read_only_tooltip: &read_only_tooltip,
     };
 
     render_show_template(content_template, state, locale, headers).await

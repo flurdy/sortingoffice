@@ -54,8 +54,12 @@
                                             hx-post="/relocated/{{ relocated.pkid }}/toggle-enabled" 
                                             hx-target="#relocated-status-{{ relocated.pkid }}"
                                             hx-swap="innerHTML"
-                                            class="inline-flex items-center justify-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-16"
-                                            id="relocated-button-{{ relocated.pkid }}">
+                                            class="inline-flex items-center justify-center px-3 py-1 border border-transparent text-xs font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 w-16 {% if current_db_read_only %}bg-gray-400 text-gray-600 cursor-not-allowed{% else %}text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 focus:ring-blue-500{% endif %}"
+                                            id="relocated-button-{{ relocated.pkid }}"
+                                            {% if current_db_read_only %}
+                                                disabled
+                                                title="{{ read_only_tooltip }}"
+                                            {% endif %}>
                                             {% if relocated.enabled %}{{ action_disable }}{% else %}{{ action_enable }}{% endif %}
                                         </button>
                                     </div>

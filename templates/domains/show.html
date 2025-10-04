@@ -176,9 +176,9 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                 <a href="/relays/{{ relay.pkid }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">{{ action_view }}</a>
                                 {% if relay.enabled %}
-                                <button hx-post="/relays/{{ relay.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">{{ disable_alias }}</button>
+                                <button hx-post="/relays/{{ relay.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>{{ disable_alias }}</button>
                                 {% else %}
-                                <button hx-post="/relays/{{ relay.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">{{ enable_alias }}</button>
+                                <button hx-post="/relays/{{ relay.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>{{ enable_alias }}</button>
                                 {% endif %}
                             </td>
                         </tr>
@@ -244,9 +244,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                     <a href="/aliases/{{ alias.pkid }}" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">{{ action_view }}</a>
                                     {% if alias.enabled %}
-                                    <button hx-post="/aliases/{{ alias.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">{{ disable_alias }}</button>
+                                    <button hx-post="/aliases/{{ alias.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>{{ disable_alias }}</button>
                                     {% else %}
-                                    <button hx-post="/aliases/{{ alias.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">{{ enable_alias }}</button>
+                                    <button hx-post="/aliases/{{ alias.pkid }}/toggle-domain-show" hx-target="#main-content" class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>{{ enable_alias }}</button>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -462,23 +462,34 @@
         <button 
             hx-get="/domains/{{ domain.pkid }}/edit" 
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-primary-600 hover:bg-primary-700 focus:ring-primary-500{% endif %}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {{ edit_domain_button }}
         </button>
         <button 
             hx-post="/domains/{{ domain.pkid }}/toggle-show" 
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-blue-600 hover:bg-blue-700 focus:ring-blue-500{% endif %}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {% if domain.enabled %}{{ disable_domain }}{% else %}{{ enable_domain }}{% endif %}
         </button>
         <button id="delete-domain-button"
             hx-delete="/domains/{{ domain.pkid }}" 
             hx-target="#main-content" 
             hx-confirm="{{ delete_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if domain.enabled %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if domain.enabled %}bg-gray-400 cursor-not-allowed{% elif current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
             {% if domain.enabled %}
                 disabled
                 title="{{ delete_domain_disabled_tooltip }}"
+            {% elif current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
             {% endif %}>
             {{ delete_domain }}
         </button>

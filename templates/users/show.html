@@ -86,23 +86,34 @@
         <button
             hx-get="/users/{{ user.id }}/edit"
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-primary-600 hover:bg-primary-700 focus:ring-primary-500{% endif %}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {{ edit_user }}
         </button>
         <button
             hx-post="/users/{{ user.id }}/toggle-show"
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-blue-600 hover:bg-blue-700 focus:ring-blue-500{% endif %}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {% if user.enabled %}{{ disable_user }}{% else %}{{ enable_user }}{% endif %}
         </button>
         <button id="delete-user-button"
             hx-delete="/users/{{ user.id }}"
             hx-target="#main-content"
             hx-confirm="{{ delete_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if user.enabled %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if user.enabled %}bg-gray-400 cursor-not-allowed{% elif current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
             {% if user.enabled %}
                 disabled
                 title="You must disable the user before it can be deleted."
+            {% elif current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
             {% endif %}>
             {{ delete_user }}
         </button>
@@ -116,14 +127,22 @@
                 type="button"
                 hx-get="/users/{{ user.id }}/change-password"
                 hx-target="#main-content"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500{% endif %}"
+                {% if current_db_read_only %}
+                    disabled
+                    title="{{ read_only_tooltip }}"
+                {% endif %}>
                 {{ change_password_button }}
             </button>
             <button
                 type="button"
                 hx-post="/users/{{ user.id }}/toggle-change-password"
                 hx-target="#main-content"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-orange-600 hover:bg-orange-700 focus:ring-orange-500{% endif %}"
+                {% if current_db_read_only %}
+                    disabled
+                    title="{{ read_only_tooltip }}"
+                {% endif %}>
                 {{ require_password_change_button }}
             </button>
         </div>

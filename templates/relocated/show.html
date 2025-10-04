@@ -72,25 +72,36 @@
         <button 
             hx-get="/relocated/{{ relocated.pkid }}/edit" 
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-primary-600 hover:bg-primary-700 focus:ring-primary-500{% endif %}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {{ action_edit }}
         </button>
         <button 
             hx-post="/relocated/{{ relocated.pkid }}/toggle-enabled" 
             hx-target="#relocated-show-status-{{ relocated.pkid }}"
             hx-swap="innerHTML"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            id="relocated-show-button-{{ relocated.pkid }}">
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-blue-600 hover:bg-blue-700 focus:ring-blue-500{% endif %}"
+            id="relocated-show-button-{{ relocated.pkid }}"
+            {% if current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
             {% if relocated.enabled %}{{ action_disable }}{% else %}{{ action_enable }}{% endif %}
         </button>
         <button 
             hx-delete="/relocated/{{ relocated.pkid }}" 
             hx-target="#main-content" 
             hx-confirm="{{ delete_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if relocated.enabled %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if relocated.enabled %}bg-gray-400 cursor-not-allowed{% elif current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
             {% if relocated.enabled %}
                 disabled
                 title="{{ delete_relocated_disabled_tooltip }}"
+            {% elif current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
             {% endif %}>
             {{ action_delete }}
         </button>

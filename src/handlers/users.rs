@@ -94,7 +94,12 @@ async fn build_user_list_template(
     }
 }
 
-async fn build_user_show_template(state: &AppState, locale: &str, user: User) -> UserShowTemplate {
+async fn build_user_show_template(
+    state: &AppState,
+    locale: &str,
+    user: User,
+    headers: &HeaderMap,
+) -> UserShowTemplate {
     UserShowTemplate {
         title: get_translation(state, locale, "users-show-user-title").await,
         view_edit_settings: get_translation(state, locale, "users-view-edit-settings").await,
@@ -154,6 +159,12 @@ async fn build_user_show_template(state: &AppState, locale: &str, user: User) ->
         )
         .await,
         not_available: get_translation(state, locale, "not-available").await,
+        read_only_tooltip: get_translation(state, locale, "error-read-only-mode").await,
+        current_db_read_only: {
+            let current_db_id = crate::handlers::auth::get_selected_database(headers)
+                .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+            state.config.is_database_read_only(&current_db_id)
+        },
         user,
     }
 }
@@ -726,7 +737,8 @@ pub async fn update(
                     }
                 };
 
-                let content_template = build_user_show_template(&state, &locale, user).await;
+                let content_template =
+                    build_user_show_template(&state, &locale, user, &headers).await;
                 let content = content_template.render().unwrap();
 
                 if crate::handlers::http_helpers::is_htmx_request(&headers) {
@@ -945,7 +957,8 @@ pub async fn toggle_enabled_show(
             .await
             {
                 Ok(user) => {
-                    let content_template = build_user_show_template(&state, &locale, user).await;
+                    let content_template =
+                        build_user_show_template(&state, &locale, user, &headers).await;
                     Html(content_template.render().unwrap())
                 }
                 Err(error) => error,
@@ -1008,7 +1021,7 @@ pub async fn change_password_post(
     }
     match db::update_user_password(&pool, id.clone(), &form.new_password) {
         Ok(_) => {
-            let content_template = build_user_show_template(&state, &locale, user).await;
+            let content_template = build_user_show_template(&state, &locale, user, &headers).await;
             let content = content_template.render().unwrap();
             Html(content)
         }
@@ -1094,7 +1107,8 @@ pub async fn toggle_change_password(
                 }
             };
 
-            let content_template = build_user_show_template(&state, &locale, updated_user).await;
+            let content_template =
+                build_user_show_template(&state, &locale, updated_user, &headers).await;
             let content = content_template.render().unwrap();
 
             if crate::handlers::http_helpers::is_htmx_request(&headers) {

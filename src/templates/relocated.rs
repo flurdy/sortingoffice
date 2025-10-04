@@ -48,6 +48,8 @@ pub struct RelocatedShowTemplate<'a> {
     pub relocated_show_title: &'a str,
     pub relocated_info_title: &'a str,
     pub relocated_info_description: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
     pub not_available: &'a str,
     pub relocated: Relocated,
 }

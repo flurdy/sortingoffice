@@ -27,33 +27,58 @@
 
 - ✅ In show domain there is no add user button in the users section
 
-- If global or db is set to read only
-  - on show domain 
-    - the edit button should be disabled
-    - the disable domain button should be disabled
-    - on the relays rows the enable/disable button should be disabled
-    - on the existing aliases rows the enable/disable button should be disabled
-    - on the user rows the enable/disable button should be disabled
-  - on show alias 
-    - the edit button should be disabled
-    - the disable button should be disabled
-  - on show relay 
-    - the edit button should be disabled
-    - the disable button should be disabled
-  - on show user 
-    - the edit button should be disabled
-    - the disable button should be disabled
-    - the change password button should be disabled
-    - the require password Change button should be disabled
-  - on list users
-    - on the user rows the enable/disable button should be disabled
-  - I presume there are similar issues on show relocated
+- ✅ If global or db is set to read only
+  - ✅ on show domain 
+    - ✅ the edit button should be disabled
+    - ✅ the disable domain button should be disabled
+    - ✅ on the relays rows the enable/disable button should be disabled
+    - ✅ on the existing aliases rows the enable/disable button should be disabled
+    - ✅ on the user rows the enable/disable button should be disabled (no buttons exist on domain show)
+  - ✅ on show alias 
+    - ✅ the edit button should be disabled
+    - ✅ the disable button should be disabled
+  - ✅ on show relay 
+    - ✅ the edit button should be disabled
+    - ✅ the disable button should be disabled
+  - ✅ on show user 
+    - ✅ the edit button should be disabled
+    - ✅ the disable button should be disabled
+    - ✅ the change password button should be disabled
+    - ✅ the require password Change button should be disabled
+  - ✅ on list users
+    - ✅ on the user rows the enable/disable button should be disabled
+  - ✅ on show relocated
+    - ✅ the edit button should be disabled
+    - ✅ the disable button should be disabled
+  - ✅ on list relays
+    - ✅ on the relay rows the enable/disable button should be disabled
+  - ✅ on list relocated
+    - ✅ on the relocated rows the enable/disable button should be disabled
+  - ✅ on list aliases
+    - ✅ on the alias rows the enable/disable button should be disabled
+  - ✅ on list domains
+    - ✅ on the domain rows the enable/disable button should be disabled
+    - ✅ on the backup rows the enable/disable button should be disabled
+  - ✅ on list clients
+    - ✅ on the client rows the enable/disable button should be disabled
+  - ✅ delete buttons on all show pages should be disabled when read-only
+    - ✅ relay show page delete button
+    - ✅ relocated show page delete button  
+    - ✅ user show page delete button
+    - ✅ alias show page delete button
+    - ✅ domain show page delete button
+    - ✅ backup show page delete button
+    - ✅ client show page delete button
 
 - on the show user page there should be a link to the domain, like in show alias
 
 - on the show relay page there should be a link to the domain, like in show alias
 
 - ✅ Converting a domain to a backup domain when finished redirects to the new backup domain, but the path prefix is wrong.
+
+- At an API level can be we also disable/return an error if any edits/toggles are attempted when that db/global is read only.
+  - e.g. toggling htmx post request to disable/enable resources
+  - This also includes request to GET pages to show add or edit resource when read only.
 
 ## Low Priority Epics
 

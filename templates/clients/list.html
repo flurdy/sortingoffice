@@ -57,7 +57,11 @@
                                         <button 
                                             hx-put="/clients/{{ client.id }}/toggle?redirect=list" 
                                             hx-target="#main-content"
-                                            class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded {% if client.enabled %}text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 hover:bg-red-200{% else %}text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 hover:bg-green-200{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 {% if client.enabled %}focus:ring-red-500{% else %}focus:ring-green-500{% endif %}">
+                                            class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 text-gray-600 cursor-not-allowed{% else %}{% if client.enabled %}text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 hover:bg-red-200 focus:ring-red-500{% else %}text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 hover:bg-green-200 focus:ring-green-500{% endif %}{% endif %}"
+                                            {% if current_db_read_only %}
+                                                disabled
+                                                title="{{ read_only_tooltip }}"
+                                            {% endif %}>
                                             {% if client.enabled %}{{ action_disable }}{% else %}{{ action_enable }}{% endif %}
                                         </button>
                                     </div>

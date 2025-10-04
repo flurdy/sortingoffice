@@ -26,6 +26,8 @@ pub struct BackupShowTemplate {
     pub convert_to_domain_confirm: String,
     pub not_available: String,
     pub backup: Backup,
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: String,
     // Cross-database domain information
     pub cross_database_info: Vec<crate::models::CrossDatabaseDomainInfo>,
     pub other_databases_header: String,

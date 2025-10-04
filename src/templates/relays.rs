@@ -50,6 +50,8 @@ pub struct RelayShowTemplate<'a> {
     pub status_ok: &'a str,
     pub status_reject: &'a str,
     pub view_edit_settings: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_tooltip: &'a str,
     pub relay_show_title: &'a str,
     pub relay_info_title: &'a str,
     pub relay_info_description: &'a str,
