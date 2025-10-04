@@ -688,6 +688,7 @@ pub struct DomainAliasMatrixReport {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DomainAliasMatrixRow {
+    pub id: i32,
     pub domain: String,
     pub catch_all_status: AliasStatus,
     pub required_aliases: Vec<RequiredAliasMatrixItem>,

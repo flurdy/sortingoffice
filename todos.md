@@ -6,7 +6,11 @@
 
 ## Medium Priority Epics
 
+- Can we make delete resource only be clickable if a resource is disabled
+
 ## Medium Priority Minor and bugs 🐛
+
+- ✅ bug: links to domains in domain alias matrix report are wrong. IDs are not string
 
 ## Low Priority Epics
 
@@ -21,9 +25,13 @@
 
 ## Low Priority Minor and bugs 🐛 
 
+- In the show domain page, can the users be below the aliases
+
 ## 🙈 KNOWN ISSUES
 
 ## ⏩ Postponed epics
+
+- Have a cached/timebased undo feature for deletion
 
 - Add a remove domain wizard. Postponed for now.
   - Delete or disable?

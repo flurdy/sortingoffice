@@ -194,6 +194,7 @@ impl Config {
             "theme_display_",
             "RUST_",
             "TEST_",
+            "PROD_",
         ];
 
         // Helper function to check if a value is safe for substitution
@@ -202,6 +203,7 @@ impl Config {
             !value.contains("}") && // Skip values with closing braces that could break substitution
             !value.contains("{") && // Skip values with opening braces that could break substitution
             !value.contains("$(") && // Skip values with command substitution syntax
+            !value.contains("$") && // Skip values with dollar signs that could break envsubst
             !value.contains("`") && // Skip values with backticks
             !value.contains("\"") && // Skip values with quotes that could break TOML
             !value.contains("'") && // Skip values with single quotes

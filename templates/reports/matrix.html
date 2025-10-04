@@ -70,7 +70,7 @@
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% endif %}">
                     <!-- Domain Name -->
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 {% if loop.index0 % 2 == 1 %}bg-gray-50 dark:bg-gray-800{% else %}bg-white dark:bg-gray-900{% endif %} z-10 border-r border-gray-200 dark:border-gray-700">
-                        <a href="/domains/{{ domain_row.domain }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
+                        <a href="/domains/{{ domain_row.id }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
                             {{ domain_row.domain }}
                         </a>
                     </td>

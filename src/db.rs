@@ -2667,6 +2667,7 @@ pub fn get_domain_alias_matrix_report(pool: &DbPool) -> Result<DomainAliasMatrix
             .collect();
 
         matrix_rows.push(DomainAliasMatrixRow {
+            id: domain.pkid,
             domain: domain.domain,
             catch_all_status,
             required_aliases: required_matrix_items,
