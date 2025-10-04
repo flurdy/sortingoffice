@@ -840,7 +840,7 @@ pub async fn convert_to_backup(
         Ok(backup) => {
             info!("Successfully converted domain ID {} to backup domain", id);
             // Redirect to the backup domain show page
-            let redirect_url = format!("/backups/{}", backup.pkid);
+            let redirect_url = format!("/domain_backup/{}", backup.pkid);
             Html(format!(
                 "<script>window.location.href = '{redirect_url}';</script>"
             ))

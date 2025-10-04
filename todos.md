@@ -9,6 +9,8 @@
 
 ## High Priority Minor and bugs 🐛
 
+- ✅ For some domains I get this error in the logs: [DEBUG] Rendering error page with title: domains-not-found-title, message: domains-not-found-message
+
 ## Medium Priority Epics
 
 - ✅ Can we make delete resource only be clickable if a resource is disabled
@@ -51,7 +53,7 @@
 
 - on the show relay page there should be a link to the domain, like in show alias
 
-- Converting a domain to a backup domain when finished redirects to the new backup domain, but the path prefix is wrong.
+- ✅ Converting a domain to a backup domain when finished redirects to the new backup domain, but the path prefix is wrong.
 
 ## Low Priority Epics
 
