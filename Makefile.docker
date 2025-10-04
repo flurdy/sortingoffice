@@ -32,6 +32,3 @@ status:
 
 clean:
 	./docker.sh clean
-
-test-clean:
-	@./tests/run_tests.sh cleanup

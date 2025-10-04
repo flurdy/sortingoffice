@@ -111,9 +111,7 @@ shell:
 
 # Local development
 install:
-	cargo install diesel_cli --no-default-features --features mysql
-
-include Makefile.test
+	cargo install diesel_cli --no-default-features --features mysqlt
 
 # test targets moved to Makefile.test
 
