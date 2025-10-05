@@ -218,45 +218,76 @@ pub fn validate_alias_destination(destination: &str) -> Result<(), ValidationErr
         ));
     }
 
-    // Must contain @
-    if !destination.contains('@') {
+    // Split by commas and validate each email address
+    let emails: Vec<&str> = destination.split(',').map(|s| s.trim()).collect();
+
+    if emails.is_empty() {
         return Err(ValidationError::AliasDestinationInvalid(
-            "Destination must contain @".to_string(),
+            "Destination cannot be empty".to_string(),
         ));
     }
 
-    // Cannot end in @
-    if destination.ends_with('@') {
-        return Err(ValidationError::AliasDestinationInvalid(
-            "Destination cannot end in @".to_string(),
-        ));
-    }
+    for (index, email) in emails.iter().enumerate() {
+        if email.is_empty() {
+            return Err(ValidationError::AliasDestinationInvalid(format!(
+                "Email address {} is empty",
+                index + 1
+            )));
+        }
 
-    // @ alone is not valid
-    if destination == "@" {
-        return Err(ValidationError::AliasDestinationInvalid(
-            "@ alone is not a valid destination".to_string(),
-        ));
-    }
+        // Must contain @
+        if !email.contains('@') {
+            return Err(ValidationError::AliasDestinationInvalid(format!(
+                "Email address {} must contain @",
+                index + 1
+            )));
+        }
 
-    // Split into local and domain parts
-    let parts: Vec<&str> = destination.split('@').collect();
-    if parts.len() != 2 {
-        return Err(ValidationError::AliasDestinationInvalid(
-            "Destination must have exactly one @".to_string(),
-        ));
-    }
+        // Cannot end in @
+        if email.ends_with('@') {
+            return Err(ValidationError::AliasDestinationInvalid(format!(
+                "Email address {} cannot end in @",
+                index + 1
+            )));
+        }
 
-    let local_part = parts[0];
-    let domain_part = parts[1];
+        // @ alone is not valid
+        if *email == "@" {
+            return Err(ValidationError::AliasDestinationInvalid(format!(
+                "Email address {} is not valid (@ alone)",
+                index + 1
+            )));
+        }
 
-    // Validate domain part
-    validate_domain(domain_part)
-        .map_err(|e| ValidationError::AliasDestinationInvalid(format!("Invalid domain: {e}")))?;
+        // Split into local and domain parts
+        let parts: Vec<&str> = email.split('@').collect();
+        if parts.len() != 2 {
+            return Err(ValidationError::AliasDestinationInvalid(format!(
+                "Email address {} must have exactly one @",
+                index + 1
+            )));
+        }
 
-    // For destinations, local part can be empty (e.g., @example.com)
-    if !local_part.is_empty() {
-        validate_destination_local_part(local_part)?;
+        let local_part = parts[0];
+        let domain_part = parts[1];
+
+        // Validate domain part
+        validate_domain(domain_part).map_err(|e| {
+            ValidationError::AliasDestinationInvalid(format!(
+                "Invalid domain in email address {}: {e}",
+                index + 1
+            ))
+        })?;
+
+        // For destinations, local part can be empty (e.g., @example.com)
+        if !local_part.is_empty() {
+            validate_destination_local_part(local_part).map_err(|e| {
+                ValidationError::AliasDestinationInvalid(format!(
+                    "Invalid local part in email address {}: {e}",
+                    index + 1
+                ))
+            })?;
+        }
     }
 
     Ok(())
@@ -762,6 +793,27 @@ mod tests {
         assert!(validate_alias_destination("user\nname@example.com").is_err()); // Newline in local part
         assert!(validate_alias_destination("user\rname@example.com").is_err()); // Carriage return in local part
         assert!(validate_alias_destination("user name@example.com").is_err()); // Space in local part
+    }
+
+    #[test]
+    fn test_validate_alias_destination_multiple_emails() {
+        // Test multiple comma-separated emails (should be valid)
+        assert!(validate_alias_destination("user1@example.com,user2@example.com").is_ok());
+        assert!(validate_alias_destination(
+            "user1@example.com,user2@example.com,user3@example.com"
+        )
+        .is_ok());
+        assert!(validate_alias_destination("user1@example.com, user2@example.com").is_ok());
+        assert!(validate_alias_destination("user1@example.com,invalid-email").is_err());
+
+        // Test single email (should be valid)
+        assert!(validate_alias_destination("user1@example.com").is_ok());
+
+        // Test edge cases
+        assert!(validate_alias_destination("user1@example.com,").is_err()); // Empty email after comma
+        assert!(validate_alias_destination(",user1@example.com").is_err()); // Empty email before comma
+        assert!(validate_alias_destination("user1@example.com, ,user2@example.com").is_err());
+        // Empty email between commas
     }
 
     #[test]

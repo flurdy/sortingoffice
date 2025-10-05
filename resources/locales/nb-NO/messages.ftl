@@ -561,6 +561,8 @@ reports-view-report = "Vis rapport"
 # Orphaned Aliases & Users Report
 reports-orphaned-aliases-title = "Foreldreløse aliaser og brukere rapport"
 reports-orphaned-aliases-description = "Finn aliaser som refererer til ikke-eksisterende brukere eller domener, og brukere som eksisterer men ikke har tilknyttede aliaser"
+reports-hide-disabled = "Skjul deaktiverte ressurser"
+reports-show-disabled = "Vis alle ressurser"
 # External Forwarders Report
 reports-external-forwarders-title = "Eksterne videresendinger rapport"
 reports-external-forwarders-description = "Finn aliaser som videresender til eksterne domener"

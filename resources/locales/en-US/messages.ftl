@@ -833,6 +833,8 @@ reports-legend-title = Status Legend
 # Orphaned Aliases & Users Report
 reports-orphaned-aliases-title = Orphaned Aliases & Users Report
 reports-orphaned-aliases-description = Find aliases that reference non-existent users or domains, and users that exist but have no associated aliases
+reports-hide-disabled = Hide Disabled Resources
+reports-show-disabled = Show All Resources
 # External Forwarders Report
 reports-external-forwarders-title = External Forwarders Report
 reports-external-forwarders-description = Find aliases that forward to external domains

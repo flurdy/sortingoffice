@@ -6,10 +6,10 @@ use crate::templates::reports::{
     ExternalForwarderReportTemplate, MatrixReportTemplate, OrphanedReportTemplate,
     ReportsListTemplate,
 };
-use crate::{db, i18n::get_translation, AppState};
+use crate::{db, i18n::get_translation, models::OrphanedReportParams, AppState};
 use askama::Template;
 use axum::{
-    extract::State,
+    extract::{Query, State},
     http::{HeaderMap, StatusCode},
     response::Html,
 };
@@ -364,13 +364,14 @@ pub async fn reports_list(
 pub async fn orphaned_report(
     State(state): State<AppState>,
     headers: HeaderMap,
+    Query(params): Query<OrphanedReportParams>,
 ) -> Result<Html<String>, StatusCode> {
     let locale = crate::handlers::language::get_user_locale(&headers);
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
-    let report = match state
+    let mut report = match state
         .db_manager
         .get_orphaned_aliases_report_cached(&pool)
         .await
@@ -382,12 +383,25 @@ pub async fn orphaned_report(
         }
     };
 
+    // Apply filtering if requested
+    let hide_disabled = params.hide_disabled.unwrap_or(false);
+    if hide_disabled {
+        report.orphaned_aliases.retain(|alias| alias.enabled);
+        report.orphaned_users.retain(|user| user.enabled);
+        report.users_without_aliases.retain(|user| user.enabled);
+    }
+
     // Get translations
     let title = get_translation(&state, &locale, "reports-orphaned-aliases-title").await;
+    let hide_disabled_label = get_translation(&state, &locale, "reports-hide-disabled").await;
+    let show_disabled_label = get_translation(&state, &locale, "reports-show-disabled").await;
 
     let content_template = OrphanedReportTemplate {
         title: &title,
         report: &report,
+        hide_disabled,
+        hide_disabled_label: &hide_disabled_label,
+        show_disabled_label: &show_disabled_label,
     };
 
     let content = match content_template.render() {

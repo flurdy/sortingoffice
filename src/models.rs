@@ -777,12 +777,18 @@ pub struct OrphanedAliasReport {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OrphanedReportParams {
+    pub hide_disabled: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrphanedAlias {
     pub id: i32,
     pub mail: String,
     pub destination: String,
     pub domain: String,
     pub domain_id: Option<i32>,
+    pub domain_enabled: Option<bool>,
     pub enabled: bool,
 }
 
@@ -792,6 +798,7 @@ pub struct OrphanedUser {
     pub name: String,
     pub domain: String,
     pub domain_id: Option<i32>,
+    pub domain_enabled: Option<bool>,
     pub enabled: bool,
 }
 
@@ -801,6 +808,7 @@ pub struct UserWithoutAlias {
     pub name: String,
     pub domain: String,
     pub domain_id: Option<i32>,
+    pub domain_enabled: Option<bool>,
     pub enabled: bool,
 }
 

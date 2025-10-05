@@ -3408,7 +3408,8 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 mail,
                 destination,
                 domain,
-                domain_id: None, // Will be populated later
+                domain_id: None,      // Will be populated later
+                domain_enabled: None, // Will be populated later
                 enabled,
             }
         })
@@ -3417,16 +3418,17 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Sort by domain first, then by mail
     orphaned_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.mail.cmp(&b.mail)));
 
-    // Populate domain IDs for orphaned aliases
+    // Populate domain IDs and enabled status for orphaned aliases
     for alias in &mut orphaned_aliases {
         if let Some(at_pos) = alias.mail.rfind('@') {
             let mail_domain = &alias.mail[at_pos + 1..];
-            if let Ok(domain_id) = domains::table
+            if let Ok((domain_id, domain_enabled)) = domains::table
                 .filter(domains::domain.eq(mail_domain))
-                .select(domains::pkid)
-                .first::<i32>(&mut conn)
+                .select((domains::pkid, domains::enabled))
+                .first::<(i32, bool)>(&mut conn)
             {
                 alias.domain_id = Some(domain_id);
+                alias.domain_enabled = Some(domain_enabled);
             }
         }
     }
@@ -3460,7 +3462,8 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 id,
                 name,
                 domain,
-                domain_id: None, // Will be populated later
+                domain_id: None,      // Will be populated later
+                domain_enabled: None, // Will be populated later
                 enabled,
             }
         })
@@ -3469,16 +3472,17 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Sort by domain first, then by id
     orphaned_users.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
 
-    // Populate domain IDs for orphaned users
+    // Populate domain IDs and enabled status for orphaned users
     for user in &mut orphaned_users {
         if let Some(at_pos) = user.id.rfind('@') {
             let user_domain = &user.id[at_pos + 1..];
-            if let Ok(domain_id) = domains::table
+            if let Ok((domain_id, domain_enabled)) = domains::table
                 .filter(domains::domain.eq(user_domain))
-                .select(domains::pkid)
-                .first::<i32>(&mut conn)
+                .select((domains::pkid, domains::enabled))
+                .first::<(i32, bool)>(&mut conn)
             {
                 user.domain_id = Some(domain_id);
+                user.domain_enabled = Some(domain_enabled);
             }
         }
     }
@@ -3505,7 +3509,8 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 id,
                 name,
                 domain,
-                domain_id: None, // Will be populated later
+                domain_id: None,      // Will be populated later
+                domain_enabled: None, // Will be populated later
                 enabled,
             }
         })
@@ -3514,16 +3519,17 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Sort by domain first, then by id
     users_without_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
 
-    // Populate domain IDs for users without aliases
+    // Populate domain IDs and enabled status for users without aliases
     for user in &mut users_without_aliases {
         if let Some(at_pos) = user.id.rfind('@') {
             let user_domain = &user.id[at_pos + 1..];
-            if let Ok(domain_id) = domains::table
+            if let Ok((domain_id, domain_enabled)) = domains::table
                 .filter(domains::domain.eq(user_domain))
-                .select(domains::pkid)
-                .first::<i32>(&mut conn)
+                .select((domains::pkid, domains::enabled))
+                .first::<(i32, bool)>(&mut conn)
             {
                 user.domain_id = Some(domain_id);
+                user.domain_enabled = Some(domain_enabled);
             }
         }
     }

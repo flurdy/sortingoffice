@@ -5,10 +5,16 @@
         {{ title }}
       </h1>
     </div>
-    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex gap-2">
+      <a
+        href="/reports/orphaned{% if hide_disabled %}?hide_disabled=false{% else %}?hide_disabled=true{% endif %}"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+      >
+        {% if hide_disabled %}{{ show_disabled_label }}{% else %}{{ hide_disabled_label }}{% endif %}
+      </a>
       <a
         href="/reports"
-        class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:w-auto"
+        class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
       >
         Back to Reports
       </a>
@@ -65,9 +71,22 @@
           {% else %}
           {{ alias.domain }}
           {% endif %}
+          {% if alias.domain_enabled.is_some() && !alias.domain_enabled.unwrap() %}
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+            Domain Disabled
+          </span>
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ alias.enabled }}
+          {% if alias.enabled %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+              Enabled
+            </span>
+          {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+              Disabled
+            </span>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
@@ -124,9 +143,22 @@
           {% else %}
           {{ user.domain }}
           {% endif %}
+          {% if user.domain_enabled.is_some() && !user.domain_enabled.unwrap() %}
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+            Domain Disabled
+          </span>
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.enabled }}
+          {% if user.enabled %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+              Enabled
+            </span>
+          {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+              Disabled
+            </span>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
@@ -183,9 +215,22 @@
           {% else %}
           {{ user.domain }}
           {% endif %}
+          {% if user.domain_enabled.is_some() && !user.domain_enabled.unwrap() %}
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+            Domain Disabled
+          </span>
+          {% endif %}
         </td>
         <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-          {{ user.enabled }}
+          {% if user.enabled %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+              Enabled
+            </span>
+          {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+              Disabled
+            </span>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}

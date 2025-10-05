@@ -55,6 +55,9 @@ pub struct ReportsListTemplate<'a> {
 pub struct OrphanedReportTemplate<'a> {
     pub title: &'a str,
     pub report: &'a crate::models::OrphanedAliasReport,
+    pub hide_disabled: bool,
+    pub hide_disabled_label: &'a str,
+    pub show_disabled_label: &'a str,
 }
 
 #[derive(Template)]

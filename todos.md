@@ -40,7 +40,16 @@
   - Basically to check if some domains are not pointing to these mail servers.
   - May need to add optional servers name (e.g mail.example.com) to DBs in the config, to compare with?
 
+- In show alias, at the bottom replicate the Alias across domains report for that alias
+
 ## Low Priority Minor and bugs 🐛 
+
+- On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
+
+- In the Orphaned aliases and users report add a button to toggle filtering out disabled resources, and some way to flag that the domain may be disabled as well
+
+- On the domain statistics report, remove the quota columns. Add relays and relocated.
+  - With enabled and disabled shown as well?
 
 - ✅ Add i18n translations for disabled delete button tooltips
 
