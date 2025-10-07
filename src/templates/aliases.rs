@@ -91,6 +91,7 @@ pub struct AliasShowTemplate<'a> {
     pub read_only_tooltip: &'a str,
     pub delete_alias_disabled_tooltip: &'a str,
     pub not_available: &'a str,
+    pub cross_domain_report: Option<&'a crate::models::AliasCrossDomainReport>,
 }
 
 #[derive(Template)]

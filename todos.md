@@ -17,6 +17,8 @@
 
 ## Medium Priority Minor and bugs 🐛
 
+- Not found aliases is pure text, not styled 404 error page
+
 - Need to test alias destination containing multiple emails separated by a comma.
 
 - ✅ In show domain there is no add user button in the users section
@@ -63,7 +65,7 @@
 
 ## 🙈 KNOWN ISSUES
 
-* Adding alias/user full emial as domain field in a backup domain is an edge case 
+* Adding alias/user full email as domain field in a backup domain is an edge case 
 
 ## ⏩ Postponed epics
 

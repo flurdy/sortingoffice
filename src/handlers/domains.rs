@@ -486,8 +486,9 @@ pub async fn edit(
         || async { db::get_domain(&pool, id) },
         &state,
         &locale,
-        "domain",
+        "domains",
         "domains-not-found",
+        &headers,
     )
     .await
     {

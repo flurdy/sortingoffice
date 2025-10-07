@@ -68,8 +68,9 @@ pub async fn show_relay(
         || async { db::get_relay(&pool, relay_id) },
         &state,
         &locale,
-        "relay",
+        "relays",
         "relays-not-found",
+        &headers,
     )
     .await
     {

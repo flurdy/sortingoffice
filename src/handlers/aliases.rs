@@ -157,8 +157,9 @@ pub async fn show(
         || async { db::get_alias(&pool, id) },
         &state,
         &locale,
-        "alias",
+        "aliases",
         "aliases-not-found",
+        &headers,
     )
     .await
     {

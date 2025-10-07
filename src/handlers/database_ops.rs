@@ -899,9 +899,10 @@ where
 pub async fn get_entity_with_not_found<T, F, Fut>(
     operation: F,
     state: &AppState,
-    locale: &str,
-    _entity_name: &str,
-    not_found_key: &str,
+    _locale: &str,
+    entity_name: &str,
+    _not_found_key: &str,
+    headers: &axum::http::HeaderMap,
 ) -> Result<T, Html<String>>
 where
     F: FnOnce() -> Fut,
@@ -910,10 +911,14 @@ where
     match operation().await {
         Ok(entity) => Ok(entity),
         Err(_) => {
-            // We can't use render_*_not_found_page here because we don't have headers
-            // This function is used in contexts where we only have state and locale
-            let not_found_msg = crate::i18n::get_translation(state, locale, not_found_key).await;
-            Err(Html(not_found_msg))
+            // Use the proper styled error page based on entity type
+            Err(crate::handlers::errors::handle_entity_not_found(
+                state,
+                headers,
+                entity_name,
+                _not_found_key,
+            )
+            .await)
         }
     }
 }

@@ -456,6 +456,20 @@ pub async fn render_alias_show_page(
         .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
     let current_db_read_only = state.config.is_database_read_only(&current_db_id);
 
+    // Get alias cross-domain report data
+    let alias_name = alias.mail.split('@').next().unwrap_or("");
+    let cross_domain_report =
+        match crate::handlers::utils::get_db_pool_or_handle_error(state, headers).await {
+            Ok(pool) => match crate::db::get_alias_cross_domain_report(&pool, alias_name) {
+                Ok(report) => Some(report),
+                Err(e) => {
+                    tracing::warn!("Failed to get alias cross-domain report: {:?}", e);
+                    None
+                }
+            },
+            Err(_) => None,
+        };
+
     let content_template = crate::templates::aliases::AliasShowTemplate {
         title: &title,
         alias,
@@ -481,6 +495,7 @@ pub async fn render_alias_show_page(
         not_available: &not_available,
         current_db_read_only,
         read_only_tooltip: &read_only_tooltip,
+        cross_domain_report: cross_domain_report.as_ref(),
     };
 
     render_show_template(content_template, state, locale, headers).await
