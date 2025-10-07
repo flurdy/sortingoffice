@@ -471,6 +471,7 @@ mod tests {
                     contact_form: None,
                     role: Some("Test Administrator".to_string()),
                 }),
+                mail_servers: vec![],
             };
 
             let (app, state) = TestUtils::create_test_app_with_config(db_configs, config).await;

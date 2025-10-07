@@ -3,8 +3,8 @@ use crate::templates::reports::{
     AliasCrossDomainReportTemplate, CrossDatabaseFeatureToggleReportTemplate,
     CrossDatabaseMatrixReportTemplate, CrossDatabaseMigrationReportTemplate,
     CrossDatabaseUserDistributionReportTemplate, DomainStatisticsReportTemplate,
-    ExternalForwarderReportTemplate, MatrixReportTemplate, OrphanedReportTemplate,
-    ReportsListTemplate,
+    ExternalForwarderReportTemplate, MatrixReportTemplate, MxServersReportTemplate,
+    OrphanedReportTemplate, ReportsListTemplate,
 };
 use crate::{db, i18n::get_translation, models::OrphanedReportParams, AppState};
 use askama::Template;
@@ -281,6 +281,10 @@ pub async fn reports_list(
         get_translation(&state, &locale, "reports-recent-changes-title").await;
     let recent_changes_report_description =
         get_translation(&state, &locale, "reports-recent-changes-description").await;
+    let mx_servers_report_title =
+        get_translation(&state, &locale, "reports-mx-servers-title").await;
+    let mx_servers_report_description =
+        get_translation(&state, &locale, "reports-mx-servers-description").await;
     let view_report = get_translation(&state, &locale, "reports-view-report").await;
 
     // Create the reports list template
@@ -310,6 +314,8 @@ pub async fn reports_list(
         domain_statistics_report_description: &domain_statistics_report_description,
         recent_changes_report_title: &recent_changes_report_title,
         recent_changes_report_description: &recent_changes_report_description,
+        mx_servers_report_title: &mx_servers_report_title,
+        mx_servers_report_description: &mx_servers_report_description,
         view_report: &view_report,
     };
 
@@ -977,10 +983,9 @@ pub async fn domain_statistics_report(
     let table_header_domain = get_translation(&state, &locale, "stats-table-header-domain").await;
     let table_header_users = get_translation(&state, &locale, "stats-table-header-users").await;
     let table_header_aliases = get_translation(&state, &locale, "stats-table-header-aliases").await;
-    let table_header_total_quota =
-        get_translation(&state, &locale, "stats-table-header-total-quota").await;
-    let table_header_used_quota =
-        get_translation(&state, &locale, "stats-table-header-used-quota").await;
+    let table_header_relays = get_translation(&state, &locale, "stats-table-header-relays").await;
+    let table_header_relocated =
+        get_translation(&state, &locale, "stats-table-header-relocated").await;
     let empty_title =
         get_translation(&state, &locale, "reports-domain-statistics-empty-title").await;
     let empty_description = get_translation(
@@ -997,8 +1002,8 @@ pub async fn domain_statistics_report(
         table_header_domain: &table_header_domain,
         table_header_users: &table_header_users,
         table_header_aliases: &table_header_aliases,
-        table_header_total_quota: &table_header_total_quota,
-        table_header_used_quota: &table_header_used_quota,
+        table_header_relays: &table_header_relays,
+        table_header_relocated: &table_header_relocated,
         empty_title: &empty_title,
         empty_description: &empty_description,
         domain_stats: &domain_stats,
@@ -1008,6 +1013,162 @@ pub async fn domain_statistics_report(
         Ok(content) => content,
         Err(e) => {
             tracing::error!("Error rendering domain statistics report template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Create the base template
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_label = state
+        .db_manager
+        .get_configs()
+        .iter()
+        .find(|db| db.id == current_db_id)
+        .map(|db| db.label.clone())
+        .unwrap_or_else(|| current_db_id.clone());
+
+    let template = match BaseTemplate::with_i18n(
+        title.clone(),
+        content,
+        &state,
+        &locale,
+        current_db_label,
+        current_db_id,
+    )
+    .await
+    {
+        Ok(template) => template,
+        Err(e) => {
+            tracing::error!("Error creating base template: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    match template.render() {
+        Ok(content) => Ok(Html(content)),
+        Err(e) => {
+            tracing::error!("Error rendering final template: {:?}", e);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+// MX Servers Report
+pub async fn mx_servers_report(
+    Query(params): Query<crate::models::PaginationParams>,
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Html<String>, StatusCode> {
+    let locale = crate::handlers::language::get_user_locale(&headers);
+    let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
+    };
+
+    // Get pagination parameters
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+    let sort_by = params.sort_by.as_deref().unwrap_or("domain");
+    let sort_order = params.sort_order.as_deref().unwrap_or("asc");
+
+    // Get MX servers report data
+    let paginated_result = match db::get_mx_servers_report(
+        &pool,
+        &state.config.mail_servers,
+        page,
+        per_page,
+        sort_by,
+        sort_order,
+    )
+    .await
+    {
+        Ok(result) => result,
+        Err(e) => {
+            tracing::error!("Error generating MX servers report: {:?}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // Get translations
+    let title = get_translation(&state, &locale, "reports-mx-servers-title").await;
+    let description = get_translation(&state, &locale, "reports-mx-servers-description").await;
+    let domain_header = get_translation(&state, &locale, "reports-domain-header").await;
+    let mx_status_header = get_translation(&state, &locale, "reports-mx-status-header").await;
+    let mx_records_header = get_translation(&state, &locale, "reports-mx-records-header").await;
+    let missing_servers_header =
+        get_translation(&state, &locale, "reports-missing-servers-header").await;
+    let unexpected_servers_header =
+        get_translation(&state, &locale, "reports-unexpected-servers-header").await;
+    let legend_title = get_translation(&state, &locale, "reports-legend-title").await;
+    let status_compliant = get_translation(&state, &locale, "reports-mx-status-compliant").await;
+    let status_non_compliant =
+        get_translation(&state, &locale, "reports-mx-status-non-compliant").await;
+    let status_empty = get_translation(&state, &locale, "reports-mx-status-empty").await;
+    let status_error = get_translation(&state, &locale, "reports-mx-status-error").await;
+    let no_domains = get_translation(&state, &locale, "reports-no-domains").await;
+    let no_domains_description =
+        get_translation(&state, &locale, "reports-no-domains-description").await;
+    let back_to_reports = get_translation(&state, &locale, "reports-back-to-reports").await;
+    let configured_mail_servers =
+        get_translation(&state, &locale, "reports-configured-mail-servers").await;
+    let summary_title = get_translation(&state, &locale, "reports-summary-title").await;
+    let total_domains = get_translation(&state, &locale, "reports-total-domains").await;
+    let compliant_domains = get_translation(&state, &locale, "reports-compliant-domains").await;
+    let non_compliant_domains =
+        get_translation(&state, &locale, "reports-non-compliant-domains").await;
+    let empty_mx_domains = get_translation(&state, &locale, "reports-empty-mx-domains").await;
+    let error_domains = get_translation(&state, &locale, "reports-error-domains").await;
+
+    // Get pagination translations
+    let pagination_previous = get_translation(&state, &locale, "pagination-previous").await;
+    let pagination_next = get_translation(&state, &locale, "pagination-next").await;
+    let pagination_showing = get_translation(&state, &locale, "pagination-showing").await;
+    let pagination_to = get_translation(&state, &locale, "pagination-to").await;
+    let pagination_of = get_translation(&state, &locale, "pagination-of").await;
+    let pagination_results = get_translation(&state, &locale, "pagination-results").await;
+
+    // Generate page range for pagination UI
+    let page_range: Vec<i64> = (1..=paginated_result.total_pages).collect();
+
+    let content_template = MxServersReportTemplate {
+        title: &title,
+        description: &description,
+        domain_header: &domain_header,
+        mx_status_header: &mx_status_header,
+        mx_records_header: &mx_records_header,
+        missing_servers_header: &missing_servers_header,
+        unexpected_servers_header: &unexpected_servers_header,
+        legend_title: &legend_title,
+        status_compliant: &status_compliant,
+        status_non_compliant: &status_non_compliant,
+        status_empty: &status_empty,
+        status_error: &status_error,
+        no_domains: &no_domains,
+        no_domains_description: &no_domains_description,
+        back_to_reports: &back_to_reports,
+        configured_mail_servers: &configured_mail_servers,
+        summary_title: &summary_title,
+        total_domains: &total_domains,
+        compliant_domains: &compliant_domains,
+        non_compliant_domains: &non_compliant_domains,
+        empty_mx_domains: &empty_mx_domains,
+        error_domains: &error_domains,
+        paginated_result: &paginated_result,
+        mail_servers: &state.config.mail_servers,
+        page_range: &page_range,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+    };
+
+    let content = match content_template.render() {
+        Ok(content) => content,
+        Err(e) => {
+            tracing::error!("Error rendering MX servers report template: {:?}", e);
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };

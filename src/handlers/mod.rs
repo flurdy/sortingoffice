@@ -88,7 +88,7 @@ pub use reports::{
     alias_cross_domain_report, cross_database_domain_matrix_report,
     cross_database_feature_toggle_report, cross_database_migration_report,
     cross_database_user_distribution_report, domain_statistics_report, external_forwarders_report,
-    matrix_report, orphaned_report, reports_list,
+    matrix_report, mx_servers_report, orphaned_report, reports_list,
 };
 pub use search::search_page;
 pub use stats::index as stats_index;
@@ -220,6 +220,7 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
             "/reports/domain-statistics",
             axum::routing::get(domain_statistics_report),
         )
+        .route("/reports/mx-servers", axum::routing::get(mx_servers_report))
         // Cache management
         .route("/cache-management", axum::routing::get(cache_management))
         .route(

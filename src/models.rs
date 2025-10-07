@@ -279,8 +279,12 @@ pub struct DomainStats {
     pub domain: String,
     pub user_count: i64,
     pub alias_count: i64,
-    pub total_quota: i64,
-    pub used_quota: i64,
+    pub relay_count: i64,
+    pub relay_enabled_count: i64,
+    pub relay_disabled_count: i64,
+    pub relocated_count: i64,
+    pub relocated_enabled_count: i64,
+    pub relocated_disabled_count: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -1183,6 +1187,71 @@ pub struct WizardProgress {
     pub message: String,
 }
 
+// MX Servers Report models
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MxServersReport {
+    pub domains: Vec<DomainMxStatus>,
+    pub mail_servers: Vec<String>,
+    pub summary: MxServersSummary,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DomainMxStatus {
+    pub domain: String,
+    pub domain_id: i32,
+    pub enabled: bool,
+    pub mx_records: Vec<String>,
+    pub mx_status: MxStatus,
+    pub missing_servers: Vec<String>,
+    pub unexpected_servers: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum MxStatus {
+    Compliant,    // All MX records point to configured mail servers
+    NonCompliant, // Some MX records don't point to configured mail servers
+    Empty,        // No MX records found
+    Error,        // Error during DNS lookup
+}
+
+impl MxStatus {
+    pub fn css_class(&self) -> &'static str {
+        match self {
+            MxStatus::Compliant => "text-green-600 dark:text-green-400",
+            MxStatus::NonCompliant => "text-red-600 dark:text-red-400",
+            MxStatus::Empty => "text-yellow-600 dark:text-yellow-400",
+            MxStatus::Error => "text-gray-600 dark:text-gray-400",
+        }
+    }
+
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            MxStatus::Compliant => "✅",
+            MxStatus::NonCompliant => "❌",
+            MxStatus::Empty => "⚠️",
+            MxStatus::Error => "❓",
+        }
+    }
+
+    pub fn tooltip(&self) -> &'static str {
+        match self {
+            MxStatus::Compliant => "MX records point to configured mail servers",
+            MxStatus::NonCompliant => "Some MX records don't point to configured mail servers",
+            MxStatus::Empty => "No MX records found",
+            MxStatus::Error => "Error during DNS lookup",
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MxServersSummary {
+    pub total_domains: i64,
+    pub compliant_domains: i64,
+    pub non_compliant_domains: i64,
+    pub empty_mx_domains: i64,
+    pub error_domains: i64,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1398,8 +1467,12 @@ mod tests {
             domain: "example.com".to_string(),
             user_count: 10,
             alias_count: 20,
-            total_quota: 5000000,
-            used_quota: 2500000,
+            relay_count: 5,
+            relay_enabled_count: 4,
+            relay_disabled_count: 1,
+            relocated_count: 3,
+            relocated_enabled_count: 2,
+            relocated_disabled_count: 1,
         };
 
         let json = serde_json::to_string(&stats).unwrap();
@@ -1409,8 +1482,21 @@ mod tests {
         assert_eq!(stats.domain, deserialized.domain);
         assert_eq!(stats.user_count, deserialized.user_count);
         assert_eq!(stats.alias_count, deserialized.alias_count);
-        assert_eq!(stats.total_quota, deserialized.total_quota);
-        assert_eq!(stats.used_quota, deserialized.used_quota);
+        assert_eq!(stats.relay_count, deserialized.relay_count);
+        assert_eq!(stats.relay_enabled_count, deserialized.relay_enabled_count);
+        assert_eq!(
+            stats.relay_disabled_count,
+            deserialized.relay_disabled_count
+        );
+        assert_eq!(stats.relocated_count, deserialized.relocated_count);
+        assert_eq!(
+            stats.relocated_enabled_count,
+            deserialized.relocated_enabled_count
+        );
+        assert_eq!(
+            stats.relocated_disabled_count,
+            deserialized.relocated_disabled_count
+        );
     }
 
     #[test]

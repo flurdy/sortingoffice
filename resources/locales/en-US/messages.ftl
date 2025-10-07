@@ -778,8 +778,8 @@ stats-domain-statistics = Domain Statistics
 stats-table-header-domain = Domain
 stats-table-header-users = Users
 stats-table-header-aliases = Aliases
-stats-table-header-total-quota = Total Quota
-stats-table-header-used-quota = Used Quota
+stats-table-header-relays = Relays
+stats-table-header-relocated = Relocated
 stats-quota-usage-title = Quota Usage
 stats-quota-usage-overview = Storage Usage Overview
 stats-quota-usage-description = Monitor disk space usage across all domains and users
@@ -883,6 +883,25 @@ reports-domain-statistics-empty-description = No domain statistics are available
 # Recent Changes Report
 reports-recent-changes-title = Recent Changes Report
 reports-recent-changes-description = View the most recent additions and updates across all resource types
+
+# MX Servers Report
+reports-mx-servers-title = MX Servers Report
+reports-mx-servers-description = Check if domain MX records point to configured mail servers
+reports-mx-status-header = MX Status
+reports-mx-records-header = MX Records
+reports-missing-servers-header = Missing Servers
+reports-unexpected-servers-header = Unexpected Servers
+reports-mx-status-compliant = Compliant
+reports-mx-status-non-compliant = Non-Compliant
+reports-mx-status-empty = No MX Records
+reports-mx-status-error = DNS Error
+reports-configured-mail-servers = Configured Mail Servers
+reports-summary-title = Summary
+reports-total-domains = Total Domains
+reports-compliant-domains = Compliant
+reports-non-compliant-domains = Non-Compliant
+reports-empty-mx-domains = No MX Records
+reports-error-domains = DNS Errors
 reports-table-header-resource-type = Resource Type
 reports-table-header-resource-name = Resource Name
 reports-table-header-action = Action

@@ -1991,15 +1991,45 @@ pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
             .count()
             .get_result(&mut conn)?;
 
-        let total_quota: i64 = 0; // Quota field removed from users table
+        // Count relays for this domain by checking the domain part of the recipient field
+        let relay_count: i64 = relays::table
+            .filter(relays::recipient.like(format!("%@{}", domain.domain)))
+            .count()
+            .get_result(&mut conn)?;
+
+        let relay_enabled_count: i64 = relays::table
+            .filter(relays::recipient.like(format!("%@{}", domain.domain)))
+            .filter(relays::enabled.eq(true))
+            .count()
+            .get_result(&mut conn)?;
+
+        let relay_disabled_count: i64 = relay_count - relay_enabled_count;
+
+        // Count relocated for this domain by checking the domain part of the old_address field
+        let relocated_count: i64 = relocated::table
+            .filter(relocated::old_address.like(format!("%@{}", domain.domain)))
+            .count()
+            .get_result(&mut conn)?;
+
+        let relocated_enabled_count: i64 = relocated::table
+            .filter(relocated::old_address.like(format!("%@{}", domain.domain)))
+            .filter(relocated::enabled.eq(true))
+            .count()
+            .get_result(&mut conn)?;
+
+        let relocated_disabled_count: i64 = relocated_count - relocated_enabled_count;
 
         stats.push(DomainStats {
             domain_id: domain.pkid,
             domain: domain.domain,
             user_count,
             alias_count,
-            total_quota,
-            used_quota: 0, // This would need to be calculated from actual disk usage
+            relay_count,
+            relay_enabled_count,
+            relay_disabled_count,
+            relocated_count,
+            relocated_enabled_count,
+            relocated_disabled_count,
         });
     }
 
@@ -4766,4 +4796,171 @@ pub async fn search_all_tables(
         total_count,
         search_time_ms: search_time,
     })
+}
+
+/// Get MX servers report for all domains
+pub async fn get_mx_servers_report(
+    pool: &DbPool,
+    mail_servers: &[String],
+    page: i64,
+    per_page: i64,
+    sort_by: &str,
+    sort_order: &str,
+) -> Result<crate::models::PaginatedResult<DomainMxStatus>, Box<dyn std::error::Error + Send + Sync>>
+{
+    use crate::schema::domains;
+    use crate::services::dns_lookup::DnsLookupService;
+
+    let mut conn = pool.get()?;
+
+    // Get total count of domains for pagination
+    let total_count: i64 = domains::table
+        .count()
+        .get_result(&mut conn)
+        .map_err(|e| format!("Failed to count domains: {}", e))?;
+
+    // Get domains with pagination and ordering
+    let offset = (page - 1) * per_page;
+    let domains_list = match (sort_by, sort_order) {
+        ("domain", "asc") => domains::table
+            .order(domains::domain.asc())
+            .limit(per_page)
+            .offset(offset)
+            .load::<Domain>(&mut conn)
+            .map_err(|e| format!("Failed to load domains: {}", e))?,
+        ("domain", "desc") => domains::table
+            .order(domains::domain.desc())
+            .limit(per_page)
+            .offset(offset)
+            .load::<Domain>(&mut conn)
+            .map_err(|e| format!("Failed to load domains: {}", e))?,
+        ("enabled", "asc") => domains::table
+            .order(domains::enabled.asc())
+            .limit(per_page)
+            .offset(offset)
+            .load::<Domain>(&mut conn)
+            .map_err(|e| format!("Failed to load domains: {}", e))?,
+        ("enabled", "desc") => domains::table
+            .order(domains::enabled.desc())
+            .limit(per_page)
+            .offset(offset)
+            .load::<Domain>(&mut conn)
+            .map_err(|e| format!("Failed to load domains: {}", e))?,
+        _ => domains::table
+            .order(domains::domain.asc())
+            .limit(per_page)
+            .offset(offset)
+            .load::<Domain>(&mut conn)
+            .map_err(|e| format!("Failed to load domains: {}", e))?,
+    };
+
+    let mut domains_status = Vec::new();
+
+    // Initialize DNS lookup service
+    let dns_service = match DnsLookupService::new_system().await {
+        Ok(service) => service,
+        Err(e) => {
+            tracing::error!("Failed to initialize DNS lookup service: {:?}", e);
+            return Err(format!("Failed to initialize DNS lookup service: {}", e).into());
+        }
+    };
+
+    for domain in &domains_list {
+        // Lookup MX records for the domain
+        let mx_records = match dns_service.lookup_mx(&domain.domain).await {
+            Ok(records) => records
+                .into_iter()
+                .map(|r| r.exchange)
+                .collect::<Vec<String>>(),
+            Err(_) => {
+                // DNS lookup failed
+                domains_status.push(DomainMxStatus {
+                    domain: domain.domain.clone(),
+                    domain_id: domain.pkid,
+                    enabled: domain.enabled,
+                    mx_records: Vec::new(),
+                    mx_status: MxStatus::Error,
+                    missing_servers: Vec::new(),
+                    unexpected_servers: Vec::new(),
+                });
+                continue;
+            }
+        };
+
+        if mx_records.is_empty() {
+            // No MX records found
+            domains_status.push(DomainMxStatus {
+                domain: domain.domain.clone(),
+                domain_id: domain.pkid,
+                enabled: domain.enabled,
+                mx_records: Vec::new(),
+                mx_status: MxStatus::Empty,
+                missing_servers: mail_servers.to_vec(),
+                unexpected_servers: Vec::new(),
+            });
+            continue;
+        }
+
+        // Normalize MX records and mail servers by removing trailing dots
+        let normalized_mx_records: Vec<String> = mx_records
+            .iter()
+            .map(|mx| mx.trim_end_matches('.').to_string())
+            .collect();
+
+        let normalized_mail_servers: Vec<String> = mail_servers
+            .iter()
+            .map(|server| server.trim_end_matches('.').to_string())
+            .collect();
+
+        // Check if ANY of the configured mail servers are found in MX records
+        let mut missing_servers = Vec::new();
+        let mut unexpected_servers = Vec::new();
+        let mut is_compliant = false;
+
+        // Check for missing mail servers (configured servers not in MX records)
+        for mail_server in &normalized_mail_servers {
+            if !normalized_mx_records
+                .iter()
+                .any(|mx| mx.ends_with(mail_server))
+            {
+                missing_servers.push(mail_server.clone());
+            } else {
+                // At least one configured server is found, so it's compliant
+                is_compliant = true;
+            }
+        }
+
+        // Check for unexpected servers (MX records not pointing to configured servers)
+        for mx_record in &normalized_mx_records {
+            if !normalized_mail_servers
+                .iter()
+                .any(|server| mx_record.ends_with(server))
+            {
+                unexpected_servers.push(mx_record.clone());
+            }
+        }
+
+        let mx_status = if is_compliant {
+            MxStatus::Compliant
+        } else {
+            MxStatus::NonCompliant
+        };
+
+        domains_status.push(DomainMxStatus {
+            domain: domain.domain.clone(),
+            domain_id: domain.pkid,
+            enabled: domain.enabled,
+            mx_records: normalized_mx_records,
+            mx_status,
+            missing_servers,
+            unexpected_servers,
+        });
+    }
+
+    Ok(crate::models::PaginatedResult::new(
+        domains_status,
+        total_count,
+        page,
+        per_page,
+    ))
 }

@@ -95,6 +95,8 @@ pub struct Config {
     pub global_features: GlobalFeatures,
     #[serde(default)]
     pub contact: Option<ContactInfo>,
+    #[serde(default)]
+    pub mail_servers: Vec<String>,
 }
 
 impl Config {
@@ -165,6 +167,7 @@ impl Config {
             databases: vec![],
             global_features: GlobalFeatures::default(),
             contact: None,
+            mail_servers: vec![],
         })
     }
 
@@ -509,6 +512,7 @@ impl Default for Config {
             databases: vec![],
             global_features: GlobalFeatures::default(),
             contact: None,
+            mail_servers: vec![],
         }
     }
 }

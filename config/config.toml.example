@@ -48,6 +48,15 @@ common_aliases = [
     "spam"
 ]
 
+# Mail servers for MX compliance checking
+# These servers will be used in the MX Servers Report to check if domains
+# are using the correct mail servers for email delivery
+mail_servers = [
+    "mail.example.com",
+    "mx1.example.com", 
+    "mx2.example.com"
+]
+
 # Database connections
 # Define one or more database servers this instance can manage
 # Each entry must have a unique id, a label for the UI, and a connection url

@@ -431,8 +431,8 @@ stats-domain-statistics = Domain-Statistiken
 stats-table-header-domain = Domain
 stats-table-header-users = Benutzer
 stats-table-header-aliases = Aliase
-stats-table-header-total-quota = Gesamte Quote
-stats-table-header-used-quota = Verwendete Quote
+stats-table-header-relays = Relays
+stats-table-header-relocated = Umgesiedelt
 stats-quota-usage-title = Quoten-Nutzung
 stats-quota-usage-overview = Speicher-Nutzungsübersicht
 stats-quota-usage-description = Überwachen Sie die Festplattennutzung über alle Domains und Benutzer hinweg
@@ -1041,6 +1041,25 @@ other-databases-aliases-count = Aliase
 # Recent Changes Report
 reports-recent-changes-title = Bericht über letzte Änderungen
 reports-recent-changes-description = Zeigen Sie die neuesten Ergänzungen und Updates über alle Ressourcentypen hinweg an
+
+# MX Servers Report
+reports-mx-servers-title = MX-Server-Bericht
+reports-mx-servers-description = Überprüfen Sie, ob Domain-MX-Einträge auf konfigurierte Mail-Server verweisen
+reports-mx-status-header = MX-Status
+reports-mx-records-header = MX-Einträge
+reports-missing-servers-header = Fehlende Server
+reports-unexpected-servers-header = Unerwartete Server
+reports-mx-status-compliant = Konform
+reports-mx-status-non-compliant = Nicht konform
+reports-mx-status-empty = Keine MX-Einträge
+reports-mx-status-error = DNS-Fehler
+reports-configured-mail-servers = Konfigurierte Mail-Server
+reports-summary-title = Zusammenfassung
+reports-total-domains = Gesamte Domains
+reports-compliant-domains = Konform
+reports-non-compliant-domains = Nicht konform
+reports-empty-mx-domains = Keine MX-Einträge
+reports-error-domains = DNS-Fehler
 reports-table-header-resource-type = Ressourcentyp
 reports-table-header-resource-name = Ressourcenname
 reports-table-header-action = Aktion
