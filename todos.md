@@ -17,9 +17,9 @@
 
 ## Medium Priority Minor and bugs 🐛
 
-- Not found aliases is pure text, not styled 404 error page
+- ✅ Not found aliases is pure text, not styled 404 error page
 
-- Need to test alias destination containing multiple emails separated by a comma.
+- ✅ Need to test alias destination containing multiple emails separated by a comma.
 
 - ✅ In show domain there is no add user button in the users section
 
@@ -38,19 +38,19 @@
 - ✅ On a show backup domain page add a button to change it from a backup domain to a normal domain.
   - ✅ And a button to change from domain to backup domain
 
-- A report to check if any domains mx settings are not in a list of servers. 
+- ✅ A report to check if any domains mx settings are not in a list of servers. 
   - Basically to check if some domains are not pointing to these mail servers.
   - May need to add optional servers name (e.g mail.example.com) to DBs in the config, to compare with?
 
-- In show alias, at the bottom replicate the Alias across domains report for that alias
+- ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
 ## Low Priority Minor and bugs 🐛 
 
-- On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
+- ✅ On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
 
-- In the Orphaned aliases and users report add a button to toggle filtering out disabled resources, and some way to flag that the domain may be disabled as well
+- ✅ In the Orphaned aliases and users report add a button to toggle filtering out disabled resources, and some way to flag that the domain may be disabled as well
 
-- On the domain statistics report, remove the quota columns. Add relays and relocated.
+- ✅ On the domain statistics report, remove the quota columns. Add relays and relocated.
   - With enabled and disabled shown as well?
 
 - ✅ Add i18n translations for disabled delete button tooltips
@@ -59,9 +59,9 @@
 
 - ✅ if show domain is for a missing domain, there is an error in the log but just a blank page shown, with correct header and sidebar.
   - ✅ Applied the same fix to all other missing resource pages (users, aliases, relays, backups, relocated, clients)
-  - Not found Alias Still shows unstyled page http://localhost:3000/aliases/85 
-  - Same for relay
-  - Not found domain, user, relocated and client is styled
+  - ✅ Not found Alias Still shows unstyled page http://localhost:3000/aliases/85 
+  - ✅ Same for relay
+  - ✅ Not found domain, user, relocated and client is styled
 
 ## 🙈 KNOWN ISSUES
 
