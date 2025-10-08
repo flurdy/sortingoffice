@@ -8,6 +8,8 @@
 
 ## Medium Priority Minor and bugs 🐛
 
+- ✅ The paging seems not to be on the mx reports anymore? Related to the recent filtering, maybe?
+
 - ✅ Not found aliases is pure text, not styled 404 error page
 
 - ✅ Need to test alias destination containing multiple emails separated by a comma.
@@ -23,10 +25,10 @@
 
 - ✅ In the mx servers report, if on a paged result, switching to another db with less domains may result in an empty result page without paging buttons.
 
-- In show backup domain page, users and aliases are at the top, they should match the order that is in show domain. 
+- ✅ In show backup domain page, users and aliases are at the top, they should match the order that is in show domain. 
 
-- In the list domains page, on a backup domain row clicking disable does nothing.
-  - Console says: 404 for /domain_backup/102/toggle-list
+- ✅ In the list domains page, on a backup domain row clicking disable does nothing.
+  - ✅ Console says: 404 for /domain_backup/102/toggle-list
 
 ## Low Priority Epics
 
@@ -40,6 +42,12 @@
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
 ## Low Priority Minor and bugs 🐛 
+
+- In show domain the disable domain button should not be blue? 
+  - And in all other resources pages
+
+- Add a whois lookup under or within the DNS section
+  - As it may be a large blob of text, it may need to be collapsible
 
 - ✅ On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
 

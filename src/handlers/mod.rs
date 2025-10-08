@@ -380,6 +380,10 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
             axum::routing::post(domain_backup::toggle_enabled_show),
         )
         .route(
+            "/domain_backup/{id}/toggle-list",
+            axum::routing::post(domain_backup::toggle_enabled_list),
+        )
+        .route(
             "/domain_backup/{id}/toggle",
             axum::routing::post(domain_backup::toggle_enabled),
         )

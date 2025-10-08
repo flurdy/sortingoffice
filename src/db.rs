@@ -4828,9 +4828,10 @@ pub async fn get_mx_servers_report(
     }
 
     // If we have a status filter, we need to fetch all domains to check their status
-    let domains_list = if filter_status.is_some() {
+    // Otherwise, use efficient pagination
+    let (domains_list, base_total_count) = if filter_status.is_some() {
         // Fetch all domains matching the basic filters
-        match (sort_by, sort_order) {
+        let domains = match (sort_by, sort_order) {
             ("domain", "asc") => query
                 .order(domains::domain.asc())
                 .load::<Domain>(&mut conn)
@@ -4851,8 +4852,23 @@ pub async fn get_mx_servers_report(
                 .order(domains::domain.asc())
                 .load::<Domain>(&mut conn)
                 .map_err(|e| format!("Failed to load domains: {}", e))?,
-        }
+        };
+        let count = domains.len() as i64;
+        (domains, count)
     } else {
+        // Get total count first for pagination
+        let mut count_query = domains::table.into_boxed();
+        if exclude_disabled {
+            count_query = count_query.filter(domains::enabled.eq(true));
+        }
+        if exclude_subdomains {
+            count_query = count_query.filter(domains::domain.not_like("%.%.%"));
+        }
+        let total = count_query
+            .count()
+            .get_result(&mut conn)
+            .map_err(|e| format!("Failed to count domains: {}", e))?;
+
         // Use pagination for better performance when no status filter
         let offset = (page - 1) * per_page;
 
@@ -4866,7 +4882,7 @@ pub async fn get_mx_servers_report(
             query_for_data = query_for_data.filter(domains::domain.not_like("%.%.%"));
         }
 
-        match (sort_by, sort_order) {
+        let domains = match (sort_by, sort_order) {
             ("domain", "asc") => query_for_data
                 .order(domains::domain.asc())
                 .limit(per_page)
@@ -4897,7 +4913,8 @@ pub async fn get_mx_servers_report(
                 .offset(offset)
                 .load::<Domain>(&mut conn)
                 .map_err(|e| format!("Failed to load domains: {}", e))?,
-        }
+        };
+        (domains, total)
     };
 
     // Initialize DNS lookup service
@@ -5014,24 +5031,30 @@ pub async fn get_mx_servers_report(
         });
     }
 
-    // Apply status filter if specified
-    if let Some(status_filter) = filter_status {
+    // Apply status filter if specified and calculate final count
+    let (final_items, total_count) = if let Some(status_filter) = filter_status {
+        // Filter by status
         domains_status.retain(|d| d.mx_status == status_filter);
-    }
+        let filtered_count = domains_status.len() as i64;
 
-    // Calculate pagination
-    let total_count = domains_status.len() as i64;
-    let offset = ((page - 1) * per_page) as usize;
-    let end = (offset + per_page as usize).min(domains_status.len());
+        // Calculate pagination for filtered results
+        let offset = ((page - 1) * per_page) as usize;
+        let end = (offset + per_page as usize).min(domains_status.len());
 
-    let paginated_items = if offset < domains_status.len() {
-        domains_status[offset..end].to_vec()
+        let paginated_items = if offset < domains_status.len() {
+            domains_status[offset..end].to_vec()
+        } else {
+            Vec::new()
+        };
+
+        (paginated_items, filtered_count)
     } else {
-        Vec::new()
+        // No status filter, domains_status already contains only the current page
+        (domains_status, base_total_count)
     };
 
     Ok(crate::models::PaginatedResult::new(
-        paginated_items,
+        final_items,
         total_count,
         page,
         per_page,

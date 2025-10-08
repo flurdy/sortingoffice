@@ -13,95 +13,6 @@
         </div>
     </div>
 
-    <!-- Users Section -->
-    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ users_header }}</h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ users_description }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700">
-            {% if domain_users.is_empty() %}
-            <div class="px-4 py-5 sm:px-6">
-                <p class="text-gray-500 dark:text-gray-400 italic">{{ users_empty_message }}</p>
-            </div>
-            {% else %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_id_header }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_enabled_header }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {% for user in domain_users %}
-                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                <a href="/users/{{ user.id }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ user.id }}</a>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                {% if user.enabled %}
-                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
-                                {% else %}
-                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Existing Aliases Section -->
-    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ existing_aliases_header }}</h3>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-700">
-            {% if existing_aliases.is_empty() %}
-            <div class="px-4 py-5 sm:px-6">
-                <p class="text-gray-500 dark:text-gray-400 italic">{{ no_required_aliases }}</p>
-            </div>
-            {% else %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_mail_header }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_destination_header }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_enabled_header }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {% for alias in existing_aliases %}
-                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                <a href="/aliases/{{ alias.pkid }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ alias.mail }}</a>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ alias.destination }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                {% if alias.enabled %}
-                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
-                                {% else %}
-                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
     <!-- Backup MX Details -->
     <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
@@ -216,43 +127,6 @@
     </div>
     {% endif %}
 
-    <!-- Action Buttons -->
-    <div class="mt-6 flex space-x-3">
-        <button 
-                            hx-get="/domain_backup/{{ backup.pkid }}/edit" 
-            hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-            {{ edit_backup }}
-        </button>
-        <button 
-                            hx-post="/domain_backup/{{ backup.pkid }}/toggle-show" 
-            hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            {% if backup.enabled %}{{ disable_backup }}{% else %}{{ enable_backup }}{% endif %}
-        </button>
-        <button 
-            hx-delete="/domain_backup/{{ backup.pkid }}" 
-            hx-target="#main-content" 
-            hx-confirm="{{ delete_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if backup.enabled %}bg-gray-400 cursor-not-allowed{% elif current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
-            {% if backup.enabled %}
-                disabled
-                title="{{ delete_backup_disabled_tooltip }}"
-            {% elif current_db_read_only %}
-                disabled
-                title="{{ read_only_tooltip }}"
-            {% endif %}>
-            {{ delete_backup }}
-        </button>
-        <button id="convert-to-domain-button"
-            hx-post="/domain_backup/{{ backup.pkid }}/convert-to-domain" 
-            hx-target="#main-content" 
-            hx-confirm="{{ convert_to_domain_confirm }}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-            {{ convert_to_domain }}
-        </button>
-    </div>
-
     <!-- Relays Section -->
     <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
@@ -301,6 +175,132 @@
             </div>
             {% endif %}
         </div>
+    </div>
+
+    <!-- Existing Aliases Section -->
+    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ existing_aliases_header }}</h3>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            {% if existing_aliases.is_empty() %}
+            <div class="px-4 py-5 sm:px-6">
+                <p class="text-gray-500 dark:text-gray-400 italic">{{ no_required_aliases }}</p>
+            </div>
+            {% else %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_mail_header }}</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_destination_header }}</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ domains_enabled_header }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for alias in existing_aliases %}
+                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                <a href="/aliases/{{ alias.pkid }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ alias.mail }}</a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ alias.destination }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                {% if alias.enabled %}
+                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
+                                {% else %}
+                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Users Section -->
+    <div class="mt-8 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">{{ users_header }}</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ users_description }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700">
+            {% if domain_users.is_empty() %}
+            <div class="px-4 py-5 sm:px-6">
+                <p class="text-gray-500 dark:text-gray-400 italic">{{ users_empty_message }}</p>
+            </div>
+            {% else %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_id_header }}</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ user_enabled_header }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for user in domain_users %}
+                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white dark:bg-gray-800{% else %}bg-gray-50 dark:bg-gray-700{% endif %} hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                <a href="/users/{{ user.id }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ user.id }}</a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                {% if user.enabled %}
+                                <span class="inline-flex rounded-full bg-green-100 dark:bg-green-900 px-2 text-xs font-semibold leading-5 text-green-800 dark:text-green-200">{{ status_active }}</span>
+                                {% else %}
+                                <span class="inline-flex rounded-full bg-red-100 dark:bg-red-900 px-2 text-xs font-semibold leading-5 text-red-800 dark:text-red-200">{{ status_inactive }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-6 flex space-x-3">
+        <button 
+            hx-get="/domain_backup/{{ backup.pkid }}/edit" 
+            hx-target="#main-content"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            {{ edit_backup }}
+        </button>
+        <button 
+            hx-post="/domain_backup/{{ backup.pkid }}/toggle-show" 
+            hx-target="#main-content"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% if backup.enabled %}{{ disable_backup }}{% else %}{{ enable_backup }}{% endif %}
+        </button>
+        <button 
+            hx-delete="/domain_backup/{{ backup.pkid }}" 
+            hx-target="#main-content" 
+            hx-confirm="{{ delete_confirm }}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {% if backup.enabled %}bg-gray-400 cursor-not-allowed{% elif current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500{% endif %}"
+            {% if backup.enabled %}
+                disabled
+                title="{{ delete_backup_disabled_tooltip }}"
+            {% elif current_db_read_only %}
+                disabled
+                title="{{ read_only_tooltip }}"
+            {% endif %}>
+            {{ delete_backup }}
+        </button>
+        <button id="convert-to-domain-button"
+            hx-post="/domain_backup/{{ backup.pkid }}/convert-to-domain" 
+            hx-target="#main-content" 
+            hx-confirm="{{ convert_to_domain_confirm }}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+            {{ convert_to_domain }}
+        </button>
     </div>
 
     <!-- DNS Lookup Section (mirrors domain show) -->

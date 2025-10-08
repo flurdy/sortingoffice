@@ -462,6 +462,71 @@ pub async fn toggle_enabled(
     }
 }
 
+pub async fn toggle_enabled_list(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    headers: HeaderMap,
+) -> Html<String> {
+    let pool = match crate::handlers::utils::get_current_db_pool(&state, &headers).await {
+        Ok(pool) => pool,
+        Err(e) => {
+            error!("Failed to get database pool: {:?}", e);
+            return Html("Database connection error".to_string());
+        }
+    };
+
+    match db::toggle_backup_enabled(&pool, id) {
+        Ok(_) => {
+            info!(
+                "Successfully toggled backup enabled status for ID: {} (list view)",
+                id
+            );
+
+            let locale = crate::handlers::language::get_user_locale(&headers);
+
+            // Get updated domains list
+            let domains = match db::get_domains(&pool) {
+                Ok(domains) => domains,
+                Err(e) => {
+                    error!("Failed to retrieve domains after backup toggle: {:?}", e);
+                    vec![]
+                }
+            };
+
+            // Get backups data
+            let backups = match db::get_backups(&pool) {
+                Ok(backups) => backups,
+                Err(e) => {
+                    error!("Failed to retrieve backups after backup toggle: {:?}", e);
+                    vec![]
+                }
+            };
+
+            let paginated_domains =
+                PaginatedResult::new(domains.clone(), domains.len() as i64, 1, 20);
+            let paginated_backups =
+                PaginatedResult::new(backups.clone(), backups.len() as i64, 1, 20);
+
+            // Use the helper function for rendering
+            crate::handlers::rendering::render_domain_list_page(
+                domains,
+                backups,
+                &paginated_domains,
+                &paginated_backups,
+                &state,
+                &locale,
+                &headers,
+                None,
+            )
+            .await
+        }
+        Err(e) => {
+            error!("Failed to toggle backup enabled status: {:?}", e);
+            Html("Failed to toggle backup status".to_string())
+        }
+    }
+}
+
 pub async fn toggle_enabled_show(
     State(state): State<AppState>,
     Path(id): Path<i32>,
