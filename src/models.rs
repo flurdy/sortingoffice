@@ -786,6 +786,17 @@ pub struct OrphanedReportParams {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MxServersReportParams {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+    pub sort_by: Option<String>,
+    pub sort_order: Option<String>,
+    pub exclude_disabled: Option<bool>,
+    pub exclude_subdomains: Option<bool>,
+    pub filter_status: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrphanedAlias {
     pub id: i32,
     pub mail: String,
@@ -1200,6 +1211,7 @@ pub struct DomainMxStatus {
     pub domain: String,
     pub domain_id: i32,
     pub enabled: bool,
+    pub is_backup: bool,
     pub mx_records: Vec<String>,
     pub mx_status: MxStatus,
     pub missing_servers: Vec<String>,
@@ -1239,6 +1251,25 @@ impl MxStatus {
             MxStatus::NonCompliant => "Some MX records don't point to configured mail servers",
             MxStatus::Empty => "No MX records found",
             MxStatus::Error => "Error during DNS lookup",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "compliant" => Some(MxStatus::Compliant),
+            "noncompliant" | "non-compliant" | "non_compliant" => Some(MxStatus::NonCompliant),
+            "empty" => Some(MxStatus::Empty),
+            "error" => Some(MxStatus::Error),
+            _ => None,
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            MxStatus::Compliant => "compliant",
+            MxStatus::NonCompliant => "noncompliant",
+            MxStatus::Empty => "empty",
+            MxStatus::Error => "error",
         }
     }
 }

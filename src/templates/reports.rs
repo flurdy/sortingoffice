@@ -247,4 +247,12 @@ pub struct MxServersReportTemplate<'a> {
     pub pagination_to: &'a str,
     pub pagination_of: &'a str,
     pub pagination_results: &'a str,
+    pub exclude_disabled: bool,
+    pub exclude_subdomains: bool,
+    pub exclude_disabled_label: &'a str,
+    pub exclude_subdomains_label: &'a str,
+    pub filters_label: &'a str,
+    pub filter_status: &'a str,
+    pub filter_status_label: &'a str,
+    pub filter_status_all: &'a str,
 }

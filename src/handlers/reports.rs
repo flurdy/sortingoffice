@@ -1056,7 +1056,7 @@ pub async fn domain_statistics_report(
 
 // MX Servers Report
 pub async fn mx_servers_report(
-    Query(params): Query<crate::models::PaginationParams>,
+    Query(params): Query<crate::models::MxServersReportParams>,
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, StatusCode> {
@@ -1066,11 +1066,20 @@ pub async fn mx_servers_report(
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
 
-    // Get pagination parameters
+    // Get pagination and filter parameters
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
     let sort_by = params.sort_by.as_deref().unwrap_or("domain");
     let sort_order = params.sort_order.as_deref().unwrap_or("asc");
+    let exclude_disabled = params.exclude_disabled.unwrap_or(false);
+    let exclude_subdomains = params.exclude_subdomains.unwrap_or(false);
+
+    // Parse filter_status parameter
+    let filter_status = params
+        .filter_status
+        .as_ref()
+        .and_then(|s| crate::models::MxStatus::from_str(s));
+    let filter_status_str = params.filter_status.clone().unwrap_or_default();
 
     // Get MX servers report data
     let paginated_result = match db::get_mx_servers_report(
@@ -1080,6 +1089,9 @@ pub async fn mx_servers_report(
         per_page,
         sort_by,
         sort_order,
+        exclude_disabled,
+        exclude_subdomains,
+        filter_status.clone(),
     )
     .await
     {
@@ -1089,6 +1101,18 @@ pub async fn mx_servers_report(
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
+    // If the requested page is beyond total pages and there are results, redirect to page 1
+    if page > paginated_result.total_pages && paginated_result.total_count > 0 {
+        let redirect_url = format!(
+            "/reports/mx-servers?page=1&per_page={}&exclude_disabled={}&exclude_subdomains={}&filter_status={}",
+            per_page, exclude_disabled, exclude_subdomains, filter_status_str
+        );
+        return Ok(Html(format!(
+            r#"<script>window.location.href="{}";</script>"#,
+            redirect_url
+        )));
+    }
 
     // Get translations
     let title = get_translation(&state, &locale, "reports-mx-servers-title").await;
@@ -1128,6 +1152,14 @@ pub async fn mx_servers_report(
     let pagination_of = get_translation(&state, &locale, "pagination-of").await;
     let pagination_results = get_translation(&state, &locale, "pagination-results").await;
 
+    // Get filter translations
+    let exclude_disabled_label = get_translation(&state, &locale, "reports-exclude-disabled").await;
+    let exclude_subdomains_label =
+        get_translation(&state, &locale, "reports-exclude-subdomains").await;
+    let filters_label = get_translation(&state, &locale, "reports-filters").await;
+    let filter_status_label = get_translation(&state, &locale, "reports-filter-status").await;
+    let filter_status_all = get_translation(&state, &locale, "reports-filter-status-all").await;
+
     // Generate page range for pagination UI
     let page_range: Vec<i64> = (1..=paginated_result.total_pages).collect();
 
@@ -1163,6 +1195,14 @@ pub async fn mx_servers_report(
         pagination_to: &pagination_to,
         pagination_of: &pagination_of,
         pagination_results: &pagination_results,
+        exclude_disabled,
+        exclude_subdomains,
+        exclude_disabled_label: &exclude_disabled_label,
+        exclude_subdomains_label: &exclude_subdomains_label,
+        filters_label: &filters_label,
+        filter_status: &filter_status_str,
+        filter_status_label: &filter_status_label,
+        filter_status_all: &filter_status_all,
     };
 
     let content = match content_template.render() {

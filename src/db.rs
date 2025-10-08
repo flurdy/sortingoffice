@@ -4806,6 +4806,9 @@ pub async fn get_mx_servers_report(
     per_page: i64,
     sort_by: &str,
     sort_order: &str,
+    exclude_disabled: bool,
+    exclude_subdomains: bool,
+    filter_status: Option<MxStatus>,
 ) -> Result<crate::models::PaginatedResult<DomainMxStatus>, Box<dyn std::error::Error + Send + Sync>>
 {
     use crate::schema::domains;
@@ -4813,48 +4816,89 @@ pub async fn get_mx_servers_report(
 
     let mut conn = pool.get()?;
 
-    // Get total count of domains for pagination
-    let total_count: i64 = domains::table
-        .count()
-        .get_result(&mut conn)
-        .map_err(|e| format!("Failed to count domains: {}", e))?;
+    // Build base query with filters
+    let mut query = domains::table.into_boxed();
 
-    // Get domains with pagination and ordering
-    let offset = (page - 1) * per_page;
-    let domains_list = match (sort_by, sort_order) {
-        ("domain", "asc") => domains::table
-            .order(domains::domain.asc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<Domain>(&mut conn)
-            .map_err(|e| format!("Failed to load domains: {}", e))?,
-        ("domain", "desc") => domains::table
-            .order(domains::domain.desc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<Domain>(&mut conn)
-            .map_err(|e| format!("Failed to load domains: {}", e))?,
-        ("enabled", "asc") => domains::table
-            .order(domains::enabled.asc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<Domain>(&mut conn)
-            .map_err(|e| format!("Failed to load domains: {}", e))?,
-        ("enabled", "desc") => domains::table
-            .order(domains::enabled.desc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<Domain>(&mut conn)
-            .map_err(|e| format!("Failed to load domains: {}", e))?,
-        _ => domains::table
-            .order(domains::domain.asc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<Domain>(&mut conn)
-            .map_err(|e| format!("Failed to load domains: {}", e))?,
+    if exclude_disabled {
+        query = query.filter(domains::enabled.eq(true));
+    }
+
+    if exclude_subdomains {
+        query = query.filter(domains::domain.not_like("%.%.%"));
+    }
+
+    // If we have a status filter, we need to fetch all domains to check their status
+    let domains_list = if filter_status.is_some() {
+        // Fetch all domains matching the basic filters
+        match (sort_by, sort_order) {
+            ("domain", "asc") => query
+                .order(domains::domain.asc())
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("domain", "desc") => query
+                .order(domains::domain.desc())
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("enabled", "asc") => query
+                .order(domains::enabled.asc())
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("enabled", "desc") => query
+                .order(domains::enabled.desc())
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            _ => query
+                .order(domains::domain.asc())
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+        }
+    } else {
+        // Use pagination for better performance when no status filter
+        let offset = (page - 1) * per_page;
+
+        let mut query_for_data = domains::table.into_boxed();
+
+        if exclude_disabled {
+            query_for_data = query_for_data.filter(domains::enabled.eq(true));
+        }
+
+        if exclude_subdomains {
+            query_for_data = query_for_data.filter(domains::domain.not_like("%.%.%"));
+        }
+
+        match (sort_by, sort_order) {
+            ("domain", "asc") => query_for_data
+                .order(domains::domain.asc())
+                .limit(per_page)
+                .offset(offset)
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("domain", "desc") => query_for_data
+                .order(domains::domain.desc())
+                .limit(per_page)
+                .offset(offset)
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("enabled", "asc") => query_for_data
+                .order(domains::enabled.asc())
+                .limit(per_page)
+                .offset(offset)
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            ("enabled", "desc") => query_for_data
+                .order(domains::enabled.desc())
+                .limit(per_page)
+                .offset(offset)
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+            _ => query_for_data
+                .order(domains::domain.asc())
+                .limit(per_page)
+                .offset(offset)
+                .load::<Domain>(&mut conn)
+                .map_err(|e| format!("Failed to load domains: {}", e))?,
+        }
     };
-
-    let mut domains_status = Vec::new();
 
     // Initialize DNS lookup service
     let dns_service = match DnsLookupService::new_system().await {
@@ -4865,7 +4909,17 @@ pub async fn get_mx_servers_report(
         }
     };
 
+    // Check which domains are backup domains
+    use crate::schema::backups;
+    let backup_domains: Vec<String> = backups::table
+        .select(backups::domain)
+        .load::<String>(&mut conn)
+        .unwrap_or_default();
+
+    let mut domains_status = Vec::new();
+
     for domain in &domains_list {
+        let is_backup = backup_domains.contains(&domain.domain);
         // Lookup MX records for the domain
         let mx_records = match dns_service.lookup_mx(&domain.domain).await {
             Ok(records) => records
@@ -4878,6 +4932,7 @@ pub async fn get_mx_servers_report(
                     domain: domain.domain.clone(),
                     domain_id: domain.pkid,
                     enabled: domain.enabled,
+                    is_backup,
                     mx_records: Vec::new(),
                     mx_status: MxStatus::Error,
                     missing_servers: Vec::new(),
@@ -4893,6 +4948,7 @@ pub async fn get_mx_servers_report(
                 domain: domain.domain.clone(),
                 domain_id: domain.pkid,
                 enabled: domain.enabled,
+                is_backup,
                 mx_records: Vec::new(),
                 mx_status: MxStatus::Empty,
                 missing_servers: mail_servers.to_vec(),
@@ -4950,6 +5006,7 @@ pub async fn get_mx_servers_report(
             domain: domain.domain.clone(),
             domain_id: domain.pkid,
             enabled: domain.enabled,
+            is_backup,
             mx_records: normalized_mx_records,
             mx_status,
             missing_servers,
@@ -4957,8 +5014,24 @@ pub async fn get_mx_servers_report(
         });
     }
 
+    // Apply status filter if specified
+    if let Some(status_filter) = filter_status {
+        domains_status.retain(|d| d.mx_status == status_filter);
+    }
+
+    // Calculate pagination
+    let total_count = domains_status.len() as i64;
+    let offset = ((page - 1) * per_page) as usize;
+    let end = (offset + per_page as usize).min(domains_status.len());
+
+    let paginated_items = if offset < domains_status.len() {
+        domains_status[offset..end].to_vec()
+    } else {
+        Vec::new()
+    };
+
     Ok(crate::models::PaginatedResult::new(
-        domains_status,
+        paginated_items,
         total_count,
         page,
         per_page,

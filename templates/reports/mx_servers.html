@@ -11,6 +11,39 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="mt-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">{{ filters_label }}</h3>
+        <div class="flex flex-wrap gap-4 items-center">
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" 
+                       class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 dark:border-gray-600 focus:ring-primary-500"
+                       {% if exclude_disabled %}checked{% endif %}
+                       onchange="window.location.href='?page=1&per_page={{ paginated_result.per_page }}&exclude_disabled=' + (this.checked ? 'true' : 'false') + '&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}'">
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ exclude_disabled_label }}</span>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" 
+                       class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 dark:border-gray-600 focus:ring-primary-500"
+                       {% if exclude_subdomains %}checked{% endif %}
+                       onchange="window.location.href='?page=1&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains=' + (this.checked ? 'true' : 'false') + '&filter_status={{ filter_status }}'">
+                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ exclude_subdomains_label }}</span>
+            </label>
+            <div class="inline-flex items-center">
+                <label for="filter-status" class="mr-2 text-sm text-gray-700 dark:text-gray-300">{{ filter_status_label }}:</label>
+                <select id="filter-status" 
+                        class="form-select rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                        onchange="window.location.href='?page=1&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status=' + this.value">
+                    <option value="" {% if filter_status == "" %}selected{% endif %}>{{ filter_status_all }}</option>
+                    <option value="compliant" {% if filter_status == "compliant" %}selected{% endif %}>✅ {{ status_compliant }}</option>
+                    <option value="noncompliant" {% if filter_status == "noncompliant" %}selected{% endif %}>❌ {{ status_non_compliant }}</option>
+                    <option value="empty" {% if filter_status == "empty" %}selected{% endif %}>⚠️ {{ status_empty }}</option>
+                    <option value="error" {% if filter_status == "error" %}selected{% endif %}>❓ {{ status_error }}</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
     <!-- Configured Mail Servers -->
     {% if !mail_servers.is_empty() %}
     <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
@@ -137,13 +170,26 @@
                                         {{ domain.domain }}
                                     </a>
                                 </div>
-                                {% if !domain.enabled %}
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                                <div class="flex gap-1 mt-1">
+                                    {% if !domain.enabled %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                                         Disabled
                                     </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        Enabled
+                                    </span>
+                                    {% endif %}
+                                    {% if domain.is_backup %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        Backup
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                        Normal
+                                    </span>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </div>
                         </div>
                     </td>
@@ -208,10 +254,10 @@
     <div class="mt-8 flex items-center justify-between">
         <div class="flex flex-1 justify-between sm:hidden">
             {% if paginated_result.has_prev %}
-            <a href="?page={{ paginated_result.current_page - 1 }}&per_page={{ paginated_result.per_page }}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">{{ pagination_previous }}</a>
+            <a href="?page={{ paginated_result.current_page - 1 }}&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">{{ pagination_previous }}</a>
             {% endif %}
             {% if paginated_result.has_next %}
-            <a href="?page={{ paginated_result.current_page + 1 }}&per_page={{ paginated_result.per_page }}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">{{ pagination_next }}</a>
+            <a href="?page={{ paginated_result.current_page + 1 }}&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">{{ pagination_next }}</a>
             {% endif %}
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
@@ -223,7 +269,7 @@
             <div>
                 <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                     {% if paginated_result.has_prev %}
-                    <a href="?page={{ paginated_result.current_page - 1 }}&per_page={{ paginated_result.per_page }}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:ring-gray-600 dark:hover:bg-gray-700">
+                    <a href="?page={{ paginated_result.current_page - 1 }}&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:ring-gray-600 dark:hover:bg-gray-700">
                         <span class="sr-only">{{ pagination_previous }}</span>
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
@@ -235,14 +281,14 @@
                         {% if *page_num == paginated_result.current_page %}
                         <span class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ page_num }}</span>
                         {% elif *page_num == 1 || *page_num == paginated_result.total_pages || (*page_num >= paginated_result.current_page - 2 && *page_num <= paginated_result.current_page + 2) %}
-                        <a href="?page={{ page_num }}&per_page={{ paginated_result.per_page }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">{{ page_num }}</a>
+                        <a href="?page={{ page_num }}&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">{{ page_num }}</a>
                         {% elif *page_num == paginated_result.current_page - 3 || *page_num == paginated_result.current_page + 3 %}
                         <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0 dark:text-gray-400 dark:bg-gray-800 dark:ring-gray-600">...</span>
                         {% endif %}
                     {% endfor %}
                     
                     {% if paginated_result.has_next %}
-                    <a href="?page={{ paginated_result.current_page + 1 }}&per_page={{ paginated_result.per_page }}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:ring-gray-600 dark:hover:bg-gray-700">
+                    <a href="?page={{ paginated_result.current_page + 1 }}&per_page={{ paginated_result.per_page }}&exclude_disabled={{ exclude_disabled }}&exclude_subdomains={{ exclude_subdomains }}&filter_status={{ filter_status }}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 dark:bg-gray-800 dark:ring-gray-600 dark:hover:bg-gray-700">
                         <span class="sr-only">{{ pagination_next }}</span>
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
