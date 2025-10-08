@@ -26,4 +26,9 @@ pub struct DnsResultsTemplate {
     pub dkim_records: Vec<String>,
     // Fallback per-selector results (only populated when no selector was provided and any were found)
     pub selectors_results: Vec<SelectorDkimRecords>,
+
+    // WHOIS data
+    pub dns_whois_header: String,
+    pub whois_data: Option<String>,
+    pub whois_error: Option<String>,
 }

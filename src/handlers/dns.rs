@@ -129,6 +129,29 @@ pub async fn render_dns_fragment(
         }
     }
 
+    // WHOIS lookup
+    let (whois_data, whois_error) =
+        if let Some(cached) = state.db_manager.get_whois(domain_name).await {
+            (Some(cached), None)
+        } else {
+            let whois_service = crate::services::whois_lookup::WhoisLookupService::new();
+            match whois_service.lookup_whois(domain_name).await {
+                Ok(data) => {
+                    // Cache WHOIS data for 1 hour (it changes rarely)
+                    let whois_ttl = std::time::Duration::from_secs(3600);
+                    state
+                        .db_manager
+                        .set_whois(domain_name, data.clone(), whois_ttl)
+                        .await;
+                    (Some(data), None)
+                }
+                Err(e) => {
+                    tracing::warn!("WHOIS lookup failed for {}: {}", domain_name, e);
+                    (None, Some(format!("WHOIS lookup failed: {}", e)))
+                }
+            }
+        };
+
     // Build Askama template
     let tpl = crate::templates::dns::DnsResultsTemplate {
         dns_records_title: crate::i18n::get_translation(state, &locale, "dns-records-title").await,
@@ -137,6 +160,7 @@ pub async fn render_dns_fragment(
         dns_txt_header: crate::i18n::get_translation(state, &locale, "dns-txt-header").await,
         dns_dkim_header: crate::i18n::get_translation(state, &locale, "dns-dkim-header").await,
         dns_dmarc_header: crate::i18n::get_translation(state, &locale, "dns-dmarc-header").await,
+        dns_whois_header: crate::i18n::get_translation(state, &locale, "dns-whois-header").await,
         dkim_fallback_description,
         ns_records,
         mx_records,
@@ -144,6 +168,8 @@ pub async fn render_dns_fragment(
         dmarc_records,
         dkim_records,
         selectors_results,
+        whois_data,
+        whois_error,
     };
 
     match tpl.render() {

@@ -72,6 +72,7 @@ pub struct DataCache {
     dns_mx: Arc<RwLock<HashMap<String, CacheEntry<Vec<crate::services::dns_lookup::MxRecord>>>>>,
     dns_txt: Arc<RwLock<HashMap<String, CacheEntry<Vec<String>>>>>,
     dns_dkim: Arc<RwLock<HashMap<String, CacheEntry<Vec<String>>>>>,
+    whois: Arc<RwLock<HashMap<String, CacheEntry<String>>>>,
     // Pagination caches - using HashMap for different pagination parameters
     domains_paginated: Arc<RwLock<HashMap<String, CacheEntry<PaginatedResult<Domain>>>>>,
     aliases_paginated: Arc<RwLock<HashMap<String, CacheEntry<PaginatedResult<Alias>>>>>,
@@ -95,6 +96,7 @@ impl DataCache {
             dns_mx: Arc::new(RwLock::new(HashMap::new())),
             dns_txt: Arc::new(RwLock::new(HashMap::new())),
             dns_dkim: Arc::new(RwLock::new(HashMap::new())),
+            whois: Arc::new(RwLock::new(HashMap::new())),
             domains_paginated: Arc::new(RwLock::new(HashMap::new())),
             aliases_paginated: Arc::new(RwLock::new(HashMap::new())),
             users_paginated: Arc::new(RwLock::new(HashMap::new())),
@@ -528,11 +530,26 @@ impl DataCache {
         let mut cache = self.dns_dkim.write().await;
         cache.insert(key.to_string(), CacheEntry::new(data, ttl));
     }
+    pub async fn get_whois(&self, domain: &str) -> Option<String> {
+        let cache = self.whois.read().await;
+        cache.get(domain).and_then(|e| {
+            if e.is_expired() {
+                None
+            } else {
+                Some(e.data.clone())
+            }
+        })
+    }
+    pub async fn set_whois(&self, domain: &str, data: String, ttl: Duration) {
+        let mut cache = self.whois.write().await;
+        cache.insert(domain.to_string(), CacheEntry::new(data, ttl));
+    }
     pub async fn clear_all_dns_caches(&self) {
         self.dns_ns.write().await.clear();
         self.dns_mx.write().await.clear();
         self.dns_txt.write().await.clear();
         self.dns_dkim.write().await.clear();
+        self.whois.write().await.clear();
     }
 }
 
@@ -1070,6 +1087,14 @@ impl DatabaseManager {
 
     pub async fn set_dns_dkim(&self, key: &str, data: Vec<String>, ttl: Duration) {
         self.cache.set_dns_dkim(key, data, ttl).await;
+    }
+
+    pub async fn get_whois(&self, domain: &str) -> Option<String> {
+        self.cache.get_whois(domain).await
+    }
+
+    pub async fn set_whois(&self, domain: &str, data: String, ttl: Duration) {
+        self.cache.set_whois(domain, data, ttl).await;
     }
 
     /// Clear specific cache types

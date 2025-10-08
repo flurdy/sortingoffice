@@ -46,8 +46,8 @@
 - ✅ In show domain the disable domain button should not be blue? 
   - ✅ And in all other resources pages
 
-- Add a whois lookup under or within the DNS section
-  - As it may be a large blob of text, it may need to be collapsible
+- ✅ Add a whois lookup under or within the DNS section
+  - ✅ As it may be a large blob of text, it may need to be collapsible
 
 - ✅ On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
 

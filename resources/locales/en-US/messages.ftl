@@ -8,6 +8,7 @@ dns-mx-header = MX
 dns-txt-header = TXT
 dns-dkim-header = DKIM
 dns-dmarc-header = DMARC
+dns-whois-header = WHOIS
 dns-selector-label = DKIM selector
 dns-dkim-fallback-description = Attempted common DKIM selectors (e.g. s1, s2, default, k1, google)
 # Application title and branding

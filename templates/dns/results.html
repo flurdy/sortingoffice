@@ -72,4 +72,25 @@
     {% endfor %}
   </div>
   {% endif %}
+
+  {% if whois_data.is_some() %}
+  <div class="mt-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <details class="group">
+      <summary class="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer list-none flex items-center justify-between">
+        <span>{{ dns_whois_header }}</span>
+        <svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </summary>
+      <div class="mt-3">
+        <pre class="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words overflow-x-auto">{{ whois_data.as_ref().unwrap() }}</pre>
+      </div>
+    </details>
+  </div>
+  {% elif whois_error.is_some() %}
+  <div class="mt-4 p-4 rounded-lg border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
+    <h4 class="font-semibold text-red-900 dark:text-red-100">{{ dns_whois_header }}</h4>
+    <p class="mt-2 text-sm text-red-700 dark:text-red-300">{{ whois_error.as_ref().unwrap() }}</p>
+  </div>
+  {% endif %}
 </div>
