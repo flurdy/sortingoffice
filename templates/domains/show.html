@@ -472,7 +472,7 @@
         <button 
             hx-post="/domains/{{ domain.pkid }}/toggle-show" 
             hx-target="#main-content"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-blue-600 hover:bg-blue-700 focus:ring-blue-500{% endif %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% elif domain.enabled %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500{% else %}bg-green-600 hover:bg-green-700 focus:ring-green-500{% endif %}"
             {% if current_db_read_only %}
                 disabled
                 title="{{ read_only_tooltip }}"

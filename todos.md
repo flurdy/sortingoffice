@@ -43,8 +43,8 @@
 
 ## Low Priority Minor and bugs 🐛 
 
-- In show domain the disable domain button should not be blue? 
-  - And in all other resources pages
+- ✅ In show domain the disable domain button should not be blue? 
+  - ✅ And in all other resources pages
 
 - Add a whois lookup under or within the DNS section
   - As it may be a large blob of text, it may need to be collapsible
