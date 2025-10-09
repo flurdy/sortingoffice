@@ -488,6 +488,10 @@ backups-add-title = Add Backup
 # Aliases
 aliases-title = Aliases
 aliases-description = Manage your email aliases and forwarding rules.
+aliases-filter-all = All
+aliases-filter-enabled = Enabled
+aliases-filter-disabled = Disabled
+aliases-filters = Filters
 aliases-add = Add Alias
 aliases-table-header-mail = Mail
 aliases-table-header-domain = Domain
@@ -1010,8 +1014,9 @@ not-found-message = Sorry, the page you requested does not exist or may have bee
 domains-search-label = Search domains and backups
 domains-search-placeholder = Type to search domains and backups...
 domains-filters = Filters
-domains-exclude-disabled = Exclude Disabled
-domains-exclude-enabled = Exclude Enabled
+domains-filter-all = All
+domains-filter-enabled = Enabled
+domains-filter-disabled = Disabled
 domains-exclude-subdomains = Exclude Subdomains
 # Backup Management
 database-backup-title = Database Backup

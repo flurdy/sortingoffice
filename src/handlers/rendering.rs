@@ -217,8 +217,7 @@ pub async fn render_domain_list_page(
     locale: &str,
     headers: &HeaderMap,
     search: Option<&str>,
-    exclude_disabled: bool,
-    exclude_enabled: bool,
+    enabled_filter: &str,
     exclude_subdomains: bool,
 ) -> Html<String> {
     // Get current database ID
@@ -342,19 +341,19 @@ pub async fn render_domain_list_page(
             "domains-search-placeholder",
         )
         .await,
-        exclude_disabled,
-        exclude_enabled,
+        enabled_filter,
         exclude_subdomains,
-        exclude_disabled_label: &crate::i18n::get_translation(
+        filter_all_label: &crate::i18n::get_translation(state, locale, "domains-filter-all").await,
+        filter_enabled_label: &crate::i18n::get_translation(
             state,
             locale,
-            "domains-exclude-disabled",
+            "domains-filter-enabled",
         )
         .await,
-        exclude_enabled_label: &crate::i18n::get_translation(
+        filter_disabled_label: &crate::i18n::get_translation(
             state,
             locale,
-            "domains-exclude-enabled",
+            "domains-filter-disabled",
         )
         .await,
         exclude_subdomains_label: &crate::i18n::get_translation(
@@ -377,6 +376,7 @@ pub async fn render_alias_list_page(
     locale: &str,
     headers: &HeaderMap,
     search: Option<&str>,
+    enabled_filter: &str,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -453,6 +453,21 @@ pub async fn render_alias_list_page(
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
+        enabled_filter,
+        filter_all_label: &crate::i18n::get_translation(state, locale, "aliases-filter-all").await,
+        filter_enabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "aliases-filter-enabled",
+        )
+        .await,
+        filter_disabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "aliases-filter-disabled",
+        )
+        .await,
+        filters_label: &crate::i18n::get_translation(state, locale, "aliases-filters").await,
     };
 
     render_list_template(content_template, state, locale, headers).await

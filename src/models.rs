@@ -746,8 +746,7 @@ pub struct PaginationParams {
     pub sort_by: Option<String>,
     pub sort_order: Option<String>,
     pub search: Option<String>,
-    pub exclude_disabled: Option<bool>,
-    pub exclude_enabled: Option<bool>,
+    pub enabled_filter: Option<String>, // "all", "enabled", or "disabled"
     pub exclude_subdomains: Option<bool>,
 }
 
@@ -760,8 +759,7 @@ impl Default for PaginationParams {
             sort_by: Some("mail".to_string()),
             sort_order: Some("asc".to_string()),
             search: None,
-            exclude_disabled: Some(false),
-            exclude_enabled: Some(false),
+            enabled_filter: Some("all".to_string()),
             exclude_subdomains: Some(false),
         }
     }

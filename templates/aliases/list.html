@@ -34,6 +34,50 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="mt-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ filters_label }}</h3>
+        <div class="flex flex-wrap gap-6 items-center">
+            <!-- 3-state enabled/disabled filter toggle -->
+            <div class="flex flex-col gap-2">
+                <div class="radio-toggle">
+                    <input type="radio" 
+                           id="alias_filter_all" 
+                           name="enabled_filter" 
+                           value="all" 
+                           {% if enabled_filter == "all" %}checked{% endif %}
+                           onchange="window.location.href='?page=1&per_page={{ pagination.per_page }}&enabled_filter=all{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'"
+                           class="radio-toggle-input">
+                    <label for="alias_filter_all" class="radio-toggle-label">
+                        <span class="radio-toggle-text">{{ filter_all_label }}</span>
+                    </label>
+                    
+                    <input type="radio" 
+                           id="alias_filter_enabled" 
+                           name="enabled_filter" 
+                           value="enabled" 
+                           {% if enabled_filter == "enabled" %}checked{% endif %}
+                           onchange="window.location.href='?page=1&per_page={{ pagination.per_page }}&enabled_filter=enabled{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'"
+                           class="radio-toggle-input">
+                    <label for="alias_filter_enabled" class="radio-toggle-label">
+                        <span class="radio-toggle-text">{{ filter_enabled_label }}</span>
+                    </label>
+                    
+                    <input type="radio" 
+                           id="alias_filter_disabled" 
+                           name="enabled_filter" 
+                           value="disabled" 
+                           {% if enabled_filter == "disabled" %}checked{% endif %}
+                           onchange="window.location.href='?page=1&per_page={{ pagination.per_page }}&enabled_filter=disabled{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'"
+                           class="radio-toggle-input">
+                    <label for="alias_filter_disabled" class="radio-toggle-label">
+                        <span class="radio-toggle-text">{{ filter_disabled_label }}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Alias List -->
     <div class="mt-8 flex flex-col">
         <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -43,7 +87,7 @@
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/4">
-                                    <a href="?sort_by=mail&sort_order={% if current_sort_by == "mail" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
+                                    <a href="?sort_by=mail&sort_order={% if current_sort_by == "mail" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
                                         {{ table_header_mail }}
                                         {% if current_sort_by == "mail" %}
                                             {% if current_sort_order == "asc" %}
@@ -59,7 +103,7 @@
                                     </a>
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/4">
-                                    <a href="?sort_by=domain&sort_order={% if current_sort_by == "domain" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
+                                    <a href="?sort_by=domain&sort_order={% if current_sort_by == "domain" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
                                         {{ table_header_domain }}
                                         {% if current_sort_by == "domain" %}
                                             {% if current_sort_order == "asc" %}
@@ -75,7 +119,7 @@
                                     </a>
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/4">
-                                    <a href="?sort_by=destination&sort_order={% if current_sort_by == "destination" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
+                                    <a href="?sort_by=destination&sort_order={% if current_sort_by == "destination" %}{% if current_sort_order == "asc" %}desc{% else %}asc{% endif %}{% else %}asc{% endif %}&page={{ pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="flex items-center hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200">
                                         {{ table_header_destination }}
                                         {% if current_sort_by == "destination" %}
                                             {% if current_sort_order == "asc" %}
@@ -163,10 +207,10 @@
     <div class="mt-8 flex items-center justify-between">
         <div class="flex flex-1 justify-between sm:hidden">
             {% if pagination.has_prev %}
-            <a href="?page={{ pagination.current_page - 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{{ pagination_previous }}</a>
+            <a href="?page={{ pagination.current_page - 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{{ pagination_previous }}</a>
             {% endif %}
             {% if pagination.has_next %}
-            <a href="?page={{ pagination.current_page + 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{{ pagination_next }}</a>
+            <a href="?page={{ pagination.current_page + 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">{{ pagination_next }}</a>
             {% endif %}
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
@@ -178,7 +222,7 @@
             <div>
                 <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                     {% if pagination.has_prev %}
-                    <a href="?page={{ pagination.current_page - 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                    <a href="?page={{ pagination.current_page - 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                         <span class="sr-only">{{ pagination_previous }}</span>
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
@@ -190,14 +234,14 @@
                         {% if *page_num == pagination.current_page %}
                         <span class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ page_num }}</span>
                         {% else if *page_num == 1 || *page_num == pagination.total_pages || (*page_num >= pagination.current_page - 2 && *page_num <= pagination.current_page + 2) %}
-                        <a href="?page={{ page_num }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ page_num }}</a>
+                        <a href="?page={{ page_num }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">{{ page_num }}</a>
                         {% else if *page_num == pagination.current_page - 3 || *page_num == pagination.current_page + 3 %}
                         <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
                         {% endif %}
                     {% endfor %}
                     
                     {% if pagination.has_next %}
-                    <a href="?page={{ pagination.current_page + 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                    <a href="?page={{ pagination.current_page + 1 }}&per_page={{ pagination.per_page }}&sort_by={{ current_sort_by }}&sort_order={{ current_sort_order }}&enabled_filter={{ enabled_filter }}{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                         <span class="sr-only">{{ pagination_next }}</span>
                         <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />

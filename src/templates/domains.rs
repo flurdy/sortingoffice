@@ -54,11 +54,11 @@ pub struct DomainsListTemplate<'a> {
     pub domains_search_label: &'a str,
     pub domains_search_placeholder: &'a str,
     // Filter controls
-    pub exclude_disabled: bool,
-    pub exclude_enabled: bool,
+    pub enabled_filter: &'a str,
     pub exclude_subdomains: bool,
-    pub exclude_disabled_label: &'a str,
-    pub exclude_enabled_label: &'a str,
+    pub filter_all_label: &'a str,
+    pub filter_enabled_label: &'a str,
+    pub filter_disabled_label: &'a str,
     pub exclude_subdomains_label: &'a str,
     pub filters_label: &'a str,
 }

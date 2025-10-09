@@ -49,6 +49,11 @@ pub async fn list(
     let sort_by = params.sort_by.as_deref();
     let sort_order = params.sort_order.as_deref();
     let search = params.search.as_deref();
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
 
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
@@ -58,7 +63,16 @@ pub async fn list(
     let paginated_aliases =
         crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
             || async {
-                db::get_aliases_paginated(&pool, page, per_page, sort_by, sort_order, search)
+                let enabled_filter = enabled_filter.clone();
+                db::get_aliases_paginated(
+                    &pool,
+                    page,
+                    per_page,
+                    sort_by,
+                    sort_order,
+                    search,
+                    &enabled_filter,
+                )
             },
             "retrieve aliases",
             page,
@@ -76,6 +90,7 @@ pub async fn list(
         &locale,
         &headers,
         search,
+        &enabled_filter,
     )
     .await
 }
@@ -296,7 +311,7 @@ pub async fn create(
                             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
                             crate::handlers::rendering::render_alias_list_page(
-                                aliases, &paginated, &state, &locale, &headers, None,
+                                aliases, &paginated, &state, &locale, &headers, None, "all",
                             )
                             .await
                         }
@@ -337,7 +352,7 @@ pub async fn create(
                     let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
                     crate::handlers::rendering::render_alias_list_page(
-                        aliases, &paginated, &state, &locale, &headers, None,
+                        aliases, &paginated, &state, &locale, &headers, None, "all",
                     )
                     .await
                 }
@@ -514,7 +529,7 @@ pub async fn delete(
             let paginated = PaginatedResult::new(aliases.clone(), 0, 1, 20);
 
             crate::handlers::rendering::render_alias_list_page(
-                aliases, &paginated, &state, &locale, &headers, None,
+                aliases, &paginated, &state, &locale, &headers, None, "all",
             )
             .await
         }
@@ -617,7 +632,7 @@ pub async fn toggle_enabled_list(
 
             // Use the new resource-specific helper function
             crate::handlers::rendering::render_alias_list_page(
-                aliases, &paginated, &state, &locale, &headers, None,
+                aliases, &paginated, &state, &locale, &headers, None, "all",
             )
             .await
         }

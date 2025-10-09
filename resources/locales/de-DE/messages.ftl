@@ -288,6 +288,10 @@ backups-edit-backup-title = Backup bearbeiten
 # Aliases
 aliases-title = Aliase
 aliases-description = Verwalten Sie Ihre E-Mail-Aliase und Weiterleitungsregeln.
+aliases-filter-all = Alle
+aliases-filter-enabled = Aktiviert
+aliases-filter-disabled = Deaktiviert
+aliases-filters = Filter
 aliases-add = Alias hinzufügen
 aliases-table-header-source = Quelle
 aliases-table-header-destination = Ziel
@@ -594,8 +598,9 @@ config-title = "Konfiguration"
 domains-search-label = Domains und Backups durchsuchen
 domains-search-placeholder = Tippen, um Domains und Backups zu suchen...
 domains-filters = Filter
-domains-exclude-disabled = Deaktivierte Ausschließen
-domains-exclude-enabled = Aktivierte Ausschließen
+domains-filter-all = Alle
+domains-filter-enabled = Aktiviert
+domains-filter-disabled = Deaktiviert
 domains-exclude-subdomains = Subdomains Ausschließen
 config-description = "Erforderliche Aliase und domainspezifische Überschreibungen verwalten."
 # Global Feature Toggles

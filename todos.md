@@ -8,6 +8,10 @@
 
 ## Medium Priority Epics
 
+- ✅ Can the exclude enabled/disabled filter on domains actually be a 3 state toggle.
+  - Similar looks to the enable/disable toggle on edit resources
+  - With all, only disabled and only enabled as states?
+
 ## Medium Priority Minor and bugs 🐛
 
 - ✅ The paging seems not to be on the mx reports anymore? Related to the recent filtering, maybe?
@@ -51,9 +55,9 @@
    - ✅ enabled/disabled
    - ✅ subdomain
 
-- In show alias, on the domain row, can we add a tiny icon if the domain is enabled or not
+- ✅ In show alias, on the domain row, can we add a tiny icon if the domain is enabled or not
 
-- In show alias, if the alias is a catch all, please do not include the alias occurrences report.
+- ✅ In show alias, if the alias is a catch all, please do not include the alias occurrences report.
 
 - ✅ In show domain the disable domain button should not be blue? 
   - ✅ And in all other resources pages

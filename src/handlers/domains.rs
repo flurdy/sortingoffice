@@ -147,8 +147,7 @@ async fn render_domain_list_after_creation(
         locale,
         headers,
         None,
-        false, // exclude_disabled
-        false, // exclude_enabled
+        "all", // enabled_filter
         false, // exclude_subdomains
     )
     .await
@@ -363,8 +362,11 @@ pub async fn list(
     let backup_page = params.backup_page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
     let search = params.search.as_deref();
-    let exclude_disabled = params.exclude_disabled.unwrap_or(false);
-    let exclude_enabled = params.exclude_enabled.unwrap_or(false);
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
     let exclude_subdomains = params.exclude_subdomains.unwrap_or(false);
 
     // Use focused database operations with built-in error handling
@@ -373,8 +375,7 @@ pub async fn list(
         page,
         per_page,
         search,
-        exclude_disabled,
-        exclude_enabled,
+        &enabled_filter,
         exclude_subdomains,
     )
     .await;
@@ -383,13 +384,13 @@ pub async fn list(
     let paginated_backups =
         crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
             || async {
+                let enabled_filter = enabled_filter.clone();
                 crate::db::get_backups_paginated(
                     &pool,
                     backup_page,
                     per_page,
                     search,
-                    exclude_disabled,
-                    exclude_enabled,
+                    &enabled_filter,
                     exclude_subdomains,
                 )
             },
@@ -409,8 +410,7 @@ pub async fn list(
         &locale,
         &headers,
         search,
-        exclude_disabled,
-        exclude_enabled,
+        &enabled_filter,
         exclude_subdomains,
     )
     .await
@@ -788,8 +788,7 @@ pub async fn toggle_enabled_list(
                 &locale,
                 &headers,
                 None,
-                false, // exclude_disabled
-                false, // exclude_enabled
+                "all", // enabled_filter
                 false, // exclude_subdomains
             )
             .await

@@ -278,6 +278,10 @@ backups-form-active = Aktiv
 # Aliases
 aliases-title = Aliaser
 aliases-description = Administrer e-postaliaser og videresendingsregler.
+aliases-filter-all = Alle
+aliases-filter-enabled = Aktiverte
+aliases-filter-disabled = Deaktiverte
+aliases-filters = Filtre
 aliases-add = Legg til alias
 aliases-table-header-mail = E-post
 aliases-table-header-domain = Domene
@@ -580,8 +584,9 @@ config-title = "Konfigurasjon"
 domains-search-label = Søk i domener og sikkerhetskopier
 domains-search-placeholder = Skriv for å søke i domener og sikkerhetskopier...
 domains-filters = Filtre
-domains-exclude-disabled = Ekskluder Deaktiverte
-domains-exclude-enabled = Ekskluder Aktiverte
+domains-filter-all = Alle
+domains-filter-enabled = Aktiverte
+domains-filter-disabled = Deaktiverte
 domains-exclude-subdomains = Ekskluder Subdomener
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
 # Global Feature Toggles

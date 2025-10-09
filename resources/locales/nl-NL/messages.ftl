@@ -453,6 +453,10 @@ backups-add-title = Backup Toevoegen
 # Aliases
 aliases-title = Aliassen
 aliases-description = Beheer uw e-mail aliassen en doorstuurregels.
+aliases-filter-all = Alle
+aliases-filter-enabled = Ingeschakeld
+aliases-filter-disabled = Uitgeschakeld
+aliases-filters = Filters
 aliases-add = Alias Toevoegen
 aliases-table-header-mail = Mail
 aliases-table-header-domain = Domein
@@ -831,8 +835,9 @@ config-title = Configuration
 domains-search-label = Zoek in domeinen en back-ups
 domains-search-placeholder = Typ om domeinen en back-ups te zoeken...
 domains-filters = Filters
-domains-exclude-disabled = Sluit Uitgeschakelde Uit
-domains-exclude-enabled = Sluit Ingeschakelde Uit
+domains-filter-all = Alle
+domains-filter-enabled = Ingeschakeld
+domains-filter-disabled = Uitgeschakeld
 domains-exclude-subdomains = Sluit Subdomeinen Uit
 config-description = View and manage global and database-specific configuration options for Sorting Office. Use this page to review feature toggles, database settings, and environment status. Editing is done offline in config.toml.
 # Global Feature Toggles

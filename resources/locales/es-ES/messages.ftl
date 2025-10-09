@@ -262,6 +262,10 @@ backups-edit-backup-title = Editar Copia de Seguridad
 # Aliases
 aliases-title = Alias
 aliases-description = Gestionar sus alias de correo y reglas de reenvío.
+aliases-filter-all = Todos
+aliases-filter-enabled = Habilitados
+aliases-filter-disabled = Deshabilitados
+aliases-filters = Filtros
 aliases-add = Agregar Alias
 aliases-table-header-source = Origen
 aliases-table-header-destination = Destino
@@ -499,8 +503,9 @@ config-title = "Configuración"
 domains-search-label = Buscar dominios y copias de seguridad
 domains-search-placeholder = Escribe para buscar dominios y copias de seguridad...
 domains-filters = Filtros
-domains-exclude-disabled = Excluir Deshabilitados
-domains-exclude-enabled = Excluir Habilitados
+domains-filter-all = Todos
+domains-filter-enabled = Habilitados
+domains-filter-disabled = Deshabilitados
 domains-exclude-subdomains = Excluir Subdominios
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
 # Global Feature Toggles

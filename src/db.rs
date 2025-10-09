@@ -1188,20 +1188,13 @@ impl DatabaseManager {
         per_page: i64,
         db_id: &str,
         search: Option<&str>,
-        exclude_disabled: bool,
-        exclude_enabled: bool,
+        enabled_filter: &str,
         exclude_subdomains: bool,
     ) -> Result<PaginatedResult<Domain>, Error> {
         let search_key = search.unwrap_or("");
         let cache_key = format!(
-            "domains_{}_{}_{}_{}_{}_{}_{}",
-            db_id,
-            page,
-            per_page,
-            search_key,
-            exclude_disabled,
-            exclude_enabled,
-            exclude_subdomains
+            "domains_{}_{}_{}_{}_{}_{}",
+            db_id, page, per_page, search_key, enabled_filter, exclude_subdomains
         );
 
         if let Some(cached_result) = self.cache.get_domains_paginated(&cache_key).await {
@@ -1218,8 +1211,7 @@ impl DatabaseManager {
             page,
             per_page,
             search,
-            exclude_disabled,
-            exclude_enabled,
+            enabled_filter,
             exclude_subdomains,
         )?;
 
@@ -1238,16 +1230,18 @@ impl DatabaseManager {
         sort_order: Option<&str>,
         db_id: &str,
         search: Option<&str>,
+        enabled_filter: &str,
     ) -> Result<PaginatedResult<Alias>, Error> {
         let search_key = search.unwrap_or("");
         let cache_key = format!(
-            "aliases_{}_{}_{}_{}_{}_{}",
+            "aliases_{}_{}_{}_{}_{}_{}_{}",
             db_id,
             page,
             per_page,
             sort_by.unwrap_or(""),
             sort_order.unwrap_or(""),
-            search_key
+            search_key,
+            enabled_filter
         );
 
         if let Some(cached_result) = self.cache.get_aliases_paginated(&cache_key).await {
@@ -1259,7 +1253,15 @@ impl DatabaseManager {
             "Cache miss, fetching aliases pagination from database for key: {}",
             cache_key
         );
-        let result = get_aliases_paginated(pool, page, per_page, sort_by, sort_order, search)?;
+        let result = get_aliases_paginated(
+            pool,
+            page,
+            per_page,
+            sort_by,
+            sort_order,
+            search,
+            enabled_filter,
+        )?;
 
         self.cache
             .set_aliases_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -2169,8 +2171,7 @@ pub fn get_backups_paginated(
     page: i64,
     per_page: i64,
     search: Option<&str>,
-    exclude_disabled: bool,
-    exclude_enabled: bool,
+    enabled_filter: &str,
     exclude_subdomains: bool,
 ) -> Result<PaginatedResult<Backup>, Error> {
     let mut conn = pool.get().map_err(|e| {
@@ -2193,12 +2194,16 @@ pub fn get_backups_paginated(
         }
     }
 
-    if exclude_disabled {
-        query = query.filter(backups::enabled.eq(true));
-    }
-
-    if exclude_enabled {
-        query = query.filter(backups::enabled.eq(false));
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(backups::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(backups::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
     }
 
     if exclude_subdomains {
@@ -2218,12 +2223,16 @@ pub fn get_backups_paginated(
         }
     }
 
-    if exclude_disabled {
-        query = query.filter(backups::enabled.eq(true));
-    }
-
-    if exclude_enabled {
-        query = query.filter(backups::enabled.eq(false));
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(backups::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(backups::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
     }
 
     if exclude_subdomains {
@@ -3198,8 +3207,7 @@ pub fn get_domains_paginated(
     page: i64,
     per_page: i64,
     search: Option<&str>,
-    exclude_disabled: bool,
-    exclude_enabled: bool,
+    enabled_filter: &str,
     exclude_subdomains: bool,
 ) -> Result<PaginatedResult<Domain>, Error> {
     let mut conn = pool.get().map_err(|e| {
@@ -3222,12 +3230,16 @@ pub fn get_domains_paginated(
         }
     }
 
-    if exclude_disabled {
-        query = query.filter(domains::enabled.eq(true));
-    }
-
-    if exclude_enabled {
-        query = query.filter(domains::enabled.eq(false));
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(domains::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(domains::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
     }
 
     if exclude_subdomains {
@@ -3247,12 +3259,16 @@ pub fn get_domains_paginated(
         }
     }
 
-    if exclude_disabled {
-        query = query.filter(domains::enabled.eq(true));
-    }
-
-    if exclude_enabled {
-        query = query.filter(domains::enabled.eq(false));
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(domains::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(domains::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
     }
 
     if exclude_subdomains {
@@ -3277,6 +3293,7 @@ pub fn get_aliases_paginated(
     sort_by: Option<&str>,
     sort_order: Option<&str>,
     search: Option<&str>,
+    enabled_filter: &str,
 ) -> Result<PaginatedResult<Alias>, Error> {
     let mut conn = pool.get().unwrap();
 
@@ -3296,6 +3313,18 @@ pub fn get_aliases_paginated(
         }
     }
 
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(aliases::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(aliases::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
+
     // Get total count with search filter
     let total_count: i64 = query.count().get_result(&mut conn)?;
 
@@ -3310,6 +3339,18 @@ pub fn get_aliases_paginated(
                     .like(search_pattern.clone())
                     .or(aliases::destination.like(search_pattern)),
             );
+        }
+    }
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(aliases::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(aliases::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
         }
     }
 
