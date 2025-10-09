@@ -1009,6 +1009,10 @@ not-found-message = Sorry, the page you requested does not exist or may have bee
 # Domains search UI
 domains-search-label = Search domains and backups
 domains-search-placeholder = Type to search domains and backups...
+domains-filters = Filters
+domains-exclude-disabled = Exclude Disabled
+domains-exclude-enabled = Exclude Enabled
+domains-exclude-subdomains = Exclude Subdomains
 # Backup Management
 database-backup-title = Database Backup
 database-backup-description = Create and manage database backups. Backups are stored locally and can be downloaded.

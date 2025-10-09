@@ -830,6 +830,10 @@ config-title = Configuration
 # Domein zoeken
 domains-search-label = Zoek in domeinen en back-ups
 domains-search-placeholder = Typ om domeinen en back-ups te zoeken...
+domains-filters = Filters
+domains-exclude-disabled = Sluit Uitgeschakelde Uit
+domains-exclude-enabled = Sluit Ingeschakelde Uit
+domains-exclude-subdomains = Sluit Subdomeinen Uit
 config-description = View and manage global and database-specific configuration options for Sorting Office. Use this page to review feature toggles, database settings, and environment status. Editing is done offline in config.toml.
 # Global Feature Toggles
 config-global-features-header = Global Feature Toggles

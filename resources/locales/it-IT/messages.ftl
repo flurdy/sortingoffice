@@ -405,6 +405,10 @@ config-title = Configurazione
 # Ricerca domini
 domains-search-label = Cerca domini e backup
 domains-search-placeholder = Digita per cercare domini e backup...
+domains-filters = Filtri
+domains-exclude-disabled = Escludi Disabilitati
+domains-exclude-enabled = Escludi Abilitati
+domains-exclude-subdomains = Escludi Sottodomini
 config-save = Salva Configurazione
 config-reset = Ripristina Configurazione
 config-success = Configurazione salvata con successo

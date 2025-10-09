@@ -579,6 +579,10 @@ config-title = "Konfigurasjon"
 # Domenesøk
 domains-search-label = Søk i domener og sikkerhetskopier
 domains-search-placeholder = Skriv for å søke i domener og sikkerhetskopier...
+domains-filters = Filtre
+domains-exclude-disabled = Ekskluder Deaktiverte
+domains-exclude-enabled = Ekskluder Aktiverte
+domains-exclude-subdomains = Ekskluder Subdomener
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
 # Global Feature Toggles
 config-global-features-header = "Globale Funksjonsbrytere"

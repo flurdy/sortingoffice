@@ -517,6 +517,9 @@ pub async fn toggle_enabled_list(
                 &locale,
                 &headers,
                 None,
+                false, // exclude_disabled
+                false, // exclude_enabled
+                false, // exclude_subdomains
             )
             .await
         }

@@ -147,6 +147,9 @@ async fn render_domain_list_after_creation(
         locale,
         headers,
         None,
+        false, // exclude_disabled
+        false, // exclude_enabled
+        false, // exclude_subdomains
     )
     .await
 }
@@ -360,17 +363,36 @@ pub async fn list(
     let backup_page = params.backup_page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
     let search = params.search.as_deref();
+    let exclude_disabled = params.exclude_disabled.unwrap_or(false);
+    let exclude_enabled = params.exclude_enabled.unwrap_or(false);
+    let exclude_subdomains = params.exclude_subdomains.unwrap_or(false);
 
     // Use focused database operations with built-in error handling
     let paginated_domains = crate::handlers::database_ops::get_paginated_domains_with_fallback(
-        &pool, page, per_page, search,
+        &pool,
+        page,
+        per_page,
+        search,
+        exclude_disabled,
+        exclude_enabled,
+        exclude_subdomains,
     )
     .await;
 
     // Get paginated backups with search filter (use backup_page parameter)
     let paginated_backups =
         crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
-            || async { crate::db::get_backups_paginated(&pool, backup_page, per_page, search) },
+            || async {
+                crate::db::get_backups_paginated(
+                    &pool,
+                    backup_page,
+                    per_page,
+                    search,
+                    exclude_disabled,
+                    exclude_enabled,
+                    exclude_subdomains,
+                )
+            },
             "retrieve backups",
             backup_page,
             per_page,
@@ -387,6 +409,9 @@ pub async fn list(
         &locale,
         &headers,
         search,
+        exclude_disabled,
+        exclude_enabled,
+        exclude_subdomains,
     )
     .await
 }
@@ -763,6 +788,9 @@ pub async fn toggle_enabled_list(
                 &locale,
                 &headers,
                 None,
+                false, // exclude_disabled
+                false, // exclude_enabled
+                false, // exclude_subdomains
             )
             .await
         }

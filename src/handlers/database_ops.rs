@@ -505,8 +505,19 @@ pub async fn get_paginated_domains_with_fallback(
     page: i64,
     per_page: i64,
     search: Option<&str>,
+    exclude_disabled: bool,
+    exclude_enabled: bool,
+    exclude_subdomains: bool,
 ) -> crate::models::PaginatedResult<crate::models::Domain> {
-    match crate::db::get_domains_paginated(pool, page, per_page, search) {
+    match crate::db::get_domains_paginated(
+        pool,
+        page,
+        per_page,
+        search,
+        exclude_disabled,
+        exclude_enabled,
+        exclude_subdomains,
+    ) {
         Ok(domains) => domains,
         Err(e) => handle_database_fallback_paginated("retrieve domains", &e, page, per_page),
     }

@@ -548,6 +548,10 @@ config-title = Configuration
 # Recherche de domaines
 domains-search-label = Rechercher des domaines et des sauvegardes
 domains-search-placeholder = Tapez pour rechercher des domaines et des sauvegardes...
+domains-filters = Filtres
+domains-exclude-disabled = Exclure les Désactivés
+domains-exclude-enabled = Exclure les Activés
+domains-exclude-subdomains = Exclure les Sous-domaines
 config-description = Gérer la configuration du système.
 config-required-aliases = Alias Requis
 # Global Feature Toggles

@@ -1188,9 +1188,21 @@ impl DatabaseManager {
         per_page: i64,
         db_id: &str,
         search: Option<&str>,
+        exclude_disabled: bool,
+        exclude_enabled: bool,
+        exclude_subdomains: bool,
     ) -> Result<PaginatedResult<Domain>, Error> {
         let search_key = search.unwrap_or("");
-        let cache_key = format!("domains_{}_{}_{}_{}", db_id, page, per_page, search_key);
+        let cache_key = format!(
+            "domains_{}_{}_{}_{}_{}_{}_{}",
+            db_id,
+            page,
+            per_page,
+            search_key,
+            exclude_disabled,
+            exclude_enabled,
+            exclude_subdomains
+        );
 
         if let Some(cached_result) = self.cache.get_domains_paginated(&cache_key).await {
             tracing::debug!("Returning cached domains pagination for key: {}", cache_key);
@@ -1201,7 +1213,15 @@ impl DatabaseManager {
             "Cache miss, fetching domains pagination from database for key: {}",
             cache_key
         );
-        let result = get_domains_paginated(pool, page, per_page, search)?;
+        let result = get_domains_paginated(
+            pool,
+            page,
+            per_page,
+            search,
+            exclude_disabled,
+            exclude_enabled,
+            exclude_subdomains,
+        )?;
 
         self.cache
             .set_domains_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -2149,6 +2169,9 @@ pub fn get_backups_paginated(
     page: i64,
     per_page: i64,
     search: Option<&str>,
+    exclude_disabled: bool,
+    exclude_enabled: bool,
+    exclude_subdomains: bool,
 ) -> Result<PaginatedResult<Backup>, Error> {
     let mut conn = pool.get().map_err(|e| {
         tracing::error!("Failed to get connection from pool: {:?}", e);
@@ -2160,7 +2183,7 @@ pub fn get_backups_paginated(
 
     let offset = (page - 1) * per_page;
 
-    // Build query with optional search filter
+    // Build query with optional filters
     let mut query = backups::table.into_boxed();
 
     if let Some(search_term) = search {
@@ -2170,10 +2193,22 @@ pub fn get_backups_paginated(
         }
     }
 
-    // Get total count with search filter
+    if exclude_disabled {
+        query = query.filter(backups::enabled.eq(true));
+    }
+
+    if exclude_enabled {
+        query = query.filter(backups::enabled.eq(false));
+    }
+
+    if exclude_subdomains {
+        query = query.filter(backups::domain.not_like("%.%.%"));
+    }
+
+    // Get total count with filters
     let total_count: i64 = query.count().get_result(&mut conn)?;
 
-    // Rebuild query for paginated results
+    // Rebuild query for paginated results with same filters
     let mut query = backups::table.into_boxed();
 
     if let Some(search_term) = search {
@@ -2183,7 +2218,19 @@ pub fn get_backups_paginated(
         }
     }
 
-    // Get paginated results with search filter
+    if exclude_disabled {
+        query = query.filter(backups::enabled.eq(true));
+    }
+
+    if exclude_enabled {
+        query = query.filter(backups::enabled.eq(false));
+    }
+
+    if exclude_subdomains {
+        query = query.filter(backups::domain.not_like("%.%.%"));
+    }
+
+    // Get paginated results with filters
     let backups = query
         .select(Backup::as_select())
         .order(backups::domain.asc())
@@ -3151,6 +3198,9 @@ pub fn get_domains_paginated(
     page: i64,
     per_page: i64,
     search: Option<&str>,
+    exclude_disabled: bool,
+    exclude_enabled: bool,
+    exclude_subdomains: bool,
 ) -> Result<PaginatedResult<Domain>, Error> {
     let mut conn = pool.get().map_err(|e| {
         tracing::error!("Failed to get connection from pool: {:?}", e);
@@ -3162,7 +3212,7 @@ pub fn get_domains_paginated(
 
     let offset = (page - 1) * per_page;
 
-    // Build query with optional search filter
+    // Build query with optional filters
     let mut query = domains::table.into_boxed();
 
     if let Some(search_term) = search {
@@ -3172,10 +3222,22 @@ pub fn get_domains_paginated(
         }
     }
 
-    // Get total count with search filter
+    if exclude_disabled {
+        query = query.filter(domains::enabled.eq(true));
+    }
+
+    if exclude_enabled {
+        query = query.filter(domains::enabled.eq(false));
+    }
+
+    if exclude_subdomains {
+        query = query.filter(domains::domain.not_like("%.%.%"));
+    }
+
+    // Get total count with filters
     let total_count: i64 = query.count().get_result(&mut conn)?;
 
-    // Rebuild query for paginated results
+    // Rebuild query for paginated results with same filters
     let mut query = domains::table.into_boxed();
 
     if let Some(search_term) = search {
@@ -3185,7 +3247,19 @@ pub fn get_domains_paginated(
         }
     }
 
-    // Get paginated results with search filter
+    if exclude_disabled {
+        query = query.filter(domains::enabled.eq(true));
+    }
+
+    if exclude_enabled {
+        query = query.filter(domains::enabled.eq(false));
+    }
+
+    if exclude_subdomains {
+        query = query.filter(domains::domain.not_like("%.%.%"));
+    }
+
+    // Get paginated results with filters
     let domains = query
         .select(Domain::as_select())
         .order(domains::domain.asc())

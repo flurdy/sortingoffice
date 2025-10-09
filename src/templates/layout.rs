@@ -4,6 +4,7 @@ use askama::Template;
 #[template(path = "base.html", escape = "none")]
 pub struct BaseTemplate {
     pub title: String,
+    pub meta_description: Option<String>,
     pub content: String,
     // i18n fields
     pub app_title: String,
@@ -53,6 +54,7 @@ pub struct BaseTemplate {
 #[template(path = "base.html", escape = "html")]
 pub struct LayoutTemplate<'a> {
     pub title: &'a str,
+    pub meta_description: Option<String>,
     pub content: &'a str,
     // i18n fields
     pub app_title: &'a str,
@@ -109,6 +111,7 @@ impl BaseTemplate {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(BaseTemplate {
             title,
+            meta_description: None,
             content,
             app_title: crate::i18n::get_translation(state, locale, "app-title").await,
             app_subtitle: crate::i18n::get_translation(state, locale, "app-subtitle").await,
@@ -160,5 +163,33 @@ impl BaseTemplate {
             sidebar_admin: crate::i18n::get_translation(state, locale, "sidebar-admin").await,
             sidebar_project: crate::i18n::get_translation(state, locale, "sidebar-project").await,
         })
+    }
+
+    pub async fn with_i18n_and_meta(
+        title: String,
+        meta_description: Option<String>,
+        content: String,
+        state: &crate::AppState,
+        locale: &str,
+        current_db_label: String,
+        current_db_id: String,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut template = Self::with_i18n(
+            title,
+            content,
+            state,
+            locale,
+            current_db_label,
+            current_db_id,
+        )
+        .await?;
+        template.meta_description = meta_description;
+        Ok(template)
+    }
+
+    /// Helper to build page title with database context
+    /// Format: "{page_title} - {db_label} - Sorting Office"
+    pub fn build_title_with_db(page_title: &str, db_label: &str) -> String {
+        format!("{} - {} - Sorting Office", page_title, db_label)
     }
 }

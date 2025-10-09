@@ -593,6 +593,10 @@ config-title = "Konfiguration"
 # Domainsuche
 domains-search-label = Domains und Backups durchsuchen
 domains-search-placeholder = Tippen, um Domains und Backups zu suchen...
+domains-filters = Filter
+domains-exclude-disabled = Deaktivierte Ausschließen
+domains-exclude-enabled = Aktivierte Ausschließen
+domains-exclude-subdomains = Subdomains Ausschließen
 config-description = "Erforderliche Aliase und domainspezifische Überschreibungen verwalten."
 # Global Feature Toggles
 config-global-features-header = "Globale Feature-Toggles"

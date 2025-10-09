@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    {% if meta_description.is_some() %}
+    <meta name="description" content="{{ meta_description.as_ref().unwrap() }}">
+    {% endif %}
     <link rel="icon" type="image/png" href="/static/images/trays-small.png">
 
     <!-- Apply theme immediately to prevent flash -->

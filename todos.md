@@ -4,6 +4,8 @@
 
 ## High Priority Minor and bugs 🐛
 
+- ✅ recent changes report seem to blow up with a weird 500 that does not show an error page
+
 ## Medium Priority Epics
 
 ## Medium Priority Minor and bugs 🐛
@@ -32,8 +34,8 @@
 
 ## Low Priority Epics
 
-- Add html head title and description to all the pages. So that tabs can be distinguished when not wide E.g
-   - show domain could have: 'DOMAINNAME domain at DB db - Sorting Office' 
+- ✅ Add html head title and description to all the pages. So that tabs can be distinguished when not wide E.g
+   - ✅ show domain could have: 'DOMAINNAME domain at DB db - Sorting Office' 
 
 - ✅ A report to check if any domains mx settings are not in a list of servers. 
   - Basically to check if some domains are not pointing to these mail servers.
@@ -41,7 +43,17 @@
 
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
+- Can the orphaned report also check relays and relocated entries.
+
 ## Low Priority Minor and bugs 🐛 
+
+- ✅ Like in some of the reports, can the we add filters to the domain and backup domain lists? 
+   - ✅ enabled/disabled
+   - ✅ subdomain
+
+- In show alias, on the domain row, can we add a tiny icon if the domain is enabled or not
+
+- In show alias, if the alias is a catch all, please do not include the alias occurrences report.
 
 - ✅ In show domain the disable domain button should not be blue? 
   - ✅ And in all other resources pages

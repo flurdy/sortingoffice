@@ -135,6 +135,19 @@ pub async fn render_show_template<T>(
 where
     T: Template,
 {
+    render_show_template_with_title(template, "".to_string(), state, locale, headers).await
+}
+
+pub async fn render_show_template_with_title<T>(
+    template: T,
+    page_title: String,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
+) -> Html<String>
+where
+    T: Template,
+{
     let content = match template.render() {
         Ok(content) => content,
         Err(e) => {
@@ -157,8 +170,18 @@ where
             .map(|db| db.label.clone())
             .unwrap_or_else(|| current_db_id.clone());
 
+        // Use provided title or empty string
+        let final_title = if page_title.is_empty() {
+            "Sorting Office".to_string()
+        } else {
+            crate::templates::layout::BaseTemplate::build_title_with_db(
+                &page_title,
+                &current_db_label,
+            )
+        };
+
         let base_template = match crate::templates::layout::BaseTemplate::with_i18n(
-            "".to_string(), // Title will be set by the template
+            final_title,
             content,
             state,
             locale,
@@ -194,6 +217,9 @@ pub async fn render_domain_list_page(
     locale: &str,
     headers: &HeaderMap,
     search: Option<&str>,
+    exclude_disabled: bool,
+    exclude_enabled: bool,
+    exclude_subdomains: bool,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -316,6 +342,28 @@ pub async fn render_domain_list_page(
             "domains-search-placeholder",
         )
         .await,
+        exclude_disabled,
+        exclude_enabled,
+        exclude_subdomains,
+        exclude_disabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-exclude-disabled",
+        )
+        .await,
+        exclude_enabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-exclude-enabled",
+        )
+        .await,
+        exclude_subdomains_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-exclude-subdomains",
+        )
+        .await,
+        filters_label: &crate::i18n::get_translation(state, locale, "domains-filters").await,
     };
 
     render_list_template(content_template, state, locale, headers).await
@@ -498,7 +546,10 @@ pub async fn render_alias_show_page(
         cross_domain_report: cross_domain_report.as_ref(),
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with alias email
+    let page_title = format!("{} alias", content_template.alias.mail);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_alias_form_page(
@@ -692,7 +743,10 @@ pub async fn render_relay_show_page(
         read_only_tooltip: &read_only_tooltip,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with relay recipient
+    let page_title = format!("{} relay", content_template.relay.recipient);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_relay_form_page(
@@ -941,7 +995,10 @@ pub async fn render_backup_show_page(
         read_only_tooltip,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with backup domain name
+    let page_title = format!("{} backup domain", content_template.backup.domain);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_backup_form_page(
@@ -1326,7 +1383,10 @@ pub async fn render_domain_show_page(
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with domain name
+    let page_title = format!("{} domain", content_template.domain.domain);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_domain_form_page(
@@ -1552,7 +1612,10 @@ pub async fn render_user_show_page(
         read_only_tooltip,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with user email
+    let page_title = content_template.user.id.clone();
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_user_form_page(
@@ -1809,7 +1872,10 @@ pub async fn render_client_show_page(
         read_only_tooltip: &read_only_tooltip,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with client ID
+    let page_title = format!("client {}", content_template.client.id);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_client_form_page(
@@ -1999,7 +2065,10 @@ pub async fn render_relocated_show_page(
         read_only_tooltip: &read_only_tooltip,
     };
 
-    render_show_template(content_template, state, locale, headers).await
+    // Build page title with relocated address
+    let page_title = format!("{} relocated", content_template.relocated.old_address);
+
+    render_show_template_with_title(content_template, page_title, state, locale, headers).await
 }
 
 pub async fn render_relocated_form_page(

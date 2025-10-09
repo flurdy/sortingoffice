@@ -53,6 +53,14 @@ pub struct DomainsListTemplate<'a> {
     // Search UI
     pub domains_search_label: &'a str,
     pub domains_search_placeholder: &'a str,
+    // Filter controls
+    pub exclude_disabled: bool,
+    pub exclude_enabled: bool,
+    pub exclude_subdomains: bool,
+    pub exclude_disabled_label: &'a str,
+    pub exclude_enabled_label: &'a str,
+    pub exclude_subdomains_label: &'a str,
+    pub filters_label: &'a str,
 }
 
 #[derive(Template)]

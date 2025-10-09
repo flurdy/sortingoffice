@@ -116,8 +116,8 @@ pub async fn recent_changes_report(
         content,
         &state,
         &locale,
-        current_db_id,
         current_db_label,
+        current_db_id,
     )
     .await
     {

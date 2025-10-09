@@ -4,6 +4,7 @@ use askama::Template;
 #[template(path = "error.html")]
 pub struct ErrorTemplate {
     pub title: String,
+    pub meta_description: Option<String>,
     pub message: String,
     pub locale: String,
     pub content: String,
@@ -63,6 +64,7 @@ impl ErrorTemplate {
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(ErrorTemplate {
             title: title.to_string(),
+            meta_description: None,
             message: message.to_string(),
             locale: locale.to_string(),
             content: String::new(), // This will be filled by the template

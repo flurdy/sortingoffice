@@ -498,6 +498,10 @@ config-title = "Configuración"
 # Búsqueda de dominios
 domains-search-label = Buscar dominios y copias de seguridad
 domains-search-placeholder = Escribe para buscar dominios y copias de seguridad...
+domains-filters = Filtros
+domains-exclude-disabled = Excluir Deshabilitados
+domains-exclude-enabled = Excluir Habilitados
+domains-exclude-subdomains = Excluir Subdominios
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
 # Global Feature Toggles
 config-global-features-header = "Interruptores de Características Globales"
