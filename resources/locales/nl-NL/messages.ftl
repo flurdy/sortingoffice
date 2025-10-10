@@ -30,6 +30,7 @@ nav-database-backup = Database Backup
 nav-database = Database Selectie
 nav-wizard = Domeinen Bulk Toevoegen
 nav-duplicate-wizard = Domein Dupliceren
+nav-remove-wizard = Domein Verwijderen
 nav-about = Over
 nav-contact = Contact
 nav-logout = Uitloggen

@@ -914,6 +914,7 @@ form-update-domain = Update Domain
 hello = Hello
 nav-wizard = Masselegg Domener
 nav-duplicate-wizard = Dupliser Domene
+nav-remove-wizard = Fjern Domene
 nonexistent = Nonexistent
 relays-not-available = Relays table is not available for this database
 relays-update-error = Failed to update relay

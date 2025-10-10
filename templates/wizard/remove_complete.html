@@ -1,0 +1,70 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Success Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-full mr-3">
+                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Success Message -->
+        <div class="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+            <p class="text-green-800 dark:text-green-200">{{ success_message }}: <strong>{{ domain_name }}</strong></p>
+        </div>
+
+        <!-- Deleted Resources -->
+        <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Deleted Resources</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_domain }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ deleted_count.domain }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_aliases }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ deleted_count.aliases }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_users }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ deleted_count.users }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relays }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ deleted_count.relays }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relocated }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ deleted_count.relocated }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cross-database Info -->
+        {% if cross_db_domains.len() > 0 %}
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+            <p class="text-sm text-blue-800 dark:text-blue-200">{{ cross_db_warning }}:</p>
+            <ul class="mt-2 list-disc list-inside text-sm text-blue-700 dark:text-blue-300">
+                {% for db in cross_db_domains %}
+                <li>{{ db }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-3">
+            <a href="/domains" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {{ back_to_domains_button }}
+            </a>
+            <a href="/remove-wizard" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {{ remove_another_button }}
+            </a>
+        </div>
+    </div>
+</div>

@@ -867,6 +867,7 @@ login-error-empty-fields = Please enter both username and password.
 login-error-invalid-credentials = Invalid username or password. Please try again.
 nav-wizard = Agregar Dominios en Lote
 nav-duplicate-wizard = Duplicar Dominio
+nav-remove-wizard = Eliminar Dominio
 nonexistent = Nonexistent
 relays-create-error = Failed to create relay
 relays-not-available = Relays table is not available for this database

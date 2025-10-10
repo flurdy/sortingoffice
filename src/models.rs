@@ -1749,3 +1749,57 @@ pub enum DuplicateWizardStep {
     Executing,
     Complete,
 }
+
+// Remove Domain Wizard Models
+#[derive(Debug, Deserialize)]
+pub struct RemoveDomainForm {
+    #[serde(default)]
+    pub domain_name: String,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_checkbox")]
+    pub confirmed: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RemoveDomainSession {
+    pub step: RemoveWizardStep,
+    pub domain: Option<Domain>,
+    pub is_backup: bool,
+    pub affected_aliases: Vec<Alias>,
+    pub affected_users: Vec<User>,
+    pub affected_relays: Vec<Relay>,
+    pub affected_relocated: Vec<Relocated>,
+    pub orphaned_aliases: Vec<Alias>, // Aliases that have this domain in destination field
+    pub disabled_count: DisabledResourceCount,
+    pub deleted_count: DeletedResourceCount,
+    pub cross_db_domains: Vec<String>, // List of other DBs where this domain exists
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct DisabledResourceCount {
+    pub domain: i32,
+    pub aliases: i32,
+    pub users: i32,
+    pub relays: i32,
+    pub relocated: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct DeletedResourceCount {
+    pub domain: i32,
+    pub aliases: i32,
+    pub users: i32,
+    pub relays: i32,
+    pub relocated: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum RemoveWizardStep {
+    DomainSelection,
+    ReviewAffected,
+    DisableResources,
+    ReviewDisabled,
+    ConfirmDelete,
+    DeletingResources,
+    Complete,
+}

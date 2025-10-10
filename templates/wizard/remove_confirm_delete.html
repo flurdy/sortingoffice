@@ -1,0 +1,80 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-full mr-3">
+                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">4</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Critical Warning -->
+        <div class="mb-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-600 dark:border-red-500 rounded-lg p-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-lg font-bold text-red-800 dark:text-red-200">{{ warning_message }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Info -->
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ domain_name }}</h2>
+        </div>
+
+        <!-- Resources to Delete -->
+        <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ resources_to_delete_title }}</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_domain }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ domain_count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_aliases }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ aliases_count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_users }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ users_count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relays }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ relays_count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relocated }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ relocated_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orphaned Aliases Reminder -->
+        {% if orphaned_aliases_count > 0 %}
+        <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200">{{ orphaned_aliases_reminder }}: {{ orphaned_aliases_count }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <form method="POST" action="/remove-wizard/execute-deletion" class="space-y-6">
+            <input type="hidden" name="confirmed" value="true" />
+            <div class="flex justify-end space-x-3">
+                <a href="/domains" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {{ cancel_button }}
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 rounded-md {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>
+                    {% if current_db_read_only %}{{ read_only_database }}{% else %}{{ delete_button }}{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

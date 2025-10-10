@@ -2734,3 +2734,227 @@ pub async fn render_wizard_complete_page(
 
     render_form_template(content_template, state, locale, headers, title.clone()).await
 }
+
+// Remove Domain Wizard Rendering Functions
+
+pub async fn render_remove_domain_selection_page(
+    state: &AppState,
+    _locale: &str,
+    headers: &HeaderMap,
+    error_message: &str,
+) -> Html<String> {
+    // Get database pool
+    let pool = match crate::handlers::utils::get_current_db_pool(state, headers).await {
+        Ok(pool) => pool,
+        Err(_) => {
+            return Html("Database connection error".to_string());
+        }
+    };
+
+    // Get all domains (both primary and backup)
+    let primary_domains = crate::db::get_domains(&pool).unwrap_or_default();
+    let backup_domains = crate::db::get_backups(&pool).unwrap_or_default();
+
+    // Combine into single list with domain names
+    let mut all_domain_names: Vec<String> = primary_domains.into_iter().map(|d| d.domain).collect();
+    all_domain_names.extend(backup_domains.into_iter().map(|b| b.domain));
+    all_domain_names.sort();
+    all_domain_names.dedup();
+
+    // For now, return a simple HTML page
+    // TODO: Create proper template
+    Html(format!(
+        r#"<html><body>
+        <h1>Remove Domain Wizard</h1>
+        <p>Select a domain to remove</p>
+        {}
+        <form method="POST" action="/remove-wizard/domain-selection">
+            <label>Domain: 
+                <select name="domain_name">
+                    {}
+                </select>
+            </label>
+            <button type="submit">Next</button>
+        </form>
+        </body></html>"#,
+        if !error_message.is_empty() {
+            format!("<p style='color:red'>{}</p>", error_message)
+        } else {
+            String::new()
+        },
+        all_domain_names
+            .iter()
+            .map(|d| format!("<option value='{}'>{}</option>", d, d))
+            .collect::<Vec<_>>()
+            .join("")
+    ))
+}
+
+pub async fn render_remove_domain_review_affected_page(
+    session: &crate::models::RemoveDomainSession,
+    _state: &AppState,
+    _locale: &str,
+    _headers: &HeaderMap,
+) -> Html<String> {
+    let domain = session
+        .domain
+        .as_ref()
+        .map(|d| d.domain.as_str())
+        .unwrap_or("Unknown");
+
+    Html(format!(
+        r#"<html><body>
+        <h1>Remove Domain Wizard - Review Affected Resources</h1>
+        <p>Domain: {} ({})</p>
+        <p>The following resources will be affected:</p>
+        <ul>
+            <li>Aliases: {}</li>
+            <li>Users: {}</li>
+            <li>Relays: {}</li>
+            <li>Relocated: {}</li>
+        </ul>
+        <p>Orphaned aliases (will NOT be deleted): {}</p>
+        <p>Cross-database presence: {}</p>
+        <form method="POST" action="/remove-wizard/disable-resources">
+            <input type="hidden" name="confirmed" value="true" />
+            <button type="submit">Disable All Resources</button>
+        </form>
+        </body></html>"#,
+        domain,
+        if session.is_backup {
+            "Backup Domain"
+        } else {
+            "Primary Domain"
+        },
+        session.affected_aliases.len(),
+        session.affected_users.len(),
+        session.affected_relays.len(),
+        session.affected_relocated.len(),
+        session.orphaned_aliases.len(),
+        session.cross_db_domains.join(", ")
+    ))
+}
+
+pub async fn render_remove_domain_review_disabled_page(
+    session: &crate::models::RemoveDomainSession,
+    _state: &AppState,
+    _locale: &str,
+    _headers: &HeaderMap,
+) -> Html<String> {
+    let domain = session
+        .domain
+        .as_ref()
+        .map(|d| d.domain.as_str())
+        .unwrap_or("Unknown");
+
+    Html(format!(
+        r#"<html><body>
+        <h1>Remove Domain Wizard - Resources Disabled</h1>
+        <p>Domain: {}</p>
+        <p>Successfully disabled:</p>
+        <ul>
+            <li>Domain: {}</li>
+            <li>Aliases: {}</li>
+            <li>Users: {}</li>
+            <li>Relays: {}</li>
+            <li>Relocated: {}</li>
+        </ul>
+        <p>You can now proceed to permanently delete these resources, or cancel and manually review.</p>
+        <form method="GET" action="/remove-wizard/confirm-delete">
+            <button type="submit">Proceed to Deletion</button>
+        </form>
+        <a href="/domains">Cancel</a>
+        </body></html>"#,
+        domain,
+        session.disabled_count.domain,
+        session.disabled_count.aliases,
+        session.disabled_count.users,
+        session.disabled_count.relays,
+        session.disabled_count.relocated
+    ))
+}
+
+pub async fn render_remove_domain_confirm_delete_page(
+    session: &crate::models::RemoveDomainSession,
+    _state: &AppState,
+    _locale: &str,
+    _headers: &HeaderMap,
+) -> Html<String> {
+    let domain = session
+        .domain
+        .as_ref()
+        .map(|d| d.domain.as_str())
+        .unwrap_or("Unknown");
+
+    Html(format!(
+        r#"<html><body>
+        <h1>Remove Domain Wizard - Confirm Deletion</h1>
+        <p style="color: red; font-weight: bold;">⚠️ WARNING: This action cannot be undone!</p>
+        <p>Domain: {}</p>
+        <p>The following resources will be PERMANENTLY DELETED:</p>
+        <ul>
+            <li>Domain/Backup: 1</li>
+            <li>Aliases: {}</li>
+            <li>Users: {}</li>
+            <li>Relays: {}</li>
+            <li>Relocated: {}</li>
+        </ul>
+        <p>Orphaned aliases (will NOT be deleted): {}</p>
+        <form method="POST" action="/remove-wizard/execute-deletion">
+            <input type="hidden" name="confirmed" value="true" />
+            <button type="submit" style="background: red; color: white;">DELETE ALL RESOURCES</button>
+        </form>
+        <a href="/domains">Cancel</a>
+        </body></html>"#,
+        domain,
+        session.affected_aliases.len(),
+        session.affected_users.len(),
+        session.affected_relays.len(),
+        session.affected_relocated.len(),
+        session.orphaned_aliases.len()
+    ))
+}
+
+pub async fn render_remove_domain_complete_page(
+    session: &crate::models::RemoveDomainSession,
+    _state: &AppState,
+    _locale: &str,
+    _headers: &HeaderMap,
+) -> Html<String> {
+    let domain = session
+        .domain
+        .as_ref()
+        .map(|d| d.domain.as_str())
+        .unwrap_or("Unknown");
+
+    Html(format!(
+        r#"<html><body>
+        <h1>Remove Domain Wizard - Complete</h1>
+        <p>Domain {} has been successfully removed!</p>
+        <p>Deleted resources:</p>
+        <ul>
+            <li>Domain: {}</li>
+            <li>Aliases: {}</li>
+            <li>Users: {}</li>
+            <li>Relays: {}</li>
+            <li>Relocated: {}</li>
+        </ul>
+        {}
+        <a href="/domains">Back to Domains</a>
+        </body></html>"#,
+        domain,
+        session.deleted_count.domain,
+        session.deleted_count.aliases,
+        session.deleted_count.users,
+        session.deleted_count.relays,
+        session.deleted_count.relocated,
+        if !session.cross_db_domains.is_empty() {
+            format!(
+                "<p>Note: This domain still exists in other databases: {}</p>",
+                session.cross_db_domains.join(", ")
+            )
+        } else {
+            String::new()
+        }
+    ))
+}

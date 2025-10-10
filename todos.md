@@ -70,6 +70,33 @@
 
 - ✅ Can the orphaned report also check relays and relocated entries.
 
+- 🔧 Add a remove domain wizard.
+  - ✅ Created RemoveWizardStep enum with all steps
+  - ✅ Created RemoveDomainSession model to track wizard state
+  - ✅ Created DisabledResourceCount and DeletedResourceCount tracking models
+  - ✅ Created handler with all wizard steps (domain_selection, review_affected, disable_resources, review_disabled, confirm_delete, execute_deletion)
+  - ✅ Added all routes (GET and POST)
+  - ✅ Created helper functions to find affected resources
+  - ✅ Implemented disable flow (domain → aliases → users → relays → relocated)
+  - ✅ Implemented delete flow (relocated → relays → users → aliases → domain)
+  - ✅ Added cross-database domain detection
+  - ✅ Added orphaned aliases detection (aliases with domain in destination field)
+  - ✅ Added logic to skip disable step if all resources already disabled
+  - ✅ Basic HTML rendering functions (to be upgraded to proper templates)
+  - ✅ Created 5 Askama template structs (selection, review_affected, review_disabled, confirm_delete, complete)
+  - ✅ Created 4 HTML template files (selection, review_disabled, confirm_delete, complete)
+  - ✅ Added `nav-remove-wizard` translation key to all 7 locales
+  - ✅ Added navigation link to wizard in sidebar with trash icon
+  - ✅ Added 38 translation keys for wizard pages in English (en-US)
+  - 🔧 Need to translate wizard keys to other 6 languages
+  - 🔧 Need to upgrade rendering functions to use proper Askama templates instead of raw HTML
+  - 🔧 Need to create proper template for review_affected page
+  - 🔧 Add tests for wizard flow
+  - Remember to use htmx where suitable
+  - Remember same style as the rest of the app
+  - Remember this is a multi DB app but the removal is from one db per wizard flow
+     - If session DB is changed mid flow then abort
+
 ## Low Priority Minor and bugs 🐛 
 
 - ✅ In show backup domains, the disable/enable buttons for relays are not translated
@@ -103,12 +130,3 @@
 ## ⏩ Postponed epics
 
 - Have a cached/timebased undo feature for deletion
-
-- Add a remove domain wizard. Postponed for now.
-  - Delete or disable?
-  - Delete all users
-  - Delete relays and relocated
-  - Delete all aliases with it in the mail field
-  - Delete from domains or backup table.
-  - Lists all entries to be deleted/disabled in the review step
-  - Add tests

@@ -22,6 +22,7 @@ pub mod performance;
 pub mod recent_changes;
 pub mod relays;
 pub mod relocated;
+pub mod remove_wizard;
 pub mod reports;
 pub mod restrictions;
 pub mod search;
@@ -83,6 +84,15 @@ pub use relocated::{
     create_form as create_relocated_form, create_relocated, delete_relocated,
     edit_form as edit_relocated_form, list_relocated, show_relocated,
     toggle_enabled as toggle_relocated_enabled, update_relocated,
+};
+pub use remove_wizard::{
+    confirm_delete as remove_wizard_confirm_delete,
+    disable_resources as remove_wizard_disable_resources,
+    domain_selection as remove_wizard_domain_selection,
+    execute_deletion as remove_wizard_execute_deletion, index as remove_wizard_index,
+    review_affected as remove_wizard_review_affected,
+    review_disabled as remove_wizard_review_disabled,
+    submit_domain_selection as remove_wizard_submit_domain_selection,
 };
 pub use reports::{
     alias_cross_domain_report, cross_database_domain_matrix_report,
@@ -276,6 +286,24 @@ fn create_read_only_routes(app_state: &AppState) -> Router<AppState> {
             "/duplicate-wizard/review",
             axum::routing::get(duplicate_wizard_review),
         )
+        // Remove wizard routes (read-only access)
+        .route("/remove-wizard", axum::routing::get(remove_wizard_index))
+        .route(
+            "/remove-wizard/domain-selection",
+            axum::routing::get(remove_wizard_domain_selection),
+        )
+        .route(
+            "/remove-wizard/review-affected",
+            axum::routing::get(remove_wizard_review_affected),
+        )
+        .route(
+            "/remove-wizard/review-disabled",
+            axum::routing::get(remove_wizard_review_disabled),
+        )
+        .route(
+            "/remove-wizard/confirm-delete",
+            axum::routing::get(remove_wizard_confirm_delete),
+        )
         .with_state(app_state.clone())
         .layer(middleware::from_fn_with_state(
             app_state.clone(),
@@ -457,6 +485,19 @@ fn create_edit_routes(app_state: &AppState) -> Router<AppState> {
         .route(
             "/duplicate-wizard/toggle-alias-enabled",
             axum::routing::post(toggle_alias_enabled),
+        )
+        // Remove wizard edit operations (require edit permissions)
+        .route(
+            "/remove-wizard/domain-selection",
+            axum::routing::post(remove_wizard_submit_domain_selection),
+        )
+        .route(
+            "/remove-wizard/disable-resources",
+            axum::routing::post(remove_wizard_disable_resources),
+        )
+        .route(
+            "/remove-wizard/execute-deletion",
+            axum::routing::post(remove_wizard_execute_deletion),
         )
         .route(
             "/duplicate-wizard/toggle-relay-enabled",

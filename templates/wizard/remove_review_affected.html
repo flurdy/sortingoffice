@@ -1,0 +1,104 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-red-100 dark:bg-red-900/40 rounded-full mr-3">
+                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">2</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Domain Info -->
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ domain_name }}</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ domain_type }}</p>
+        </div>
+
+        <!-- Affected Resources -->
+        <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ affected_resources_title }}</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ aliases_count }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ resource_label_aliases }}</div>
+                </div>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ users_count }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ resource_label_users }}</div>
+                </div>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ relays_count }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ resource_label_relays }}</div>
+                </div>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ relocated_count }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ resource_label_relocated }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orphaned Aliases Warning -->
+        {% if orphaned_aliases_count > 0 %}
+        <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ orphaned_aliases_warning }}</h3>
+                    <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                        <p>{{ orphaned_aliases_count }} aliases have this domain in their destination field and will become orphaned (not deleted):</p>
+                        <ul class="mt-2 list-disc list-inside">
+                            {% for alias in orphaned_aliases %}
+                            <li>{{ alias.mail }} → {{ alias.destination }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cross-database Warning -->
+        {% if cross_db_domains.len() > 0 %}
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">{{ cross_db_warning }}</h3>
+                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                        <p>This domain also exists in:</p>
+                        <ul class="mt-2 list-disc list-inside">
+                            {% for db in cross_db_domains %}
+                            <li>{{ db }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <form method="POST" action="/remove-wizard/disable-resources" class="space-y-6">
+            <input type="hidden" name="confirmed" value="true" />
+            <div class="flex justify-end space-x-3">
+                <a href="/domains" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {{ cancel_button }}
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 rounded-md {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-yellow-600 hover:bg-yellow-700{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>
+                    {% if current_db_read_only %}{{ read_only_database }}{% else %}{{ disable_button }}{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

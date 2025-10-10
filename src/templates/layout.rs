@@ -24,6 +24,7 @@ pub struct BaseTemplate {
     pub nav_database: String,
     pub nav_wizard: String,
     pub nav_duplicate_wizard: String,
+    pub nav_remove_wizard: String,
     pub nav_about: String,
     pub nav_contact: String,
     pub nav_logout: String,
@@ -74,6 +75,7 @@ pub struct LayoutTemplate<'a> {
     pub nav_database: &'a str,
     pub nav_wizard: &'a str,
     pub nav_duplicate_wizard: &'a str,
+    pub nav_remove_wizard: &'a str,
     pub nav_about: &'a str,
     pub nav_contact: &'a str,
     pub nav_logout: &'a str,
@@ -136,6 +138,8 @@ impl BaseTemplate {
                 "nav-duplicate-wizard",
             )
             .await,
+            nav_remove_wizard: crate::i18n::get_translation(state, locale, "nav-remove-wizard")
+                .await,
             nav_about: crate::i18n::get_translation(state, locale, "nav-about").await,
             nav_contact: crate::i18n::get_translation(state, locale, "nav-contact").await,
             nav_logout: crate::i18n::get_translation(state, locale, "nav-logout").await,

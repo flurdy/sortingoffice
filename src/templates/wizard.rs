@@ -211,3 +211,116 @@ pub struct DuplicateCompleteTemplate<'a> {
     pub back_to_domains_button: &'a str,
     pub duplicate_another_button: &'a str,
 }
+
+// Remove Domain Wizard Templates
+
+#[derive(Template)]
+#[template(path = "wizard/remove_domain_selection.html")]
+pub struct RemoveDomainSelectionTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub error: &'a str,
+    pub domain_names: &'a [String],
+    pub domain_label: &'a str,
+    pub domain_placeholder: &'a str,
+    pub domain_description: &'a str,
+    pub warning_message: &'a str,
+    pub next_button: &'a str,
+    pub cancel_button: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/remove_review_affected.html")]
+pub struct RemoveReviewAffectedTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub domain_name: &'a str,
+    pub domain_type: &'a str,
+    pub affected_resources_title: &'a str,
+    pub aliases_count: usize,
+    pub users_count: usize,
+    pub relays_count: usize,
+    pub relocated_count: usize,
+    pub orphaned_aliases_warning: &'a str,
+    pub orphaned_aliases_count: usize,
+    pub orphaned_aliases: &'a [crate::models::Alias],
+    pub cross_db_warning: &'a str,
+    pub cross_db_domains: &'a [String],
+    pub resource_label_aliases: &'a str,
+    pub resource_label_users: &'a str,
+    pub resource_label_relays: &'a str,
+    pub resource_label_relocated: &'a str,
+    pub disable_button: &'a str,
+    pub cancel_button: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/remove_review_disabled.html")]
+pub struct RemoveReviewDisabledTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub domain_name: &'a str,
+    pub disabled_count: &'a crate::models::DisabledResourceCount,
+    pub resource_label_domain: &'a str,
+    pub resource_label_aliases: &'a str,
+    pub resource_label_users: &'a str,
+    pub resource_label_relays: &'a str,
+    pub resource_label_relocated: &'a str,
+    pub proceed_button: &'a str,
+    pub cancel_button: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/remove_confirm_delete.html")]
+pub struct RemoveConfirmDeleteTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub warning_message: &'a str,
+    pub domain_name: &'a str,
+    pub resources_to_delete_title: &'a str,
+    pub domain_count: usize,
+    pub aliases_count: usize,
+    pub users_count: usize,
+    pub relays_count: usize,
+    pub relocated_count: usize,
+    pub orphaned_aliases_reminder: &'a str,
+    pub orphaned_aliases_count: usize,
+    pub resource_label_domain: &'a str,
+    pub resource_label_aliases: &'a str,
+    pub resource_label_users: &'a str,
+    pub resource_label_relays: &'a str,
+    pub resource_label_relocated: &'a str,
+    pub delete_button: &'a str,
+    pub cancel_button: &'a str,
+    pub current_db_read_only: bool,
+    pub read_only_database: &'a str,
+    pub read_only_tooltip: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "wizard/remove_complete.html")]
+pub struct RemoveCompleteTemplate<'a> {
+    pub title: &'a str,
+    pub description: &'a str,
+    pub success_message: &'a str,
+    pub domain_name: &'a str,
+    pub deleted_count: &'a crate::models::DeletedResourceCount,
+    pub cross_db_warning: &'a str,
+    pub cross_db_domains: &'a [String],
+    pub resource_label_domain: &'a str,
+    pub resource_label_aliases: &'a str,
+    pub resource_label_users: &'a str,
+    pub resource_label_relays: &'a str,
+    pub resource_label_relocated: &'a str,
+    pub back_to_domains_button: &'a str,
+    pub remove_another_button: &'a str,
+}

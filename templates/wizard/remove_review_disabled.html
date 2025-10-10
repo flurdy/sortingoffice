@@ -1,0 +1,56 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Wizard Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex items-center justify-center w-8 h-8 bg-yellow-100 dark:bg-yellow-900/40 rounded-full mr-3">
+                    <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">3</span>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400">{{ description }}</p>
+        </div>
+
+        <!-- Domain Info -->
+        <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ domain_name }}</h2>
+        </div>
+
+        <!-- Disabled Resources -->
+        <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Successfully Disabled</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_domain }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ disabled_count.domain }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_aliases }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ disabled_count.aliases }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_users }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ disabled_count.users }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relays }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ disabled_count.relays }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">{{ resource_label_relocated }}:</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">{{ disabled_count.relocated }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-3">
+            <a href="/domains" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {{ cancel_button }}
+            </a>
+            <a href="/remove-wizard/confirm-delete" class="px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 rounded-md {% if current_db_read_only %}bg-gray-400 cursor-not-allowed{% else %}bg-red-600 hover:bg-red-700{% endif %}" {% if current_db_read_only %}disabled title="{{ read_only_tooltip }}"{% endif %}>
+                {% if current_db_read_only %}{{ read_only_database }}{% else %}{{ proceed_button }}{% endif %}
+            </a>
+        </div>
+    </div>
+</div>
