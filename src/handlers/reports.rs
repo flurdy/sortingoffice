@@ -377,17 +377,63 @@ pub async fn orphaned_report(
         Ok(pool) => pool,
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
+
+    tracing::info!("Generating orphaned report...");
+    let start_time = std::time::Instant::now();
+
     let mut report = match state
         .db_manager
         .get_orphaned_aliases_report_cached(&pool)
         .await
     {
-        Ok(report) => report,
+        Ok(report) => {
+            let elapsed = start_time.elapsed();
+            tracing::info!(
+                "Orphaned report generated successfully in {:?}. Aliases: {}, Users: {}, Users w/o aliases: {}, Relays: {}, Relocated: {}",
+                elapsed,
+                report.orphaned_aliases.len(),
+                report.orphaned_users.len(),
+                report.users_without_aliases.len(),
+                report.orphaned_relays.len(),
+                report.orphaned_relocated.len()
+            );
+            report
+        }
         Err(e) => {
-            tracing::error!("Error generating orphaned report: {:?}", e);
+            tracing::error!(
+                "Error generating orphaned report after {:?}: {:?}",
+                start_time.elapsed(),
+                e
+            );
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
+    // Check if the report is too large to render safely
+    let total_orphaned = report.orphaned_aliases.len()
+        + report.orphaned_users.len()
+        + report.users_without_aliases.len()
+        + report.orphaned_relays.len()
+        + report.orphaned_relocated.len();
+
+    const MAX_ORPHANED_RECORDS: usize = 10000; // Safety limit to prevent memory exhaustion
+
+    if total_orphaned > MAX_ORPHANED_RECORDS {
+        tracing::error!(
+            "Orphaned report too large to render: {} total records (limit: {})",
+            total_orphaned,
+            MAX_ORPHANED_RECORDS
+        );
+        tracing::error!(
+            "Breakdown - Aliases: {}, Users: {}, Users w/o aliases: {}, Relays: {}, Relocated: {}",
+            report.orphaned_aliases.len(),
+            report.orphaned_users.len(),
+            report.users_without_aliases.len(),
+            report.orphaned_relays.len(),
+            report.orphaned_relocated.len()
+        );
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
 
     // Apply filtering if requested
     let hide_disabled = params.hide_disabled.unwrap_or(false);
@@ -399,6 +445,15 @@ pub async fn orphaned_report(
         report
             .orphaned_relocated
             .retain(|relocated| relocated.enabled);
+
+        tracing::info!(
+            "After filtering disabled: {} total orphaned records",
+            report.orphaned_aliases.len()
+                + report.orphaned_users.len()
+                + report.users_without_aliases.len()
+                + report.orphaned_relays.len()
+                + report.orphaned_relocated.len()
+        );
     }
 
     // Get translations

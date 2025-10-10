@@ -53,6 +53,10 @@ pub struct BackupShowTemplate {
     pub status_header_relay: String,
     pub enabled_header: String,
     pub no_relays_message: String,
+    pub actions_header: String,
+    pub action_view: String,
+    pub enable_alias: String,
+    pub disable_alias: String,
     // Users section
     pub domain_users: Vec<crate::models::User>,
     pub users_header: String,

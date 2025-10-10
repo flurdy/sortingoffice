@@ -10,7 +10,7 @@ use diesel::result::Error;
 use diesel::sql_query;
 
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -2026,66 +2026,142 @@ pub fn get_system_stats(pool: &DbPool) -> Result<SystemStats, Error> {
 }
 
 pub fn get_domain_stats(pool: &DbPool) -> Result<Vec<DomainStats>, Error> {
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!(
+            "Failed to get connection from pool for domain stats: {:?}",
+            e
+        );
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
 
-    // This is a simplified version - in a real implementation you'd want to use proper SQL aggregation
+    tracing::info!("Generating domain statistics report...");
+    let start_time = std::time::Instant::now();
+
+    // Get all domains first
     let domains = get_domains(pool)?;
-    let mut stats = Vec::new();
+    tracing::debug!("Loaded {} domains for statistics", domains.len());
 
-    for domain in domains {
-        // Count aliases for this domain by checking the domain part of the mail field
-        let alias_count: i64 = aliases::table
-            .filter(aliases::mail.like(format!("%@{}", domain.domain)))
-            .count()
-            .get_result(&mut conn)?;
+    // Build a HashMap to store counts for each domain - initialize with zeros
+    let mut domain_map: HashMap<String, DomainStats> = domains
+        .into_iter()
+        .map(|domain| {
+            (
+                domain.domain.clone(),
+                DomainStats {
+                    domain_id: domain.pkid,
+                    domain: domain.domain,
+                    user_count: 0,
+                    alias_count: 0,
+                    relay_count: 0,
+                    relay_enabled_count: 0,
+                    relay_disabled_count: 0,
+                    relocated_count: 0,
+                    relocated_enabled_count: 0,
+                    relocated_disabled_count: 0,
+                },
+            )
+        })
+        .collect();
 
-        // Count users for this domain by checking the domain part of the id field
-        let user_count: i64 = users::table
-            .filter(users::id.like(format!("%@{}", domain.domain)))
-            .count()
-            .get_result(&mut conn)?;
+    // Load all aliases and count by domain in one pass
+    let all_aliases = aliases::table
+        .select((aliases::mail, aliases::enabled))
+        .load::<(String, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load aliases for domain stats: {:?}", e);
+            e
+        })?;
 
-        // Count relays for this domain by checking the domain part of the recipient field
-        let relay_count: i64 = relays::table
-            .filter(relays::recipient.like(format!("%@{}", domain.domain)))
-            .count()
-            .get_result(&mut conn)?;
-
-        let relay_enabled_count: i64 = relays::table
-            .filter(relays::recipient.like(format!("%@{}", domain.domain)))
-            .filter(relays::enabled.eq(true))
-            .count()
-            .get_result(&mut conn)?;
-
-        let relay_disabled_count: i64 = relay_count - relay_enabled_count;
-
-        // Count relocated for this domain by checking the domain part of the old_address field
-        let relocated_count: i64 = relocated::table
-            .filter(relocated::old_address.like(format!("%@{}", domain.domain)))
-            .count()
-            .get_result(&mut conn)?;
-
-        let relocated_enabled_count: i64 = relocated::table
-            .filter(relocated::old_address.like(format!("%@{}", domain.domain)))
-            .filter(relocated::enabled.eq(true))
-            .count()
-            .get_result(&mut conn)?;
-
-        let relocated_disabled_count: i64 = relocated_count - relocated_enabled_count;
-
-        stats.push(DomainStats {
-            domain_id: domain.pkid,
-            domain: domain.domain,
-            user_count,
-            alias_count,
-            relay_count,
-            relay_enabled_count,
-            relay_disabled_count,
-            relocated_count,
-            relocated_enabled_count,
-            relocated_disabled_count,
-        });
+    for (mail, _enabled) in all_aliases {
+        if let Some(domain) = mail.split('@').nth(1) {
+            if let Some(stats) = domain_map.get_mut(domain) {
+                stats.alias_count += 1;
+            }
+        }
     }
+    tracing::debug!("Counted aliases for all domains");
+
+    // Load all users and count by domain in one pass
+    let all_users = users::table
+        .select((users::id, users::enabled))
+        .load::<(String, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load users for domain stats: {:?}", e);
+            e
+        })?;
+
+    for (id, _enabled) in all_users {
+        if let Some(domain) = id.split('@').nth(1) {
+            if let Some(stats) = domain_map.get_mut(domain) {
+                stats.user_count += 1;
+            }
+        }
+    }
+    tracing::debug!("Counted users for all domains");
+
+    // Load all relays and count by domain in one pass
+    if relays_table_exists(pool) {
+        let all_relays = relays::table
+            .select((relays::recipient, relays::enabled))
+            .load::<(String, bool)>(&mut conn)
+            .map_err(|e| {
+                tracing::error!("Failed to load relays for domain stats: {:?}", e);
+                e
+            })?;
+
+        for (recipient, enabled) in all_relays {
+            if let Some(domain) = recipient.split('@').nth(1) {
+                if let Some(stats) = domain_map.get_mut(domain) {
+                    stats.relay_count += 1;
+                    if enabled {
+                        stats.relay_enabled_count += 1;
+                    } else {
+                        stats.relay_disabled_count += 1;
+                    }
+                }
+            }
+        }
+        tracing::debug!("Counted relays for all domains");
+    }
+
+    // Load all relocated and count by domain in one pass
+    if relocated_table_exists(pool) {
+        let all_relocated = relocated::table
+            .select((relocated::old_address, relocated::enabled))
+            .load::<(String, bool)>(&mut conn)
+            .map_err(|e| {
+                tracing::error!("Failed to load relocated for domain stats: {:?}", e);
+                e
+            })?;
+
+        for (old_address, enabled) in all_relocated {
+            if let Some(domain) = old_address.split('@').nth(1) {
+                if let Some(stats) = domain_map.get_mut(domain) {
+                    stats.relocated_count += 1;
+                    if enabled {
+                        stats.relocated_enabled_count += 1;
+                    } else {
+                        stats.relocated_disabled_count += 1;
+                    }
+                }
+            }
+        }
+        tracing::debug!("Counted relocated for all domains");
+    }
+
+    // Convert HashMap back to Vec and sort by domain name
+    let mut stats: Vec<DomainStats> = domain_map.into_values().collect();
+    stats.sort_by(|a, b| a.domain.cmp(&b.domain));
+
+    let elapsed = start_time.elapsed();
+    tracing::info!(
+        "Domain statistics report generated in {:?} for {} domains",
+        elapsed,
+        stats.len()
+    );
 
     Ok(stats)
 }
@@ -3671,7 +3747,45 @@ pub fn clients_table_exists(pool: &DbPool) -> bool {
 
 // Additional report functions
 pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport, Error> {
-    let mut conn = pool.get().unwrap();
+    let mut conn = pool.get().map_err(|e| {
+        tracing::error!(
+            "Failed to get connection from pool for orphaned report: {:?}",
+            e
+        );
+        Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::Unknown,
+            Box::new(e.to_string()),
+        )
+    })?;
+
+    tracing::debug!("Loading domain data for orphaned report...");
+
+    // Get all existing domain names for quick lookup using HashSet for O(1) lookups
+    let existing_domains: HashSet<String> = domains::table
+        .select(domains::domain)
+        .load::<String>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load domains for orphaned report: {:?}", e);
+            e
+        })?
+        .into_iter()
+        .collect();
+
+    tracing::debug!("Loaded {} existing domains", existing_domains.len());
+
+    // Get domain info (id and enabled status) for lookups
+    let domain_info_map: HashMap<String, (i32, bool)> = domains::table
+        .select((domains::domain, domains::pkid, domains::enabled))
+        .load::<(String, i32, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load domain info for orphaned report: {:?}", e);
+            e
+        })?
+        .into_iter()
+        .map(|(domain, pkid, enabled)| (domain, (pkid, enabled)))
+        .collect();
+
+    tracing::debug!("Checking for orphaned aliases...");
 
     // Find aliases where the mail domain doesn't exist in the domains table
     let mut orphaned_aliases: Vec<OrphanedAlias> = aliases::table
@@ -3680,162 +3794,131 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             aliases::mail,
             aliases::destination,
             aliases::enabled,
-            aliases::created,
         ))
         .order_by(aliases::mail.asc())
-        .load::<(i32, String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
+        .load::<(i32, String, String, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load aliases for orphaned report: {:?}", e);
+            e
+        })?
         .into_iter()
-        .filter(|(_, mail, _, _, _)| {
+        .filter_map(|(id, mail, destination, enabled)| {
             // Extract the domain from the alias mail address
-            if let Some(at_pos) = mail.rfind('@') {
-                let mail_domain = &mail[at_pos + 1..];
-                // Check if this domain exists and is enabled in our domains table
-                let domain_exists: Option<(String, bool)> = domains::table
-                    .filter(domains::domain.eq(mail_domain))
-                    .select((domains::domain, domains::enabled))
-                    .first::<(String, bool)>(&mut conn)
-                    .optional()
-                    .unwrap_or(None);
-                // Consider orphaned if domain doesn't exist or is disabled
-                domain_exists.is_none_or(|(_, enabled)| !enabled)
-            } else {
-                false
+            let domain = mail.split('@').nth(1)?.to_string();
+
+            // Consider orphaned if domain doesn't exist
+            if !existing_domains.contains(&domain) {
+                let (domain_id, domain_enabled) = domain_info_map.get(&domain).copied().unzip();
+                return Some(OrphanedAlias {
+                    id,
+                    mail,
+                    destination,
+                    domain,
+                    domain_id,
+                    domain_enabled,
+                    enabled,
+                });
             }
-        })
-        .map(|(id, mail, destination, enabled, _created)| {
-            let domain = mail.split('@').nth(1).unwrap_or("").to_string();
-            OrphanedAlias {
-                id,
-                mail,
-                destination,
-                domain,
-                domain_id: None,      // Will be populated later
-                domain_enabled: None, // Will be populated later
-                enabled,
-            }
+            None
         })
         .collect::<Vec<_>>();
 
     // Sort by domain first, then by mail
     orphaned_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.mail.cmp(&b.mail)));
 
-    // Populate domain IDs and enabled status for orphaned aliases
-    for alias in &mut orphaned_aliases {
-        if let Some(at_pos) = alias.mail.rfind('@') {
-            let mail_domain = &alias.mail[at_pos + 1..];
-            if let Ok((domain_id, domain_enabled)) = domains::table
-                .filter(domains::domain.eq(mail_domain))
-                .select((domains::pkid, domains::enabled))
-                .first::<(i32, bool)>(&mut conn)
-            {
-                alias.domain_id = Some(domain_id);
-                alias.domain_enabled = Some(domain_enabled);
-            }
-        }
-    }
+    tracing::debug!("Found {} orphaned aliases", orphaned_aliases.len());
 
-    // Find users where the domain doesn't exist or is disabled in the domains table
+    tracing::debug!("Checking for orphaned users...");
+
+    // Find users where the domain doesn't exist in the domains table
     let mut orphaned_users: Vec<OrphanedUser> = users::table
-        .select((users::id, users::name, users::enabled, users::created))
+        .select((users::id, users::name, users::enabled))
         .order_by(users::id.asc())
-        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
+        .load::<(String, String, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load users for orphaned report: {:?}", e);
+            e
+        })?
         .into_iter()
-        .filter(|(id, _, _, _)| {
+        .filter_map(|(id, name, enabled)| {
             // Extract the domain from the user ID
-            if let Some(at_pos) = id.rfind('@') {
-                let user_domain = &id[at_pos + 1..];
-                // Check if this domain exists and is enabled in our domains table
-                let domain_exists: Option<(String, bool)> = domains::table
-                    .filter(domains::domain.eq(user_domain))
-                    .select((domains::domain, domains::enabled))
-                    .first::<(String, bool)>(&mut conn)
-                    .optional()
-                    .unwrap_or(None);
-                // Consider orphaned if domain doesn't exist or is disabled
-                domain_exists.is_none_or(|(_, enabled)| !enabled)
-            } else {
-                false
+            let domain = id.split('@').nth(1)?.to_string();
+
+            // Consider orphaned if domain doesn't exist
+            if !existing_domains.contains(&domain) {
+                let (domain_id, domain_enabled) = domain_info_map.get(&domain).copied().unzip();
+                return Some(OrphanedUser {
+                    id,
+                    name,
+                    domain,
+                    domain_id,
+                    domain_enabled,
+                    enabled,
+                });
             }
-        })
-        .map(|(id, name, enabled, _created)| {
-            let domain = id.split('@').nth(1).unwrap_or("").to_string();
-            OrphanedUser {
-                id,
-                name,
-                domain,
-                domain_id: None,      // Will be populated later
-                domain_enabled: None, // Will be populated later
-                enabled,
-            }
+            None
         })
         .collect::<Vec<_>>();
 
     // Sort by domain first, then by id
     orphaned_users.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
 
-    // Populate domain IDs and enabled status for orphaned users
-    for user in &mut orphaned_users {
-        if let Some(at_pos) = user.id.rfind('@') {
-            let user_domain = &user.id[at_pos + 1..];
-            if let Ok((domain_id, domain_enabled)) = domains::table
-                .filter(domains::domain.eq(user_domain))
-                .select((domains::pkid, domains::enabled))
-                .first::<(i32, bool)>(&mut conn)
-            {
-                user.domain_id = Some(domain_id);
-                user.domain_enabled = Some(domain_enabled);
-            }
-        }
-    }
+    tracing::debug!("Found {} orphaned users", orphaned_users.len());
 
-    // Find users who don't have a corresponding alias
-    let mut users_without_aliases: Vec<UserWithoutAlias> = users::table
-        .select((users::id, users::name, users::enabled, users::created))
-        .order_by(users::id.asc())
-        .load::<(String, String, bool, Option<NaiveDateTime>)>(&mut conn)?
+    tracing::debug!("Checking for users without aliases...");
+
+    // Find users who don't have a corresponding alias - optimize with a HashSet lookup
+    let existing_alias_mails: HashSet<String> = aliases::table
+        .select(aliases::mail)
+        .load::<String>(&mut conn)
+        .map_err(|e| {
+            tracing::error!("Failed to load alias mails for orphaned report: {:?}", e);
+            e
+        })?
         .into_iter()
-        .filter(|(id, _, _, _)| {
+        .collect();
+
+    let mut users_without_aliases: Vec<UserWithoutAlias> = users::table
+        .select((users::id, users::name, users::enabled))
+        .order_by(users::id.asc())
+        .load::<(String, String, bool)>(&mut conn)
+        .map_err(|e| {
+            tracing::error!(
+                "Failed to load users for users-without-aliases check: {:?}",
+                e
+            );
+            e
+        })?
+        .into_iter()
+        .filter_map(|(id, name, enabled)| {
             // Check if there's an alias for this user
-            let alias_exists: Option<String> = aliases::table
-                .filter(aliases::mail.eq(id))
-                .select(aliases::mail)
-                .first::<String>(&mut conn)
-                .optional()
-                .unwrap_or(None);
-            alias_exists.is_none()
-        })
-        .map(|(id, name, enabled, _created)| {
-            let domain = id.split('@').nth(1).unwrap_or("").to_string();
-            UserWithoutAlias {
-                id,
-                name,
-                domain,
-                domain_id: None,      // Will be populated later
-                domain_enabled: None, // Will be populated later
-                enabled,
+            if !existing_alias_mails.contains(&id) {
+                let domain = id.split('@').nth(1).unwrap_or("").to_string();
+                let (domain_id, domain_enabled) = domain_info_map.get(&domain).copied().unzip();
+                return Some(UserWithoutAlias {
+                    id,
+                    name,
+                    domain,
+                    domain_id,
+                    domain_enabled,
+                    enabled,
+                });
             }
+            None
         })
         .collect::<Vec<_>>();
 
     // Sort by domain first, then by id
     users_without_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
 
-    // Populate domain IDs and enabled status for users without aliases
-    for user in &mut users_without_aliases {
-        if let Some(at_pos) = user.id.rfind('@') {
-            let user_domain = &user.id[at_pos + 1..];
-            if let Ok((domain_id, domain_enabled)) = domains::table
-                .filter(domains::domain.eq(user_domain))
-                .select((domains::pkid, domains::enabled))
-                .first::<(i32, bool)>(&mut conn)
-            {
-                user.domain_id = Some(domain_id);
-                user.domain_enabled = Some(domain_enabled);
-            }
-        }
-    }
+    tracing::debug!(
+        "Found {} users without aliases",
+        users_without_aliases.len()
+    );
 
-    // Find relays where the recipient domain doesn't exist or is disabled in the domains table
+    tracing::debug!("Checking for orphaned relays...");
+
+    // Find relays where the recipient domain doesn't exist in the domains table
     let mut orphaned_relays: Vec<OrphanedRelay> = if relays_table_exists(pool) {
         relays::table
             .select((
@@ -3845,36 +3928,30 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 relays::enabled,
             ))
             .order_by(relays::recipient.asc())
-            .load::<(i32, String, String, bool)>(&mut conn)?
+            .load::<(i32, String, String, bool)>(&mut conn)
+            .map_err(|e| {
+                tracing::error!("Failed to load relays for orphaned report: {:?}", e);
+                e
+            })?
             .into_iter()
-            .filter(|(_, recipient, _, _)| {
+            .filter_map(|(id, recipient, status, enabled)| {
                 // Extract the domain from the relay recipient address
-                if let Some(at_pos) = recipient.rfind('@') {
-                    let relay_domain = &recipient[at_pos + 1..];
-                    // Check if this domain exists in our domains table
-                    let domain_exists: Option<(String, bool)> = domains::table
-                        .filter(domains::domain.eq(relay_domain))
-                        .select((domains::domain, domains::enabled))
-                        .first::<(String, bool)>(&mut conn)
-                        .optional()
-                        .unwrap_or(None);
-                    // Consider orphaned if domain doesn't exist
-                    domain_exists.is_none()
-                } else {
-                    false
+                let domain = recipient.split('@').nth(1)?.to_string();
+
+                // Consider orphaned if domain doesn't exist
+                if !existing_domains.contains(&domain) {
+                    let (domain_id, domain_enabled) = domain_info_map.get(&domain).copied().unzip();
+                    return Some(OrphanedRelay {
+                        id,
+                        recipient,
+                        status,
+                        domain,
+                        domain_id,
+                        domain_enabled,
+                        enabled,
+                    });
                 }
-            })
-            .map(|(id, recipient, status, enabled)| {
-                let domain = recipient.split('@').nth(1).unwrap_or("").to_string();
-                OrphanedRelay {
-                    id,
-                    recipient,
-                    status,
-                    domain,
-                    domain_id: None,      // Will be populated later
-                    domain_enabled: None, // Will be populated later
-                    enabled,
-                }
+                None
             })
             .collect::<Vec<_>>()
     } else {
@@ -3888,22 +3965,11 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             .then_with(|| a.recipient.cmp(&b.recipient))
     });
 
-    // Populate domain IDs and enabled status for orphaned relays
-    for relay in &mut orphaned_relays {
-        if let Some(at_pos) = relay.recipient.rfind('@') {
-            let relay_domain = &relay.recipient[at_pos + 1..];
-            if let Ok((domain_id, domain_enabled)) = domains::table
-                .filter(domains::domain.eq(relay_domain))
-                .select((domains::pkid, domains::enabled))
-                .first::<(i32, bool)>(&mut conn)
-            {
-                relay.domain_id = Some(domain_id);
-                relay.domain_enabled = Some(domain_enabled);
-            }
-        }
-    }
+    tracing::debug!("Found {} orphaned relays", orphaned_relays.len());
 
-    // Find relocated where the old_address domain doesn't exist or is disabled in the domains table
+    tracing::debug!("Checking for orphaned relocated...");
+
+    // Find relocated where the old_address domain doesn't exist in the domains table
     let mut orphaned_relocated: Vec<OrphanedRelocated> = if relocated_table_exists(pool) {
         relocated::table
             .select((
@@ -3913,36 +3979,30 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 relocated::enabled,
             ))
             .order_by(relocated::old_address.asc())
-            .load::<(i32, String, String, bool)>(&mut conn)?
+            .load::<(i32, String, String, bool)>(&mut conn)
+            .map_err(|e| {
+                tracing::error!("Failed to load relocated for orphaned report: {:?}", e);
+                e
+            })?
             .into_iter()
-            .filter(|(_, old_address, _, _)| {
+            .filter_map(|(id, old_address, new_address, enabled)| {
                 // Extract the domain from the relocated old_address
-                if let Some(at_pos) = old_address.rfind('@') {
-                    let relocated_domain = &old_address[at_pos + 1..];
-                    // Check if this domain exists in our domains table
-                    let domain_exists: Option<(String, bool)> = domains::table
-                        .filter(domains::domain.eq(relocated_domain))
-                        .select((domains::domain, domains::enabled))
-                        .first::<(String, bool)>(&mut conn)
-                        .optional()
-                        .unwrap_or(None);
-                    // Consider orphaned if domain doesn't exist
-                    domain_exists.is_none()
-                } else {
-                    false
+                let domain = old_address.split('@').nth(1)?.to_string();
+
+                // Consider orphaned if domain doesn't exist
+                if !existing_domains.contains(&domain) {
+                    let (domain_id, domain_enabled) = domain_info_map.get(&domain).copied().unzip();
+                    return Some(OrphanedRelocated {
+                        id,
+                        old_address,
+                        new_address,
+                        domain,
+                        domain_id,
+                        domain_enabled,
+                        enabled,
+                    });
                 }
-            })
-            .map(|(id, old_address, new_address, enabled)| {
-                let domain = old_address.split('@').nth(1).unwrap_or("").to_string();
-                OrphanedRelocated {
-                    id,
-                    old_address,
-                    new_address,
-                    domain,
-                    domain_id: None,      // Will be populated later
-                    domain_enabled: None, // Will be populated later
-                    enabled,
-                }
+                None
             })
             .collect::<Vec<_>>()
     } else {
@@ -3956,20 +4016,16 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             .then_with(|| a.old_address.cmp(&b.old_address))
     });
 
-    // Populate domain IDs and enabled status for orphaned relocated
-    for relocated in &mut orphaned_relocated {
-        if let Some(at_pos) = relocated.old_address.rfind('@') {
-            let relocated_domain = &relocated.old_address[at_pos + 1..];
-            if let Ok((domain_id, domain_enabled)) = domains::table
-                .filter(domains::domain.eq(relocated_domain))
-                .select((domains::pkid, domains::enabled))
-                .first::<(i32, bool)>(&mut conn)
-            {
-                relocated.domain_id = Some(domain_id);
-                relocated.domain_enabled = Some(domain_enabled);
-            }
-        }
-    }
+    tracing::debug!("Found {} orphaned relocated", orphaned_relocated.len());
+
+    tracing::info!(
+        "Orphaned report complete: {} aliases, {} users, {} users w/o aliases, {} relays, {} relocated",
+        orphaned_aliases.len(),
+        orphaned_users.len(),
+        users_without_aliases.len(),
+        orphaned_relays.len(),
+        orphaned_relocated.len()
+    );
 
     Ok(OrphanedAliasReport {
         orphaned_aliases,

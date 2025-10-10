@@ -20,10 +20,25 @@ pub async fn recent_changes_report(
         Err(_error_html) => return Err(StatusCode::INTERNAL_SERVER_ERROR),
     };
 
+    tracing::info!("Generating recent changes report...");
+    let start_time = std::time::Instant::now();
+
     let report = match db::get_recent_changes_report(&pool, Some(50)).await {
-        Ok(report) => report,
+        Ok(report) => {
+            let elapsed = start_time.elapsed();
+            tracing::info!(
+                "Recent changes report generated successfully in {:?}, {} total changes",
+                elapsed,
+                report.changes.len()
+            );
+            report
+        }
         Err(e) => {
-            tracing::error!("Error generating recent changes report: {:?}", e);
+            tracing::error!(
+                "Error generating recent changes report after {:?}: {:?}",
+                start_time.elapsed(),
+                e
+            );
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };

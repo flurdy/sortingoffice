@@ -436,6 +436,8 @@ relays-tooltip-active = Activer ce relais
 relays-cancel = Annuler
 relays-update-relay = Mettre à Jour le Relais
 relays-create-relay = Créer le Relais
+relays-enable = Activer le Relais
+relays-disable = Désactiver le Relais
 relays-back-to-list = Retour aux Relais
 # Relocated
 relocated-title = Réacheminés

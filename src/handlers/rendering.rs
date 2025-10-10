@@ -981,6 +981,12 @@ pub async fn render_backup_show_page(
     let domains_enabled_header =
         crate::i18n::get_translation(state, locale, "domains-enabled-header").await;
 
+    // Action translations for relay buttons
+    let actions_header = crate::i18n::get_translation(state, locale, "actions-header").await;
+    let action_view = crate::i18n::get_translation(state, locale, "action-view").await;
+    let enable_alias = crate::i18n::get_translation(state, locale, "relays-enable").await;
+    let disable_alias = crate::i18n::get_translation(state, locale, "relays-disable").await;
+
     let content_template = crate::templates::domain_backup::BackupShowTemplate {
         title,
         view_edit_settings,
@@ -1032,6 +1038,10 @@ pub async fn render_backup_show_page(
         status_header_relay,
         enabled_header,
         no_relays_message,
+        actions_header,
+        action_view,
+        enable_alias,
+        disable_alias,
         domain_users,
         users_header,
         users_description,

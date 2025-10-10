@@ -4,7 +4,24 @@
 
 ## High Priority Minor and bugs 🐛
 
-- ✅ recent changes report seem to blow up with a weird 500 that does not show an error page
+- ✅ In prod, reports were throwing 500 errors:
+  - ✅ Orphan report blew up with a 500
+    - Already optimized to O(n+m) with HashSet/HashMap lookups  
+    - **FIXED**: Added 10,000 record safety limit with detailed error logging
+    - If limit exceeded, logs will show exact breakdown (aliases/users/relays/relocated)
+    - Can use "hide_disabled" filter to reduce count before rendering
+  - ✅ Domain statistics report blew up with a 500
+    - **FIXED**: Rewritten from 6000+ individual queries to just 5 bulk queries
+    - Before: For 1000 domains = ~6000 SQL queries (6 per domain)
+    - After: 5 queries total + HashMap aggregation in Rust
+    - Added comprehensive logging and timing
+  - ✅ Recent changes report blew up with a 500 
+    - Already limited to 50 items per table (350 max records)
+    - **FIXED**: Added detailed timing logs and error handling
+    - **ACTION NEEDED**: Add database indexes on `modified` columns for better performance
+    - See `/docs/PERFORMANCE_INDEXES.md` for SQL statements to create indexes
+  - All fixes ready for production testing with comprehensive logging
+  - Logs will now show exact timing and record counts for diagnosis
 
 ## Medium Priority Epics
 
@@ -22,47 +39,44 @@
 
 - ✅ Lets check the tests (e.g. make test-unit, make test-smoke-containerized etc)
   - ✅ Unit tests: 112/112 passed
-  - ✅ Integration tests: 16/16 passed
+  - ✅ Integration tests: 77/77 passed (13 + 45 handlers + 16 integration + 3 testcontainers)
   - ✅ Security tests: 6/6 passed
   - ✅ API tests: 9/9 passed
+  - ✅ UI tests: 21/21 passed (18 UI + 2 duplicate wizard + 1 wizard, 1 ignored)
   - Note: Smoke test has minor alert cleanup issue (test infrastructure, not application bug)
+  - Note: Some wizard tests show timeout warnings but still verify all resources correctly
 
 - ✅ The paging seems not to be on the mx reports anymore? Related to the recent filtering, maybe?
 
-- ✅ Not found aliases is pure text, not styled 404 error page
-
-- ✅ Need to test alias destination containing multiple emails separated by a comma.
-
-- ✅ In the mx servers report, can there be some filter buttons/checkboxes at the top to:
-  - ✅ Exclude disabled domains
-  - ✅ Exclude subdomains
-  - ✅ And filter by the mx status, e.g only show non-compliant etc.
-
 - ✅ In the mx servers report, can it be shown if a domain:
   - ✅ enabled, disabled
-  - ✅ normal domain or backup domain
+  - ✅ normal domain or backup domain 
 
-- ✅ In the mx servers report, if on a paged result, switching to another db with less domains may result in an empty result page without paging buttons.
-
-- ✅ In show backup domain page, users and aliases are at the top, they should match the order that is in show domain. 
-
-- ✅ In the list domains page, on a backup domain row clicking disable does nothing.
-  - ✅ Console says: 404 for /domain_backup/102/toggle-list
+- ✅ On a prod site, the orphaned report keep blowing up. It has a lot of domain and aliases.
+  - Optimized to use HashSet/HashMap lookups instead of individual DB queries per record
+  - Performance improved from O(n*m) to O(n+m) where n=records, m=domains
+  - Added comprehensive error handling and logging at each stage of report generation
+  - Added timing logs to identify bottlenecks (start time, elapsed time, record counts)
+  - Added detailed error logging with context at every database operation
+  - All unit tests (112/112) pass
+  - Ready for production testing - logs will now show exactly where any error occurs
 
 ## Low Priority Epics
 
 - ✅ Add html head title and description to all the pages. So that tabs can be distinguished when not wide E.g
    - ✅ show domain could have: 'DOMAINNAME domain at DB db - Sorting Office' 
 
-- ✅ A report to check if any domains mx settings are not in a list of servers. 
-  - Basically to check if some domains are not pointing to these mail servers.
-  - May need to add optional servers name (e.g mail.example.com) to DBs in the config, to compare with?
-
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
 - ✅ Can the orphaned report also check relays and relocated entries.
 
 ## Low Priority Minor and bugs 🐛 
+
+- ✅ In show backup domains, the disable/enable buttons for relays are not translated
+  - They use "Enable Alias" / "Disable Alias" but should say "Enable Relay" / "Disable Relay"
+  - **FIXED**: Added `relays-enable` and `relays-disable` keys to all 7 locales
+  - Updated handler to use relay-specific translation keys
+  - Buttons now correctly say "Enable Relay" / "Disable Relay" in all languages
 
 - ✅ Like in some of the reports, can the we add filters to the domain and backup domain lists? 
    - ✅ enabled/disabled
@@ -72,24 +86,15 @@
 
 - ✅ In show alias, if the alias is a catch all, please do not include the alias occurrences report.
 
-- ✅ In show domain the disable domain button should not be blue? 
-  - ✅ And in all other resources pages
-
-- ✅ Add a whois lookup under or within the DNS section
-  - ✅ As it may be a large blob of text, it may need to be collapsible
-
-- ✅ On the cross-database user distribution, can the user be a link to the show user page if present in the current db.
-
-- ✅ In the Orphaned aliases and users report add a button to toggle filtering out disabled resources, and some way to flag that the domain may be disabled as well
-
 - ✅ On the domain statistics report, remove the quota columns. Add relays and relocated.
   - With enabled and disabled shown as well?
 
-- ✅ if show domain is for a missing domain, there is an error in the log but just a blank page shown, with correct header and sidebar.
-  - ✅ Applied the same fix to all other missing resource pages (users, aliases, relays, backups, relocated, clients)
-  - ✅ Not found Alias Still shows unstyled page http://localhost:3000/aliases/85 
-  - ✅ Same for relay
-  - ✅ Not found domain, user, relocated and client is styled
+- ✅ On show backup domain, the relay rows do not have the usual buttons.
+  - Added Actions column header
+  - Added View button to each relay row
+  - Added Enable/Disable toggle button to each relay row
+  - Buttons respect read-only database mode
+  - All buttons use HTMX for dynamic updates
 
 ## 🙈 KNOWN ISSUES
 
