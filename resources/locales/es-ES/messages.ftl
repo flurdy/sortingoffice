@@ -308,6 +308,10 @@ aliases-placeholder-domain = ejemplo.com
 # Users
 users-title = Usuarios
 users-description = Gestiona los usuarios de tu servidor de correo y sus cuentas.
+users-filter-all = Todos
+users-filter-enabled = Habilitados
+users-filter-disabled = Deshabilitados
+users-filters = Filtros
 users-add = Agregar Usuario
 users-table-header-username = Nombre de Usuario
 users-table-header-domain = Dominio
@@ -548,6 +552,10 @@ domains-alias-report-description = "Resumen de todos los alias para este dominio
 domains-existing-aliases-header = "Alias Existentes"
 # Relays
 relays-title = Relés
+relays-filter-all = Todos
+relays-filter-enabled = Habilitados
+relays-filter-disabled = Deshabilitados
+relays-filters = Filtros
 relays-add = Agregar Relé
 relays-add-title = Agregar Relé
 relays-edit-title = Editar Relé
@@ -579,6 +587,10 @@ relays-field-status-help = Establecer el estado del relé: OK para permitir el c
 relays-back-to-list = Volver a Relés
 # Relocated
 relocated-title = Reubicados
+relocated-filter-all = Todos
+relocated-filter-enabled = Habilitados
+relocated-filter-disabled = Deshabilitados
+relocated-filters = Filtros
 relocated-add = Agregar Reubicado
 relocated-list-description = Gestionar reubicaciones de direcciones de correo para la configuración de Postfix.
 relocated-table-header-old-address = Dirección Anterior
@@ -613,6 +625,10 @@ relocated-create-error = Error al crear dirección reubicada
 # Clients
 clients-title = Clientes
 clients-description = Gestionar controles de acceso de clientes para autenticación SMTP.
+clients-filter-all = Todos
+clients-filter-enabled = Habilitados
+clients-filter-disabled = Deshabilitados
+clients-filters = Filtros
 clients-add = Agregar Cliente
 clients-form-create-title = Agregar Cliente
 clients-form-edit-title = Editar Cliente

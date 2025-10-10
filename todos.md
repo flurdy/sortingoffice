@@ -11,8 +11,21 @@
 - ✅ Can the exclude enabled/disabled filter on domains actually be a 3 state toggle.
   - Similar looks to the enable/disable toggle on edit resources
   - With all, only disabled and only enabled as states?
+  - ✅ Implemented for domains
+  - ✅ Implemented for aliases
+  - ✅ Implemented for relays
+  - ✅ Implemented for relocated
+  - ✅ Implemented for users
+  - ✅ Implemented for clients
 
 ## Medium Priority Minor and bugs 🐛
+
+- ✅ Lets check the tests (e.g. make test-unit, make test-smoke-containerized etc)
+  - ✅ Unit tests: 112/112 passed
+  - ✅ Integration tests: 16/16 passed
+  - ✅ Security tests: 6/6 passed
+  - ✅ API tests: 9/9 passed
+  - Note: Smoke test has minor alert cleanup issue (test infrastructure, not application bug)
 
 - ✅ The paging seems not to be on the mx reports anymore? Related to the recent filtering, maybe?
 
@@ -47,7 +60,7 @@
 
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
-- Can the orphaned report also check relays and relocated entries.
+- ✅ Can the orphaned report also check relays and relocated entries.
 
 ## Low Priority Minor and bugs 🐛 
 

@@ -350,6 +350,10 @@ aliases-update-alias = Alias aktualisieren
 # Users
 users-title = Benutzer
 users-description = Verwalten Sie Ihre Mail-Server-Benutzer und deren Konten.
+users-filter-all = Alle
+users-filter-enabled = Aktiviert
+users-filter-disabled = Deaktiviert
+users-filters = Filter
 users-add = Benutzer hinzufügen
 users-table-header-username = Benutzername
 users-table-header-domain = Domain
@@ -643,6 +647,10 @@ domains-alias-report-description = "Übersicht über alle Aliase für diese Doma
 domains-existing-aliases-header = "Bestehende Aliase"
 # Relays
 relays-title = Relays
+relays-filter-all = Alle
+relays-filter-enabled = Aktiviert
+relays-filter-disabled = Deaktiviert
+relays-filters = Filter
 relays-add = Relay hinzufügen
 relays-add-title = Relay hinzufügen
 relays-edit-title = Relay bearbeiten
@@ -680,6 +688,10 @@ relays-update-error = Fehler beim Aktualisieren des Relays
 relays-not-available = Relays-Tabelle ist für diese Datenbank nicht verfügbar
 # Relocated
 relocated-title = Umgesiedelt
+relocated-filter-all = Alle
+relocated-filter-enabled = Aktiviert
+relocated-filter-disabled = Deaktiviert
+relocated-filters = Filter
 relocated-add = Umgesiedelt hinzufügen
 relocated-list-description = E-Mail-Adress-Umsiedlungen für Postfix-Konfiguration verwalten.
 relocated-table-header-old-address = Alte Adresse
@@ -716,6 +728,10 @@ relocated-not-available = Umgesiedelte-Tabelle ist für diese Datenbank nicht ve
 # Clients
 clients-title = Clients
 clients-description = Client-Zugriffskontrollen für SMTP-Authentifizierung verwalten.
+clients-filter-all = Alle
+clients-filter-enabled = Aktiviert
+clients-filter-disabled = Deaktiviert
+clients-filters = Filter
 clients-add = Client hinzufügen
 clients-form-create-title = Client hinzufügen
 clients-form-edit-title = Client bearbeiten

@@ -1,4 +1,4 @@
-use crate::models::{Domain, Relay, RelayForm};
+use crate::models::{Domain, PaginatedResult, Relay, RelayForm};
 use askama::Template;
 
 #[derive(Template)]
@@ -22,6 +22,21 @@ pub struct RelayListTemplate<'a> {
     pub empty_title: &'a str,
     pub empty_description: &'a str,
     pub relays: Vec<Relay>,
+    pub pagination: &'a PaginatedResult<Relay>,
+    pub page_range: &'a [i64],
+    pub max_item: i64,
+    pub pagination_showing: &'a str,
+    pub pagination_to: &'a str,
+    pub pagination_of: &'a str,
+    pub pagination_results: &'a str,
+    pub pagination_previous: &'a str,
+    pub pagination_next: &'a str,
+    // Filter controls
+    pub enabled_filter: &'a str,
+    pub filter_all_label: &'a str,
+    pub filter_enabled_label: &'a str,
+    pub filter_disabled_label: &'a str,
+    pub filters_label: &'a str,
     // Database read-only status
     pub current_db_read_only: bool,
     pub read_only_tooltip: &'a str,

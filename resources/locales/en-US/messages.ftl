@@ -546,6 +546,10 @@ aliases-update-alias = Update Alias
 # Users
 users-title = Users
 users-description = Manage your mail server users and their accounts.
+users-filter-all = All
+users-filter-enabled = Enabled
+users-filter-disabled = Disabled
+users-filters = Filters
 users-add = Add User
 users-table-header-username = Username
 users-table-header-domain = Domain
@@ -632,6 +636,10 @@ users-tooltip-user-id = The email address for the user account
 users-update-user = Update User
 # Relays
 relays-title = Relays
+relays-filter-all = All
+relays-filter-enabled = Enabled
+relays-filter-disabled = Disabled
+relays-filters = Filters
 relays-add = Add Relay
 relays-add-title = Add Relay
 relays-edit-title = Edit Relay
@@ -677,6 +685,10 @@ status-ok = OK
 status-reject = REJECT
 # Relocated
 relocated-title = Relocated Addresses
+relocated-filter-all = All
+relocated-filter-enabled = Enabled
+relocated-filter-disabled = Disabled
+relocated-filters = Filters
 relocated-add = Add Relocated
 relocated-list-description = Manage email address relocations for Postfix configuration.
 relocated-table-header-old-address = Old Address
@@ -713,6 +725,10 @@ relocated-update-error = Failed to update relocated address
 # Clients
 clients-title = Clients
 clients-description = Manage client access controls for SMTP authentication.
+clients-filter-all = All
+clients-filter-enabled = Enabled
+clients-filter-disabled = Disabled
+clients-filters = Filters
 clients-add = Add Client
 clients-form-create-title = Add Client
 clients-form-edit-title = Edit Client

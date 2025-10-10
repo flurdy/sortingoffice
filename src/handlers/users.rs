@@ -2,19 +2,18 @@ use crate::handlers::utils::get_current_db_info;
 use crate::{
     db, get_entity_or_not_found,
     i18n::get_translation,
-    models::{PaginatedResult, User, UserForm},
+    models::{PaginatedResult, PaginationParams, User, UserForm},
     templates::layout::BaseTemplate,
     templates::users::*,
     AppState,
 };
 use askama::Template;
 use axum::{
-    extract::{Form, Path, State},
+    extract::{Form, Path, Query, State},
     http::HeaderMap,
     response::Html,
 };
 use serde::Deserialize;
-use tracing::error;
 
 use crate::handlers::database_ops::{get_entity_or_handle_error, handle_entity_operation};
 use crate::handlers::rendering::{
@@ -89,6 +88,11 @@ async fn build_user_list_template(
         pagination_to,
         pagination_of,
         pagination_results,
+        enabled_filter: "all".to_string(),
+        filter_all_label: get_translation(state, locale, "users-filter-all").await,
+        filter_enabled_label: get_translation(state, locale, "users-filter-enabled").await,
+        filter_disabled_label: get_translation(state, locale, "users-filter-disabled").await,
+        filters_label: get_translation(state, locale, "users-filters").await,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: get_translation(state, locale, "read-only-tooltip").await,
     }
@@ -330,24 +334,35 @@ pub async fn build_user_form_template(
     }
 }
 
-pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn list(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> Html<String> {
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
         Err(error_html) => return error_html,
     };
     let locale = crate::handlers::language::get_user_locale(&headers);
 
-    // Parse pagination parameters
-    let page = 1; // Default to first page
-    let per_page = 20; // Default per page
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
 
-    let paginated_users = match db::get_users_paginated(&pool, page, per_page) {
-        Ok(users) => users,
-        Err(e) => {
-            error!("Failed to retrieve users: {:?}", e);
-            PaginatedResult::new(vec![], 0, 1, per_page)
-        }
-    };
+    let paginated_users = crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+        || async {
+            let enabled_filter = enabled_filter.clone();
+            db::get_users_paginated(&pool, page, per_page, &enabled_filter)
+        },
+        "retrieve users",
+        page,
+        per_page,
+    )
+    .await;
 
     render_user_list_page(
         paginated_users.items.clone(),
@@ -355,6 +370,7 @@ pub async fn list(State(state): State<AppState>, headers: HeaderMap) -> Html<Str
         &state,
         &locale,
         &headers,
+        &enabled_filter,
     )
     .await
 }

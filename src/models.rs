@@ -782,6 +782,8 @@ pub struct OrphanedAliasReport {
     pub orphaned_aliases: Vec<OrphanedAlias>,
     pub orphaned_users: Vec<OrphanedUser>,
     pub users_without_aliases: Vec<UserWithoutAlias>,
+    pub orphaned_relays: Vec<OrphanedRelay>,
+    pub orphaned_relocated: Vec<OrphanedRelocated>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -825,6 +827,28 @@ pub struct OrphanedUser {
 pub struct UserWithoutAlias {
     pub id: String,
     pub name: String,
+    pub domain: String,
+    pub domain_id: Option<i32>,
+    pub domain_enabled: Option<bool>,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OrphanedRelay {
+    pub id: i32,
+    pub recipient: String,
+    pub status: String,
+    pub domain: String,
+    pub domain_id: Option<i32>,
+    pub domain_enabled: Option<bool>,
+    pub enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OrphanedRelocated {
+    pub id: i32,
+    pub old_address: String,
+    pub new_address: String,
     pub domain: String,
     pub domain_id: Option<i32>,
     pub domain_enabled: Option<bool>,

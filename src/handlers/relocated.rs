@@ -1,6 +1,6 @@
 use crate::{db, get_entity_or_not_found, i18n::get_translation, models::*, AppState};
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::HeaderMap,
     response::Html,
     Form,
@@ -19,7 +19,11 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 }
 
 // List all relocated entries
-pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn list_relocated(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> Html<String> {
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
         Err(error_html) => return error_html,
@@ -36,13 +40,35 @@ pub async fn list_relocated(State(state): State<AppState>, headers: HeaderMap) -
         return Html(not_available_msg);
     }
 
-    let relocated = crate::handlers::database_ops::get_entity_list_with_fallback(
-        || async { db::get_relocated(&pool) },
-        "retrieve relocated entries",
-    )
-    .await;
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
 
-    render_relocated_list_page(relocated, &state, &locale, &headers).await
+    let paginated_relocated =
+        crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+            || async {
+                let enabled_filter = enabled_filter.clone();
+                db::get_relocated_paginated(&pool, page, per_page, &enabled_filter)
+            },
+            "retrieve relocated entries",
+            page,
+            per_page,
+        )
+        .await;
+
+    render_relocated_list_page(
+        paginated_relocated.items.clone(),
+        &paginated_relocated,
+        &state,
+        &locale,
+        &headers,
+        &enabled_filter,
+    )
+    .await
 }
 
 // Show a specific relocated entry

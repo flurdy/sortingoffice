@@ -325,6 +325,10 @@ aliases-placeholder-destination = destination@exemple.com
 # Users
 users-title = Utilisateurs
 users-description = Gérer les utilisateurs de courrier électronique et leurs paramètres.
+users-filter-all = Tous
+users-filter-enabled = Activés
+users-filter-disabled = Désactivés
+users-filters = Filtres
 users-add = Ajouter un Utilisateur
 users-table-header-username = Nom d'utilisateur
 users-table-header-domain = Domaine
@@ -386,6 +390,10 @@ users-placeholder-home = ex. /var/spool/mail/maildir
 users-placeholder-password = Entrer un nouveau mot de passe (laisser vide pour conserver l'existant)
 # Relays
 relays-title = Relais
+relays-filter-all = Tous
+relays-filter-enabled = Activés
+relays-filter-disabled = Désactivés
+relays-filters = Filtres
 relays-add = Ajouter un Relais
 relays-add-title = Ajouter un Relais
 relays-edit-title = Modifier le Relais
@@ -431,6 +439,10 @@ relays-create-relay = Créer le Relais
 relays-back-to-list = Retour aux Relais
 # Relocated
 relocated-title = Réacheminés
+relocated-filter-all = Tous
+relocated-filter-enabled = Activés
+relocated-filter-disabled = Désactivés
+relocated-filters = Filtres
 relocated-add = Ajouter un Réacheminé
 relocated-table-header-old-address = Ancienne Adresse
 relocated-table-header-new-address = Nouvelle Adresse
@@ -470,6 +482,10 @@ relocated-placeholder-new-address = nouveau@exemple.com
 # Clients
 clients-title = Clients
 clients-description = Gérer les clients et leurs paramètres.
+clients-filter-all = Tous
+clients-filter-enabled = Activés
+clients-filter-disabled = Désactivés
+clients-filters = Filtres
 clients-add = Ajouter un Client
 clients-form-create-title = Ajouter un Client
 clients-form-edit-title = Modifier le Client

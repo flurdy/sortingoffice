@@ -625,9 +625,11 @@ pub async fn render_alias_form_page(
 /// Relay-specific rendering functions
 pub async fn render_relay_list_page(
     relays: Vec<crate::models::Relay>,
+    paginated: &crate::models::PaginatedResult<crate::models::Relay>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    enabled_filter: &str,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -658,6 +660,23 @@ pub async fn render_relay_list_page(
     let empty_description =
         crate::i18n::get_translation(state, locale, "relays-empty-description").await;
 
+    // Pagination translations
+    let pagination_showing =
+        crate::i18n::get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = crate::i18n::get_translation(state, locale, "pagination-to").await;
+    let pagination_of = crate::i18n::get_translation(state, locale, "pagination-of").await;
+    let pagination_results =
+        crate::i18n::get_translation(state, locale, "pagination-results").await;
+    let pagination_previous =
+        crate::i18n::get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
+
     let content_template = crate::templates::relays::RelayListTemplate {
         title: &title,
         relays_list_description: &relays_list_description,
@@ -677,6 +696,26 @@ pub async fn render_relay_list_page(
         empty_title: &empty_title,
         empty_description: &empty_description,
         relays,
+        pagination: paginated,
+        page_range: &page_range,
+        max_item,
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
+        enabled_filter,
+        filter_all_label: &crate::i18n::get_translation(state, locale, "relays-filter-all").await,
+        filter_enabled_label: &crate::i18n::get_translation(state, locale, "relays-filter-enabled")
+            .await,
+        filter_disabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "relays-filter-disabled",
+        )
+        .await,
+        filters_label: &crate::i18n::get_translation(state, locale, "relays-filters").await,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
@@ -1468,6 +1507,7 @@ pub async fn render_user_list_page(
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    enabled_filter: &str,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -1534,6 +1574,13 @@ pub async fn render_user_list_page(
         pagination_to,
         pagination_of,
         pagination_results,
+        enabled_filter: enabled_filter.to_string(),
+        filter_all_label: crate::i18n::get_translation(state, locale, "users-filter-all").await,
+        filter_enabled_label: crate::i18n::get_translation(state, locale, "users-filter-enabled")
+            .await,
+        filter_disabled_label: crate::i18n::get_translation(state, locale, "users-filter-disabled")
+            .await,
+        filters_label: crate::i18n::get_translation(state, locale, "users-filters").await,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
@@ -1730,6 +1777,7 @@ pub async fn render_client_list_page(
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    enabled_filter: &str,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -1810,6 +1858,21 @@ pub async fn render_client_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        enabled_filter,
+        filter_all_label: &crate::i18n::get_translation(state, locale, "clients-filter-all").await,
+        filter_enabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "clients-filter-enabled",
+        )
+        .await,
+        filter_disabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "clients-filter-disabled",
+        )
+        .await,
+        filters_label: &crate::i18n::get_translation(state, locale, "clients-filters").await,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };
@@ -1951,9 +2014,11 @@ pub async fn render_client_form_page(
 /// Relocated-specific rendering functions
 pub async fn render_relocated_list_page(
     relocated: Vec<crate::models::Relocated>,
+    paginated: &crate::models::PaginatedResult<crate::models::Relocated>,
     state: &AppState,
     locale: &str,
     headers: &HeaderMap,
+    enabled_filter: &str,
 ) -> Html<String> {
     // Get current database ID
     let current_db_id = crate::handlers::auth::get_selected_database(headers)
@@ -1983,6 +2048,23 @@ pub async fn render_relocated_list_page(
     let empty_description =
         crate::i18n::get_translation(state, locale, "relocated-empty-description").await;
 
+    // Pagination translations
+    let pagination_showing =
+        crate::i18n::get_translation(state, locale, "pagination-showing").await;
+    let pagination_to = crate::i18n::get_translation(state, locale, "pagination-to").await;
+    let pagination_of = crate::i18n::get_translation(state, locale, "pagination-of").await;
+    let pagination_results =
+        crate::i18n::get_translation(state, locale, "pagination-results").await;
+    let pagination_previous =
+        crate::i18n::get_translation(state, locale, "pagination-previous").await;
+    let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+
+    let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
+    let max_item = std::cmp::min(
+        paginated.current_page * paginated.per_page,
+        paginated.total_count,
+    );
+
     let content_template = crate::templates::relocated::RelocatedListTemplate {
         title: &title,
         relocated_list_description: &relocated_list_description,
@@ -2000,6 +2082,31 @@ pub async fn render_relocated_list_page(
         empty_title: &empty_title,
         empty_description: &empty_description,
         relocated,
+        pagination: paginated,
+        page_range: &page_range,
+        max_item,
+        pagination_showing: &pagination_showing,
+        pagination_to: &pagination_to,
+        pagination_of: &pagination_of,
+        pagination_results: &pagination_results,
+        pagination_previous: &pagination_previous,
+        pagination_next: &pagination_next,
+        enabled_filter,
+        filter_all_label: &crate::i18n::get_translation(state, locale, "relocated-filter-all")
+            .await,
+        filter_enabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "relocated-filter-enabled",
+        )
+        .await,
+        filter_disabled_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "relocated-filter-disabled",
+        )
+        .await,
+        filters_label: &crate::i18n::get_translation(state, locale, "relocated-filters").await,
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
     };

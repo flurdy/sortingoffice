@@ -33,6 +33,12 @@ pub struct ClientsListTemplate<'a> {
     pub pagination_results: &'a str,
     pub pagination_previous: &'a str,
     pub pagination_next: &'a str,
+    // Filter controls
+    pub enabled_filter: &'a str,
+    pub filter_all_label: &'a str,
+    pub filter_enabled_label: &'a str,
+    pub filter_disabled_label: &'a str,
+    pub filters_label: &'a str,
     // Database read-only status
     pub current_db_read_only: bool,
     pub read_only_tooltip: &'a str,

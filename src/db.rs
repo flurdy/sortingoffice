@@ -1275,8 +1275,9 @@ impl DatabaseManager {
         page: i64,
         per_page: i64,
         db_id: &str,
+        enabled_filter: &str,
     ) -> Result<PaginatedResult<User>, Error> {
-        let cache_key = format!("users_{}_{}_{}", db_id, page, per_page);
+        let cache_key = format!("users_{}_{}_{}_{}", db_id, page, per_page, enabled_filter);
 
         if let Some(cached_result) = self.cache.get_users_paginated(&cache_key).await {
             tracing::debug!("Returning cached users pagination for key: {}", cache_key);
@@ -1287,7 +1288,7 @@ impl DatabaseManager {
             "Cache miss, fetching users pagination from database for key: {}",
             cache_key
         );
-        let result = get_users_paginated(pool, page, per_page)?;
+        let result = get_users_paginated(pool, page, per_page, enabled_filter)?;
 
         self.cache
             .set_users_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -1301,8 +1302,9 @@ impl DatabaseManager {
         page: i64,
         per_page: i64,
         db_id: &str,
+        enabled_filter: &str,
     ) -> Result<PaginatedResult<Client>, Error> {
-        let cache_key = format!("clients_{}_{}_{}", db_id, page, per_page);
+        let cache_key = format!("clients_{}_{}_{}_{}", db_id, page, per_page, enabled_filter);
 
         if let Some(cached_result) = self.cache.get_clients_paginated(&cache_key).await {
             tracing::debug!("Returning cached clients pagination for key: {}", cache_key);
@@ -1313,7 +1315,7 @@ impl DatabaseManager {
             "Cache miss, fetching clients pagination from database for key: {}",
             cache_key
         );
-        let result = get_clients_paginated(pool, page, per_page)?;
+        let result = get_clients_paginated(pool, page, per_page, enabled_filter)?;
 
         self.cache
             .set_clients_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -1327,8 +1329,9 @@ impl DatabaseManager {
         page: i64,
         per_page: i64,
         db_id: &str,
+        enabled_filter: &str,
     ) -> Result<PaginatedResult<Relay>, Error> {
-        let cache_key = format!("relays_{}_{}_{}", db_id, page, per_page);
+        let cache_key = format!("relays_{}_{}_{}_ {}", db_id, page, per_page, enabled_filter);
 
         if let Some(cached_result) = self.cache.get_relays_paginated(&cache_key).await {
             tracing::debug!("Returning cached relays pagination for key: {}", cache_key);
@@ -1339,7 +1342,7 @@ impl DatabaseManager {
             "Cache miss, fetching relays pagination from database for key: {}",
             cache_key
         );
-        let result = get_relays_paginated(pool, page, per_page)?;
+        let result = get_relays_paginated(pool, page, per_page, enabled_filter)?;
 
         self.cache
             .set_relays_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -1353,8 +1356,12 @@ impl DatabaseManager {
         page: i64,
         per_page: i64,
         db_id: &str,
+        enabled_filter: &str,
     ) -> Result<PaginatedResult<Relocated>, Error> {
-        let cache_key = format!("relocated_{}_{}_{}", db_id, page, per_page);
+        let cache_key = format!(
+            "relocated_{}_{}_{}_{}",
+            db_id, page, per_page, enabled_filter
+        );
 
         if let Some(cached_result) = self.cache.get_relocated_paginated(&cache_key).await {
             tracing::debug!(
@@ -1368,7 +1375,7 @@ impl DatabaseManager {
             "Cache miss, fetching relocated pagination from database for key: {}",
             cache_key
         );
-        let result = get_relocated_paginated(pool, page, per_page)?;
+        let result = get_relocated_paginated(pool, page, per_page, enabled_filter)?;
 
         self.cache
             .set_relocated_paginated(cache_key, result.clone(), Duration::from_secs(300))
@@ -3426,16 +3433,47 @@ pub fn get_users_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    enabled_filter: &str,
 ) -> Result<PaginatedResult<User>, Error> {
     let mut conn = pool.get().unwrap();
 
     let offset = (page - 1) * per_page;
 
+    // Build query with enabled filter
+    let mut query = users::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(users::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(users::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
+
     // Get total count
-    let total_count: i64 = users::table.count().get_result(&mut conn)?;
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = users::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(users::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(users::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
 
     // Get paginated results
-    let users = users::table
+    let users = query
         .select(User::as_select())
         .order(users::id.asc())
         .limit(per_page)
@@ -3449,16 +3487,47 @@ pub fn get_clients_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    enabled_filter: &str,
 ) -> Result<PaginatedResult<Client>, Error> {
     let mut conn = pool.get().unwrap();
 
     let offset = (page - 1) * per_page;
 
+    // Build query with enabled filter
+    let mut query = clients::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(clients::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(clients::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
+
     // Get total count
-    let total_count: i64 = clients::table.count().get_result(&mut conn)?;
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = clients::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(clients::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(clients::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
 
     // Get paginated results
-    let clients = clients::table
+    let clients = query
         .select(Client::as_select())
         .order(clients::client.asc())
         .limit(per_page)
@@ -3472,16 +3541,47 @@ pub fn get_relays_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    enabled_filter: &str,
 ) -> Result<PaginatedResult<Relay>, Error> {
     let mut conn = pool.get().unwrap();
 
     let offset = (page - 1) * per_page;
 
+    // Build query with enabled filter
+    let mut query = relays::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(relays::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(relays::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
+
     // Get total count
-    let total_count: i64 = relays::table.count().get_result(&mut conn)?;
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = relays::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(relays::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(relays::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
 
     // Get paginated results
-    let relays = relays::table
+    let relays = query
         .select(Relay::as_select())
         .order(relays::recipient.asc())
         .limit(per_page)
@@ -3495,16 +3595,47 @@ pub fn get_relocated_paginated(
     pool: &DbPool,
     page: i64,
     per_page: i64,
+    enabled_filter: &str,
 ) -> Result<PaginatedResult<Relocated>, Error> {
     let mut conn = pool.get().unwrap();
 
     let offset = (page - 1) * per_page;
 
+    // Build query with enabled filter
+    let mut query = relocated::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(relocated::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(relocated::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
+
     // Get total count
-    let total_count: i64 = relocated::table.count().get_result(&mut conn)?;
+    let total_count: i64 = query.count().get_result(&mut conn)?;
+
+    // Rebuild query for paginated results
+    let mut query = relocated::table.into_boxed();
+
+    match enabled_filter {
+        "enabled" => {
+            query = query.filter(relocated::enabled.eq(true));
+        }
+        "disabled" => {
+            query = query.filter(relocated::enabled.eq(false));
+        }
+        _ => {
+            // "all" - no filter
+        }
+    }
 
     // Get paginated results
-    let relocated = relocated::table
+    let relocated = query
         .select(Relocated::as_select())
         .order(relocated::old_address.asc())
         .limit(per_page)
@@ -3704,10 +3835,148 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
         }
     }
 
+    // Find relays where the recipient domain doesn't exist or is disabled in the domains table
+    let mut orphaned_relays: Vec<OrphanedRelay> = if relays_table_exists(pool) {
+        relays::table
+            .select((
+                relays::pkid,
+                relays::recipient,
+                relays::status,
+                relays::enabled,
+            ))
+            .order_by(relays::recipient.asc())
+            .load::<(i32, String, String, bool)>(&mut conn)?
+            .into_iter()
+            .filter(|(_, recipient, _, _)| {
+                // Extract the domain from the relay recipient address
+                if let Some(at_pos) = recipient.rfind('@') {
+                    let relay_domain = &recipient[at_pos + 1..];
+                    // Check if this domain exists in our domains table
+                    let domain_exists: Option<(String, bool)> = domains::table
+                        .filter(domains::domain.eq(relay_domain))
+                        .select((domains::domain, domains::enabled))
+                        .first::<(String, bool)>(&mut conn)
+                        .optional()
+                        .unwrap_or(None);
+                    // Consider orphaned if domain doesn't exist
+                    domain_exists.is_none()
+                } else {
+                    false
+                }
+            })
+            .map(|(id, recipient, status, enabled)| {
+                let domain = recipient.split('@').nth(1).unwrap_or("").to_string();
+                OrphanedRelay {
+                    id,
+                    recipient,
+                    status,
+                    domain,
+                    domain_id: None,      // Will be populated later
+                    domain_enabled: None, // Will be populated later
+                    enabled,
+                }
+            })
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+
+    // Sort by domain first, then by recipient
+    orphaned_relays.sort_by(|a, b| {
+        a.domain
+            .cmp(&b.domain)
+            .then_with(|| a.recipient.cmp(&b.recipient))
+    });
+
+    // Populate domain IDs and enabled status for orphaned relays
+    for relay in &mut orphaned_relays {
+        if let Some(at_pos) = relay.recipient.rfind('@') {
+            let relay_domain = &relay.recipient[at_pos + 1..];
+            if let Ok((domain_id, domain_enabled)) = domains::table
+                .filter(domains::domain.eq(relay_domain))
+                .select((domains::pkid, domains::enabled))
+                .first::<(i32, bool)>(&mut conn)
+            {
+                relay.domain_id = Some(domain_id);
+                relay.domain_enabled = Some(domain_enabled);
+            }
+        }
+    }
+
+    // Find relocated where the old_address domain doesn't exist or is disabled in the domains table
+    let mut orphaned_relocated: Vec<OrphanedRelocated> = if relocated_table_exists(pool) {
+        relocated::table
+            .select((
+                relocated::pkid,
+                relocated::old_address,
+                relocated::new_address,
+                relocated::enabled,
+            ))
+            .order_by(relocated::old_address.asc())
+            .load::<(i32, String, String, bool)>(&mut conn)?
+            .into_iter()
+            .filter(|(_, old_address, _, _)| {
+                // Extract the domain from the relocated old_address
+                if let Some(at_pos) = old_address.rfind('@') {
+                    let relocated_domain = &old_address[at_pos + 1..];
+                    // Check if this domain exists in our domains table
+                    let domain_exists: Option<(String, bool)> = domains::table
+                        .filter(domains::domain.eq(relocated_domain))
+                        .select((domains::domain, domains::enabled))
+                        .first::<(String, bool)>(&mut conn)
+                        .optional()
+                        .unwrap_or(None);
+                    // Consider orphaned if domain doesn't exist
+                    domain_exists.is_none()
+                } else {
+                    false
+                }
+            })
+            .map(|(id, old_address, new_address, enabled)| {
+                let domain = old_address.split('@').nth(1).unwrap_or("").to_string();
+                OrphanedRelocated {
+                    id,
+                    old_address,
+                    new_address,
+                    domain,
+                    domain_id: None,      // Will be populated later
+                    domain_enabled: None, // Will be populated later
+                    enabled,
+                }
+            })
+            .collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+
+    // Sort by domain first, then by old_address
+    orphaned_relocated.sort_by(|a, b| {
+        a.domain
+            .cmp(&b.domain)
+            .then_with(|| a.old_address.cmp(&b.old_address))
+    });
+
+    // Populate domain IDs and enabled status for orphaned relocated
+    for relocated in &mut orphaned_relocated {
+        if let Some(at_pos) = relocated.old_address.rfind('@') {
+            let relocated_domain = &relocated.old_address[at_pos + 1..];
+            if let Ok((domain_id, domain_enabled)) = domains::table
+                .filter(domains::domain.eq(relocated_domain))
+                .select((domains::pkid, domains::enabled))
+                .first::<(i32, bool)>(&mut conn)
+            {
+                relocated.domain_id = Some(domain_id);
+                relocated.domain_enabled = Some(domain_enabled);
+            }
+        }
+    }
+
     Ok(OrphanedAliasReport {
         orphaned_aliases,
         orphaned_users,
         users_without_aliases,
+        orphaned_relays,
+        orphaned_relocated,
     })
 }
 

@@ -322,6 +322,10 @@ aliases-form-enabled = Aktivert
 # Users
 users-title = Brukere
 users-description = Administrer e-postbrukere og kontoer.
+users-filter-all = Alle
+users-filter-enabled = Aktiverte
+users-filter-disabled = Deaktiverte
+users-filters = Filtre
 users-add = Legg til bruker
 users-table-header-username = Brukernavn
 users-table-header-domain = Domene
@@ -396,6 +400,10 @@ users-field-maildir-help = Navnet på brukerens postboksmappe
 users-field-home-help = Rotmappen som inneholder postbokser
 # Relays
 relays-title = Videresendinger
+relays-filter-all = Alle
+relays-filter-enabled = Aktiverte
+relays-filter-disabled = Deaktiverte
+relays-filters = Filtre
 relays-add = Legg til videresending
 relays-add-title = Legg til videresending
 relays-edit-title = Rediger videresending
@@ -433,6 +441,10 @@ relays-create-error = Kunne ikke opprette videresending
 relays-back-to-list = Tilbake til videresendinger
 # Relocated
 relocated-title = Flyttet
+relocated-filter-all = Alle
+relocated-filter-enabled = Aktiverte
+relocated-filter-disabled = Deaktiverte
+relocated-filters = Filtre
 relocated-add = Legg til flyttet
 relocated-list-description = Administrer e-postadresseflyttinger for Postfix-konfigurasjon.
 relocated-table-header-old-address = Gammel adresse
@@ -467,6 +479,10 @@ relocated-create-error = Kunne ikke opprette flyttet adresse
 # Clients
 clients-title = Klienter
 clients-description = Administrer klienttilgangskontroller.
+clients-filter-all = Alle
+clients-filter-enabled = Aktiverte
+clients-filter-disabled = Deaktiverte
+clients-filters = Filtre
 clients-add = Legg til klient
 clients-form-create-title = Legg til klient
 clients-form-edit-title = Rediger klient

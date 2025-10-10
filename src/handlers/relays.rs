@@ -1,6 +1,6 @@
 use crate::{db, i18n::get_translation, models::*, AppState};
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::HeaderMap,
     response::Html,
     Form,
@@ -15,7 +15,11 @@ fn is_htmx_request(headers: &HeaderMap) -> bool {
 }
 
 // List all relays
-pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> Html<String> {
+pub async fn list_relays(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(params): Query<PaginationParams>,
+) -> Html<String> {
     let pool = match crate::handlers::utils::get_db_pool_or_handle_error(&state, &headers).await {
         Ok(pool) => pool,
         Err(error_html) => return error_html,
@@ -32,14 +36,36 @@ pub async fn list_relays(State(state): State<AppState>, headers: HeaderMap) -> H
         return Html(not_available_msg);
     }
 
-    let relays = crate::handlers::database_ops::get_entity_list_with_fallback(
-        || async { db::get_relays(&pool) },
-        "retrieve relays",
-    )
-    .await;
+    let page = params.page.unwrap_or(1);
+    let per_page = params.per_page.unwrap_or(20);
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
+
+    let paginated_relays =
+        crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+            || async {
+                let enabled_filter = enabled_filter.clone();
+                db::get_relays_paginated(&pool, page, per_page, &enabled_filter)
+            },
+            "retrieve relays",
+            page,
+            per_page,
+        )
+        .await;
 
     // Use the new resource-specific helper function
-    crate::handlers::rendering::render_relay_list_page(relays, &state, &locale, &headers).await
+    crate::handlers::rendering::render_relay_list_page(
+        paginated_relays.items.clone(),
+        &paginated_relays,
+        &state,
+        &locale,
+        &headers,
+        &enabled_filter,
+    )
+    .await
 }
 
 // Show a specific relay

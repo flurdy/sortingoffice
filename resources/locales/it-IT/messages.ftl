@@ -541,6 +541,10 @@ stats-recent-clients = Client Recenti
 # Clients Section
 clients-title = Client
 clients-description = Gestisci i controlli di accesso client per l'autenticazione SMTP.
+clients-filter-all = Tutti
+clients-filter-enabled = Abilitati
+clients-filter-disabled = Disabilitati
+clients-filters = Filtri
 clients-add = Aggiungi Client
 clients-form-create-title = Aggiungi Client
 clients-form-edit-title = Modifica Client
@@ -588,6 +592,10 @@ clients-updated = Aggiornato
 
 # Relays Section
 relays-title = Relay
+relays-filter-all = Tutti
+relays-filter-enabled = Abilitati
+relays-filter-disabled = Disabilitati
+relays-filters = Filtri
 relays-add = Aggiungi Relay
 relays-add-title = Aggiungi Relay
 relays-edit-title = Modifica Relay
@@ -626,6 +634,10 @@ relays-update-error = Errore nell'aggiornamento del relay
 
 # Relocated Section
 relocated-title = Reindirizzati
+relocated-filter-all = Tutti
+relocated-filter-enabled = Abilitati
+relocated-filter-disabled = Disabilitati
+relocated-filters = Filtri
 relocated-add = Aggiungi Reindirizzato
 relocated-list-description = Gestisci i reindirizzamenti di indirizzi email per la configurazione Postfix.
 relocated-table-header-old-address = Vecchio Indirizzo
@@ -768,6 +780,10 @@ pagination-results = risultati
 # Users Section
 users-title = Utenti
 users-description = Gestisci gli utenti del tuo server di posta e i loro account.
+users-filter-all = Tutti
+users-filter-enabled = Abilitati
+users-filter-disabled = Disabilitati
+users-filters = Filtri
 users-add = Aggiungi Utente
 users-table-header-username = Nome Utente
 users-table-header-domain = Dominio

@@ -395,6 +395,10 @@ pub async fn orphaned_report(
         report.orphaned_aliases.retain(|alias| alias.enabled);
         report.orphaned_users.retain(|user| user.enabled);
         report.users_without_aliases.retain(|user| user.enabled);
+        report.orphaned_relays.retain(|relay| relay.enabled);
+        report
+            .orphaned_relocated
+            .retain(|relocated| relocated.enabled);
     }
 
     // Get translations

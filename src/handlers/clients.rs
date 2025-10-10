@@ -7,7 +7,7 @@ use axum::{
     Form,
 };
 use serde::Deserialize;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::handlers::database_ops::handle_entity_operation_redirect;
 use crate::handlers::rendering::{
@@ -42,27 +42,28 @@ pub async fn list_clients(
     // Parse pagination parameters
     let page = params.page.unwrap_or(1);
     let per_page = params.per_page.unwrap_or(20);
+    let enabled_filter = params
+        .enabled_filter
+        .as_deref()
+        .unwrap_or("all")
+        .to_string();
 
     info!(
         "Handling clients list request with pagination: page={}, per_page={}",
         page, per_page
     );
 
-    let paginated_clients = match db::get_clients_paginated(&pool, page, per_page) {
-        Ok(clients) => {
-            info!(
-                "Successfully retrieved {} clients (page {} of {})",
-                clients.items.len(),
-                clients.current_page,
-                clients.total_pages
-            );
-            clients
-        }
-        Err(e) => {
-            warn!("Failed to retrieve clients: {:?}", e);
-            PaginatedResult::new(vec![], 0, 1, per_page)
-        }
-    };
+    let paginated_clients =
+        crate::handlers::database_ops::get_paginated_result_with_custom_fallback(
+            || async {
+                let enabled_filter = enabled_filter.clone();
+                db::get_clients_paginated(&pool, page, per_page, &enabled_filter)
+            },
+            "retrieve clients",
+            page,
+            per_page,
+        )
+        .await;
 
     render_client_list_page(
         paginated_clients.items.clone(),
@@ -70,6 +71,7 @@ pub async fn list_clients(
         &state,
         &locale,
         &headers,
+        &enabled_filter,
     )
     .await
 }

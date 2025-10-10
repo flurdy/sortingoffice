@@ -28,6 +28,12 @@ pub struct UsersListTemplate {
     pub pagination_to: String,
     pub pagination_of: String,
     pub pagination_results: String,
+    // Filter controls
+    pub enabled_filter: String,
+    pub filter_all_label: String,
+    pub filter_enabled_label: String,
+    pub filter_disabled_label: String,
+    pub filters_label: String,
     // Database read-only status
     pub current_db_read_only: bool,
     pub read_only_tooltip: String,
