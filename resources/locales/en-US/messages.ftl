@@ -1080,6 +1080,9 @@ domains-filter-all = All
 domains-filter-enabled = Enabled
 domains-filter-disabled = Disabled
 domains-exclude-subdomains = Exclude Subdomains
+domains-subdomain-filter = Subdomains
+domains-subdomain-all = All Domains
+domains-subdomain-exclude = Exclude Subdomains
 # Backup Management
 database-backup-title = Database Backup
 database-backup-description = Create and manage database backups. Backups are stored locally and can be downloaded.

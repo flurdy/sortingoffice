@@ -606,6 +606,9 @@ domains-filter-all = Alle
 domains-filter-enabled = Aktiviert
 domains-filter-disabled = Deaktiviert
 domains-exclude-subdomains = Subdomains Ausschließen
+domains-subdomain-filter = Subdomains
+domains-subdomain-all = Alle Domains
+domains-subdomain-exclude = Subdomains Ausschließen
 config-description = "Erforderliche Aliase und domainspezifische Überschreibungen verwalten."
 # Global Feature Toggles
 config-global-features-header = "Globale Feature-Toggles"

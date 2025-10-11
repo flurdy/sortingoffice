@@ -117,14 +117,33 @@
                     </div>
                 </div>
 
-                <!-- Subdomain filter -->
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" 
-                           class="form-checkbox h-5 w-5 text-primary-600 rounded border-gray-300 dark:border-gray-600 focus:ring-primary-500"
-                           {% if exclude_subdomains %}checked{% endif %}
-                           onchange="window.location.href='?page=1&backup_page={{ backups_pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}&exclude_subdomains=' + (this.checked ? 'true' : 'false') + '{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'">
-                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ exclude_subdomains_label }}</span>
-                </label>
+                <!-- Subdomain filter toggle -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ subdomain_filter_label }}</label>
+                    <div class="radio-toggle">
+                        <input type="radio" 
+                               id="subdomain_all" 
+                               name="exclude_subdomains" 
+                               value="false" 
+                               {% if !exclude_subdomains %}checked{% endif %}
+                               onchange="window.location.href='?page=1&backup_page={{ backups_pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}&exclude_subdomains=false{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'"
+                               class="radio-toggle-input">
+                        <label for="subdomain_all" class="radio-toggle-label">
+                            <span class="radio-toggle-text">{{ subdomain_all_label }}</span>
+                        </label>
+                        
+                        <input type="radio" 
+                               id="subdomain_exclude" 
+                               name="exclude_subdomains" 
+                               value="true" 
+                               {% if exclude_subdomains %}checked{% endif %}
+                               onchange="window.location.href='?page=1&backup_page={{ backups_pagination.current_page }}&per_page={{ pagination.per_page }}&enabled_filter={{ enabled_filter }}&exclude_subdomains=true{% if !search_term.is_empty() %}&search={{ search_term }}{% endif %}'"
+                               class="radio-toggle-input">
+                        <label for="subdomain_exclude" class="radio-toggle-label">
+                            <span class="radio-toggle-text">{{ subdomain_exclude_label }}</span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 

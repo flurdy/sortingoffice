@@ -511,6 +511,9 @@ domains-filter-all = Todos
 domains-filter-enabled = Habilitados
 domains-filter-disabled = Deshabilitados
 domains-exclude-subdomains = Excluir Subdominios
+domains-subdomain-filter = Subdominios
+domains-subdomain-all = Todos los Dominios
+domains-subdomain-exclude = Excluir Subdominios
 config-description = "Gestionar alias requeridos y anulaciones específicas de dominio."
 # Global Feature Toggles
 config-global-features-header = "Interruptores de Características Globales"

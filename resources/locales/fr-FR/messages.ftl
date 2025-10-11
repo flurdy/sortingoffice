@@ -616,6 +616,9 @@ domains-filter-all = Tous
 domains-filter-enabled = Activés
 domains-filter-disabled = Désactivés
 domains-exclude-subdomains = Exclure les Sous-domaines
+domains-subdomain-filter = Sous-domaines
+domains-subdomain-all = Tous les Domaines
+domains-subdomain-exclude = Exclure les Sous-domaines
 config-description = Gérer la configuration du système.
 config-required-aliases = Alias Requis
 # Global Feature Toggles

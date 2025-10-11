@@ -65,6 +65,9 @@ pub struct DomainsListTemplate<'a> {
     pub filter_enabled_label: &'a str,
     pub filter_disabled_label: &'a str,
     pub exclude_subdomains_label: &'a str,
+    pub subdomain_filter_label: &'a str,
+    pub subdomain_all_label: &'a str,
+    pub subdomain_exclude_label: &'a str,
     pub filters_label: &'a str,
 }
 

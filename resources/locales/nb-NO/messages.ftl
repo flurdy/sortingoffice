@@ -644,6 +644,9 @@ domains-filter-all = Alle
 domains-filter-enabled = Aktiverte
 domains-filter-disabled = Deaktiverte
 domains-exclude-subdomains = Ekskluder Subdomener
+domains-subdomain-filter = Subdomener
+domains-subdomain-all = Alle Domener
+domains-subdomain-exclude = Ekskluder Subdomener
 config-description = "Administrer påkrevde aliaser og domene-spesifikke overstyringer."
 # Global Feature Toggles
 config-global-features-header = "Globale Funksjonsbrytere"

@@ -373,6 +373,20 @@ pub async fn render_domain_list_page(
             "domains-exclude-subdomains",
         )
         .await,
+        subdomain_filter_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-subdomain-filter",
+        )
+        .await,
+        subdomain_all_label: &crate::i18n::get_translation(state, locale, "domains-subdomain-all")
+            .await,
+        subdomain_exclude_label: &crate::i18n::get_translation(
+            state,
+            locale,
+            "domains-subdomain-exclude",
+        )
+        .await,
         filters_label: &crate::i18n::get_translation(state, locale, "domains-filters").await,
     };
 

@@ -896,6 +896,9 @@ domains-filter-all = Alle
 domains-filter-enabled = Ingeschakeld
 domains-filter-disabled = Uitgeschakeld
 domains-exclude-subdomains = Sluit Subdomeinen Uit
+domains-subdomain-filter = Subdomeinen
+domains-subdomain-all = Alle Domeinen
+domains-subdomain-exclude = Sluit Subdomeinen Uit
 config-description = View and manage global and database-specific configuration options for Sorting Office. Use this page to review feature toggles, database settings, and environment status. Editing is done offline in config.toml.
 # Global Feature Toggles
 config-global-features-header = Global Feature Toggles
