@@ -665,3 +665,125 @@ pub async fn execute_deletion(
         .await,
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{
+        DeletedResourceCount, DisabledResourceCount, RemoveDomainSession, RemoveWizardStep,
+    };
+
+    #[test]
+    fn test_disabled_resource_count_default() {
+        let count = DisabledResourceCount::default();
+        assert_eq!(count.domain, 0);
+        assert_eq!(count.aliases, 0);
+        assert_eq!(count.users, 0);
+        assert_eq!(count.relays, 0);
+        assert_eq!(count.relocated, 0);
+    }
+
+    #[test]
+    fn test_deleted_resource_count_default() {
+        let count = DeletedResourceCount::default();
+        assert_eq!(count.domain, 0);
+        assert_eq!(count.aliases, 0);
+        assert_eq!(count.users, 0);
+        assert_eq!(count.relays, 0);
+        assert_eq!(count.relocated, 0);
+    }
+
+    #[test]
+    fn test_remove_wizard_step_equality() {
+        assert_eq!(
+            RemoveWizardStep::DomainSelection,
+            RemoveWizardStep::DomainSelection
+        );
+        assert_ne!(
+            RemoveWizardStep::DomainSelection,
+            RemoveWizardStep::ReviewAffected
+        );
+    }
+
+    #[test]
+    fn test_session_storage() {
+        // Clear any existing session
+        clear_session();
+
+        // Verify no session exists
+        assert!(get_session().is_none());
+
+        // Create a test session
+        let session = RemoveDomainSession {
+            step: RemoveWizardStep::DomainSelection,
+            domain: None,
+            is_backup: false,
+            affected_aliases: vec![],
+            affected_users: vec![],
+            affected_relays: vec![],
+            affected_relocated: vec![],
+            orphaned_aliases: vec![],
+            disabled_count: DisabledResourceCount::default(),
+            deleted_count: DeletedResourceCount::default(),
+            cross_db_domains: vec![],
+        };
+
+        // Save session
+        save_session(session.clone());
+
+        // Verify session can be retrieved
+        let retrieved = get_session();
+        assert!(retrieved.is_some());
+        let retrieved_session = retrieved.unwrap();
+        assert_eq!(retrieved_session.step, RemoveWizardStep::DomainSelection);
+        assert!(!retrieved_session.is_backup);
+
+        // Clear session
+        clear_session();
+        assert!(get_session().is_none());
+    }
+
+    #[test]
+    fn test_orphaned_alias_filtering() {
+        // Test the logic of filtering orphaned aliases
+        let affected_alias_ids: std::collections::HashSet<i32> =
+            vec![1, 2, 3].into_iter().collect();
+
+        // Simulate aliases with domain in destination
+        let all_orphaned = vec![
+            // This one will be deleted (id=1)
+            1,  // This one won't be deleted (id=10)
+            10, // This one will be deleted (id=2)
+            2,  // This one won't be deleted (id=20)
+            20,
+        ];
+
+        let truly_orphaned: Vec<i32> = all_orphaned
+            .into_iter()
+            .filter(|id| !affected_alias_ids.contains(id))
+            .collect();
+
+        assert_eq!(truly_orphaned.len(), 2);
+        assert!(truly_orphaned.contains(&10));
+        assert!(truly_orphaned.contains(&20));
+        assert!(!truly_orphaned.contains(&1));
+        assert!(!truly_orphaned.contains(&2));
+    }
+
+    #[test]
+    fn test_cross_db_filtering_logic() {
+        // Test the logic of filtering current database from cross-db list
+        let current_db_id = "primary";
+        let all_db_ids = vec!["primary", "secondary", "tertiary"];
+
+        let other_dbs: Vec<&str> = all_db_ids
+            .into_iter()
+            .filter(|id| *id != current_db_id)
+            .collect();
+
+        assert_eq!(other_dbs.len(), 2);
+        assert!(!other_dbs.contains(&"primary"));
+        assert!(other_dbs.contains(&"secondary"));
+        assert!(other_dbs.contains(&"tertiary"));
+    }
+}

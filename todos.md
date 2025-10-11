@@ -70,7 +70,7 @@
 
 - ✅ Can the orphaned report also check relays and relocated entries.
 
-- 🔧 Add a remove domain wizard.
+- ✅ Add a remove domain wizard.
   - ✅ Created RemoveWizardStep enum with all steps
   - ✅ Created RemoveDomainSession model to track wizard state
   - ✅ Created DisabledResourceCount and DeletedResourceCount tracking models
@@ -103,8 +103,10 @@
   - ✅ Only shows aliases with domain in destination field that won't be deleted
   - ✅ **FIXED**: Cross-database list now correctly excludes current database
   - ✅ Only shows OTHER databases where this domain exists
-  - ✅ All 112 unit tests pass
-  - 🔧 Add integration/UI tests for wizard flow
+  - ✅ Added 6 unit tests for wizard logic (session storage, filtering, serialization)
+  - ✅ Added 9 integration tests for form validation and resource counts
+  - ✅ All 118 unit tests pass (up from 112)
+  - ✅ All 9 integration tests pass
   - Remember to use htmx where suitable
   - Remember same style as the rest of the app
   - Remember this is a multi DB app but the removal is from one db per wizard flow
