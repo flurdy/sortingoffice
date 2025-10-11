@@ -1149,3 +1149,8 @@ reports-resource-type-client = Client
 reports-view-resource = Anzeigen
 reports-no-changes = Keine letzten Änderungen
 reports-no-changes-description = Es wurden keine letzten Änderungen im System aufgezeichnet
+
+pagination-page-size = Elemente pro Seite
+pagination-page-size-10 = 10 Elemente
+pagination-page-size-20 = 20 Elemente
+pagination-page-size-50 = 50 Elemente

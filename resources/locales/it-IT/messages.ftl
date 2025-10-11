@@ -1220,3 +1220,8 @@ reports-exclude-disabled = Escludi Domini Disabilitati
 reports-exclude-subdomains = Escludi Sottodomini
 reports-filter-status = Stato MX
 reports-filter-status-all = Tutti gli Stati
+
+pagination-page-size = Elementi per pagina
+pagination-page-size-10 = 10 elementi
+pagination-page-size-20 = 20 elementi
+pagination-page-size-50 = 50 elementi

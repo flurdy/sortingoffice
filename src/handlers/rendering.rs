@@ -276,6 +276,10 @@ pub async fn render_domain_list_page(
     let pagination_previous =
         crate::i18n::get_translation(state, locale, "pagination-previous").await;
     let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -330,6 +334,10 @@ pub async fn render_domain_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        page_size_label: &page_size_label,
+        page_size_10: &page_size_10,
+        page_size_20: &page_size_20,
+        page_size_50: &page_size_50,
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
@@ -415,6 +423,10 @@ pub async fn render_alias_list_page(
     let pagination_previous =
         crate::i18n::get_translation(state, locale, "pagination-previous").await;
     let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -450,6 +462,10 @@ pub async fn render_alias_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        page_size_label: &page_size_label,
+        page_size_10: &page_size_10,
+        page_size_20: &page_size_20,
+        page_size_50: &page_size_50,
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
@@ -984,8 +1000,8 @@ pub async fn render_backup_show_page(
     // Action translations for relay buttons
     let actions_header = crate::i18n::get_translation(state, locale, "actions-header").await;
     let action_view = crate::i18n::get_translation(state, locale, "action-view").await;
-    let enable_alias = crate::i18n::get_translation(state, locale, "relays-enable").await;
-    let disable_alias = crate::i18n::get_translation(state, locale, "relays-disable").await;
+    let action_enable = crate::i18n::get_translation(state, locale, "action-enable").await;
+    let action_disable = crate::i18n::get_translation(state, locale, "action-disable").await;
 
     let content_template = crate::templates::domain_backup::BackupShowTemplate {
         title,
@@ -1040,8 +1056,8 @@ pub async fn render_backup_show_page(
         no_relays_message,
         actions_header,
         action_view,
-        enable_alias,
-        disable_alias,
+        action_enable,
+        action_disable,
         domain_users,
         users_header,
         users_description,
@@ -1552,6 +1568,14 @@ pub async fn render_user_list_page(
     let pagination_of = crate::i18n::get_translation(state, locale, "pagination-of").await;
     let pagination_results =
         crate::i18n::get_translation(state, locale, "pagination-results").await;
+    let page_size_label =
+        crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 =
+        crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 =
+        crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 =
+        crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -1584,6 +1608,10 @@ pub async fn render_user_list_page(
         pagination_to,
         pagination_of,
         pagination_results,
+        page_size_label,
+        page_size_10,
+        page_size_20,
+        page_size_50,
         enabled_filter: enabled_filter.to_string(),
         filter_all_label: crate::i18n::get_translation(state, locale, "users-filter-all").await,
         filter_enabled_label: crate::i18n::get_translation(state, locale, "users-filter-enabled")

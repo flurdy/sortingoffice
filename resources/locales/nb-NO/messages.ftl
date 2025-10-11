@@ -1176,3 +1176,8 @@ reports-exclude-disabled = Ekskluder Deaktiverte Domener
 reports-exclude-subdomains = Ekskluder Subdomener
 reports-filter-status = MX Status
 reports-filter-status-all = Alle Statuser
+
+pagination-page-size = Elementer per side
+pagination-page-size-10 = 10 elementer
+pagination-page-size-20 = 20 elementer
+pagination-page-size-50 = 50 elementer

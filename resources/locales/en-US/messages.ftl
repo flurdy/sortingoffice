@@ -824,6 +824,10 @@ pagination-showing = Showing
 pagination-to = to
 pagination-of = of
 pagination-results = results
+pagination-page-size = Items per page
+pagination-page-size-10 = 10 items
+pagination-page-size-20 = 20 items
+pagination-page-size-50 = 50 items
 # Statistics
 stats-title = Statistics
 stats-description = View detailed statistics about your mail server.

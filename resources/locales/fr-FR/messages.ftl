@@ -1562,3 +1562,8 @@ reports-exclude-disabled = Exclure les Domaines Désactivés
 reports-exclude-subdomains = Exclure les Sous-domaines
 reports-filter-status = Statut MX
 reports-filter-status-all = Tous les Statuts
+
+pagination-page-size = Éléments par page
+pagination-page-size-10 = 10 éléments
+pagination-page-size-20 = 20 éléments
+pagination-page-size-50 = 50 éléments

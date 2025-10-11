@@ -1139,3 +1139,8 @@ reports-exclude-disabled = Sluit Uitgeschakelde Domeinen Uit
 reports-exclude-subdomains = Sluit Subdomeinen Uit
 reports-filter-status = MX Status
 reports-filter-status-all = Alle Statussen
+
+pagination-page-size = Items per pagina
+pagination-page-size-10 = 10 items
+pagination-page-size-20 = 20 items
+pagination-page-size-50 = 50 items

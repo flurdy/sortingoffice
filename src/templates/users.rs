@@ -28,6 +28,10 @@ pub struct UsersListTemplate {
     pub pagination_to: String,
     pub pagination_of: String,
     pub pagination_results: String,
+    pub page_size_label: String,
+    pub page_size_10: String,
+    pub page_size_20: String,
+    pub page_size_50: String,
     // Filter controls
     pub enabled_filter: String,
     pub filter_all_label: String,

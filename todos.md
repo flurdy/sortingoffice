@@ -25,16 +25,6 @@
 
 ## Medium Priority Epics
 
-- ✅ Can the exclude enabled/disabled filter on domains actually be a 3 state toggle.
-  - Similar looks to the enable/disable toggle on edit resources
-  - With all, only disabled and only enabled as states?
-  - ✅ Implemented for domains
-  - ✅ Implemented for aliases
-  - ✅ Implemented for relays
-  - ✅ Implemented for relocated
-  - ✅ Implemented for users
-  - ✅ Implemented for clients
-
 ## Medium Priority Minor and bugs 🐛
 
 - ✅ Lets check the tests (e.g. make test-unit, make test-smoke-containerized etc)
@@ -61,14 +51,32 @@
   - All unit tests (112/112) pass
   - Ready for production testing - logs will now show exactly where any error occurs
 
+- ✅ On a prod site, the orphaned report still keep blowing up.
+  - **ROOT CAUSE**: Database queries were loading ALL aliases/users/relays/relocated without limits
+  - On large production sites with 100k+ records, this exhausted memory before safety limit check
+  - **FIXED**: Added `MAX_RECORDS_PER_TABLE = 100,000` limit at database level
+  - Applied `.limit()` to all 5 table queries (aliases, users, alias_mails, relays, relocated)
+  - Added warning logs when limits are hit to inform admins
+  - Memory now capped at ~100k records per table instead of unlimited
+  - All 118 unit tests pass
+  - Ready for production testing 
+
 ## Low Priority Epics
 
-- ✅ Add html head title and description to all the pages. So that tabs can be distinguished when not wide E.g
-   - ✅ show domain could have: 'DOMAINNAME domain at DB db - Sorting Office' 
+- 🔧 For paged resources off option to change page size from default 20 to 10 or 50.
+  - ✅ Added pagination translation keys to all 7 locales (pagination-page-size, pagination-page-size-10/20/50)
+  - ✅ Updated domains list page with page size selector dropdown  
+  - ✅ Added page_size_label, page_size_10, page_size_20, page_size_50 fields to DomainsListTemplate
+  - ✅ Updated render_domain_list_page to include page size translations
+  - ✅ Page size selector in filters section with dropdown showing 10, 20, 50 items
+  - ✅ Selector preserves all query params (search, filters, etc) when changing
+  - ✅ All 118 unit tests pass ✅
+  - ✅ Applied to aliases list page
+  - Still TODO: Apply same to users, relays, relocated, clients list pages 
+
+- Can the paged size done above (of 10,20,50) be changed from a dropdown to a toggle like the all/enabled/disabled?
 
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
-
-- ✅ Can the orphaned report also check relays and relocated entries.
 
 - ✅ Add a remove domain wizard.
   - ✅ Created RemoveWizardStep enum with all steps
@@ -114,15 +122,14 @@
 
 ## Low Priority Minor and bugs 🐛 
 
-- ✅ In show backup domains, the disable/enable buttons for relays are not translated
-  - They use "Enable Alias" / "Disable Alias" but should say "Enable Relay" / "Disable Relay"
-  - **FIXED**: Added `relays-enable` and `relays-disable` keys to all 7 locales
-  - Updated handler to use relay-specific translation keys
-  - Buttons now correctly say "Enable Relay" / "Disable Relay" in all languages
+- On the list domains page, clicking to the next page of backup domains seems smooth, probably htmx? But clicking on the next page for domains seems to refresh the whole page?
 
-- ✅ Like in some of the reports, can the we add filters to the domain and backup domain lists? 
-   - ✅ enabled/disabled
-   - ✅ subdomain
+- ✅ show backup domain's relay list has 'disable relay' buttons. It should just be 'disable' or 'enable' like on show domain page. Check alias and users as well on that page.
+  - **FIXED**: Relay buttons now use generic "Enable"/"Disable" text instead of "Enable Relay"/"Disable Relay"
+  - Changed template to use `action_enable` and `action_disable` translation keys
+  - Updated template struct and handler to use new keys
+  - Checked aliases and users sections - they don't have action buttons, only view links
+  - All 118 unit tests pass ✅
 
 - ✅ In show alias, on the domain row, can we add a tiny icon if the domain is enabled or not
 

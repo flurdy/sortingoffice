@@ -3747,6 +3747,9 @@ pub fn clients_table_exists(pool: &DbPool) -> bool {
 
 // Additional report functions
 pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport, Error> {
+    // Safety limit: prevent loading too many records into memory
+    const MAX_RECORDS_PER_TABLE: i64 = 100_000;
+
     let mut conn = pool.get().map_err(|e| {
         tracing::error!(
             "Failed to get connection from pool for orphaned report: {:?}",
@@ -3788,7 +3791,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     tracing::debug!("Checking for orphaned aliases...");
 
     // Find aliases where the mail domain doesn't exist in the domains table
-    let mut orphaned_aliases: Vec<OrphanedAlias> = aliases::table
+    let aliases_loaded = aliases::table
         .select((
             aliases::pkid,
             aliases::mail,
@@ -3796,11 +3799,21 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             aliases::enabled,
         ))
         .order_by(aliases::mail.asc())
+        .limit(MAX_RECORDS_PER_TABLE)
         .load::<(i32, String, String, bool)>(&mut conn)
         .map_err(|e| {
             tracing::error!("Failed to load aliases for orphaned report: {:?}", e);
             e
-        })?
+        })?;
+
+    if aliases_loaded.len() as i64 >= MAX_RECORDS_PER_TABLE {
+        tracing::warn!(
+            "Orphaned aliases report: Hit limit of {} aliases. Some orphaned aliases may not be shown. Consider using filters.",
+            MAX_RECORDS_PER_TABLE
+        );
+    }
+
+    let mut orphaned_aliases: Vec<OrphanedAlias> = aliases_loaded
         .into_iter()
         .filter_map(|(id, mail, destination, enabled)| {
             // Extract the domain from the alias mail address
@@ -3831,14 +3844,24 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     tracing::debug!("Checking for orphaned users...");
 
     // Find users where the domain doesn't exist in the domains table
-    let mut orphaned_users: Vec<OrphanedUser> = users::table
+    let users_loaded = users::table
         .select((users::id, users::name, users::enabled))
         .order_by(users::id.asc())
+        .limit(MAX_RECORDS_PER_TABLE)
         .load::<(String, String, bool)>(&mut conn)
         .map_err(|e| {
             tracing::error!("Failed to load users for orphaned report: {:?}", e);
             e
-        })?
+        })?;
+
+    if users_loaded.len() as i64 >= MAX_RECORDS_PER_TABLE {
+        tracing::warn!(
+            "Orphaned users report: Hit limit of {} users. Some orphaned users may not be shown. Consider using filters.",
+            MAX_RECORDS_PER_TABLE
+        );
+    }
+
+    let mut orphaned_users: Vec<OrphanedUser> = users_loaded
         .into_iter()
         .filter_map(|(id, name, enabled)| {
             // Extract the domain from the user ID
@@ -3870,6 +3893,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
     // Find users who don't have a corresponding alias - optimize with a HashSet lookup
     let existing_alias_mails: HashSet<String> = aliases::table
         .select(aliases::mail)
+        .limit(MAX_RECORDS_PER_TABLE)
         .load::<String>(&mut conn)
         .map_err(|e| {
             tracing::error!("Failed to load alias mails for orphaned report: {:?}", e);
@@ -3878,9 +3902,10 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
         .into_iter()
         .collect();
 
-    let mut users_without_aliases: Vec<UserWithoutAlias> = users::table
+    let users_for_alias_check = users::table
         .select((users::id, users::name, users::enabled))
         .order_by(users::id.asc())
+        .limit(MAX_RECORDS_PER_TABLE)
         .load::<(String, String, bool)>(&mut conn)
         .map_err(|e| {
             tracing::error!(
@@ -3888,7 +3913,9 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 e
             );
             e
-        })?
+        })?;
+
+    let mut users_without_aliases: Vec<UserWithoutAlias> = users_for_alias_check
         .into_iter()
         .filter_map(|(id, name, enabled)| {
             // Check if there's an alias for this user
@@ -3906,7 +3933,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
             }
             None
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     // Sort by domain first, then by id
     users_without_aliases.sort_by(|a, b| a.domain.cmp(&b.domain).then_with(|| a.id.cmp(&b.id)));
@@ -3920,7 +3947,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
 
     // Find relays where the recipient domain doesn't exist in the domains table
     let mut orphaned_relays: Vec<OrphanedRelay> = if relays_table_exists(pool) {
-        relays::table
+        let relays_loaded = relays::table
             .select((
                 relays::pkid,
                 relays::recipient,
@@ -3928,11 +3955,21 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 relays::enabled,
             ))
             .order_by(relays::recipient.asc())
+            .limit(MAX_RECORDS_PER_TABLE)
             .load::<(i32, String, String, bool)>(&mut conn)
             .map_err(|e| {
                 tracing::error!("Failed to load relays for orphaned report: {:?}", e);
                 e
-            })?
+            })?;
+
+        if relays_loaded.len() as i64 >= MAX_RECORDS_PER_TABLE {
+            tracing::warn!(
+                "Orphaned relays report: Hit limit of {} relays. Some orphaned relays may not be shown. Consider using filters.",
+                MAX_RECORDS_PER_TABLE
+            );
+        }
+
+        relays_loaded
             .into_iter()
             .filter_map(|(id, recipient, status, enabled)| {
                 // Extract the domain from the relay recipient address
@@ -3971,7 +4008,7 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
 
     // Find relocated where the old_address domain doesn't exist in the domains table
     let mut orphaned_relocated: Vec<OrphanedRelocated> = if relocated_table_exists(pool) {
-        relocated::table
+        let relocated_loaded = relocated::table
             .select((
                 relocated::pkid,
                 relocated::old_address,
@@ -3979,11 +4016,21 @@ pub fn get_orphaned_aliases_report(pool: &DbPool) -> Result<OrphanedAliasReport,
                 relocated::enabled,
             ))
             .order_by(relocated::old_address.asc())
+            .limit(MAX_RECORDS_PER_TABLE)
             .load::<(i32, String, String, bool)>(&mut conn)
             .map_err(|e| {
                 tracing::error!("Failed to load relocated for orphaned report: {:?}", e);
                 e
-            })?
+            })?;
+
+        if relocated_loaded.len() as i64 >= MAX_RECORDS_PER_TABLE {
+            tracing::warn!(
+                "Orphaned relocated report: Hit limit of {} relocated. Some orphaned relocated may not be shown. Consider using filters.",
+                MAX_RECORDS_PER_TABLE
+            );
+        }
+
+        relocated_loaded
             .into_iter()
             .filter_map(|(id, old_address, new_address, enabled)| {
                 // Extract the domain from the relocated old_address
