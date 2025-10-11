@@ -41,3 +41,5 @@ resources/locales/*/*.bak.*
 /.envrc
 
 check.out
+
+*.tmp

@@ -36,6 +36,7 @@ pub struct AliasesListTemplate<'a> {
     pub page_size_10: &'a str,
     pub page_size_20: &'a str,
     pub page_size_50: &'a str,
+    pub status_filter_label: &'a str,
     // Search
     pub search_term: &'a str,
     // Database read-only status

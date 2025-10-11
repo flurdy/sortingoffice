@@ -1144,3 +1144,4 @@ pagination-page-size = Items per pagina
 pagination-page-size-10 = 10 items
 pagination-page-size-20 = 20 items
 pagination-page-size-50 = 50 items
+pagination-status-filter = Status

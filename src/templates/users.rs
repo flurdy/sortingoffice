@@ -32,6 +32,7 @@ pub struct UsersListTemplate {
     pub page_size_10: String,
     pub page_size_20: String,
     pub page_size_50: String,
+    pub status_filter_label: String,
     // Filter controls
     pub enabled_filter: String,
     pub filter_all_label: String,

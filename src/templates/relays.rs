@@ -31,6 +31,11 @@ pub struct RelayListTemplate<'a> {
     pub pagination_results: &'a str,
     pub pagination_previous: &'a str,
     pub pagination_next: &'a str,
+    pub page_size_label: &'a str,
+    pub page_size_10: &'a str,
+    pub page_size_20: &'a str,
+    pub page_size_50: &'a str,
+    pub status_filter_label: &'a str,
     // Filter controls
     pub enabled_filter: &'a str,
     pub filter_all_label: &'a str,

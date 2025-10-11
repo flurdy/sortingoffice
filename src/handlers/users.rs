@@ -61,7 +61,8 @@ async fn build_user_list_template(
     let page_size_10 = get_translation(state, locale, "pagination-page-size-10").await;
     let page_size_20 = get_translation(state, locale, "pagination-page-size-20").await;
     let page_size_50 = get_translation(state, locale, "pagination-page-size-50").await;
-    
+    let status_filter_label = get_translation(state, locale, "pagination-status-filter").await;
+
     let page_range: Vec<i64> = (1..=pagination.total_pages).collect();
     let max_item = std::cmp::min(
         pagination.current_page * pagination.per_page,
@@ -97,6 +98,7 @@ async fn build_user_list_template(
         page_size_10,
         page_size_20,
         page_size_50,
+        status_filter_label,
         enabled_filter: "all".to_string(),
         filter_all_label: get_translation(state, locale, "users-filter-all").await,
         filter_enabled_label: get_translation(state, locale, "users-filter-enabled").await,

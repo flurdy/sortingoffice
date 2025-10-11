@@ -280,6 +280,8 @@ pub async fn render_domain_list_page(
     let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
     let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
     let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -338,6 +340,7 @@ pub async fn render_domain_list_page(
         page_size_10: &page_size_10,
         page_size_20: &page_size_20,
         page_size_50: &page_size_50,
+        status_filter_label: &status_filter_label,
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
@@ -427,6 +430,8 @@ pub async fn render_alias_list_page(
     let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
     let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
     let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -466,6 +471,7 @@ pub async fn render_alias_list_page(
         page_size_10: &page_size_10,
         page_size_20: &page_size_20,
         page_size_50: &page_size_50,
+        status_filter_label: &status_filter_label,
         search_term: search.unwrap_or(""),
         current_db_read_only: state.config.is_database_read_only(&current_db_id),
         read_only_tooltip: &crate::i18n::get_translation(state, locale, "read-only-tooltip").await,
@@ -686,6 +692,12 @@ pub async fn render_relay_list_page(
     let pagination_previous =
         crate::i18n::get_translation(state, locale, "pagination-previous").await;
     let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -721,6 +733,11 @@ pub async fn render_relay_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        page_size_label: &page_size_label,
+        page_size_10: &page_size_10,
+        page_size_20: &page_size_20,
+        page_size_50: &page_size_50,
+        status_filter_label: &status_filter_label,
         enabled_filter,
         filter_all_label: &crate::i18n::get_translation(state, locale, "relays-filter-all").await,
         filter_enabled_label: &crate::i18n::get_translation(state, locale, "relays-filter-enabled")
@@ -1568,14 +1585,12 @@ pub async fn render_user_list_page(
     let pagination_of = crate::i18n::get_translation(state, locale, "pagination-of").await;
     let pagination_results =
         crate::i18n::get_translation(state, locale, "pagination-results").await;
-    let page_size_label =
-        crate::i18n::get_translation(state, locale, "pagination-page-size").await;
-    let page_size_10 =
-        crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
-    let page_size_20 =
-        crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
-    let page_size_50 =
-        crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -1612,6 +1627,7 @@ pub async fn render_user_list_page(
         page_size_10,
         page_size_20,
         page_size_50,
+        status_filter_label,
         enabled_filter: enabled_filter.to_string(),
         filter_all_label: crate::i18n::get_translation(state, locale, "users-filter-all").await,
         filter_enabled_label: crate::i18n::get_translation(state, locale, "users-filter-enabled")
@@ -1860,6 +1876,12 @@ pub async fn render_client_list_page(
     let pagination_previous =
         crate::i18n::get_translation(state, locale, "pagination-previous").await;
     let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -1896,6 +1918,11 @@ pub async fn render_client_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        page_size_label: &page_size_label,
+        page_size_10: &page_size_10,
+        page_size_20: &page_size_20,
+        page_size_50: &page_size_50,
+        status_filter_label: &status_filter_label,
         enabled_filter,
         filter_all_label: &crate::i18n::get_translation(state, locale, "clients-filter-all").await,
         filter_enabled_label: &crate::i18n::get_translation(
@@ -2096,6 +2123,12 @@ pub async fn render_relocated_list_page(
     let pagination_previous =
         crate::i18n::get_translation(state, locale, "pagination-previous").await;
     let pagination_next = crate::i18n::get_translation(state, locale, "pagination-next").await;
+    let page_size_label = crate::i18n::get_translation(state, locale, "pagination-page-size").await;
+    let page_size_10 = crate::i18n::get_translation(state, locale, "pagination-page-size-10").await;
+    let page_size_20 = crate::i18n::get_translation(state, locale, "pagination-page-size-20").await;
+    let page_size_50 = crate::i18n::get_translation(state, locale, "pagination-page-size-50").await;
+    let status_filter_label =
+        crate::i18n::get_translation(state, locale, "pagination-status-filter").await;
 
     let page_range: Vec<i64> = (1..=paginated.total_pages).collect();
     let max_item = std::cmp::min(
@@ -2129,6 +2162,11 @@ pub async fn render_relocated_list_page(
         pagination_results: &pagination_results,
         pagination_previous: &pagination_previous,
         pagination_next: &pagination_next,
+        page_size_label: &page_size_label,
+        page_size_10: &page_size_10,
+        page_size_20: &page_size_20,
+        page_size_50: &page_size_50,
+        status_filter_label: &status_filter_label,
         enabled_filter,
         filter_all_label: &crate::i18n::get_translation(state, locale, "relocated-filter-all")
             .await,

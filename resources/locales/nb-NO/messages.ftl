@@ -1181,3 +1181,4 @@ pagination-page-size = Elementer per side
 pagination-page-size-10 = 10 elementer
 pagination-page-size-20 = 20 elementer
 pagination-page-size-50 = 50 elementer
+pagination-status-filter = Status

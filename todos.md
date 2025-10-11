@@ -63,18 +63,23 @@
 
 ## Low Priority Epics
 
-- 🔧 For paged resources off option to change page size from default 20 to 10 or 50.
+- ✅ For paged resources off option to change page size from default 20 to 10 or 50.
   - ✅ Added pagination translation keys to all 7 locales (pagination-page-size, pagination-page-size-10/20/50)
-  - ✅ Updated domains list page with page size selector dropdown  
-  - ✅ Added page_size_label, page_size_10, page_size_20, page_size_50 fields to DomainsListTemplate
-  - ✅ Updated render_domain_list_page to include page size translations
-  - ✅ Page size selector in filters section with dropdown showing 10, 20, 50 items
-  - ✅ Selector preserves all query params (search, filters, etc) when changing
+  - ✅ Added page size selector to ALL 6 resource list pages
+  - ✅ **UPDATED**: Changed from dropdown to radio toggle for consistency
+  - ✅ Domains list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Aliases list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Users list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Relays list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Relocated list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Clients list page - 3-button toggle: 10 | 20 | 50
+  - ✅ Updated all 6 template structs with page size translation fields
+  - ✅ Updated all 6 rendering functions to fetch and pass translations
+  - ✅ Toggle preserves all query params (search, filters, etc) when changing
+  - ✅ Toggle appears in filters section next to enabled/disabled toggle
+  - ✅ Uses same radio-toggle CSS as enabled/disabled filter for consistency
   - ✅ All 118 unit tests pass ✅
-  - ✅ Applied to aliases list page
-  - Still TODO: Apply same to users, relays, relocated, clients list pages 
-
-- Can the paged size done above (of 10,20,50) be changed from a dropdown to a toggle like the all/enabled/disabled?
+  - ✅ Code formatted and compiled successfully
 
 - ✅ In show alias, at the bottom replicate the Alias across domains report for that alias
 
