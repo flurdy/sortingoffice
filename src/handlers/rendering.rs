@@ -2739,7 +2739,7 @@ pub async fn render_wizard_complete_page(
 
 pub async fn render_remove_domain_selection_page(
     state: &AppState,
-    _locale: &str,
+    locale: &str,
     headers: &HeaderMap,
     error_message: &str,
 ) -> Html<String> {
@@ -2761,40 +2761,54 @@ pub async fn render_remove_domain_selection_page(
     all_domain_names.sort();
     all_domain_names.dedup();
 
-    // For now, return a simple HTML page
-    // TODO: Create proper template
-    Html(format!(
-        r#"<html><body>
-        <h1>Remove Domain Wizard</h1>
-        <p>Select a domain to remove</p>
-        {}
-        <form method="POST" action="/remove-wizard/domain-selection">
-            <label>Domain: 
-                <select name="domain_name">
-                    {}
-                </select>
-            </label>
-            <button type="submit">Next</button>
-        </form>
-        </body></html>"#,
-        if !error_message.is_empty() {
-            format!("<p style='color:red'>{}</p>", error_message)
-        } else {
-            String::new()
-        },
-        all_domain_names
-            .iter()
-            .map(|d| format!("<option value='{}'>{}</option>", d, d))
-            .collect::<Vec<_>>()
-            .join("")
-    ))
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
+
+    // Fetch all required translations
+    let title = crate::i18n::get_translation(state, locale, "remove-wizard-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-description").await;
+    let domain_label =
+        crate::i18n::get_translation(state, locale, "remove-wizard-domain-label").await;
+    let domain_placeholder =
+        crate::i18n::get_translation(state, locale, "remove-wizard-domain-placeholder").await;
+    let domain_description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-domain-description").await;
+    let warning_message =
+        crate::i18n::get_translation(state, locale, "remove-wizard-warning").await;
+    let next_button = crate::i18n::get_translation(state, locale, "remove-wizard-next").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "remove-wizard-cancel").await;
+    let read_only_database =
+        crate::i18n::get_translation(state, locale, "database-read-only-short").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "database-read-only-tooltip").await;
+
+    let content_template = crate::templates::wizard::RemoveDomainSelectionTemplate {
+        title: &title,
+        description: &description,
+        error: error_message,
+        domain_names: &all_domain_names,
+        domain_label: &domain_label,
+        domain_placeholder: &domain_placeholder,
+        domain_description: &domain_description,
+        warning_message: &warning_message,
+        next_button: &next_button,
+        cancel_button: &cancel_button,
+        current_db_read_only,
+        read_only_database: &read_only_database,
+        read_only_tooltip: &read_only_tooltip,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_remove_domain_review_affected_page(
     session: &crate::models::RemoveDomainSession,
-    _state: &AppState,
-    _locale: &str,
-    _headers: &HeaderMap,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
 ) -> Html<String> {
     let domain = session
         .domain
@@ -2802,44 +2816,90 @@ pub async fn render_remove_domain_review_affected_page(
         .map(|d| d.domain.as_str())
         .unwrap_or("Unknown");
 
-    Html(format!(
-        r#"<html><body>
-        <h1>Remove Domain Wizard - Review Affected Resources</h1>
-        <p>Domain: {} ({})</p>
-        <p>The following resources will be affected:</p>
-        <ul>
-            <li>Aliases: {}</li>
-            <li>Users: {}</li>
-            <li>Relays: {}</li>
-            <li>Relocated: {}</li>
-        </ul>
-        <p>Orphaned aliases (will NOT be deleted): {}</p>
-        <p>Cross-database presence: {}</p>
-        <form method="POST" action="/remove-wizard/disable-resources">
-            <input type="hidden" name="confirmed" value="true" />
-            <button type="submit">Disable All Resources</button>
-        </form>
-        </body></html>"#,
-        domain,
-        if session.is_backup {
-            "Backup Domain"
-        } else {
-            "Primary Domain"
-        },
-        session.affected_aliases.len(),
-        session.affected_users.len(),
-        session.affected_relays.len(),
-        session.affected_relocated.len(),
-        session.orphaned_aliases.len(),
-        session.cross_db_domains.join(", ")
-    ))
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
+
+    // Fetch all required translations
+    let title =
+        crate::i18n::get_translation(state, locale, "remove-wizard-review-affected-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-review-affected-description")
+            .await;
+    let domain_type = if session.is_backup {
+        "Backup Domain"
+    } else {
+        "Primary Domain"
+    };
+    let affected_resources_title =
+        crate::i18n::get_translation(state, locale, "remove-wizard-affected-resources").await;
+    let orphaned_aliases_warning =
+        crate::i18n::get_translation(state, locale, "remove-wizard-orphaned-warning").await;
+    let cross_db_warning =
+        crate::i18n::get_translation(state, locale, "remove-wizard-cross-db-warning").await;
+    let resource_label_aliases =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-aliases").await;
+    let resource_label_users =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-users").await;
+    let resource_label_relays =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relays").await;
+    let resource_label_relocated =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relocated").await;
+    let table_header_alias =
+        crate::i18n::get_translation(state, locale, "domains-mail-header").await;
+    let table_header_destination =
+        crate::i18n::get_translation(state, locale, "domains-destination-header").await;
+    let table_header_status = crate::i18n::get_translation(state, locale, "status-header").await;
+    let status_enabled = crate::i18n::get_translation(state, locale, "status-enabled").await;
+    let status_disabled = crate::i18n::get_translation(state, locale, "status-disabled").await;
+    let disable_button =
+        crate::i18n::get_translation(state, locale, "remove-wizard-disable-all").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "remove-wizard-cancel").await;
+    let read_only_database =
+        crate::i18n::get_translation(state, locale, "database-read-only-short").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "database-read-only-tooltip").await;
+
+    let content_template = crate::templates::wizard::RemoveReviewAffectedTemplate {
+        title: &title,
+        description: &description,
+        domain_name: domain,
+        domain_type,
+        affected_resources_title: &affected_resources_title,
+        aliases_count: session.affected_aliases.len(),
+        users_count: session.affected_users.len(),
+        relays_count: session.affected_relays.len(),
+        relocated_count: session.affected_relocated.len(),
+        orphaned_aliases_warning: &orphaned_aliases_warning,
+        orphaned_aliases_count: session.orphaned_aliases.len(),
+        orphaned_aliases: &session.orphaned_aliases,
+        cross_db_warning: &cross_db_warning,
+        cross_db_domains: &session.cross_db_domains,
+        resource_label_aliases: &resource_label_aliases,
+        resource_label_users: &resource_label_users,
+        resource_label_relays: &resource_label_relays,
+        resource_label_relocated: &resource_label_relocated,
+        table_header_alias: &table_header_alias,
+        table_header_destination: &table_header_destination,
+        table_header_status: &table_header_status,
+        status_enabled: &status_enabled,
+        status_disabled: &status_disabled,
+        disable_button: &disable_button,
+        cancel_button: &cancel_button,
+        current_db_read_only,
+        read_only_database: &read_only_database,
+        read_only_tooltip: &read_only_tooltip,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_remove_domain_review_disabled_page(
     session: &crate::models::RemoveDomainSession,
-    _state: &AppState,
-    _locale: &str,
-    _headers: &HeaderMap,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
 ) -> Html<String> {
     let domain = session
         .domain
@@ -2847,38 +2907,60 @@ pub async fn render_remove_domain_review_disabled_page(
         .map(|d| d.domain.as_str())
         .unwrap_or("Unknown");
 
-    Html(format!(
-        r#"<html><body>
-        <h1>Remove Domain Wizard - Resources Disabled</h1>
-        <p>Domain: {}</p>
-        <p>Successfully disabled:</p>
-        <ul>
-            <li>Domain: {}</li>
-            <li>Aliases: {}</li>
-            <li>Users: {}</li>
-            <li>Relays: {}</li>
-            <li>Relocated: {}</li>
-        </ul>
-        <p>You can now proceed to permanently delete these resources, or cancel and manually review.</p>
-        <form method="GET" action="/remove-wizard/confirm-delete">
-            <button type="submit">Proceed to Deletion</button>
-        </form>
-        <a href="/domains">Cancel</a>
-        </body></html>"#,
-        domain,
-        session.disabled_count.domain,
-        session.disabled_count.aliases,
-        session.disabled_count.users,
-        session.disabled_count.relays,
-        session.disabled_count.relocated
-    ))
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
+
+    // Fetch all required translations
+    let title =
+        crate::i18n::get_translation(state, locale, "remove-wizard-review-disabled-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-review-disabled-description")
+            .await;
+    let resource_label_domain =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-domain").await;
+    let resource_label_aliases =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-aliases").await;
+    let resource_label_users =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-users").await;
+    let resource_label_relays =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relays").await;
+    let resource_label_relocated =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relocated").await;
+    let proceed_button =
+        crate::i18n::get_translation(state, locale, "remove-wizard-proceed-to-delete").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "remove-wizard-cancel").await;
+    let read_only_database =
+        crate::i18n::get_translation(state, locale, "database-read-only-short").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "database-read-only-tooltip").await;
+
+    let content_template = crate::templates::wizard::RemoveReviewDisabledTemplate {
+        title: &title,
+        description: &description,
+        domain_name: domain,
+        disabled_count: &session.disabled_count,
+        resource_label_domain: &resource_label_domain,
+        resource_label_aliases: &resource_label_aliases,
+        resource_label_users: &resource_label_users,
+        resource_label_relays: &resource_label_relays,
+        resource_label_relocated: &resource_label_relocated,
+        proceed_button: &proceed_button,
+        cancel_button: &cancel_button,
+        current_db_read_only,
+        read_only_database: &read_only_database,
+        read_only_tooltip: &read_only_tooltip,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_remove_domain_confirm_delete_page(
     session: &crate::models::RemoveDomainSession,
-    _state: &AppState,
-    _locale: &str,
-    _headers: &HeaderMap,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
 ) -> Html<String> {
     let domain = session
         .domain
@@ -2886,40 +2968,74 @@ pub async fn render_remove_domain_confirm_delete_page(
         .map(|d| d.domain.as_str())
         .unwrap_or("Unknown");
 
-    Html(format!(
-        r#"<html><body>
-        <h1>Remove Domain Wizard - Confirm Deletion</h1>
-        <p style="color: red; font-weight: bold;">⚠️ WARNING: This action cannot be undone!</p>
-        <p>Domain: {}</p>
-        <p>The following resources will be PERMANENTLY DELETED:</p>
-        <ul>
-            <li>Domain/Backup: 1</li>
-            <li>Aliases: {}</li>
-            <li>Users: {}</li>
-            <li>Relays: {}</li>
-            <li>Relocated: {}</li>
-        </ul>
-        <p>Orphaned aliases (will NOT be deleted): {}</p>
-        <form method="POST" action="/remove-wizard/execute-deletion">
-            <input type="hidden" name="confirmed" value="true" />
-            <button type="submit" style="background: red; color: white;">DELETE ALL RESOURCES</button>
-        </form>
-        <a href="/domains">Cancel</a>
-        </body></html>"#,
-        domain,
-        session.affected_aliases.len(),
-        session.affected_users.len(),
-        session.affected_relays.len(),
-        session.affected_relocated.len(),
-        session.orphaned_aliases.len()
-    ))
+    // Get current database ID
+    let current_db_id = crate::handlers::auth::get_selected_database(headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let current_db_read_only = state.config.is_database_read_only(&current_db_id);
+
+    // Fetch all required translations
+    let title =
+        crate::i18n::get_translation(state, locale, "remove-wizard-confirm-delete-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-confirm-delete-description")
+            .await;
+    let warning_message =
+        crate::i18n::get_translation(state, locale, "remove-wizard-warning-final").await;
+    let resources_to_delete_title =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resources-to-delete").await;
+    let resource_label_domain =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-domain").await;
+    let resource_label_aliases =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-aliases").await;
+    let resource_label_users =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-users").await;
+    let resource_label_relays =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relays").await;
+    let resource_label_relocated =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relocated").await;
+    let orphaned_aliases_reminder =
+        crate::i18n::get_translation(state, locale, "remove-wizard-orphaned-reminder").await;
+    let delete_button =
+        crate::i18n::get_translation(state, locale, "remove-wizard-delete-all").await;
+    let cancel_button = crate::i18n::get_translation(state, locale, "remove-wizard-cancel").await;
+    let read_only_database =
+        crate::i18n::get_translation(state, locale, "database-read-only-short").await;
+    let read_only_tooltip =
+        crate::i18n::get_translation(state, locale, "database-read-only-tooltip").await;
+
+    let content_template = crate::templates::wizard::RemoveConfirmDeleteTemplate {
+        title: &title,
+        description: &description,
+        warning_message: &warning_message,
+        domain_name: domain,
+        resources_to_delete_title: &resources_to_delete_title,
+        domain_count: 1,
+        aliases_count: session.affected_aliases.len(),
+        users_count: session.affected_users.len(),
+        relays_count: session.affected_relays.len(),
+        relocated_count: session.affected_relocated.len(),
+        orphaned_aliases_reminder: &orphaned_aliases_reminder,
+        orphaned_aliases_count: session.orphaned_aliases.len(),
+        resource_label_domain: &resource_label_domain,
+        resource_label_aliases: &resource_label_aliases,
+        resource_label_users: &resource_label_users,
+        resource_label_relays: &resource_label_relays,
+        resource_label_relocated: &resource_label_relocated,
+        delete_button: &delete_button,
+        cancel_button: &cancel_button,
+        current_db_read_only,
+        read_only_database: &read_only_database,
+        read_only_tooltip: &read_only_tooltip,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }
 
 pub async fn render_remove_domain_complete_page(
     session: &crate::models::RemoveDomainSession,
-    _state: &AppState,
-    _locale: &str,
-    _headers: &HeaderMap,
+    state: &AppState,
+    locale: &str,
+    headers: &HeaderMap,
 ) -> Html<String> {
     let domain = session
         .domain
@@ -2927,34 +3043,45 @@ pub async fn render_remove_domain_complete_page(
         .map(|d| d.domain.as_str())
         .unwrap_or("Unknown");
 
-    Html(format!(
-        r#"<html><body>
-        <h1>Remove Domain Wizard - Complete</h1>
-        <p>Domain {} has been successfully removed!</p>
-        <p>Deleted resources:</p>
-        <ul>
-            <li>Domain: {}</li>
-            <li>Aliases: {}</li>
-            <li>Users: {}</li>
-            <li>Relays: {}</li>
-            <li>Relocated: {}</li>
-        </ul>
-        {}
-        <a href="/domains">Back to Domains</a>
-        </body></html>"#,
-        domain,
-        session.deleted_count.domain,
-        session.deleted_count.aliases,
-        session.deleted_count.users,
-        session.deleted_count.relays,
-        session.deleted_count.relocated,
-        if !session.cross_db_domains.is_empty() {
-            format!(
-                "<p>Note: This domain still exists in other databases: {}</p>",
-                session.cross_db_domains.join(", ")
-            )
-        } else {
-            String::new()
-        }
-    ))
+    // Fetch all required translations
+    let title = crate::i18n::get_translation(state, locale, "remove-wizard-complete-title").await;
+    let description =
+        crate::i18n::get_translation(state, locale, "remove-wizard-complete-description").await;
+    let success_message =
+        crate::i18n::get_translation(state, locale, "remove-wizard-success").await;
+    let cross_db_warning =
+        crate::i18n::get_translation(state, locale, "remove-wizard-cross-db-note").await;
+    let resource_label_domain =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-domain").await;
+    let resource_label_aliases =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-aliases").await;
+    let resource_label_users =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-users").await;
+    let resource_label_relays =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relays").await;
+    let resource_label_relocated =
+        crate::i18n::get_translation(state, locale, "remove-wizard-resource-relocated").await;
+    let back_to_domains_button =
+        crate::i18n::get_translation(state, locale, "remove-wizard-back-to-domains").await;
+    let remove_another_button =
+        crate::i18n::get_translation(state, locale, "remove-wizard-remove-another").await;
+
+    let content_template = crate::templates::wizard::RemoveCompleteTemplate {
+        title: &title,
+        description: &description,
+        success_message: &success_message,
+        domain_name: domain,
+        deleted_count: &session.deleted_count,
+        cross_db_warning: &cross_db_warning,
+        cross_db_domains: &session.cross_db_domains,
+        resource_label_domain: &resource_label_domain,
+        resource_label_aliases: &resource_label_aliases,
+        resource_label_users: &resource_label_users,
+        resource_label_relays: &resource_label_relays,
+        resource_label_relocated: &resource_label_relocated,
+        back_to_domains_button: &back_to_domains_button,
+        remove_another_button: &remove_another_button,
+    };
+
+    render_form_template(content_template, state, locale, headers, title.clone()).await
 }

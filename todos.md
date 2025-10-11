@@ -88,10 +88,23 @@
   - ✅ Added `nav-remove-wizard` translation key to all 7 locales
   - ✅ Added navigation link to wizard in sidebar with trash icon
   - ✅ Added 38 translation keys for wizard pages in English (en-US)
-  - 🔧 Need to translate wizard keys to other 6 languages
-  - 🔧 Need to upgrade rendering functions to use proper Askama templates instead of raw HTML
-  - 🔧 Need to create proper template for review_affected page
-  - 🔧 Add tests for wizard flow
+  - ✅ Translated wizard keys to all 6 other languages (de-DE, es-ES, fr-FR, it-IT, nb-NO, nl-NL)
+  - ✅ All 7 locales now have complete Remove Wizard translations
+  - ✅ Upgraded ALL rendering functions to use proper Askama templates with full i18n
+  - ✅ Selection page uses RemoveDomainSelectionTemplate with all translations
+  - ✅ Review Affected page uses RemoveReviewAffectedTemplate with all translations
+  - ✅ Review Disabled page uses RemoveReviewDisabledTemplate with all translations
+  - ✅ Confirm Delete page uses RemoveConfirmDeleteTemplate with all translations
+  - ✅ Complete page uses RemoveCompleteTemplate with all translations
+  - ✅ All 5 HTML templates created with modern UI matching app style
+  - ✅ Orphaned aliases shown in proper table with clickable links to alias details
+  - ✅ Table shows alias mail, destination, and enabled/disabled status
+  - ✅ **FIXED**: Orphaned list now correctly excludes aliases that will be deleted (have domain in mail field)
+  - ✅ Only shows aliases with domain in destination field that won't be deleted
+  - ✅ **FIXED**: Cross-database list now correctly excludes current database
+  - ✅ Only shows OTHER databases where this domain exists
+  - ✅ All 112 unit tests pass
+  - 🔧 Add integration/UI tests for wizard flow
   - Remember to use htmx where suitable
   - Remember same style as the rest of the app
   - Remember this is a multi DB app but the removal is from one db per wizard flow

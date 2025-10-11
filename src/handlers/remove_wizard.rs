@@ -142,10 +142,20 @@ pub async fn submit_domain_selection(
     let affected_users = get_users_for_domain(&pool, &domain.domain).await;
     let affected_relays = get_relays_for_domain(&pool, &domain.domain).await;
     let affected_relocated = get_relocated_for_domain(&pool, &domain.domain).await;
-    let orphaned_aliases = get_aliases_with_domain_in_destination(&pool, &domain.domain).await;
 
-    // Get cross-database domain information
-    let cross_db_domains = get_cross_db_domain_list(&state, &domain.domain).await;
+    // Get aliases with domain in destination field, but exclude those that will be deleted
+    let all_orphaned_aliases = get_aliases_with_domain_in_destination(&pool, &domain.domain).await;
+    let affected_alias_ids: std::collections::HashSet<i32> =
+        affected_aliases.iter().map(|a| a.pkid).collect();
+    let orphaned_aliases: Vec<crate::models::Alias> = all_orphaned_aliases
+        .into_iter()
+        .filter(|alias| !affected_alias_ids.contains(&alias.pkid))
+        .collect();
+
+    // Get cross-database domain information (excluding current database)
+    let current_db_id = crate::handlers::auth::get_selected_database(&headers)
+        .unwrap_or_else(|| state.db_manager.get_default_db_id().to_string());
+    let cross_db_domains = get_cross_db_domain_list(&state, &domain.domain, &current_db_id).await;
 
     info!(
         "Found {} aliases, {} users, {} relays, {} relocated for domain {}",
@@ -295,12 +305,21 @@ async fn get_aliases_with_domain_in_destination(pool: &DbPool, domain: &str) -> 
         .unwrap_or_default()
 }
 
-/// Helper function to get list of other DBs where this domain exists
-async fn get_cross_db_domain_list(state: &AppState, domain_name: &str) -> Vec<String> {
+/// Helper function to get list of other DBs where this domain exists (excluding current DB)
+async fn get_cross_db_domain_list(
+    state: &AppState,
+    domain_name: &str,
+    current_db_id: &str,
+) -> Vec<String> {
     let configs = state.db_manager.get_configs();
     let mut db_list = Vec::new();
 
     for config in configs {
+        // Skip the current database
+        if config.id == current_db_id {
+            continue;
+        }
+
         if let Some(pool) = state.db_manager.get_pool(&config.id).await {
             // Check primary domains
             if db::get_domain_by_name(&pool, domain_name).is_ok() {

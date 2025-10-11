@@ -442,6 +442,44 @@ relays-create-relay = Créer le Relais
 relays-enable = Activer le Relais
 relays-disable = Désactiver le Relais
 relays-back-to-list = Retour aux Relais
+
+# Remove Domain Wizard
+remove-wizard-title = Assistant de Suppression de Domaine
+remove-wizard-description = Supprimer définitivement un domaine et toutes les ressources associées
+remove-wizard-domain-label = Sélectionner le Domaine à Supprimer
+remove-wizard-domain-placeholder = Choisir un domaine...
+remove-wizard-domain-description = Sélectionnez le domaine que vous souhaitez supprimer définitivement de cette base de données
+remove-wizard-warning = Cet assistant désactivera d'abord toutes les ressources, puis les supprimera définitivement. Cette action ne peut pas être annulée.
+remove-wizard-next = Continuer
+remove-wizard-cancel = Annuler
+remove-wizard-review-affected-title = Examiner les Ressources Affectées
+remove-wizard-review-affected-description = Examiner toutes les ressources qui seront désactivées et supprimées
+remove-wizard-affected-resources = Ressources qui seront affectées
+remove-wizard-orphaned-warning = Alias qui deviendront orphelins
+remove-wizard-cross-db-warning = Ce domaine existe dans d'autres bases de données
+remove-wizard-disable-all = Désactiver Toutes les Ressources
+remove-wizard-review-disabled-title = Ressources Désactivées
+remove-wizard-review-disabled-description = Toutes les ressources ont été désactivées. Vous pouvez maintenant procéder à la suppression ou annuler.
+remove-wizard-proceed-to-delete = Procéder à la Suppression
+remove-wizard-confirm-delete-title = Confirmer la Suppression
+remove-wizard-confirm-delete-description = Confirmation finale avant la suppression permanente
+remove-wizard-warning-final = ⚠️ AVERTISSEMENT: Cette action ne peut pas être annulée!
+remove-wizard-resources-to-delete = Ressources à supprimer définitivement
+remove-wizard-orphaned-reminder = Les alias orphelins NE seront PAS supprimés
+remove-wizard-delete-all = SUPPRIMER TOUTES LES RESSOURCES
+remove-wizard-complete-title = Domaine Supprimé avec Succès
+remove-wizard-complete-description = Le domaine et toutes les ressources associées ont été supprimés définitivement
+remove-wizard-success = Domaine supprimé avec succès
+remove-wizard-deleted-resources = Ressources Supprimées
+remove-wizard-cross-db-note = Ce domaine existe toujours dans d'autres bases de données
+remove-wizard-back-to-domains = Retour aux Domaines
+remove-wizard-remove-another = Supprimer un Autre Domaine
+remove-wizard-resource-domain = Domaine
+remove-wizard-resource-aliases = Alias
+remove-wizard-resource-users = Utilisateurs
+remove-wizard-resource-relays = Relais
+remove-wizard-resource-relocated = Réacheminés
+
 # Relocated
 relocated-title = Réacheminés
 relocated-filter-all = Tous

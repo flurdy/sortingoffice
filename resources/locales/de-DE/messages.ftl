@@ -967,6 +967,43 @@ duplicate-wizard-destination-label = Ziel
 duplicate-wizard-view-domain-button = Neue Domain anzeigen
 duplicate-wizard-back-to-domains-button = Zurück zu Domains
 duplicate-wizard-duplicate-another-button = Weitere duplizieren
+
+# Remove Domain Wizard
+remove-wizard-title = Domain entfernen Assistent
+remove-wizard-description = Domain und alle zugehörigen Ressourcen permanent entfernen
+remove-wizard-domain-label = Zu entfernende Domain auswählen
+remove-wizard-domain-placeholder = Domain auswählen...
+remove-wizard-domain-description = Wählen Sie die Domain aus, die Sie permanent aus dieser Datenbank entfernen möchten
+remove-wizard-warning = Dieser Assistent deaktiviert zunächst alle Ressourcen und löscht sie dann permanent. Diese Aktion kann nicht rückgängig gemacht werden.
+remove-wizard-next = Weiter
+remove-wizard-cancel = Abbrechen
+remove-wizard-review-affected-title = Betroffene Ressourcen überprüfen
+remove-wizard-review-affected-description = Überprüfen Sie alle Ressourcen, die deaktiviert und gelöscht werden
+remove-wizard-affected-resources = Betroffene Ressourcen
+remove-wizard-orphaned-warning = Aliases, die verwaist werden
+remove-wizard-cross-db-warning = Diese Domain existiert in anderen Datenbanken
+remove-wizard-disable-all = Alle Ressourcen deaktivieren
+remove-wizard-review-disabled-title = Ressourcen deaktiviert
+remove-wizard-review-disabled-description = Alle Ressourcen wurden deaktiviert. Sie können nun mit der Löschung fortfahren oder abbrechen.
+remove-wizard-proceed-to-delete = Zur Löschung fortfahren
+remove-wizard-confirm-delete-title = Löschung bestätigen
+remove-wizard-confirm-delete-description = Letzte Bestätigung vor permanenter Löschung
+remove-wizard-warning-final = ⚠️ WARNUNG: Diese Aktion kann nicht rückgängig gemacht werden!
+remove-wizard-resources-to-delete = Ressourcen, die permanent gelöscht werden
+remove-wizard-orphaned-reminder = Verwaiste Aliases werden NICHT gelöscht
+remove-wizard-delete-all = ALLE RESSOURCEN LÖSCHEN
+remove-wizard-complete-title = Domain erfolgreich entfernt
+remove-wizard-complete-description = Die Domain und alle zugehörigen Ressourcen wurden permanent entfernt
+remove-wizard-success = Domain erfolgreich entfernt
+remove-wizard-deleted-resources = Gelöschte Ressourcen
+remove-wizard-cross-db-note = Diese Domain existiert noch in anderen Datenbanken
+remove-wizard-back-to-domains = Zurück zu Domains
+remove-wizard-remove-another = Weitere Domain entfernen
+remove-wizard-resource-domain = Domain
+remove-wizard-resource-aliases = Aliases
+remove-wizard-resource-users = Benutzer
+remove-wizard-resource-relays = Relays
+remove-wizard-resource-relocated = Weiterleitungen
 # Error Messages
 error-duplicate-domain = Eine Domain mit diesem Namen existiert bereits
 # Miscellaneous
